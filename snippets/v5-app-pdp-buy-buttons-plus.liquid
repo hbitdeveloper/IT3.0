@@ -1137,6 +1137,8 @@
               })
             } else {
               {% comment %}  只要状态码是以2或者3开始的，才是真正的获取成功 {% endcomment %}
+              // 物自体：加购成功后逐件上报 nm_add_cart（拿不到 product_id / quantity 的那件就不报）
+              r.clone().json().then((d) => { (d?.items ?? []).forEach((l) => { if (l?.product_id && Number.isInteger(l.quantity) && l.quantity >= 1) window.__nm?.getCartAttributes({ path: 'ajax', item_id: String(l.product_id), ...(l.variant_id ? { variant_id: String(l.variant_id) } : {}), qty: l.quantity }); }); }).catch(() => {});
 
               if(this.cart) {
                 this.cart.renderContents(r)
