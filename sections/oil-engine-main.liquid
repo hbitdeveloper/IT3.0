@@ -1,0 +1,343 @@
+{% style %}
+/* 日站特定适配，覆盖全局固定行高设置 */
+html[lang='ja'] .product-list .slideshow-navigation-button{
+    line-height: 1 !important;
+}
+body .product-list .slideshow-navigation-button {
+    z-index: 9;
+}
+
+body .product-list .slideshow-navigation-button .iconfont {
+    font-size: 24px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
+}
+{% endstyle %}
+{% assign round_1s = section.blocks | where: 'type', "round1_block" %}
+    {% assign round_2s = section.blocks | where: 'type', "round2_block" %}
+    {% assign round_3s = section.blocks | where: 'type', "round3_block" %}
+    {% assign products = section.blocks | where: 'type', "product_item" %}
+
+    <div class="compare-container index-container round-1">
+        <div class="round-part-title text-center">{{section.settings.round1_part_name | escape}}</div>
+        <h2 class="title jky-text-3xl text-center">{{section.settings.round1_title | escape}}</h2>
+        <div class="compare-main flex">
+            <div class="compare-items">
+                {% for block in round_1s %}
+                    <div
+                        class="compare-item {% if forloop.index0 == 0 %}active{% endif %}"
+                        data-src="{{block.settings.round_img | image_url: width: 1024}}" data-des="{{block.settings.des}}"
+                    >
+                        <span>{{block.settings.title}}</span>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="compare-detail">
+                {% assign first_round1 = round_1s | first %}
+                <img loading="lazy" class="compare-detail_content" src="{{first_round1.settings.round_img | image_url: width: 1024}}" alt="{{first_round1.alt}}">
+                <div class="compare-des jky-text-base font-400 compare-detail_content">{{first_round1.settings.des | escape}}</div>
+            </div>
+        </div>
+
+        <div class="compare-main-m">
+            <ul class="accordion-menu active">
+                {% for block in round_1s %}
+                    <li>
+                        <div class="dropdownlink jky-text-lg flex justify-between items-center">
+                            {{block.settings.title | escape}}
+                            <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-base"></jds-icon>
+                        </div>
+
+                        <ul class="submenuItems">
+                            <div class="submenu-content jky-text-base">{{block.settings.des | escape}}<img src="{{block.settings.round_img | image_url: width: 1024}}" alt="{{block.settings.round_img.alt}}" loading="lazy"></div>
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="inside-container index-container round-2">
+        <div class="round-part-title text-center">{{section.settings.round2_part_name | escape}}</div>
+        <h2 class="title jky-text-3xl text-center">{{section.settings.round2_title | escape}}</h2>
+        <div class="inside-compare-container flex justify-between relative">
+            <div class="inside-content inside-content_1 relative">
+
+                {%-
+                    render 'responsive-image', 
+                    image: section.settings.round_2_left_poster, 
+                    image_class: 'absolute poster',
+                    width: 683,
+                    mwidth: 320
+                -%}
+
+                <video class="video absolute" muted playsinline data-inline-media preload="auto" src="{{section.settings.round_2_left_video}}"></video>
+
+                {%-
+                    render 'responsive-image', 
+                    image: section.settings.round_2_left_img, 
+                    image_class: 'absolute endimg',
+                    width: 683,
+                    mwidth: 320
+                -%}
+
+
+                {% for block in round_2s %}
+                    <div class="pin-{{forloop.index}} absolute">
+                        <div class="pin-container flex flex-col items-center">
+                            <span class="pin-caption pin-content text-center">{{block.settings.title | escape}}</span>
+                            <span class="pin-des pin-content font-400 text-center">{{block.settings.des | escape}}</span>
+                            <div class="pin-line"></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="inside-content inside-content_2 relative">
+                {%- render 'responsive-image', image: section.settings.round_2_right_poster, image_class: 'absolute poster', width: 683, mwidth: 320 -%}
+                <video class="video absolute" muted data-inline-media playsinline preload="auto" src="{{section.settings.round_2_right_video}}"></video>
+
+                {%- render 'responsive-image', image: section.settings.round_2_right_img, image_class: 'absolute endimg', width: 683, mwidth: 320 -%}
+
+                {% for block in round_2s %}
+                    <div class="pin-{{forloop.index}} absolute">
+                        <div class="pin-container flex flex-col items-center">
+                            <span class="pin-caption pin-content text-center">{{block.settings.title_r | escape}}</span>
+                            <span class="pin-des pin-content font-400 text-center">{{block.settings.des_r | escape}}</span>
+                            <div class="pin-line"></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="pre-btn inside-btn disable flex items-center justify-center">
+                <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+            </div>
+            <div class="next-btn inside-btn flex items-center justify-center">
+                <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+            </div>
+
+            <div class="inside-pagination flex justify-center items-center absolute"></div>
+
+            <div class="swiper inside-swiper absolute">
+                <div class="swiper-wrapper">
+                    {% for block in round_2s %}
+                        <div class="swiper-slide swiper-slide-{{forloop.index}}"></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="round-3">
+        <div class="round-part-title text-center index-container">{{section.settings.round3_part_name | escape}}</div>
+        <h2 class="title jky-text-3xl text-center index-container">{{section.settings.round3_title | escape}}</h2>
+
+        <div class="action-tags flex index-container justify-center">
+            {% for block in round_3s %}
+                <h3 class="feature-tag {% if forloop.index0 == 0 %}active{% endif %}" data-tag="{{block.settings.tag_name | handle}}"><span>{{block.settings.tag_name | escape}}</span></h3>
+            {% endfor %}
+        </div>
+
+        <div class="round-3-main">
+            <div class="index-container">
+                {% for block in round_3s %}
+                    {% if forloop.index0 == 0 %}
+                        <h3 class="round-3-compare_title text-center">{{block.settings.title | escape}}</h3>
+                    {% endif %}
+                {% endfor %}
+
+                <div class="flex justify-between round-compare-container relative">
+                    <div class="round-3-left round-compare-main relative">
+                        {% for block in round_3s %}
+                            <div class="absolute round-compare-box" data-tag="{{block.settings.tag_name | handle}}" data-title="{{block.settings.title | escape}}">
+                                {%- render 'responsive-image', image: block.settings.round_img_left, width: 680, mwidth: 300 -%}
+                                <div class="round-compare-content">{{block.settings.des_left}}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="round-3-right round-compare-main relative">
+                        {% for block in round_3s %}
+                            <div class="absolute round-compare-box" data-tag="{{block.settings.tag_name | handle}}">
+                                {%- render 'responsive-image', image: block.settings.round_img_right, width: 680, mwidth: 300 -%}
+                                <div class="round-compare-content">{{block.settings.des_right | escape}}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="swiper round-3-swiper absolute">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide swiper-slide-left"></div>
+                            <div class="swiper-slide swiper-slide-right"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-actions index-container">
+                    <div class="inner-line"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="product-list relative">
+        <h2 class="product-list_title text-center section-container">{{section.settings.product_title | escape}}</h2>
+
+        <div class="swiper swiper-collection-products section-container">
+            <div class="swiper-wrapper">
+                {% for block in products %}
+                    {% assign product_v = block.settings.product %}
+                    {% assign target = block.settings.product.selected_or_first_available_variant %}
+                    {% assign compare_at_price = target.compare_at_price %}
+                    {% assign price = target.price | default: 1999 %}
+                    {% assign available = target.available | default: false %}
+                    {% assign money_price = price %}
+                    {% assign price_discounted = product_v.metafields.custom.manual_discounted_price %}
+
+                    <div class="swiper-slide">
+                        <div class="content flex flex-col items-center">
+                            <h3>
+                                <a href="{{product_v.url}}" class="product-title text-center font-bold underlines-btn text-overflow-2">
+                                    {% if block.settings.ptitle != blank %}
+                                        {{block.settings.ptitle | escape}}
+                                    {% else %}
+                                        {{target.title | escape}}
+                                    {% endif %}
+                                </a>
+                            </h3>
+                            {% assign pimg = product_v.featured_image %}
+                            {% if block.settings.pimg != blank %}
+                                {% assign pimg = block.settings.pimg %}
+                            {% endif %}
+                            {%- render 'responsive-image', image: pimg, image_class: 'product-img', width: 320, mwidth: 280 -%}
+
+                            <div class="product-price flex">
+                                {% if price_discounted != blank %}
+                                    {% assign price_discounted = product_v.metafields.custom.manual_discounted_price | times: 100 %}
+                                        <span class="price">{{price_discounted | money}}</span>
+                                        <span class="origin-price font-300">{{money_price | money}}</span>
+                                {% else %}
+                                    {% comment %} 如果开启了自动计算折扣价 {% endcomment %}
+                                    {%- if settings.open_auto_discount_price -%}
+                                        {% comment %} 自动计算 - 折后价格 {% endcomment %}
+                                        {%- assign auto_discount_price = target.metafields.custom.auto_discount_price | times: 1 -%}
+
+                                        {%- if auto_discount_price > 0 -%}
+                                            {% comment %} 当前价格 {% endcomment %}
+                                            {%- assign current_price = money_price -%}
+
+                                            {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+                                            {%- if auto_discount_price < money_price -%}
+                                                {%- assign current_price = auto_discount_price -%}
+                                            {%- endif -%}
+                                            <span class="price">{{current_price | money}}</span>
+                                            {%- if current_price < compare_at_price -%}
+                                                <span class="origin-price font-300">{{compare_at_price | money}}</span>
+                                            {%- else -%}
+                                                {%- if current_price < money_price -%}
+                                                    <span class="origin-price font-300">{{money_price | money}}</span>
+                                                {%- endif -%}
+                                            {%- endif -%}
+                                        {%- else -%}
+                                            <span class="price">{{money_price | money}}</span>
+                                            {% if money_price < compare_at_price %}
+                                                <span class="origin-price font-300">{{compare_at_price | money}}</span>
+                                            {% endif %}
+                                        {%- endif -%}
+                                    {%- else -%}
+                                        <span class="price">{{money_price | money}}</span>
+                                        {% if money_price < compare_at_price %}
+                                            <span class="origin-price font-300">{{compare_at_price | money}}</span>
+                                        {% endif %}
+                                    {%- endif -%}
+                                {% endif %}
+                            </div>
+
+                            <div class="product-features font-400 text-center">{{block.settings.features | newline_to_br}}</div>
+
+                            <a class="z-button-fill-big-solid" href="{{product_v.url}}">{{ 'general.action_text.view_more' | t }}</a>
+                        </div>
+
+                        <div class="product-subtitle text-center font-400">{{block.settings.product_subtitle | escape}}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="slideshow-pagination"></div>
+
+        <div class="slideshow-navigation-button prev"><jds-icon name="arrow-right" class="flex items-center justify-center iconfont jackery-icon-arrow-right"></jds-icon></div>
+        <div class="slideshow-navigation-button next"><jds-icon name="arrow-right" class="flex items-center justify-center iconfont jackery-icon-arrow-right"></jds-icon></div>
+    </div>
+
+    {% schema %}
+    {
+        "name": "Page Oil Engine",
+        "class": "section-oil-engine",
+        "settings": [
+            {"type": "text", "id": "round1_part_name", "label": "Round 1 part Name", "default": "ROUND ONE"},
+            {"type": "text", "id": "round1_title", "label": "Round 1 Heading", "default": "The Electrifying Power Showdown"},
+
+            {"type": "header", "content": "Round 2"},
+            {"type": "text", "id": "round2_part_name", "label": "Round 2 part Name", "default": "ROUND TWO"},
+            {"type": "text", "id": "round2_title", "label": "Round 2 Heading", "default": "See What’s Inside"},
+            {"type": "url", "id": "round_2_left_video", "label": "Round 2 Left Video", "info": "建议尺寸680*680 比例1:1"},
+            {"type": "image_picker", "id": "round_2_left_img", "label": "Round 2 Left Image-视频最终帧图片", "info": "建议尺寸680*680 多倍图按比例1:1"},
+            {"type": "image_picker", "id": "round_2_left_poster", "label": "Round 2 Left Image-视频初始帧图片", "info": "建议尺寸680*680 多倍图按比例1:1"},
+            {"type": "url", "id": "round_2_right_video", "label": "Round 2 Right Video", "info": "建议尺寸680*680 比例1:1"},
+            {"type": "image_picker", "id": "round_2_right_img", "label": "Round 2 Right Image-视频最终帧图片", "info": "建议尺寸680*680 多倍图按比例1:1"},
+            {"type": "image_picker", "id": "round_2_right_poster", "label": "Round 2 Right Image-视频初始帧图片", "info": "建议尺寸680*680 多倍图按比例1:1"},
+
+            {"type": "header", "content": "Round 3"},
+            {"type": "text", "id": "round3_part_name", "label": "Round 3 part Name", "default": "ROUND THREE"},
+            {"type": "text", "id": "round3_title", "label": "Round 3 Heading", "default": "Versatile or Not? Let the Outcomes Speak for Themselves"},
+            {"type": "text", "id": "title_compare_3", "label": "Round 3 Compare Heading"},
+
+            {"type": "header", "content": "Product List Swiper"},
+            {"type": "text", "id": "product_title", "label": "Product Heading", "default": "Solar vs. Gas Generators: Reclaim Tranquility and Fresh Air with the Power of the Sun."},
+            {"type": "checkbox", "id": "show_cate", "label": "Show category?", "default": false}
+        ],
+        "blocks": [
+            {
+                "type": "round1_block", "name": "Round 1 Block",
+                "settings": [
+                    {"type": "text", "id": "title", "label": "Round Heading"},
+                    {"type": "textarea", "id": "des", "label": "Round Description"},
+                    {"type": "image_picker", "id": "round_img", "label": "Round Image", "info": "建议尺寸1024*640 多倍图按比例10:16"}
+                ]
+            },
+            {
+                "type": "round2_block", "name": "Round 2 Block",
+                "settings": [
+                    {"type": "text", "id": "title", "label": "Left Round Heading"},
+                    {"type": "textarea", "id": "des", "label": "Left Round Description"},
+                    {"type": "text", "id": "title_r", "label": "Right Round Heading"},
+                    {"type": "textarea", "id": "des_r", "label": "Right Round Description"}
+                ]
+            },
+            {
+                "type": "round3_block", "name": "Round 3 Block",
+                "settings": [
+                    {"type": "text", "id": "tag_name", "label": "Tag Name"},
+                    {"type": "textarea", "id": "title", "label": "Round Heading"},
+                    {"type": "textarea", "id": "des_left", "label": "Left Round Des"},
+                    {"type": "textarea", "id": "des_right", "label": "Right Round Des"},
+                    {"type": "image_picker", "id": "round_img_left", "label": "Left Round Image", "info": "建议尺寸680*480 多倍图按比例17:12"},
+                    {"type": "image_picker", "id": "round_img_right", "label": "Right Round Image", "info": "建议尺寸680*480 多倍图按比例17:12"}
+                ]
+            },
+            {
+                "type": "product_item", "name": "Product Slide",
+                "settings": [
+                    {"type": "product", "id": "product", "label": "Product"},
+                    {"type": "text", "id": "ptitle", "label": "Product Heading", "info": "产品标题，没有设置默认取产品title"},
+                    {"type": "richtext", "id": "features", "label": "Product Features"},
+                    {"type": "image_picker", "id": "pimg", "label": "Product Image"},
+                    {"type": "text", "id": "product_subtitle", "label": "Product SubHeading", "default": "Suitable for home backup with large capacity and output, ensuring a constant power supply for various home appliances"}
+                ]
+            }
+        ]
+    }
+    {% endschema %}
+

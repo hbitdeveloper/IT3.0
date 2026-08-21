@@ -1,0 +1,118 @@
+
+{{ 'sections-v5-support-return-process.css' | asset_url | stylesheet_tag }}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div class="v5-return-process section-padding" id="v5-return-process-{{ section.id }}" style="{{ style }}">
+  <div class="v5-return-process__inner">
+    <div class="main-container">
+      <div class="v5-return-process__card">
+        {% if section.settings.title != blank %}
+          <h2 class="v5-return-process__title">{{ section.settings.title }}</h2>
+        {% endif %}
+
+        {% if section.settings.subtitle != blank %}
+          <div class="v5-return-process__subtitle">{{ section.settings.subtitle }}</div>
+        {% endif %}
+
+        <div class="v5-return-process__list">
+          {% for block in section.blocks %}
+            {% if block.type == 'process_item' %}
+              {% unless forloop.first %}
+                <div class="v5-return-process__item v5-return-process__item--arrow" aria-hidden="true">
+                  <div class="v5-return-process__icon"><div class="v5-return-process__arrow"></div></div>
+                  <div class="v5-return-process__text"></div>
+                </div>
+              {% endunless %}
+
+              <div class="v5-return-process__item" {{ block.shopify_attributes }}>
+                <div class="v5-return-process__icon">
+                  {% if block.settings.icon != blank %}
+                    {{ block.settings.icon | image_url: width: 160 | image_tag: alt: block.settings.text, loading: 'lazy' }}
+                  {% elsif block.settings.icon_url != blank %}
+                    <img src="{{ block.settings.icon_url }}" alt="{{ block.settings.text | escape }}" loading="lazy">
+                  {% endif %}
+                </div>
+                <div class="v5-return-process__text">{{ block.settings.text }}</div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if section.settings.button_text != blank and section.settings.button_link != blank %}
+          <jds-button class="v5-return-process__button" href="{{ section.settings.button_link }}" size="medium">{{ section.settings.button_text }}</jds-button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "V5-Support Return Process",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "上边距", "default": 30 },
+    { "type": "number", "id": "padding_bottom", "label": "下边距", "default": 30 },
+    { "type": "header", "content": "MB边距" },
+    { "type": "text", "id": "mb_padding_type", "default": "custom", "label": "MB边距", "visible_if": "{{ false }}" },
+    { "type": "number", "id": "padding_top_mb", "label": "上边距", "default": 20 },
+    { "type": "number", "id": "padding_bottom_mb", "label": "下边距", "default": 20 },
+    { "type": "text", "id": "title", "label": "Title", "default": "Return Process" },
+    { "type": "richtext", "id": "subtitle", "label": "Subtitle", "default": "<p>Note: Please log in first if you have an account. If not, please sign up first using the email address you provided when placing your order.</p>" },
+    { "type": "text", "id": "button_text", "label": "Button text", "default": "Start Your Application" },
+    { "type": "url", "id": "button_link", "label": "Button link" }
+  ],
+  "blocks": [
+    {
+      "type": "process_item",
+      "name": "Process item",
+      "limit": 4,
+      "settings": [
+        { "type": "image_picker", "id": "icon", "label": "Icon" },
+        { "type": "text", "id": "icon_url", "label": "Icon URL", "default": "https://cdn.shopify.com/s/files/1/0970/9262/files/65ef8b6e5b7eb8b1dfef2f0a0d3eb025.png?v=1657504181" },
+        { "type": "text", "id": "text", "label": "Text", "default": "Information Request" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-Support Return Process",
+      "category": "V5.0 Support",
+      "blocks": [
+        {
+          "type": "process_item",
+          "settings": {
+            "icon_url": "https://cdn.shopify.com/s/files/1/0970/9262/files/65ef8b6e5b7eb8b1dfef2f0a0d3eb025.png?v=1657504181",
+            "text": "Information Request"
+          }
+        },
+        {
+          "type": "process_item",
+          "settings": {
+            "icon_url": "https://cdn.shopify.com/s/files/1/0970/9262/files/fb6d347bcdca014069ef730124f33445.png?v=1657504181",
+            "text": "Information Audit"
+          }
+        },
+        {
+          "type": "process_item",
+          "settings": {
+            "icon_url": "https://cdn.shopify.com/s/files/1/0970/9262/files/468f12f8f3c3052a72e82712b6c2cfe0.png?v=1657504181",
+            "text": "Product Return"
+          }
+        },
+        {
+          "type": "process_item",
+          "settings": {
+            "icon_url": "https://cdn.shopify.com/s/files/1/0970/9262/files/9e46a08cbeff354c255fba4169f194cb.png?v=1657504181",
+            "text": "Refund"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

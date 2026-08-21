@@ -1,0 +1,75 @@
+{% comment %} 
+    pageNum: 活动ID OS后台 - 产品对比 - 通用配置
+    type: 1: 对比弹窗 2：对比组件 3: 集合页 4：通用
+    current_variant_id： 当前产品页选中的变体id
+    variantIds: 对比的变体variantIds
+    description: 产品对比组件
+{% endcomment %}
+
+{% comment %}
+    type： 说明
+        1：对比弹窗,需要传递的参数为/根据后台接口判断是否需要下拉选择
+            1： currentVariantId：当前的变体id
+            2:  type类型为1
+        2：对比组件
+            1：type类型为2
+            2: current_variant_id
+        3: 集合页
+            1：type类型3
+            2：variantIds 对比的变体ids
+        4：通用
+           1：type类型4
+           2：variantIds 对比的变体ids
+           3: pageNum  活动ID OS后台 - 产品对比 - 通用配置
+{% endcomment %}
+{%- assign is_product_page = false -%}
+
+{%- if request.page_type == 'product' -%}
+    {%- assign is_product_page = true -%}
+{%- endif -%}
+
+{%- capture clas -%}
+    {%- case type -%}
+        {%- when 1 -%}
+            compare-modal
+        {%- when 2 -%}
+            compare-comp
+        {%- when 3 -%}
+            compare-collection
+        {%- when 4 -%}
+            compare-common
+    {%- endcase -%}
+{%- endcapture -%}
+{{ 'app-bundled-compare.min.css' | asset_url | stylesheet_tag }}
+
+<jky-compare
+    class="{{ clas }}"
+    type="{{ type }}"
+    pageNum="{{ pageNum }}"
+    isProductPage="{{ is_product_page }}"
+    currentVariantId = "{{current_variant_id }}"
+    variantIds='{{ variantIds | json}}'
+    addToCartText="{{ 'products.product.add_to_cart' | t }}"
+    viewMore="{{ view_more | escape }}"
+    data-open-auto-discount-price="{{settings.open_auto_discount_price}}"
+>
+    <div class="compare-loading">
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M512 170.666667C323.477333 170.666667 170.666667 323.477333 170.666667 512s152.810667 341.333333 341.333333 341.333333 341.333333-152.810667 341.333333-341.333333h85.333334c0 235.648-191.018667 426.666667-426.666667 426.666667S85.333333 747.648 85.333333 512 276.352 85.333333 512 85.333333v85.333334z" fill="#8a8a8a"></path></svg>
+    </div>
+    <div class="compare-detail">
+        <div class="selects">
+            <div class="compare-container">
+                <div class="detail-selects"></div>
+            </div>
+        </div>
+        <div class="compare-container">
+            <div class="detail-main">
+                <div class="detail-products"></div>
+                <div class="detail-info"></div>
+            </div>
+        </div>
+    </div>
+</jky-compare>
+
+<script src="{{ 'app-bundled-compare.min.js' | asset_url }}" defer></script>
+

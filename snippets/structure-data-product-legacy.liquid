@@ -1,0 +1,160 @@
+{%- comment -%}
+  Legacy 产品结构化数据：在未启用新版产品 Schema 时输出 ProductGroup 和 hasVariant。
+  用于替换 SEOAI App 的产品结构化数据输出，并保留 Legacy 配送、退货和评分字段。
+{%- endcomment -%}
+{%- liquid
+  assign product_url = request.origin | append: product.url
+  assign product_description = product.description | strip_html | strip
+  assign product_brand = product.vendor | default: shop.name
+  assign product_category = product.type | strip
+  assign product_currency = cart.currency.iso_code | default: shop.currency
+  assign product_group_identifier = product.id | append: ''
+  assign price_valid_until_seconds = 'now' | date: '%s' | plus: 604800
+  assign price_valid_until = price_valid_until_seconds | date: '%Y-%m-%d'
+
+  assign product_image_url = blank
+  if product.featured_image != blank
+    assign product_image_width = product.featured_image.width | default: 1600
+    if product_image_width > 1600
+      assign product_image_width = 1600
+    endif
+    assign product_image_url = product.featured_image | image_url: width: product_image_width
+    assign product_image_prefix = product_image_url | slice: 0, 2
+    assign product_image_first_character = product_image_url | slice: 0, 1
+    if product_image_prefix == '//'
+      assign product_image_url = product_image_url | prepend: 'https:'
+    elsif product_image_first_character == '/'
+      assign product_image_url = product_image_url | prepend: request.origin
+    endif
+  endif
+
+  assign judge_me_review_data = product.metafields.judgeme.review_widget_data.value
+  assign judge_me_rating_value = judge_me_review_data.average_rating
+  assign judge_me_review_count = judge_me_review_data.number_of_reviews | default: 0
+  assign has_judge_me_rating = false
+  if judge_me_rating_value != blank and judge_me_review_count > 0
+    assign has_judge_me_rating = true
+  endif
+-%}
+
+<script id="product-group-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProductGroup",
+    "productGroupID": {{ product_group_identifier | json }},
+    "name": {{ product.title | json }},
+    "description": {{ product_description | json }},
+    "url": {{ product_url | json | replace: '\/', '/' }},
+    "brand": {
+      "@type": "Brand",
+      "name": {{ product_brand | json }}
+    }{% if product_image_url != blank %},
+    "image": [{{ product_image_url | json | replace: '\/', '/' }}]{% endif %},
+    "pattern": "Solid"{% if has_judge_me_rating %},
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "description": "Product Reviews By Judge.me",
+      "ratingValue": {{ judge_me_rating_value | append: '' | json }},
+      "reviewCount": {{ judge_me_review_count | append: '' | json }}
+    }{% endif %},
+    "hasVariant": [
+      {%- for variant in product.variants -%}
+        {%- assign variant_url = request.origin | append: variant.url -%}
+        {%- assign checkout_url = request.origin | append: routes.cart_add_url | append: '?id=' | append: variant.id | append: '&quantity=1' -%}
+        {%- assign variant_name = product.title -%}
+        {%- unless variant.title == 'Default Title' -%}
+          {%- assign variant_name = product.title | append: ' - ' | append: variant.title -%}
+        {%- endunless -%}
+        {%- assign variant_image = variant.featured_image | default: product.featured_image -%}
+        {%- assign variant_image_url = blank -%}
+        {%- if variant_image != blank -%}
+          {%- assign variant_image_width = variant_image.width | default: 1600 -%}
+          {%- if variant_image_width > 1600 -%}
+            {%- assign variant_image_width = 1600 -%}
+          {%- endif -%}
+          {%- assign variant_image_url = variant_image | image_url: width: variant_image_width -%}
+          {%- assign variant_image_prefix = variant_image_url | slice: 0, 2 -%}
+          {%- assign variant_image_first_character = variant_image_url | slice: 0, 1 -%}
+          {%- if variant_image_prefix == '//' -%}
+            {%- assign variant_image_url = variant_image_url | prepend: 'https:' -%}
+          {%- elsif variant_image_first_character == '/' -%}
+            {%- assign variant_image_url = variant_image_url | prepend: request.origin -%}
+          {%- endif -%}
+        {%- endif -%}
+        {%- assign variant_barcode = variant.barcode | strip | remove: ' ' -%}
+        {%- assign variant_weight = variant.weight | weight_with_unit | remove: ' ' -%}
+        {
+          "@type": "Product"{% if variant.sku != blank %},
+          "sku": {{ variant.sku | json }},
+          "mpn": {{ variant.sku | json }}{% endif %}{% if variant_barcode != blank %},
+          "gtin": {{ variant_barcode | json }}{% endif %},
+          "name": {{ variant_name | json }},
+          "description": {{ product_description | json }},
+          "category": {{ product_category | json }}{% if variant_image_url != blank %},
+        "image": [{{ variant_image_url | json | replace: '\/', '/' }}]{% endif %},
+          "weight": {{ variant_weight | json }},
+          "offers": {
+            "@type": "Offer",
+        "url": {{ variant_url | json | replace: '\/', '/' }},
+        "checkoutPageURLTemplate": {{ checkout_url | json | replace: '\/', '/' }},
+            "priceCurrency": {{ product_currency | json }},
+            "price": {{ variant.price | divided_by: 100.0 | json }},
+            "priceValidUntil": {{ price_valid_until | json }},
+            "availability": "https://schema.org/{% if variant.available %}InStock{% else %}OutOfStock{% endif %}",
+            "itemCondition": "https://schema.org/NewCondition"{% if variant.compare_at_price > variant.price %},
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "priceType": "https://schema.org/StrikethroughPrice",
+              "price": {{ variant.compare_at_price | divided_by: 100.0 | json }},
+              "priceCurrency": {{ product_currency | json }},
+              "valueAddedTaxIncluded": true
+            }{% endif %},
+            "shippingDetails": {
+              "@context": "https://schema.org",
+              "@type": "OfferShippingDetails",
+              "@id": "#shipping_policy",
+              "shippingRate": {
+                "@type": "MonetaryAmount",
+                "value": 0,
+                "currency": {{ product_currency | json }}
+              },
+              "shippingDestination": {
+                "@type": "DefinedRegion",
+                "addressCountry": "US"
+              },
+              "deliveryTime": {
+                "@type": "ShippingDeliveryTime",
+                "handlingTime": {
+                  "@type": "QuantitativeValue",
+                  "minValue": 1,
+                  "maxValue": 3,
+                  "unitCode": "DAY"
+                },
+                "transitTime": {
+                  "@type": "QuantitativeValue",
+                  "minValue": 3,
+                  "maxValue": 7,
+                  "unitCode": "DAY"
+                }
+              }
+            },
+            "hasMerchantReturnPolicy": {
+              "@type": "MerchantReturnPolicy",
+              "@id": "#return_policy",
+              "applicableCountry": "US",
+              "returnPolicyCountry": "US",
+              "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+              "merchantReturnDays": 30,
+              "returnMethod": "https://schema.org/ReturnByMail",
+              "returnFees": "https://schema.org/FreeReturn"
+            },
+            "seller": {
+              "@type": "Organization",
+              "name": {{ shop.name | json }}
+            }
+          }
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  }
+</script>

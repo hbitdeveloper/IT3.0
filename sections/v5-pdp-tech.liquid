@@ -1,0 +1,842 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{{ 'section-v5-pdp-tech.min.css' | asset_url | stylesheet_tag }}
+
+<div
+  class="produc-detail--contetn_item product-detail--tech section-padding {% if section.settings.use_new_style %} new-style {% endif %}"
+  style="{{ style }}"
+   {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %}
+>
+  <product-specs
+    class="product-block-section block {{section.settings.page_width}}"
+    {{ section.shopify_attributes }}
+    data-product-title="{{ product.title | escape }}"
+    data-sku="{{ product.selected_or_first_available_variant.sku | escape }}"
+    data-id="{{ product.selected_or_first_available_variant.id | escape }}"
+  >
+    <h2 class="v5-font-oxm w-full text-center tech--title font-extrabold">{{ section.settings.title | escape}}</h2>
+
+    {% for block in section.blocks %}
+      {% case block.type %}
+        {% when 'product_port_and_size' %}
+          {% comment %} 产品端口和尺寸 {% endcomment %}
+          <div class="accordion-ul w-full {% if block.settings.part_1_heading == blank %} hidden{% endif %}" style="{% if block.settings.part_1_heading == blank %}display: none;{% endif %}">
+            <div class="accordion-header">
+              {%- if block.settings.part_1_heading != blank -%}
+                <h3 class="jky-text-lg font-bold">{{ block.settings.part_1_heading | escape}}</h3>
+                <svg class="accordion-close active" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity=".6"></path></svg>
+              {%- endif -%}
+            </div>
+
+            <div class="accordion-content">
+              <div class="accordion-content__inner accordion-content__inner--column">
+              {% comment %} 产品轮播容器 {% endcomment %}
+              {%- assign product_items = '' -%}
+              {%- if block.settings.part_1_img != blank -%}
+                {%- assign product_items = product_items | append: '1,' -%}
+              {%- endif -%}
+              {%- if block.settings.part_1_img_2 != blank -%}
+                {%- assign product_items = product_items | append: '2,' -%}
+              {%- endif -%}
+              {%- if block.settings.part_1_img_3 != blank -%}
+                {%- assign product_items = product_items | append: '3,' -%}
+              {%- endif -%}
+
+              {%- assign product_array = product_items | remove_last: ',' | split: ',' -%}
+
+              {%- if product_array.size > 1 -%}
+                <div class="product-carousel-container" {% if section.settings.target != blank %} data-anchor="{{ section.settings.target }}" {% endif %}>
+                  <div class="swiper product-carousel-swiper">
+                    <div class="swiper-wrapper">
+                      {% for item in product_array %}
+                        <div class="swiper-slide">
+                          {% comment %} 统一的产品展示结构 {% endcomment %}
+                          {%- assign img_key = 'part_1_img' -%}
+                          {%- assign title_key = 'part_1_product_title' -%}
+                          {%- assign desc_prefix = 'part_1_product_desc_' -%}
+                          {%- assign desc_max = 19 -%}
+
+                          {%- if item == '2' -%}
+                            {%- assign img_key = 'part_1_img_2' -%}
+                            {%- assign title_key = 'part_1_product_2_title' -%}
+                            {%- assign desc_prefix = 'part_1_product_2_desc_' -%}
+                            {%- assign desc_max = 9 -%}
+                          {%- elsif item == '3' -%}
+                            {%- assign img_key = 'part_1_img_3' -%}
+                            {%- assign title_key = 'part_1_product_3_title' -%}
+                            {%- assign desc_prefix = 'part_1_product_3_desc_' -%}
+                            {%- assign desc_max = 9 -%}
+                          {%- endif -%}
+
+                          {%- assign wrapper_class = 'accordion-content--specs-more-main' -%}
+                          {%- if item == '1' -%}
+                            {%- assign wrapper_class = '' -%}
+                          {%- endif -%}
+
+                          <div class="{{ wrapper_class }}">
+                            <div class="flex accordion-content--specs-pic justify-center">
+                              {% render 'diff-end-img', picture_class: 'pdp-tech-image',  pc_img: block.settings[img_key], mb_img: block.settings[img_key], pc_img_width: 750, mb_img_width: 300, class: 'specs-img' %}
+                              <ul>
+                                {%- for i in (0..desc_max) -%}
+                                  {%- assign key_index = desc_prefix | append: forloop.index -%}
+                                  {%- if block.settings[key_index] != blank -%}
+                                    <li class="jky-text-base">{{ block.settings[key_index] | escape}}</li>
+                                  {%- endif -%}
+                                {%- endfor -%}
+                              </ul>
+                            </div>
+                            {%- if block.settings[title_key] -%}
+                              <div class="accordion-content--title font-500 text-center mt-4">{{ block.settings[title_key] | escape}}</div>
+                            {%- endif -%}
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+
+                    {%- if product_array.size > 1 -%}
+                      <div class="swiper-button-box flex justify-center items-center lg:gap-6 gap-4">
+                        <div class="button-left flex lg:gap-6 gap-4 items-center">
+                          <div class="left-icon w-[1.875rem] h-[1.875rem] lg:w-10 lg:h-10 flex">
+                            {%- render 'v5-icon-arrow-left', class: 'icon-arrow-left mb-swiper-button-prev left-0 swiper-arrow inline-block text-[#111111]' -%}
+                          </div>
+                        </div>
+                        <div class="button-right flex lg:gap-6 gap-4 items-center">
+                          <div class="right-icon w-[1.875rem] h-[1.875rem] lg:w-10 lg:h-10 flex">
+                            {%- render 'v5-icon-arrow-right', class: 'icon-arrow-right mb-swiper-button-next right-0 swiper-arrow inline-block text-[#111111]' -%}
+                          </div>
+                        </div>
+                      </div>
+                    {%- endif -%}
+                  </div>
+                </div>
+              {%- else -%}
+                {% comment %} 单个产品时不使用轮播 {% endcomment %}
+                {%- if block.settings.part_1_img -%}
+                  {%- if block.settings.part_1_product_title -%}
+                    <div class="accordion-content--title font-500 text-center">{{ block.settings.part_1_product_title | escape}}</div>
+                  {%- endif -%}
+                  <div class="flex accordion-content--specs-pic justify-center">
+                    {% render 'diff-end-img', picture_class: 'pdp-tech-image',  pc_img: block.settings.part_1_img, mb_img: block.settings.part_1_img, pc_img_width: 750, mb_img_width: 300, class: 'specs-img' %}
+                    <ul>
+                      {%- for i in (0..19) -%}
+                        {%- assign key_index = 'part_1_product_desc_' | append: forloop.index -%}
+                        {%- if block.settings[key_index] != blank -%}
+                          <li class="jky-text-base">{{ block.settings[key_index] | escape}}</li>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </ul>
+                  </div>
+                {%- elsif block.settings.part_1_img_2 -%}
+                  <div class="accordion-content--specs-more-main">
+                    {%- if block.settings.part_1_product_2_title -%}
+                      <div class="accordion-content--title font-500 text-center">{{ block.settings.part_1_product_2_title | escape}}</div>
+                    {%- endif -%}
+                    <div class="flex accordion-content--specs-pic justify-center">
+                      {% render 'diff-end-img', picture_class: 'pdp-tech-image',  pc_img: block.settings.part_1_img_2, mb_img: block.settings.part_1_img_2, pc_img_width: 750, mb_img_width: 300, class: 'specs-img' %}
+                      <ul>
+                        {%- for i in (0..9) -%}
+                          {% assign key_index = 'part_1_product_2_desc_' | append: forloop.index %}
+                          {%- if block.settings[key_index] != blank -%}
+                            <li class="jky-text-base">{{ block.settings[key_index] | escape}}</li>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </ul>
+                    </div>
+                  </div>
+                {%- elsif block.settings.part_1_img_3 -%}
+                  <div class="accordion-content--specs-more-main">
+                    {%- if block.settings.part_1_product_3_title -%}
+                      <div class="accordion-content--title font-500 text-center">{{ block.settings.part_1_product_3_title | escape}}</div>
+                    {%- endif -%}
+                    <div class="flex accordion-content--specs-pic justify-center">
+                      {% render 'diff-end-img', picture_class: 'pdp-tech-image',  pc_img: block.settings.part_1_img_3, mb_img: block.settings.part_1_img_3, pc_img_width: 750, mb_img_width: 300, class: 'specs-img' %}
+                      <ul>
+                        {%- for i in (0..9) -%}
+                          {%- assign key_index = 'part_1_product_3_desc_' | append: forloop.index -%}
+                          {%- if block.settings[key_index] != blank -%}
+                            <li class="jky-text-base">{{ block.settings[key_index] | escape}}</li>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </ul>
+                    </div>
+                  </div>
+                {%- endif -%}
+              {%- endif -%}
+
+              {% assign bundle_flag = false %}
+              {%- if block.settings.part_1_img == blank and block.settings.part_1_img_2 == blank and block.settings.part_1_img_3 == blank -%}
+                  {% assign bundle_flag = true %}
+              {%- endif -%}
+
+              <div>
+                {% comment %} 组合配件产品 {% endcomment %}
+                {%- for i in (0..4) -%}
+                  {%- assign bundle_key_index = 'part_1_bundle_img_' | append: forloop.index -%}
+                  {%- assign bundle_title_index = 'part_1_bundle_title_' | append: forloop.index -%}
+
+                  {%- if block.settings[bundle_key_index] -%}
+                    <div class="accordion-content--specs-pic_bundle" {% if forloop.index == 1 and bundle_flag == true %}  style="margin-top: 0;padding-top: 0;border-top: none;" {{forloop.index  }} {% endif %}>
+                      {% render 'diff-end-img', picture_class: 'pdp-tech-image',  pc_img: block.settings[bundle_key_index], mb_img: block.settings[bundle_key_index], pc_img_width: 900, mb_img_width: 300 %}
+                      {%- if block.settings[bundle_title_index] -%}
+                        <div class="accordion-content--title font-500 text-center">{{ block.settings[bundle_title_index] | escape}}</div>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+              </div>
+            </div>
+          </div>
+        {% when 'product_tech_specs' %}
+          {% comment %} 产品参数 {% endcomment %}
+          <div class="accordion-ul w-full accordion--product-specs {% if block.settings.part_2_heading == blank %} hidden{% endif %}" style="{% if block.settings.part_2_heading == blank %}display: none;{% endif %}">
+            <div class="accordion-header">
+              {%- if block.settings.part_2_heading != blank -%}
+                <h3 class="jky-text-lg font-bold">{{ block.settings.part_2_heading | escape}}</h3>
+                <svg class="accordion-close active" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity=".6"></path></svg>
+              {%- endif -%}
+            </div>
+            <div class="accordion-content accordion-content--with-child specs">
+              <div class="accordion-content__inner accordion-content__inner--column">
+                <div class="accordion-ul"></div>
+              </div>
+            </div>
+          </div>
+        {% when 'product_what_in_the_box' %}
+          {% comment %} 加电包信息 {% endcomment %}
+          <div class="accordion-ul w-full accordion--whats-in-box {% if block.settings.part_3_heading == blank %} hidden{% endif %}" style="{% if block.settings.part_3_heading == blank %}display: none;{% endif %}">
+            <div class="accordion-header">
+              {%- if block.settings.part_3_heading != blank -%}
+                <h3 class="jky-text-lg font-bold">{{ block.settings.part_3_heading | escape}}</h3>
+                <svg class="accordion-close active" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity=".6"></path></svg>
+              {%- endif -%}
+            </div>
+            <div class="accordion-content accordion-content--column">
+              <div class="accordion-content__inner accordion-content__inner--column">
+              {% comment %} 单品-无变体，或者有且只有1个变体 {% endcomment %}
+              {%- if product.has_only_default_variant == true or product.variants.size == 1 -%}
+                {%- liquid
+                  assign what_box = ''
+                  if product.variants[0].metafields.custom.what_in_the_box_list_4_0 != blank
+                    assign what_box = product.variants[0].metafields.custom.what_in_the_box_list_4_0.value
+                  elsif product.metafields.custom.what_is_in_the_box_4_0 != blank
+                    assign what_box = product.metafields.custom.what_is_in_the_box_4_0.value
+                  endif
+                -%}
+
+                {%- if what_box != blank -%}
+                  <what-is-in-the-box only-default-variant data-current-variant-id="{{ product.selected_or_first_available_variant.id }}">
+                    {% comment %} PC 端 {% endcomment %}
+                    <div class="pc-show-flex single-sku-wrap">
+                      {%- for list_item_4_0 in what_box -%}
+                        {%- assign name = list_item_4_0.name | split: '*' | first -%}
+                        {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+                        <div class="sku-item">
+                          <div>
+                            <h4>{{ name | strip }}</h4>
+                            <span>X{{ quantity | strip }}</span>
+                          </div>
+                          <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" width="170" height="170" alt="{{ name | strip | escape }}" loading="lazy">
+                        </div>
+                      {%- endfor -%}
+                    </div>
+
+                    {% comment %} Mobile 端 {% endcomment %}
+                    <div class="mb-show sku-box-wrap">
+                      {% comment %} 单品图片 {% endcomment %}
+                      {%- assign current_f_img = product.selected_or_first_available_variant.featured_image -%}
+                      {%- if product.selected_or_first_available_variant.featured_image == blank -%}
+                        {%- assign current_f_img = product.featured_image -%}
+                      {%- endif -%}
+                      <img class="sku-img" src="{{ current_f_img | image_url: width: 400, height: 400 }}" width="200" height="200" alt="{{ product.title | escape }}" loading="lazy">
+                      <div class="select-sku-variant-name-wrap">
+                        <label class="sr-only" for="select-sku-variant-name-{{ section.id }}">Choose a variant</label>
+                        <select id="select-sku-variant-name-{{ section.id }}" aria-label="Choose a variant" name="select-sku-variant-name">
+                          <option value="{{ product.title | escape }}">{{ product.title | escape }}</option>
+                        </select>
+                        <svg class="iconfont" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#00000099"></path></svg>
+                      </div>
+                      <div class="sku-wrap">
+                        {%- for list_item_4_0 in what_box -%}
+                          {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+                          {%- assign name = list_item_4_0.name | split: '*' | first -%}
+                          <div class="sku-item">
+                            <div>
+                              <h4>{{ name | strip }}</h4>
+                              <span>X{{ quantity | strip }}</span>
+                            </div>
+                            <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" width="170" height="170" alt="{{ name | strip | escape }}" loading="lazy">
+                          </div>
+                        {%- endfor -%}
+                      </div>
+                    </div>
+                  </what-is-in-the-box>
+                {%- endif -%}
+              {%- else -%}
+                {% comment %} 多变体（>=2） {% endcomment %}
+                {% assign variants_json = "" %}
+                {% assign product_json = "" %}
+
+                {%- for variant in product.variants -%}
+                  {%- assign what_value = '' -%}
+                  {%- if variant.metafields.custom.what_in_the_box_list_4_0.value != blank -%}
+                    {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+                  {%- elsif product.metafields.custom.what_is_in_the_box_4_0 != blank -%}
+                    {%- assign what_value = product.metafields.custom.what_is_in_the_box_4_0.value -%}
+                  {%- endif -%}
+                  {% comment %} 收集sku数据 {% endcomment %}
+                  {%- if variants_json != "" -%}
+                    {%- assign variants_json = variants_json | append: "," -%}
+                  {%- endif -%}
+                  {%- assign variant_img = product.featured_image | image_url: width: 360, height: 360 | json -%}
+                  {%- if variant.featured_image -%}
+                    {%- assign variant_img = variant.featured_image | image_url: width: 360, height: 360 | json -%}
+                  {%- endif -%}
+                  {%- assign variant_name = variant.title | json -%}
+                  {%- assign shortname = variant.metafields.custom.shortname | json -%}
+                  {%- assign variant_data = '{' | append: '"skuId":' | append: variant.id | append: ',' | append: '"name":' | append: variant_name | append: ',' | append: '"shortname":' | append: shortname | append: ',' | append: '"img":' | append: variant_img | append: '}' -%}
+                  {%- assign variants_json = variants_json | append: variant_data -%}
+
+                  {% comment %} 收集spu数据 {% endcomment %}
+                  {%- if product_json != "" -%}
+                    {%- assign product_json = product_json | append: "," -%}
+                  {%- endif -%}
+
+                  {% comment %} 处理 加电包单个类目 {% endcomment %}
+                  {%- assign what_box_data = "" -%}
+                  {%- if what_value -%}
+                    {%- for what_box in what_value -%}
+                      {%- if what_box_data != "" -%}
+                        {%- assign what_box_data = what_box_data | append: "," -%}
+                      {%- endif %}
+                      {%- assign img = what_box.img | image_url: width: 360, height: 360 | json -%}
+                      {%- assign name = what_box.name | json -%}
+
+                      {%- assign box_data = '{' | append: '"img":' | append: img | append: ',' | append: '"name":' | append: name | append: '}' -%}
+                      {%- assign what_box_data = what_box_data | append: box_data -%}
+                    {%- endfor -%}
+                    {%- assign what_box_data = "[" | append: what_box_data | append: "]" -%}
+                  {%- else -%}
+                    {%- assign what_box_data = "[]" -%}
+                  {%- endif -%}
+
+                  {%- assign product_data = '{' | append: '"skuId":' | append: variant.id | append: ',' | append: '"list":' | append: what_box_data | append: '}' -%}
+                  {%- assign product_json = product_json | append: product_data -%}
+                {%- endfor -%}
+
+                {%- assign variants_json = "[" | append: variants_json | append: "]" -%}
+                {%- assign product_json = "[" | append: product_json | append: "]" -%}
+
+                <what-is-in-the-box data-current-variant-id="{{ product.selected_or_first_available_variant.id }}">
+                  {% comment %} PC 端 {% endcomment %}
+                  <div class="pc-show-flex" style="flex-direction: column;">
+                    <div class="table-container" tabindex="0" role="region" aria-label="What's in the box table"></div>
+                    <div class="table-arrow-wrap" style="display:none">
+                      <button class="table-arrow table-left-arrow" disabled aria-label="Scroll left"></button>
+                      <button class="table-arrow table-right-arrow" aria-label="Scroll right"></button>
+                    </div>
+                  </div>
+
+                  {% comment %} Mobile 端 {% endcomment %}
+                  <div class="mb-show sku-box-wrap">
+                    {% comment %} sku图片 {% endcomment %}
+                    {%- assign current_f_img = product.selected_or_first_available_variant.featured_image -%}
+                    {%- if product.selected_or_first_available_variant.featured_image == blank -%}
+                      {%- assign current_f_img = product.featured_image -%}
+                    {%- endif -%}
+                    <img class="sku-img" src="{{ current_f_img | image_url: width: 400, height: 400 }}" width="200" height="200" alt="{{ product.title | escape }}" loading="lazy">
+                    <div class="select-sku-variant-name-wrap">
+                      <label class="sr-only" for="select-sku-variant-name-{{ section.id }}">Choose a variant</label>
+                      <select id="select-sku-variant-name-{{ section.id }}" aria-label="Choose a variant" name="select-sku-variant-name">
+                        {%- for variant in product.variants -%}
+                          <option
+                            name="{{ variant.title | escape }}"
+                            value="{{ variant.id }}"
+                            {% if product.selected_or_first_available_variant.id == variant.id %}selected{% endif %}
+                          >{{ variant.title | escape}}</option>
+                        {%- endfor -%}
+                      </select>
+                      <svg class="iconfont" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#00000099"></path></svg>
+                    </div>
+                    {%- for variant in product.variants -%}
+                      {%- assign what_value = '' -%}
+                      {%- if variant.metafields.custom.what_in_the_box_list_4_0.value != blank -%}
+                        {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+                      {%- elsif product.metafields.custom.what_is_in_the_box_4_0 != blank -%}
+                        {%- assign what_value = product.metafields.custom.what_is_in_the_box_4_0.value -%}
+                      {%- endif -%}
+                      {%- assign what_box_list = what_value -%}
+                      <div
+                        class="sku-wrap {% if what_box_list == blank %}sku-wrap-no-margin{% endif %}"
+                        style="display:{% if product.selected_or_first_available_variant.id == variant.id %}flex{% else %}none{% endif %}"
+                        data-sku-id="{{ variant.id }}"
+                      >
+                        {%- for list_item_4_0 in what_box_list -%}
+                          {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+                          {%- assign name = list_item_4_0.name | split: '*' | first -%}
+                          <div class="sku-item">
+                            <div>
+                              <h4>{{ name | strip }}</h4>
+                              <span>X{{ quantity | strip }}</span>
+                            </div>
+                            <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" width="170" height="170" alt="{{ name | strip | escape }}" loading="lazy">
+                          </div>
+                        {%- endfor -%}
+                      </div>
+                    {%- endfor -%}
+                  </div>
+
+                  <script id="variant-what-in-box-4-0" type="application/json">{{ variants_json }}</script>
+                  <script id="product-what-in-box-4-0" type="application/json">{{ product_json }}</script>
+                </what-is-in-the-box>
+              {%- endif -%}
+              </div>
+            </div>
+          </div>
+        {% when 'product_manual' %}
+          {% comment %} 用户手册 {% endcomment %}
+          <div class="accordion-ul w-full accordion--manual {% if block.settings.part_4_heading == blank %} hidden{% endif %}" style="{% if block.settings.part_4_heading == blank %}display: none;{% endif %}">
+            <div class="accordion-header">
+              {%- if block.settings.part_4_heading != blank -%}
+                <h3 class="jky-text-lg font-bold">{{ block.settings.part_4_heading | escape}}</h3>
+                <svg class="accordion-close active" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity=".6"></path></svg>
+              {%- endif -%}
+            </div>
+            <div class="accordion-content accordion-content--with-pdf">
+              <div class="accordion-content__inner accordion-content__inner--column">
+                <div class="manual-item">
+                  <dl class="manual-list" type="{{ block.settings.page_type }}" data-section-title="{{ block.settings.part_4_heading | escape}}"></dl>
+                </div>
+              </div>
+            </div>
+          </div>
+      {% endcase %}
+    {% endfor %}
+  </product-specs>
+</div>
+
+<script src="{{ 'section-v5-pdp-tech.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-PDP-规格参数（过渡版）",
+  "class": "v5-pdp-tech",
+  "tag": "section",
+  "enabled_on": {
+    "templates": ["product","page"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "基础配置"
+        },
+        {
+          "value": "custom",
+          "label": "开发者配置"
+        }
+      ],
+      "default": "default",
+      "label": "配置类型"
+    },
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {"type": "text", "id": "title", "label": "Tech Title", "default": "Product Details"},
+    {
+      "type": "checkbox",
+      "id": "use_new_style",
+      "label": "使用新样式",
+      "default": false
+    },
+    { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_port_and_size",
+      "name": "产品端口和尺寸配置",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "part_1_heading", "label": "Part 1 heading", "default": "Ports and Dimensions"},
+
+        {"type": "header", "content": "Part 1 - 主产品左侧面配置"},
+        {"type": "image_picker", "id": "part_1_img_2", "label": "Part 1 - 主产品左侧面参数图"},
+        {"type": "text", "id": "part_1_product_2_title", "label": "Part 1 主产品左侧名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_2_desc_1", "label": "Part 1 主产品左侧面参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_2_desc_2", "label": "Part 1 主产品左侧面参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_2_desc_3", "label": "Part 1 主产品左侧面参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_2_desc_4", "label": "Part 1 主产品左侧面参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_2_desc_5", "label": "Part 1 主产品左侧面参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_2_desc_6", "label": "Part 1 主产品左侧面参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_2_desc_7", "label": "Part 1 主产品左侧面参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_2_desc_8", "label": "Part 1 主产品左侧面参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_2_desc_9", "label": "Part 1 主产品左侧面参数说明 9"},
+        {"type": "text", "id": "part_1_product_2_desc_10", "label": "Part 1 主产品左侧面参数说明 10"},
+
+        {"type": "header", "content": "Part 1 - 主产品正面配置"},
+        {"type": "image_picker", "id": "part_1_img", "label": "Part 1 - 主产品参数图"},
+        {"type": "text", "id": "part_1_product_title", "label": "Part 1 主产品名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_desc_1", "label": "Part 1 主产品参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_desc_2", "label": "Part 1 主产品参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_desc_3", "label": "Part 1 主产品参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_desc_4", "label": "Part 1 主产品参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_desc_5", "label": "Part 1 主产品参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_desc_6", "label": "Part 1 主产品参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_desc_7", "label": "Part 1 主产品参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_desc_8", "label": "Part 1 主产品参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_desc_9", "label": "Part 1 主产品参数说明 9"},
+        {"type": "text", "id": "part_1_product_desc_10", "label": "Part 1 主产品参数说明 10"},
+        {"type": "text", "id": "part_1_product_desc_11", "label": "Part 1 主产品参数说明 11"},
+        {"type": "text", "id": "part_1_product_desc_12", "label": "Part 1 主产品参数说明 12"},
+        {"type": "text", "id": "part_1_product_desc_13", "label": "Part 1 主产品参数说明 13"},
+        {"type": "text", "id": "part_1_product_desc_14", "label": "Part 1 主产品参数说明 14"},
+        {"type": "text", "id": "part_1_product_desc_15", "label": "Part 1 主产品参数说明 15"},
+        {"type": "text", "id": "part_1_product_desc_16", "label": "Part 1 主产品参数说明 16"},
+        {"type": "text", "id": "part_1_product_desc_17", "label": "Part 1 主产品参数说明 17"},
+        {"type": "text", "id": "part_1_product_desc_18", "label": "Part 1 主产品参数说明 18"},
+        {"type": "text", "id": "part_1_product_desc_19", "label": "Part 1 主产品参数说明 19"},
+        {"type": "text", "id": "part_1_product_desc_20", "label": "Part 1 主产品参数说明 20"},
+
+        {"type": "header", "content": "Part 1 - 主产品右侧面配置"},
+        {"type": "image_picker", "id": "part_1_img_3", "label": "Part 1 - 主产品右侧面参数图"},
+        {"type": "text", "id": "part_1_product_3_title", "label": "Part 1 主产品右侧名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_3_desc_1", "label": "Part 1 主产品右侧面参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_3_desc_2", "label": "Part 1 主产品右侧面参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_3_desc_3", "label": "Part 1 主产品右侧面参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_3_desc_4", "label": "Part 1 主产品右侧面参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_3_desc_5", "label": "Part 1 主产品右侧面参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_3_desc_6", "label": "Part 1 主产品右侧面参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_3_desc_7", "label": "Part 1 主产品右侧面参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_3_desc_8", "label": "Part 1 主产品右侧面参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_3_desc_9", "label": "Part 1 主产品右侧面参数说明 9"},
+        {"type": "text", "id": "part_1_product_3_desc_10", "label": "Part 1 主产品右侧面参数说明 10"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 1 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_1", "label": "Part 1 配件1产品名称", "default": "SolarSaga 200W"},
+        {"type": "image_picker", "id": "part_1_bundle_img_1", "label": "Part 1 image - 配件1产品参数图"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 2 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_2", "label": "Part 1 配件2产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_2", "label": "Part 1 image - 配件2产品参数图"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 3 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_3", "label": "Part 1 配件3产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_3", "label": "Part 1 image - 配件3产品参数图"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 4 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_4", "label": "Part 1 配件4产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_4", "label": "Part 1 image - 配件4产品参数图"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 5 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_5", "label": "Part 1 配件5产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_5", "label": "Part 1 image - 配件5产品参数图"}
+      ]
+    },
+    {
+      "type": "product_tech_specs",
+      "name": "产品参数规格配置",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "part_2_heading", "label": "Part 2 heading", "default": "Tech Specs"}
+      ]
+    },
+    {
+      "type": "product_what_in_the_box",
+      "name": "加电包信息配置",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "part_3_heading", "label": "Part 3 heading", "default": "What's in The Box"}
+      ]
+    },
+    {
+      "type": "product_manual",
+      "name": "产品说明书配置",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "part_4_heading", "label": "Part 4 heading", "default": "User Manual"},
+        {
+          "type": "select",
+          "id": "page_type",
+          "options": [
+            {"value": "pps_detail", "label": "pps系列"},
+            {"value": "sp_gather", "label": "sp系列"},
+            {"value": "sg_gather", "label": "sg系列"}
+          ],
+          "default": "sg_gather",
+          "label": "产品类型【pps/sg/sp】"
+        }
+      ]
+    }
+  ],
+  "limit": 1,
+  "presets": [
+    {
+      "name": "V5-PDP-规格参数（过渡版）",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "product_port_and_size"
+        },
+        {
+          "type": "product_tech_specs"
+        },
+        {
+          "type": "product_what_in_the_box"
+        },
+        {
+          "type": "product_manual"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<script type="module">
+  document.addEventListener('DOMContentLoaded', function() {
+    // 初始化产品轮播
+    const productCarousels = document.querySelectorAll('.product-carousel-swiper');
+
+    productCarousels.forEach((carousel, index) => {
+      const anchor = carousel.closest('.product-carousel-container').dataset.anchor;
+      const uniqueId = `product-carousel-${anchor}-${index}`;
+
+      // 为每个轮播添加唯一ID
+      carousel.setAttribute('id', uniqueId);
+
+      // 计算初始化索引：如果有2个及以上，则默认展示第二个
+      const slides = carousel.querySelectorAll('.swiper-slide');
+      const defaultIndexAttr = carousel.getAttribute('data-default-index');
+      const parsedDefault = defaultIndexAttr ? parseInt(defaultIndexAttr, 10) : 0;
+      const initialIndex = Math.min(slides.length - 1, Math.max(0, isNaN(parsedDefault) ? 0 : parsedDefault));
+
+      // 初始化Swiper
+      const swiper = new Swiper(`#${uniqueId}`, {
+        slidesPerView: 1,
+        loopAdditionalSlides: 2,
+        loop: true,
+        autoplay: false,
+        centeredSlides: true,
+        initialSlide: initialIndex,
+        navigation: {
+          nextEl: `#${uniqueId} .icon-arrow-right`,
+          prevEl: `#${uniqueId} .icon-arrow-left`,
+        },
+        // pagination: {
+        //   el: `#${uniqueId} .swiper-pagination`,
+        //   clickable: true,
+        //   bulletClass: 'swiper-pagination-bullet',
+        //   bulletActiveClass: 'swiper-pagination-bullet-active',
+        // },
+      });
+
+      // 存储swiper实例以便后续销毁
+      carousel.swiperInstance = swiper;
+    });
+  });
+
+  // 页面卸载时销毁所有swiper实例
+  window.addEventListener('beforeunload', function() {
+    const productCarousels = document.querySelectorAll('.product-carousel-swiper');
+    productCarousels.forEach(carousel => {
+      if (carousel.swiperInstance) {
+        carousel.swiperInstance.destroy(true, true);
+      }
+    });
+  });
+</script>
+
+<style>
+  .product-carousel-container {
+    position: relative;
+    width: 100%;
+  }
+
+  .product-carousel-swiper {
+    width: 100%;
+    position: relative;
+  }
+
+  .product-carousel-swiper .swiper-slide {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-carousel-swiper .swiper-button-right,
+  .product-carousel-swiper .swiper-button-left {
+    color: #1A1A1A;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin-top: -20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .product-carousel-swiper .swiper-button-rgiht:after,
+  .product-carousel-swiper .swiper-button-left:after {
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  .product-carousel-swiper .swiper-pagination {
+    position: relative;
+    margin-top: 1rem;
+  }
+
+  .product-carousel-swiper .swiper-pagination-bullet {
+    background: #ccc;
+    opacity: 1;
+    margin: 0 4px;
+  }
+
+  .product-carousel-swiper .swiper-pagination-bullet-active {
+    background: var(--jds-color-primary);
+  }
+
+  @media screen and (max-width: 768px) {
+    .product-carousel-swiper .swiper-button-right,
+    .product-carousel-swiper .swiper-button-left {
+      width: 32px;
+      height: 32px;
+      margin-top: -16px;
+    }
+
+    .product-carousel-swiper .swiper-button-rgiht:after,
+    .product-carousel-swiper .swiper-button-left:after {
+      font-size: 14px;
+    }
+  }
+</style>

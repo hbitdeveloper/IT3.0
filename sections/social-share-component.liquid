@@ -1,0 +1,230 @@
+{% schema %}
+{
+  "name": "Social Share Component",
+  "tag": "section",
+  "class": "social-share-component",
+  "settings": [
+    {
+      "type": "text",
+      "id": "insShareSuccessText",
+      "label": "Instagram Share Success Text",
+      "default": "Copy successfully,open Instagram to post!"
+    },
+    {
+      "type": "checkbox",
+      "id": "hideLineIcon",
+      "label": "Hide LINE Icon",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "hideWhatsAppIcon",
+      "label": "Hide WhatsApp Icon",
+      "default": false
+    }
+  ]
+}
+{% endschema %}
+{% comment %} 页面社交分享 {% endcomment %}
+<ul class="social-share-list" data-ins-success-tips="{{ section.settings.insShareSuccessText }}">
+  <li class="social-item item-facebook" data-type="Facebook">
+    <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-facebook.png?v=1685181380" alt="Facebook" loading="lazy">
+  </li>
+  <li class="social-item item-twitter" data-type="Twitter">
+    <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-twitter.png?v=1685181380" alt="Twitter" loading="lazy">
+  </li>
+  <li class="social-item item-instagram" data-type="Instagram">
+    <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-instagram.png?v=1685181380" alt="Instagram" loading="lazy">
+  </li>
+  {% if section.settings.hideLineIcon == false %}
+    <li class="social-item item-line" data-type="Line">
+      <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-line.png?v=1685181380" alt="Line" loading="lazy">
+    </li>
+  {% endif %}
+  {% if section.settings.hideWhatsAppIcon == false %}
+    <li class="social-item item-whatsapp" data-type="WhatsApp">
+      <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-whatsapp.png?v=1685181380" alt="WhatsApp" loading="lazy">
+    </li>
+  {% endif %}
+</ul>
+<script defer>
+  /**
+   * 通过分享解锁产品图组件
+   */
+  (function () {
+    let socialShare = {
+      mainContent: document.getElementById('MainContent'),
+      selector: document.querySelector('.social-share-component'),
+      shareList: document.querySelector('.social-share-component .social-share-list'),
+      pageShareUrl: '', // 当前页分享链接
+      insShareSuccessText: '', // Ins分享成功提示文案
+      init: function () {
+        this.pageShareUrl = this.getShareUrl();
+        this.insShareSuccessText =
+          this.shareList?.getAttribute('data-ins-success-tips') || 'Copy successfully,open Instagram to post!';
+        if (this.mainContent && this.selector) {
+          this.mainContent.insertAdjacentElement('afterend', this.selector);
+        }
+        this.componentInteractive();
+      },
+      componentInteractive: function () {
+        let that = this;
+        const socialItems = document.querySelectorAll('.social-share-component .social-item');
+        socialItems.forEach(function (item) {
+          item.addEventListener('click', function () {
+            let type = this.dataset.type;
+            that.socialShareFunc(type);
+          });
+        });
+      },
+      /**
+       * 获取当前页面分享链接
+       * @returns {string}
+       */
+      getShareUrl: function () {
+        const href = window.location.href;
+        let country = window.Shopify.country.toLowerCase();
+        if (country === 'gb'){
+          country = 'uk';
+        } else if( country ==='nl'){
+          country = 'eu';
+        }
+        const arr = ['us', 'jp'];
+        const com = country === 'jp' ? 'jp' : 'com';
+        let url = 'https://demo-us.jackery.com/pages/plus-series-event';
+        if (href.indexOf('demo') === -1) {
+          url = `https://${arr.includes(country) ? 'www' : country}.jackery.${com}/pages/plus-series-event`;
+        }
+        return url;
+      },
+      /**
+       * 社交分享方法调用
+       * @param {string} type: 社交平台
+       */
+      socialShareFunc: function (type) {
+        let shareUrl = this.getSocialShareAPI(type);
+
+        if (type !== 'Instagram') {
+          this.openWindows(shareUrl);
+        } else {
+          this.copyFunc(this.pageShareUrl);
+          pushSuccessMessage(this.insShareSuccessText);
+        }
+      },
+      openWindows: function (url) {
+        window.open(
+          url,
+          '单独窗口',
+          'height=300,width=600,top=30,left=20,toolbar=no,menubar=no,scrollbars=no,resizable=no,location=no,status=no'
+        );
+      },
+      /**
+       * 复制内容到剪切板
+       * @param copyContent 内容
+       */
+      copyFunc: function (copyContent) {
+        if (navigator.clipboard) {
+          // clipboard api 复制
+          navigator.clipboard.writeText(copyContent);
+        } else {
+          var textarea = document.createElement('textarea');
+          document.body.appendChild(textarea);
+          // 隐藏此输入框
+          textarea.style.position = 'fixed';
+          textarea.style.clip = 'rect(0 0 0 0)';
+          textarea.style.top = '10px';
+          // 赋值
+          textarea.value = copyContent;
+          // 选中
+          textarea.select();
+          // 复制
+          document.execCommand('copy', true);
+          // 移除输入框
+          document.body.removeChild(textarea);
+        }
+      },
+      /**
+       * 各社交平台分享插件调用
+       * @param {string} type 社交平台
+       */
+      getSocialShareAPI: function (type) {
+        let url = '';
+        let pageTitle = document.querySelector("meta[property='og:title']")?.getAttribute('content') || '';
+        const updateTime = Date.now();
+        const endShareUrl = `${this.pageShareUrl}?t=${updateTime}`;
+        switch (type) {
+          case 'Facebook':
+            url = 'https://www.facebook.com/sharer.php?u=' + encodeURIComponent(endShareUrl);
+            break;
+          case 'Twitter':
+            url = `https://twitter.com/intent/tweet?original_referer=${encodeURIComponent(
+              this.pageShareUrl
+            )}&ref_src=${encodeURIComponent(
+              'twsrc^tfw|twcamp^buttonembed|twterm^share|twgr^'
+            )}&text=${encodeURIComponent(pageTitle)}&url=${encodeURIComponent(`${endShareUrl}`)}`;
+            break;
+          case 'WhatsApp':
+            url = `https://api.whatsapp.com/send?text=${encodeURIComponent(endShareUrl)}`;
+            break;
+          case 'Line':
+            url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(`${endShareUrl}`)}`;
+            break;
+          default:
+            url = '';
+            break;
+        }
+        return url;
+      },
+    };
+    const bootstrap = function () {
+      if (!socialShare.selector) return;
+      socialShare.init();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootstrap);
+    } else {
+      bootstrap();
+    }
+  })();
+</script>
+<style>
+  .social-share-list {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    bottom: 280px;
+    right: 20px;
+    z-index: {{ settings.social_share_z_index | default: 1000000000 }};
+  }
+  .social-share-list .social-item:last-child {
+    margin-right: 0;
+  }
+  .social-share-list .social-item {
+    margin-bottom: 20px;
+    border-radius: 50%;
+  }
+  .social-share-list .social-item img {
+    width: 44px;
+    height: 44px;
+    display: block;
+    line-height: 1;
+    border-radius: 50%;
+    box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+  }
+  @media screen and (max-width: 1023px) {
+    .social-share-list .social-item {
+      margin-bottom: 10px;
+    }
+    .social-share-list .social-item img {
+      width: 44px;
+      height: 44px;
+    }
+  }
+  @media screen and (max-width: 768px) {
+    .social-share-list {
+      right: 10px;
+    }
+  }
+</style>

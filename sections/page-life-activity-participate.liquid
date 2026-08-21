@@ -1,0 +1,95 @@
+{% comment %} jackery-life 活动 participate，3 步或者 4 步 {% endcomment %}
+
+{% assign Participate_Step = section.blocks | where: 'type', "step_item" %}
+{% assign StepSize = Participate_Step.size %}
+
+<section class="py-64 bg-#F6F5F5 lg:j-py-96 xl:a-py-96 lg:bg-white">
+  <div class="px-30 lg:j-px-0 {% if StepSize == 3 %} lg:j-w-1200 xl:a-w-1200 {% else %} lg:j-w-1376 xl:a-w-1376 {% endif %} mx-auto">
+    <h2 class="life-activity-title mb-60 lg:j-mb-0 xl:a-mb-0">{{ section.settings.activity_participate_title | newline_to_br }}</h2>
+
+    {% comment %} PC {% endcomment %}
+    <div class="hidden lg:block lg:j-rounded-20 xl:a-rounded-20">
+      <ul class="w-full lg:grid lg:grid-cols-{{ StepSize }} lg:j-gap-84 xl:grid xl:grid-cols-{{ StepSize }} xl:a-gap-84">
+        {% for block in Participate_Step %}
+          <li class="
+            w-full flex-start flex-col bg-white step-{{ StepSize }}
+            lg:j-w-344 lg:j-min-h-526 lg:j-px-24 lg:j-pt-90 lg:j-pb-32
+            xl:a-w-344 xl:a-min-h-526 xl:a-px-24 xl:a-pt-90 xl:a-pb-32
+          ">
+            <img
+              loading="lazy"
+              class="object-contain lg:j-w-126 lg:j-h-126 xl:a-w-126 xl:a-h-126"
+              src="{{ block.settings.step_icon | image_url: width: 252}}"
+              alt="jackery">
+            <h3 class="
+              text-center font-600 text-#333 line-clamp-2
+              lg:j-text-24 lg:j-leading-32 lg:j-max-h-64 lg:j-mt-48 lg:j-mb-24
+              xl:a-text-24 xl:a-leading-32 xl:a-max-h-64 xl:a-mt-48 xl:a-mb-24
+            ">{{ block.settings.step_title | newline_to_br }}</h3>
+            <p class="
+              text-center text-#666 font-500 font-medium line-clamp-7
+              lg:j-text-16 lg:j-leading-24
+              xl:a-text-16 xl:a-leading-24
+            ">{{ block.settings.step_description | newline_to_br }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {% comment %} Mobile 轮播 {% endcomment %}
+    <div class="block lg:hidden swiper life-activity-process rounded-20">
+      <ul class="swiper-wrapper w-full">
+        {% for block in Participate_Step %}
+          <li class="swiper-slide w-full flex-start flex-col px-24 py-60 min-h-750 bg-white step-{{ StepSize }}">
+            <img
+              loading="lazy"
+              class="w-202 h-202 object-contain"
+              src="{{ block.settings.step_icon | image_url: width: 404}}"
+              alt="">
+            <h3 class="text-center font-600 text-#333 text-32 leading-38 my-24 line-clamp-2">{{ block.settings.step_title | newline_to_br }}</h3>
+            <p class="text-center text-#666 text-26 leading-34 font-500 font-medium line-clamp-7">{{ block.settings.step_description | newline_to_br }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+
+      {% comment %} swiper 分页 {% endcomment %}
+      <div class="block !lg:hidden swiper-pagination life-activity-process-pagination"></div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Life Activity Participate",
+    "class": "section-life-activity section-life-activity-participate",
+    "settings": [
+      {
+        "type": "textarea",
+        "id": "activity_participate_title",
+        "label": "Activity Participate Title",
+        "default": "Participate In The Process"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "step_item",
+        "name": "Step item",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "step_icon",
+            "label": "Step Icon"
+          }, {
+            "type": "textarea",
+            "id": "step_title",
+            "label": "Step Title"
+          }, {
+            "type": "textarea",
+            "id": "step_description",
+            "label": "Step Description"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

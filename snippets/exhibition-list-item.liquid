@@ -1,0 +1,115 @@
+{% comment %}
+  展会集锦列表的单个item
+  Accepts:
+  - class: 类名.
+  - item: 展会item
+  - begin_time_year: 开始年份
+  - active_type: 当前 展会item 状态
+  - progress_text: 进行中的状态标，如 In Progress
+  - coming_text: 未开始的状态标签，如 Upcoming
+
+  Usage:
+  {%
+    render
+    'exhibition-list-item',
+    class: class_value,
+    item: item,
+    begin_time_year: begin_time_year,
+    active_type: active_type,
+    progress_text: progress_text,
+    coming_text: coming_text,
+  %}
+%}
+{% endcomment %}
+
+<jky-exhibition-item class="{{class}}" year="{{begin_time_year}}" data-pin-top="{{item.settings.pin_to_top}}">
+  {% comment %} 展会内容保持不变 {% endcomment %}
+  <div class="swiper">
+    <div class="swiper-wrapper">
+      {%- for i in (0..5) -%}
+        {%- assign key_index = 'pic' | append: forloop.index -%}
+
+        {%- if item.settings[key_index] != blank -%}
+          <div class="swiper-slide">
+            {% render 'responsive-image', image: item.settings[key_index], item.settings[key_index], width: 580, mwidth: 480 %}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+    <div class="swiper-navigation-button prev"><svg viewBox="64 64 896 896" focusable="false" data-icon="right" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"></path></svg></div>
+    <div class="swiper-navigation-button next"><svg viewBox="64 64 896 896" focusable="false" data-icon="right" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"></path></svg></div>
+    <div class="swiper-pagination"></div>
+  </div>
+
+  <div class="exhibition-content">
+    {% comment %} 内容部分保持不变 {% endcomment %}
+    <div class="exhibition_content_top">
+      {% render 'responsive-image', image: item.settings.ex_pic, item.settings.ex_pic, width: 156, mwidth: 80, image_class: "exhibition-pic" %}
+      <h3 class="exhibition-name text-overflow-1">{{item.settings.title}}</h3>
+      <p class="exhibition-detail jky-tooltip">
+        <span class="jky-tooltip__inner jky-tooltip__inner--top">{{item.settings.subtitle}}</span>
+        <span class="text-overflow-3">{{item.settings.subtitle}}</span>
+      </p>
+    </div>
+    <div class="exhibition_content_bottom">
+      {% comment %} 表格内容保持不变 {% endcomment %}
+      <table class="exhibition_table">
+        <tbody>
+          <tr>
+            <th>{{item.settings.time_lable}}</th>
+            <td>{{item.settings.begin_time | rstrip | slice: 0, 10 | date: '%m-%d-%Y'}} ~ {{item.settings.end_time | rstrip | slice: 0, 10 | date: '%m-%d-%Y'}}</td>
+          </tr>
+          <tr>
+            <th>{{item.settings.state_lable}}</th>
+            <td>{{item.settings.state}}</td>
+          </tr>
+          <tr>
+            <th style="vertical-align: text-top;">{{item.settings.location_lable}}</th>
+            <td class="exhibition-item__location">{{item.settings.location}}</td>
+          </tr>
+          <tr>
+            <th>{{item.settings.booth_lable}}</th>
+            <td>{{item.settings.booth}}</td>
+          </tr>
+          <tr>
+            <th>{{item.settings.link_lable}}</th>
+            <td class="td-link">{{item.settings.link}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="button-wrap">
+        {%- if item.settings.add_calendar_btn_text != blank and active_type == 'coming' -%}
+          <button
+            class="z-button-fill-middle"
+            data-calendar-title="{{ item.settings.calendar_title | escape }}"
+            data-calendar-location="{{ item.settings.calendar_location | escape }}"
+            data-calendar-description="{{ item.settings.calendar_description | newline_to_br | replace: '<br>', '\n' | replace: '<br/>', '\n' | replace: '<br />', '\n' | strip_newlines }}"
+            data-calendar-start-time="{{ item.settings.calendar_reminder_start_time | escape }}"
+            data-calendar-end-time="{{ item.settings.calendar_reminder_end_time | escape }}"
+            data-reminder-time-button
+          >{{ item.settings.add_calendar_btn_text | escape }}</button>
+        {%- endif -%}
+        {%- if active_type != '' or active_type != blank -%}
+          {%- if item.settings.exhibition_btn != blank -%}
+            <a class="z-button-middle" data-type="{{item.settings.exhibition_link_url}}" href="{{item.settings.exhibition_link}}">{{item.settings.exhibition_btn}}</a>
+          {%- endif -%}
+        {%- else -%}
+          {%- if item.settings.btn_text != blank -%}
+            <a class="z-button-middle" href="{{item.settings.exhibition_detail}}">{{item.settings.btn_text}}</a>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  {%- if active_type != '' or active_type != blank -%}
+    <div class="absolute exhibition--tag">
+      {%- if active_type == 'progress' -%}
+        {{progress_text}}
+      {%- elsif active_type == 'coming' -%}
+        {{coming_text}}
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</jky-exhibition-item>

@@ -1,0 +1,92 @@
+<style>
+    .page-section-swiper{
+        background: {{ section.settings.background }};
+    }
+    .quality-introduction-{{ section.id }}{
+        padding-top:{{ section.settings.pc_padding_top }}px;
+        padding-bottom:{{ section.settings.pc_padding_bottom }}px;
+    }
+    @media screen and (min-width: 1024px) and (max-width: 1439.98px){
+        .quality-introduction-{{ section.id }}{
+            padding-top: calc( {{ section.settings.pc_padding_top }}  * 100vw / 1440 );
+            padding-bottom: calc( {{ section.settings.pc_padding_bottom }}  * 100vw / 1440 );
+        }
+    }
+    @media screen and (max-width: 1023.98px){
+        .quality-introduction-{{ section.id }}{
+            padding-top: calc( {{ section.settings.mb_padding_top }}  * 100vw / 750 );
+            padding-bottom: calc( {{ section.settings.mb_padding_bottom }}  * 100vw / 750 );
+        }
+    }
+</style>
+<div class="quality-introduction quality-center-container quality-introduction-{{ section.id }}" anchor="{{ section.settings.anchor | escape }}">
+  {% if section.settings.pc_title != blank and section.settings.mb_title %}
+    {% render 'quality-title', settings: section.settings, index: section.id %}
+  {% endif %}
+
+  {% if section.settings.sub != blank %}
+    <div class="keyword-sub">{{ section.settings.sub }}</div>
+  {% endif %}
+    <div class="quality-swiper-container">
+        <div class="quality-introduction-card swiper quality-introduction-swiper">
+            <div class="swiper-wrapper">
+                {%- for item in section.blocks -%}
+                    {% assign titleColor = '<em style="color: ' | append: item.settings.des_color | append: '">' %}
+                    <div class="quality-introduction-item swiper-slide">
+                        <div class="introduction-item">
+                            <div class="item-left">{% render 'responsive-image', image: item.settings.pc_img, mimage: item.settings.mb_img, image_class: 'blocks-image' %}</div>
+                            <div class="item-right"><div class="introduction-item-text">{{ item.settings.subtitle | replace: '<em>', titleColor }}</div></div>
+                        </div>
+                    </div>
+                {%- endfor -%}
+            </div>
+        </div>
+        {% if section.blocks.size > 1 %}
+            <div class="quality-pagination"></div>
+            <div class="swiper-navigation">
+                <div class="swiper-button-prev swiper-activity-button-prev swiper-tab-vs-pc-button"></div>
+                <div class="swiper-button-next swiper-activity-button-next swiper-tab-vs-pc-button"></div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% schema %}
+{
+  "name": "Swiper Introduction",
+  "tag": "section",
+  "class": "section page-section-swiper",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+      { "type": "text", "id": "anchor", "label": "二级标题定位锚点", "info": "搭配二级导航锚点定位,未使用到定位则不配置" },
+      { "type": "richtext", "id": "pc_title", "label": "PC Section title" },
+      { "type": "richtext", "id": "mb_title", "label": "Mobile Section title" },
+      { "type": "richtext", "id": "sub", "label": "SubTitle" },
+      { "type": "color", "id": "title_color", "label": "标题整体颜色以及svg颜色", "default": "#BA8D6B" },
+      { "type": "color_background", "id": "background", "label": "背景颜色"},
+      { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+      { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC", "default": 40 },
+      { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+      { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB", "default": 48 }
+    ],
+  "blocks": [{
+    "type": "swiper",
+    "name": "quality swiper Item",
+    "settings": [
+      { "type": "image_picker", "id": "pc_img", "label": "PC Swiper Image", "info": "尺寸:320 x 420,单位px" },
+      { "type": "image_picker", "id": "mb_img", "label": "Mobile Swiper Image", "info": "尺寸:544 x 330,单位px" },
+      { "type": "richtext", "id": "subtitle", "label": "文案内容", "info": "加粗代表标题字号，不加粗则为描述文案字号" },
+      { "type": "color", "id": "des_color", "label": "高亮颜色", "info": "富文本斜体高亮" }
+    ]
+    }],
+  "presets": [{
+    "name": "品质中心 - 轮播图",
+    "blocks": [
+      {
+        "type": "swiper"
+      }
+    ]
+  }]
+}
+{% endschema %}

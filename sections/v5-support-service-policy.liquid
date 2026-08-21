@@ -1,0 +1,97 @@
+
+{{ 'sections-v5-support-service-policy.css' | asset_url | stylesheet_tag }}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="v5-support-service-policy section-padding active section-container-lg"
+  id="v5-support-service-policy-{{ section.id }}"
+  style="{{ style }}"
+>
+  <div class="v5-support-service-policy__title">
+    {{ section.settings.title }}
+    {% if section.settings.description != blank %}
+      <div class="pt-3 lg:pt-6 text-sm lg:text-xl font-medium">{{ section.settings.description }}</div>
+    {% endif %}
+  </div>
+
+  <div class="v5-support-service-policy__list">
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'policy_item' -%}
+
+        <div
+          class="v5-support-service-policy__item has-description"
+          {{ block.shopify_attributes }}
+        >
+          <div class="desc-container">
+
+            {%- if block.settings.icon_image != blank -%}
+              <img class="v5-support-service-policy__icon-image" src="{{ block.settings.icon_image | image_url }}" alt="{{ block.settings.title | escape }}">
+            {%- else -%}
+              {{ 'product-1' | placeholder_svg_tag: 'v5-support-service-policy__icon-image' }}
+            {%- endif -%}
+
+            <div class="text-container">
+              <div class="v5-support-service-policy__item-title">{{ block.settings.title }}</div>
+              <div class="v5-support-service-policy__item-desc">{{ block.settings.description }}</div>
+              {%- if block.settings.link != blank -%}
+                <div class="v5-support-service-policy__button-wrap">
+                  <jds-button href="{{ block.settings.link }}" size="medium" variant="text" icon="arrow-right">{{ section.settings.button_text }}</jds-button>
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+
+{% schema %}
+{
+  "name": "V5-Support Service Policy",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "上边距", "default": 32 },
+    { "type": "number", "id": "padding_bottom", "label": "下边距", "default": 32 },
+    { "type": "header", "content": "MB边距" },
+    { "type": "text", "id": "mb_padding_type", "default": "custom", "label": "MB边距", "visible_if": "{{ false }}" },
+    { "type": "number", "id": "padding_top_mb", "label": "上边距", "default": 24 },
+    { "type": "number", "id": "padding_bottom_mb", "label": "下边距", "default": 24 },
+    { "type": "text", "id": "title", "label": "Title", "default": "Service Request and Inquiry" },
+    { "type": "text", "id": "description", "label": "Description"},
+    { "type": "text", "id": "button_text", "label": "Button text", "default": "Track now" }
+  ],
+  "blocks": [
+    {
+      "type": "policy_item",
+      "name": "Policy item",
+      "settings": [
+        { "type": "image_picker", "id": "icon_image", "label": "Icon image" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Warranty" },
+        { "type": "richtext", "id": "description", "label": "Description" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-Support Service Policy",
+      "category": "V5.0 Support",
+      "blocks": [
+        { "type": "policy_item", "settings": { "title": "Tracking My Order", "description": "<p>Get real-time updates on your shipment status.</p>", "link": "https://www.jackery.com/pages/policy" } },
+        { "type": "policy_item", "settings": { "title": "Extend Your Warranty", "description": "<p>Learn about our shipping options and delivery times.</p>", "link": "https://www.jackery.com/pages/policy" } },
+        { "type": "policy_item", "settings": { "title": "Return & Refund", "description": "<p>Understand our return and refund process.</p>", "link": "https://www.jackery.com/pages/policy" } },
+        { "type": "policy_item", "settings": { "title": "Help to Choose", "description": "<p>Smart selection guide to find vour ideal product. xxxxxxxxxxxxour ideal product.</p>", "link": "https://www.jackery.com/pages/policy" } },
+        { "type": "policy_item", "settings": { "title": "How to Buy", "description": "<p>Step-by-step purchasing instructions.</p>", "link": "https://www.jackery.com/pages/policy" } },
+        { "type": "policy_item", "settings": { "title": "Where to Buy", "description": "<p>Find out about our payment methods and security.</p>", "link": "https://www.jackery.com/pages/policy" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

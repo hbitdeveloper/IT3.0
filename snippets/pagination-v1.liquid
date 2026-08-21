@@ -1,0 +1,34 @@
+{% doc %} 
+    @description: 适用于博客分页器
+    @param { paginate }  paginate 分页对象
+    @param { string } anchor 当前版块的锚点（可选）
+    @example
+        {% render 'pagination-v1', paginate: paginate %}
+{% enddoc %}
+
+<div class="flex items-center justify-center mt-8 lg:mt-6">
+    {% assign common_class = 'flex items-center justify-center w-11 h-11 lg:w-12 lg:h-12 rounded-full ' %}
+    {% assign normal_class = 'bg-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.08)] active:bg-[rgba(0,0,0,0.12)]' %}
+    {% assign disable_class = 'bg-[rgba(0,0,0,0.02)] cursor-not-allowed pointer-events-none' %}
+    {% if paginate.previous -%} 
+        {% assign previous_class_name = common_class | append: normal_class %}
+        {% assign previous_color = '#666666' %}
+    {% else %} 
+        {% assign previous_class_name = common_class | append: disable_class %}
+        {% assign previous_color = '#cccccc' %}
+    {% endif %}
+    <a class="{{ previous_class_name }}" href="{{ paginate.previous.url }}{{ anchor }}">
+        {% render 'icon-arrow', class: 'rotate-180', width: 18, height: 18, color: previous_color %}
+    </a>
+    <div class="mx-[2.1875rem] lg:mx-6 text-[#333333] font-normal text-[1rem] lg:text-[1.125rem] ">{{ paginate.current_page }} / {{ paginate.pages }}</div>
+    {% if paginate.next -%}
+        {% assign next_class_name = common_class | append: normal_class %}
+        {% assign next_color = '#666666' %}
+    {% else %}
+        {% assign next_class_name = common_class | append: disable_class %}
+        {% assign next_color = '#cccccc' %}
+    {% endif %}
+    <a class="{{ next_class_name }}" href="{{ paginate.next.url }}{{ anchor }}">
+        {% render 'icon-arrow', width: 18, height: 18, color: next_color %}
+    </a>
+</div>

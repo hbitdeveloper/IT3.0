@@ -1,0 +1,148 @@
+{% comment %} 1：图片 2： 元字段配置 {% endcomment %}
+<script defer src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/vue3.global.min.js?v=1704680120" data-cookieconsent="ignore"></script>
+<script>
+    window.fiveCompareJson =  [
+        {%- for i in (1 ..8) -%}
+            {%- assign productStr = 'product' | append: i -%}
+            {% assign product = compare.settings[productStr] %}
+            {%- assign skuStr = 'sku' | append: i  -%}
+            {%- assign sku = compare.settings[skuStr]  -%}
+            {%- assign skuInfo = product.variants | where: 'sku', sku | first -%}
+            {%- if skuInfo != blank -%}
+                {%- assign productImageStr = 'product_image' | append: i  -%}
+                 {% assign image = compare.settings[productImageStr] | default: skuInfo.featured_image | default: product.featured_image %}
+                 {% assign titleStr = 'title' | append: i %}
+                 {% assign title = product.title %}
+                 {% if skuInfo.title != 'Default Title' %}
+                    {% assign title = skuInfo.title  %}
+                {% endif %}
+                {% if compare.settings[titleStr] != blank %}
+                    {% assign title = compare.settings[titleStr] %}
+                {% endif %}
+                {% assign link = 'link' | append: i  %}
+
+                {% if compare.settings.type == '1' %}
+                    {% assign imagePcStr = 'params_pc_image' | append: i%}
+                    {% assign imageMbStr = 'params_mb_image' | append: i%}
+                    {
+                        "productImage": "{{ image | img_url: 'master' }}",
+                        "title": "{{ title | escape | replace_first: 'Jackery', ''}}",
+                        "link": "{{ compare.settings[link] }}",
+                        "sku": '{{ sku }}',
+                        "paramsPcImage": "{{  compare.settings[imagePcStr] | image_url: width: 520  }}",
+                        "paramsMbImage": "{{  compare.settings[imageMbStr] | image_url: width: 750  }}"
+                    }{% if forloop.last != true %},{% endif %}
+                {% else %}
+                    {
+                        "productImage": "{{ image | image_url: width: 520  }}",
+                        "title": "{{ title | escape | replace_first: 'Jackery', ''}}",
+                        "link": "{{ compare.settings[link] }}",
+                        "sku": '{{ sku }}',
+                        "paramsList": [
+                             {% for item in skuInfo.metafields.custom.five_kwh_params_display.value %}
+                                {
+                                    "title": "{{ item.title | escape}}",
+                                    "icon": "{{ item.icon | image_url: width: 520  }}"
+                                }{% if forloop.last != true %},{% endif %}
+                            {%- endfor -%}
+                        ]
+                    }{% if forloop.last != true %},{% endif %}
+                {%- endif -%}
+            {%- endif -%}
+        {%- endfor -%}
+     ]
+</script>
+
+<div
+    anchor="{{compare.settings.anchor_id  | url_decode | strip | replace: ' ', ''}}"
+    class="five-kwh-compare"
+    data-type="{{ compare.settings.type }}"
+    style="background-color: {{ compare.settings.bgColor }} "
+>
+    <div class="five-compare-title">
+        <div class="five-main-container">
+            {% assign titleColor = '<em style="color: ' | append: compare.settings.title_color | append: '">' %}
+            <div class="title">
+                {{ compare.settings.title | replace: '<em>', titleColor }}
+            </div>
+            {% assign subTitleColor = '<em style="color: ' | append: compare.settings.subtitle_color | append: '">' %}
+            <div class="sub-title">
+                {{ compare.settings.sub_title | replace: '<em>', subTitleColor }}
+            </div>
+        </div>
+    </div>
+    <div class="five-main-sticky" style="background-color: {{ compare.settings.bgColor }} ">
+        <div class="five-main-container">
+            <div class="compare-list">
+                <template v-for="(item, index) in selectList" :key="index">
+                    <div class="compare-item">
+                        <select class="product-select" :title="selectList[index].title" v-model="selectSku[index]" @change="handleSelect($event, index)">
+                            <option v-for="(item1, j) in originList" :value="item1.sku" :diabled="selectSku.includes(item1.sku)">${item1.title}</option>
+                        </select>
+                        {% comment %} <i class="iconfont jackery-icon-arrowdown"></i> {% endcomment %}
+                        <jds-icon name="arrow-down" class="icon-arrow-down"></jds-icon>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+   <div class="five-main-container">
+        <div class="compare-list">
+            <template v-for="(item, index) in selectList" :key="index">
+                <div class="compare-item">
+                    <div class="product-image">
+                        <img :src="item.productImage" loading="lazy" />
+                    </div>
+                    <div class="product-title" style="color: {{ compare.settings.color }}">${item.title}</div>
+                    <a
+                        :href="item.link"
+                        target="{% if new_window %}_blank{% else %}_self{% endif %}"
+                        data-ga-event="5000plus_page_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="Comparison"
+                        :data-ga-params-title="title"
+                        :data-ga-params-position="item.title"
+                        data-ga-params-button_name="{{  compare.settings.button_text | escape}}"
+                        :data-ga-params-url="item.link"
+                    >
+                        <button  class="index-button">
+                            <span>{{  compare.settings.button_text | escape }}</span>
+                            <div>
+                                <div class="arrow">
+                                    <svg class="line" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                                <g transform="translate(672.000000, 286.000000)">
+                                                    <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                                </g>
+                                            </g>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
+                        </button>
+                    </a>
+                </div>
+            </template>
+        </div>
+        <div class="compare-list params">
+            <template v-for="(item, index) in selectList" :key="index">
+                <div class="compare-item">
+                    {% if compare.settings.type == '1'%}
+                        <img class="pc-block params-img" :src="item.paramsPcImage" loading="lazy" />
+                        <img class="mobile-block params-img" :src="item.paramsMbImage" loading="lazy" />
+                    {% else %}
+                        <div class="params-list">
+                            <template v-for="item1 in item.paramsList">
+                                <div class="params-item">
+                                    <img :src="item1.icon" loading="lazy" />
+                                    <div v-html="item1.title.replace(';', '<br/>')"></div>
+                                </div>
+                            </template>
+                        </div>
+                    {% endif %}
+                </div>
+            </template>
+        </div>
+    </div>
+</div>

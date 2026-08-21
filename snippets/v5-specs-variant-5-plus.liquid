@@ -1,0 +1,72 @@
+
+<div class="pdp-specs-v5-content">
+    {%- for pvariant in product.variants -%}
+        <div variant_id="{{pvariant.id}}" class="pdp-specs-v5-specs-variant {% if product.selected_or_first_available_variant.id != pvariant.id %}hidden{%endif%}">
+            {%- if pvariant.metafields.custom.product_spec != blank -%}
+                {%- assign product_spec = pvariant.metafields.custom.product_spec.value -%}
+
+                {%- for spec in product_spec -%}
+                    <drop-down init="open" doc="false" class="relative select-none">
+                        <div 
+                            data-ga-event="5.0_products_details_page_user_clicks"
+                            data-ga-action="click" 
+                            data-ga-params-product_spu_name="{{ product.title | escape }}"
+                            data-ga-params-module="Parameter"
+                            data-ga-params-position="{{ settings.part_heading | escape }}"
+                            data-ga-params-content="{{ section.settings.heading | escape}}"
+                            data-ga-params-button_name="{{ spec.title | escape }}"
+                            data-ga-params-type="fold"
+                            trigger="" class="cursor-pointer list-none relative pdp-v5-specs-item_trigger">
+                            <div 
+                                class="trigger--summery pdp-v5-specs-item_header flex items-center justify-between relative"
+                            >
+                                <span class="text-overflow-1 lg:text-lg text-base font-semibold">{{ spec.title }}</span>
+                                <svg class="lg:w-6 w-4 lg:h-6 h-4 transition-all duration-300 ease-in-out" width="22" height="12" viewBox="0 0 22 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M0.6875 0.726563L10.6875 10.2266L20.6875 0.726563" stroke="black" stroke-opacity="0.65" stroke-width="2"/>
+                                </svg>
+                                <div class="trigger--summery__underline absolute bottom-0 w-full left-0"></div>
+                            </div>
+                        </div>
+
+                        <div trigger-content class="hide-scroll-bar w-full overflow-y-auto overflow-x-hidden">
+                            <div class="hide-scroll-bar pdp-v5-specs-item__content">
+                                {%- for spec_item in spec.baseInfos -%}
+                                    <div style="--tw-border-opacity: 0.08;" class="pdp-v5-specs-item__unit lg:mb-10 mb-6 lg:pb-10 pb-6 px-3 lg:px-4">
+                                        <div class="lg:text-2xl text-base my-6 font-semibold text-black/65">{{ spec_item.first }}</div>
+                                        <div class="specs-wrap grid lg:grid-cols-2 grid-cols-1 lg:gap-y-3 gap-y-2 gap-x-16">
+                                            {%- for row in spec_item.last -%}
+                                                {%- assign first_obj = row.last | slice: 0, 1 -%}
+                                                {%- assign last_obj = row.last | slice: -1 -%}
+                                                {%- if first_obj == '{' and last_obj == '}' -%}
+                                                    {%- for row_item in row.last -%}
+                                                        <div class="specs-item flex gap-x-2.5 py-4 border-dotted border-b-[1px] border-[#C6C7C8]">
+                                                            <span data-l3 class="key lg:text-base text-xs font-medium text-black lg:flex-none flex-1 w-32 lg:w-48">{{ row_item.first }}</span>
+                                                            <span style="--tw-text-opacity: 0.65;" class="value lg:text-base text-sm text-black font-normal lg:flex-none flex-1 lg:max-w-sm">{{ row_item.last }}</span>
+                                                        </div>
+                                                    {%- endfor -%}
+                                                {% else %}
+                                                    {%- assign row_flag = row | json | slice: 0, 1 -%}
+                                                    {% if row_flag != '[' %}
+                                                        <div class="specs-item flex gap-x-2.5 py-4 border-dotted border-b-[1px] border-[#C6C7C8]">
+                                                            <span class="key lg:text-base text-sm font-medium text-black lg:flex-none flex-1 w-32 lg:w-48">{{ row }}</span>
+                                                        </div>
+                                                    {%- else -%}
+                                                        <div class="specs-item flex gap-x-2.5 py-4 border-dotted border-b-[1px] border-[#C6C7C8]">
+                                                            <span class="key lg:text-base text-sm font-medium text-black lg:flex-none flex-1 w-32 lg:w-48">{{ row.first }}</span>
+                                                            <span style="--tw-text-opacity: 0.65;" class="value lg:text-base text-sm text-black font-normal lg:flex-none flex-1 lg:max-w-sm">{{ row.last }}</span>
+                                                        </div>
+                                                    {%- endif -%}
+                                                {% endif %}
+                                            {%- endfor -%}
+                                        </div>
+                                    </div>
+                                {%- endfor -%}
+                            </div>
+                        </div>
+                    </drop-down>
+                {%- endfor -%}
+            {%- endif -%}
+        </div>
+    {%- endfor -%}
+</div>
+<script src="{{ 'snippets-v5-specs-variant.js' | asset_url }}" defer></script>

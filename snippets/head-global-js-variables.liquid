@@ -1,0 +1,182 @@
+{%- doc -%}
+  全局JS变量
+{%- enddoc -%}
+
+{%- capture random_file -%}
+  {{ 'swiper-8.4.7.min.js' | asset_url }}
+{%- endcapture -%}
+
+{%- liquid
+  # Required for lazy-loading with Webpack on Shopify CDN
+  assign assetsPath = random_file | split: 'swiper-8.4.7.min.js' | first
+
+  assign iso_code = settings.shop_cr | default: localization.country.iso_code | default: 'US'
+  assign is_product_template = false
+  if template == 'product' or template contains 'product.'
+    assign is_product_template = true
+    assign current_variant = product.selected_or_first_available_variant
+  endif
+-%}
+
+{%- capture global_js_variables -%}
+  window.shopId = '{{ shop.id }}';
+  window.shopUrl = '{{ shop.url }}';
+  window.page_productStrings = {
+    download: "{{'general.action_text.download' | t}}",
+    viewMore: "{{'general.action_text.view_more' | t}}",
+  };
+
+  window.pageInfo = {
+    site_version: "{{settings.jky_theme_version}}",
+    account_url: "{{settings.shop_env}}" === 'demo' ? 'https://demo-account.myjackery.com' : "{{settings.shop_env}}" === 'uat' ? 'https://account-uat.jackery.com' : 'https://account.myjackery.com',
+    membership_url:  "{{settings.shop_env}}" === 'demo' ? 'https://demo-membership.jackery.com' : "{{settings.shop_env}}" === 'uat' ? 'https://membership-uat.jackery.com' : 'https://membership.jackery.com',
+    shopId: "{{ shop.id }}",
+    lang: "{{ shop.locale }}",
+    env: "{{settings.shop_env}}",
+    api: "{{settings.shop_env}}" === 'demo' ? 'https://demo-api.myjackery.com' : "{{settings.shop_env}}" === 'uat' ? 'https://api-uat.myjackery.com' : 'https://api.myjackery.com',
+    {% comment %} 区域站点特殊处理：EU {% endcomment %}
+    cr: "{{iso_code}}",
+    platform: "shopify",
+    terms_url: "{{settings.terms_url}}",
+    policy_url: "{{settings.policy_url}}",
+
+    template: "{{ template }}",
+    __webpack_public_path__: "{{ assetsPath }}",
+    search_terms: "{{ search.terms }}",
+    search_check_pii_enable: {{ settings.search_check_pii_enable | default: false | json }},
+    search_pii_sensitive_info: {{ settings.search_pii_sensitive_info | default: 'Sensitive information detected. Please search using product names or keywords.' | json }},
+
+    currency: {
+      currency: "{{shop.currency}}",
+      money_format: "{{shop.money_format | strip_html}}",
+      money_currency_format: "{{shop.money_with_currency_format | strip_html}}"
+    },
+
+    {% comment %} 登录用户 {% endcomment %}
+    customerInfo: {
+      id: "{{ customer.id }}",
+      email: "{{ customer.email }}"
+    },
+
+    {% comment %} 搜索范围 {% endcomment %}
+    search_query: "{{settings.enable_search_page}}" === "true" ? "product,article,page" : "product,article",
+
+    {% comment %} 多语言 {% endcomment %}
+    strings: {
+      product: {
+        soldOut: "{{ 'products.product.sold_out' | t }}",
+        addToCart: "{{ 'products.product.add_to_cart' | t }}",
+        inCart: "{{ 'products.product.in_cart' | t }}",
+        download: "{{'general.action_text.download' | t}}",
+        viewMore: "{{'general.action_text.view_more' | t}}",
+        viewLess: "{{'general.action_text.view_less' | t}}",
+        shopNow: "{{'general.action_text.shop_now' | t}}",
+        showDiffText: "{{'products.product.show_diff_text' | t}}",
+        unavailable: `{{ 'products.product.unavailable' | t }}`,
+        msrp: `{{ 'products.product.price.msrp' | default: '' | t }}`,
+
+        max_inventory_quantity_error: `{{ 'products.product.max_inventory_quantity_error' | t}}`,
+      },
+
+      cartStrings: {
+        error: `{{ 'cart.cart_error' | t }}`,
+        quantityError: `{{ 'cart.cart_quantity_error_html' | t: quantity: '[quantity]' }}`,
+      },
+
+      headerStrings: {
+        localTitle: "{{'general.action_text.local_change_heading' | t}}",
+        searchPlaceholder: "{{ 'general.search.search' | t }}",
+      },
+
+      footerStrings: {
+        email_empty: "{{'newsletter.email_empty_info' | t}}",
+        email_error: "{{ 'newsletter.email_error_info' | t }}",
+        policy_empty: "{{ 'newsletter.policy_empty_info' | t }}",
+        email_subscribe_success: "{{ 'newsletter.email_subscribe_success' | t }}",
+        phone_error: "{{ 'newsletter.phone_error_info' | t }}",
+        server_error: "{{ 'newsletter.server_error' | t }}",
+        phone_empty: "{{ 'newsletter.phone_empty_info' | t }}",
+        phone_subscribe_success: "{{ 'newsletter.phone_subscribe_success' | t }}",
+      },
+
+      {%- if template contains 'collection' -%}
+        collection: {
+          max_limit_local: "{{ 'sections.collection_template.compare_max_limit_tips_html' | t: mount: ''}}",
+          compare_button_text: "{{ 'sections.collection_template.compare_button_text' | t }}",
+          compare_min_limit_tips: "{{ 'sections.collection_template.compare_min_limit_tips' | t }}",
+          soldOut: "{{ 'products.product.sold_out' | t }}",
+          addToCart: "{{ 'products.product.add_to_cart' | t }}",
+          shopNow: "{{ 'products.product.shop_now' | t }}",
+        },
+      {%- endif -%}
+    },
+    {% comment %} 配置项 {% endcomment %}
+    settings: {
+      {% comment %} 是否启用拉新弹窗 {% endcomment %}
+      open_new_customer: {{settings.open_new_customer | json | default: false}},
+    }
+  };
+
+  window.routes = {
+    cart_add_url: '{{ routes.cart_add_url }}',
+    cart_change_url: '{{ routes.cart_change_url }}',
+    cart_update_url: '{{ routes.cart_update_url }}',
+    predictive_search_url: '{{ routes.predictive_search_url }}',
+  };
+
+  {% comment %} 产品相关js {% endcomment %}
+  {%- if is_product_template -%}
+    window.product = {
+      currentVariant: {
+        "id": {{ current_variant.id | json }},
+        "sku": {{ current_variant.sku | json }},
+        "availability" : {{ current_variant.available | json }},
+        "price" : "{{ current_variant.price | money }}",
+        "compare_at_price" : "{{ current_variant.compare_at_price | money }}",
+        {% if product.variants.size > 0  %}
+          "batteryInfos": {{current_variant.metafields.custom.batteryInfos.value | json}}
+        {% else %}
+          "batteryInfos": {{product.metafields.custom.batteryInfos.value | json}}
+        {% endif %}
+      },
+      productVariants: {
+        {%- for variant in product.variants -%}
+        "{{ variant.id }}": {
+          "id": {{ variant.id | json }},
+          "sku": {{ variant.sku | json }},
+          "availability" : {{ variant.available | json }},
+          "price" : "{{ variant.price | money }}",
+          "compare_at_price" : "{{ variant.compare_at_price | money }}",
+          {% if product.variants.size > 0  %}
+          "batteryInfos": {{variant.metafields.custom.batteryInfos.value | json}}
+          {% else %}
+          "batteryInfos": {{product.metafields.custom.batteryInfos.value | json}}
+          {% endif %}
+        } {% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      },
+    };
+  {%- endif -%}
+
+{%- endcapture -%}
+
+<script type="text/javascript" data-cookieconsent="ignore">
+  {{- global_js_variables | strip | strip_newlines | replace: '  ', ' ' | replace: '  ', ' ' -}}
+</script>
+
+<script type="text/javascript" data-cookieconsent="ignore">
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (y > 0 && y < 150) {
+          window.scrollTo({
+            top: 0,
+            behavior: 'instant'
+          });
+        }
+      });
+    });
+  });
+</script>

@@ -1,0 +1,165 @@
+{% comment %} Tab Swiper Three {% endcomment %}
+<section class="w-full flex-center flex-col bg-#333333 px-40 pt-48 pb-80 lg:px-0 lg:j-py-50 xl:a-py-50">
+  {% if settings.title != blank %}
+    <h2 class="w-full lg:j-w-1000 xl:a-w-1000 text-center font-600 text-white text-48 leading-60 mb-60 lg:j-text-40 lg:j-leading-48 lg:j-mb-35 xl:a-text-40 xl:a-leading-48 xl:a-mb-35">
+      {{ settings.title | newline_to_br }}
+    </h2>
+  {% endif %}
+
+  {% if settings.sub_title != blank %}
+    <h3 class="w-full lg:j-w-1000 xl:a-w-1000 text-center font-400 text-white text-32 leading-48 -mt-40 mb-60 lg:j-text-18 lg:j-leading-26 -lg:j-mt-15 lg:j-mb-40 xl:a-text-18 xl:a-leading-26 -xl:a-mt-15 xl:a-mb-40">
+      {{ settings.sub_title | newline_to_br }}
+    </h3>
+  {% endif %}
+
+  <div class="hidden w-full flex-center flex-col relative">
+      <ul class="swiper-balcony-tab-wrap-pc flex-between border-0 border-#C4C4C4/50 border-solid relative lg:j-w-1100 lg:j-border-b-3 lg:j-gap-x-80 xl:a-w-1100 xl:a-border-b-2 xl:a-gap-50">
+        {%- for i in (0..3) -%}
+            {% assign name_index = 'scene_name_' | append: forloop.index %}
+            {% assign desc_index = 'scene_description_' | append: forloop.index %}
+            {% assign poster_index = 'poster_' | append: forloop.index %}
+            {% assign poster_index = 'poster_' | append: forloop.index %}
+            {% assign video_index = 'video_url_' | append: forloop.index %}
+            {%- if settings[name_index] != blank -%}
+                <li class="text-center cursor-pointer font-600 text-white/80 lg:j-text-36 lg:j-leading-48 lg:j-py-5 lg:j-max-w-250 xl:a-text-36 xl:a-leading-48 xl:a-py-5 xl:a-max-w-250 lg:line-clamp-2" data-balcony-tab-item>
+                    {{settings[name_index] | escape}}
+                </li>
+            {%- endif -%}
+        {%- endfor -%}
+        <li class="text-center absolute left-0 bottom-0 bg-white transition-all duration-300 lg:j-w-0 lg:j-h-6 -lg:j-bottom-4 xl:a-w-0 xl:a-h-4 -xl:a-bottom-3" data-balcony-tab-deco></li>
+      </ul>
+
+      {% comment %} PC 端 Swiper {% endcomment %}
+      <div class="swiper swiper-balcony-tab-content-pc w-full lg:j-min-h-560 lg:j-mt-25 xl:a-min-h-560 xl:a-mt-25">
+          <div class="swiper-wrapper w-full lg:j-min-h-560 xl:a-min-h-560">
+                {%- for i in (0..3) -%}
+                    {% assign name_index = 'scene_name_' | append: forloop.index %}
+                    {% assign desc_index = 'scene_description_' | append: forloop.index %}
+                    {% assign poster_index = 'poster_' | append: forloop.index %}
+                    {% assign video_index = 'video_url_' | append: forloop.index %}
+                    {%- if settings[name_index] != blank -%}
+                        <div class="swiper-slide !lg:j-w-1100 !xl:a-w-1100">
+                            <p class="font-400 text-white lg:flex-1 lg:j-text-20 lg:j-leading-32 lg:j-mb-24 xl:a-text-20 xl:a-leading-32 xl:a-mb-24 lg:line-clamp-3">
+                                {{ settings[desc_index] | newline_to_br }}
+                            </p>
+                            <div class="overflow-hidden !lg:j-w-1100 lg:j-h-560 lg:j-rounded-12 !xl:a-w-1100 xl:a-h-560 xl:a-rounded-12">
+                                {% if settings[video_index] != blank %}
+                                {%-
+                                    render 'jky-video',
+                                    poster: settings[poster_index],
+                                    video_url: settings[video_index],
+                                    autoplay: false,
+                                    loop: false,
+                                    controls: true
+                                -%}
+                                {% else %}
+                                {% comment %} image {% endcomment %}
+                                <picture class="w-full h-full">
+                                    <source media="(min-width:1024px)" srcset="{{ settings[poster_index] | image_url: width: 1920 }}">
+                                    <img
+                                        class="w-full h-full object-cover"
+                                        src="{{ settings[poster_index] | image_url: width: 750 }}"
+                                        alt="{{ settings[poster_index].alt }}"
+                                        loading="lazy"
+                                        width="{{ settings[poster_index].width }}"
+                                        height="{{ settings[poster_index].height }}"
+                                    >
+                                </picture>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {%- endif -%}
+                {%- endfor -%}
+          </div>
+
+          {% comment %} PC Navigation {% endcomment %}
+          <div class="flex swiper-button-next swiper-tab-pc-button-next"></div>
+          <div class="flex swiper-button-prev swiper-tab-pc-button-prev"></div>
+      </div>
+  </div>
+
+  {% comment %} MB 端 Swiper {% endcomment %}
+  <div class="hidden w-full swiper swiper-balcony-tab-content-mb pb-142" data-expend="false">
+      <div class="swiper-wrapper">
+        {%- for i in (0..3) -%}
+          {% assign name_index = 'scene_name_' | append: forloop.index %}
+          {% assign desc_index = 'scene_description_' | append: forloop.index %}
+          {% assign poster_index = 'poster_' | append: forloop.index %}
+          {% assign video_index = 'video_url_' | append: forloop.index %}
+
+          {%- if settings[name_index] != blank -%}
+            <div class="swiper-slide flex-col bg-transparent">
+              <h2 class="w-full text-left font-600 text-48 leading-56 mb-24 text-white">{{ settings[name_index] | escape }}</h2>
+              <p class="font-400 text-32 leading-44 mt-16 mb-30 text-white/80">
+                {{ settings[desc_index] | newline_to_br }}
+              </p>
+              <div class="w-full h-384 relative rounded-24 overflow-hidden" data-url="{{ block.settings.video_url }}">
+                {% if settings[video_index] != blank %}
+                  {%-
+                    render 'jky-video',
+                      poster: settings[poster_index],
+                      mbPoster: settings[poster_index],
+                      video_url: settings[video_index],
+                      autoplay: false,
+                      loop: false,
+                      controls: true
+                  -%}
+                {% else %}
+                  {% comment %} image {% endcomment %}
+                  <picture class="w-full h-full">
+                    <source media="(min-width:1024px)" srcset="{{ settings[poster_index] | image_url: width: 1920 }}">
+                    <img
+                      class="w-full h-full object-cover"
+                      src="{{ settings[poster_index] | image_url: width: 750 }}"
+                      alt="{{ settings[poster_index].alt }}"
+                      loading="lazy"
+                      width="{{ settings[poster_index].width }}"
+                      height="{{ settings[poster_index].height }}"
+                    >
+                  </picture>
+                {% endif %}
+              </div>
+          </div>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {% for block in tabItems %}
+          <div class="swiper-slide flex-col bg-transparent">
+              <h2 class="w-full text-left font-600 text-48 leading-56 mb-24 text-white">{{ block.settings.scene_name | escape }}</h2>
+              <p class="font-400 text-32 leading-44 mt-16 mb-30 text-white/80">
+                {{ block.settings.scene_description | newline_to_br }}
+              </p>
+              <div class="w-full h-384 relative rounded-24 overflow-hidden" data-url="{{ block.settings.video_url }}">
+                {% if block.settings.video_url != blank %}
+                  {%-
+                    render 'jky-video',
+                      poster: block.settings.poster,
+                      mbPoster: block.settings.mbPoster,
+                      video_url: block.settings.video_url,
+                      autoplay: false,
+                      loop: block.settings.loop,
+                      controls: block.settings.controls
+                  -%}
+                {% else %}
+                  {% comment %} image {% endcomment %}
+                  <picture class="w-full h-full">
+                    <source media="(min-width:1024px)" srcset="{{ block.settings.poster | image_url: width: 1920 }}">
+                    <img
+                      class="w-full h-full object-cover"
+                      src="{{ block.settings.poster | image_url: width: 750 }}"
+                      alt="{{ block.settings.poster.alt }}"
+                      loading="lazy"
+                      width="{{ block.settings.poster.width }}"
+                      height="{{ block.settings.poster.height }}"
+                    >
+                  </picture>
+                {% endif %}
+              </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-pagination swiper-tab-pagination"></div>
+      <div class="swiper-button-next swiper-balcony-tab-button-next"></div>
+      <div class="swiper-button-prev swiper-balcony-tab-button-prev"></div>
+    </div>
+</section>

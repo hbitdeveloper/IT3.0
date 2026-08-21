@@ -1,0 +1,254 @@
+{{ 'section-general-image.min.css' | asset_url | stylesheet_tag }}
+<div class="section-padding {{section.settings.page_width}}"
+  style="--section-bg: {{section.settings.bg_color}};
+    --section-padding-top: {{section.settings.padding_top}};
+    --section-padding-bottom: {{section.settings.padding_bottom}};
+    --section-padding-right: {{section.settings.padding_right}};
+    --section-padding-left: {{section.settings.padding_left}};">
+  {%- liquid
+    assign pcimage = section.settings.poster_pc
+    assign pcimage_ratio = '56.25%'
+    assign mimage = section.settings.poster_mb
+    assign mbimage_ratio = '177.7%'
+    if section.settings.pc_media_fill and pcimage
+      assign pcimage_ratio = 1 | divided_by: pcimage.aspect_ratio | times: 100 | append: '%'
+      assign mbimage_ratio = pcimage_ratio
+    endif
+
+    if section.settings.mb_media_fill and mimage
+      assign mbimage_ratio = 1 | divided_by: mimage.aspect_ratio | times: 100 | append: '%'
+    endif
+  -%}
+  <div class="general-image-wrap relative blocks-radius overflow-hidden "
+       style="
+         --pc-height:{% if section.settings.pc_media_fill %}{{pcimage_ratio}}{% else %}{{section.settings.pc_height}}px{% endif %};
+         --mb-height: {% if section.settings.mb_media_fill %}{{mbimage_ratio}}{% else %}{{section.settings.mb_height | divided_by: 7.5}}vw{% endif %};
+         --section-bg: {{section.settings.bg_color}};
+         --radius-top-left: {{section.settings.radius_1 | times: 0.0625}}rem;
+         --radius-top-right: {{section.settings.radius_2 | times: 0.0625}}rem;
+         --radius-bottom-right: {{section.settings.radius_3 | times: 0.0625}}rem;
+         --radius-bottom-left: {{section.settings.radius_4 | times: 0.0625}}rem;">
+    {% if section.settings.general_url != blank %}
+      <a href="{{ section.settings.general_url }}">
+    {% endif %}
+    {%- if pcimage != blank or mimage != blank -%}
+      {%- 
+        render 'responsive-image', 
+        image: pcimage, 
+        image_class: 'blocks-radius overflow-hidden general-image-body w-full h-full top-0 left-0 absolute object-cover', 
+        mimage: mimage,
+        width: 1920,
+        mwidth: 375
+      -%}
+    {%- else -%}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg placeholder w-full h-full top-0 left-0 absolute object-cover' }}
+    {%- endif -%}
+    {% if section.settings.general_url != blank %}
+      </a>
+    {% endif %}
+  </div>
+</div>
+<script src="{{ 'section-general-image.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "通用图片",
+  "class": "general-image",
+  "settings": [
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-old",
+          "label": "旧版心/1376px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        },
+        {
+          "value": "container-fluid",
+          "label": "拉伸/铺满两边留白"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container",
+      "label": "组件宽度"
+    },
+    { "type": "color", "id": "bg_color", "label": "背景颜色" },
+    { "type": "url", "id": "general_url", "label": "图片跳转链接" },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "圆角"
+    },
+    {
+      "type": "range",
+      "id": "radius_1",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_2",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_3",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_4",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+
+    {
+      "type": "header",
+      "content": "桌面端图片配置"
+    },
+    { "type": "image_picker", "id": "poster_pc", "label": "图片地址"},
+    {
+      "type": "checkbox",
+      "id": "pc_media_fill",
+      "label": "PC端媒体资源比例适配",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "pc_height",
+      "min": 100,
+      "max": 1100,
+      "step": 10,
+      "unit": "px",
+      "label": "图片高度",
+      "default": 180,
+      "visible_if": "{{ section.settings.pc_media_fill == false }}"
+    },
+    {
+      "type": "range",
+      "id": "pc_radius",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "圆角",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "content": "移动端视图片配置"
+    },
+    { "type": "image_picker", "id": "poster_mb", "label": "图片地址"},
+    {
+      "type": "checkbox",
+      "id": "mb_media_fill",
+      "label": "MB端媒体资源比例适配",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "mb_height",
+      "min": 100,
+      "max": 1100,
+      "step": 10,
+      "unit": "px",
+      "label": "图片高度",
+      "default": 180,
+      "visible_if": "{{ section.settings.mb_media_fill == false }}"
+    },
+    {
+      "type": "range",
+      "id": "mb_radius",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "圆角",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "通用图片"
+    }
+  ]
+}
+{% endschema %}
+

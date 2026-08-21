@@ -1,0 +1,86 @@
+{%- doc -%}
+  全局公共 底部内容区，用于存放全站通用的内容，有效排列DOM结构和JS加载顺序
+{%- enddoc -%}
+
+{%- liquid
+    # 店铺是否启用cookiebot手动管控配置
+    assign open_cookiebot_manual_control = settings.open_cookiebot_manual_control | default: false
+    assign script_type_attr = ''
+    if open_cookiebot_manual_control
+        assign script_type_attr = 'type="text/plain"'
+    endif
+-%}
+
+{% comment %} V4.0 Footer {% endcomment %}
+{% section 'footer-new' %}
+
+{% comment %} 返回顶部 {% endcomment %}
+{% section 'backtop' %}
+
+{% comment %} 配送与服务说明 {% endcomment %}
+{%- if settings.open_delivery_instructions == true -%}
+  {% section 'delivery-instructions' %}
+{%- endif %}
+
+{% comment %} 全局toast {% endcomment %}
+<toast-message-manager></toast-message-manager>
+
+{% comment %} 购物车 {% endcomment %}
+{%- if settings.cart_type == 'drawer' -%}
+  <link rel="stylesheet" href="{{ 'cart-drawer.css' | asset_url }}">
+  {%- render 'cart-drawer' -%}
+{%- endif -%}
+
+{% comment %} 全局通用的 购买意向表单弹窗 - Purchase Intention Form Dialog {% endcomment %}
+{%- if settings.open_pif_dialog -%}
+  {% render 'pif-dialog' %}
+{%- endif -%}
+
+{% comment %} 拦截加购或购买流程 {% endcomment %}
+{%- render 'intercept-purchase-process' -%}
+
+{% comment %} 全局自定义组件 {% endcomment %}
+<script src="{{ 'plugin-jds.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+<script src="{{ 'global-components.min.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+
+{% comment %} 全局滚动交互动画 - 当前为可视化组件使用 {% endcomment %}
+{%- render "scroll-trigger-animations" -%}
+
+{% comment %} 拉起全局购买意向表单弹窗的悬浮按钮 {% endcomment %}
+{%- if settings.open_pif_float_button -%}
+  {% render 'pif-float-button' %}
+{%- endif -%}
+
+{% comment %} 观测云检测代码 {% endcomment %}
+{%- if settings.open_guanceyun -%}
+  <script {{script_type_attr}} src="{{ 'guanceyun.js' | asset_url }}" defer data-cookieconsent="preferences,statistics"></script>
+{% endif %}
+
+{% comment %} module.json生成的 对应页面模板 脚本文件 {% endcomment %}
+{% render 'script-tags' %}
+
+{% comment %} 真机console调试工具 {% endcomment %}
+{%- if settings.enable_mb_vconsole -%}
+  <script src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/vconsole.min.js?v=1759042486" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      if(window.innerWidth < 1024){
+        // VConsole 默认会挂载到 `window.VConsole` 上
+        var vConsole = new window.VConsole();
+        vConsole.setSwitchPosition(20, 200);
+      }
+    })
+  </script>
+{%- endif -%}
+
+{% comment %} 谷歌一键快捷登录 {% endcomment %}
+{%- if settings.open_google_auth_login -%}
+  {% render 'google-login' %}
+{%- endif -%}
+
+{% comment %} 全局购物车相关组件 {% endcomment %}
+<script src="{{ 'cart-drawer.js' | asset_url }}" defer ></script>
+
+
+{% comment %} 监听第三方支付次数 {% endcomment %}
+ <script src="{{ 'third-party-payment.js' | asset_url }}" defer></script>

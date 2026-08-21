@@ -1,0 +1,125 @@
+<style>
+.contact h2 {text-align: center; margin-top: 6.25vw;}
+.contact ul {
+  margin-top: 50px;
+  margin-bottom: 120px;
+}
+.contact ul li {
+	width: 100%; height: auto; text-align: center; color: var(--text-black); background: rgba(204,204,204,0.26); padding: 40px 0;
+	display: flex; flex-flow: column; justify-content: center; align-items: center;
+  flex: 1;
+  margin-right: var(--gap);
+}
+.contact ul li:last-child {
+  margin-right: 0;
+}
+.contact ul li .img-icon {
+    width: 96px;
+    height: 96px;
+    font-size: 96px;
+    color: var(--primary-color);
+    display: inline-block;
+}
+.contact ul li img {
+  width: 100px;
+  height: 100px;
+}
+.contact ul li a.jky-text-base {
+  transition: color .3s;
+}
+.contact ul li a.jky-text-base:hover {
+  color: var(--primary-color);
+}
+.contact ul li b {margin-bottom: 25px; font-weight: 500;}
+.contact .jky-text-base {color: var(--text-black);}
+@media screen and (max-width: 768px) {
+  .section-page-news .contact h2 {margin-top: 14vw;}
+  .contact ul {
+    margin-bottom: 15px;
+    flex-direction: column;
+  }
+  .contact ul li {
+    height: auto;
+    padding: 30px 0;
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+  .contact ul li .img-icon {
+    width: 55px;
+    height: 55px;
+    font-size: 55px;
+  }
+  .contact ul li img {
+    width: 55px;
+    height: 55px;
+  }
+  .contact ul li b {margin-bottom: 15px;}
+}
+</style>
+<h2 class="jky-text-2xl font-bold">{{ section.settings.title }}</h2>
+<ul class="section-container flex">
+  {% for block in section.blocks %}
+    <li>
+      {%- 
+        render 'responsive-image', 
+        image: block.settings.image, 
+        width: 100, 
+        mwidth: 55
+      -%}
+      <b class="jky-text-sm font-500">{{ block.settings.title | escape }}</b>
+      <p class="jky-text-base">
+        {% case block.settings.bolck_type %}
+          {% when 'phone' %}
+            <span class="jky-text-base">{{ block.settings.info | newline_to_br }}</span>
+          {% when 'url' %}
+            <a class="jky-text-base" href="{{block.settings.link}}">{{ block.settings.info | newline_to_br }}</a>
+        {% endcase %}
+      </p>
+    </li>
+  {% endfor %}
+</ul>
+
+    {% if section.settings.contact_link != blank %}
+    <a class="z-button-fill-big-solid" href="{{section.settings.contact_link}}">
+        {{section.settings.contact_more | escape}}
+        <jds-icon name="arrow-right" class="icon-arrow-right text-base"></jds-icon>
+    </a>
+    {% endif %}
+<style>
+  .layer-container.contact .z-button-fill-big-solid {
+    margin: -85px auto 30px;
+  }
+  @media screen and (max-width: 768px) {
+    .layer-container.contact .z-button-fill-big-solid {
+        margin: 0 auto 21.8vw!important;
+    }
+  }
+</style>
+{% schema %}
+  {
+    "name": "Contact", "class": "layer layer-container contact", "tag": "div",
+    "settings": [
+      {"type": "text", "id": "title", "label": "Contact Us title", "default": "Contact Us"},
+      {"type": "text", "id": "contact_more", "label": "Contact Button text", "default": "VIEW MORE"},
+      {"type": "url", "id": "contact_link", "label": "Contact Link"}
+    ],
+    "blocks": [
+      {
+        "type": "extra_block", "name": "Extra Block",
+        "settings": [
+          {"type": "text", "id": "title", "label": "Block title"},
+          {
+            "type": "select", "id": "bolck_type", "label": "Content menthod", "default": "phone",
+            "options": [
+              {"value": "phone", "label": "Phone/Text"},
+              {"value": "url","label": "Email/Url"}
+            ]
+          },
+          {"type": "textarea", "id": "info", "label": "Block info"},
+          {"type": "image_picker", "id": "image", "label": "Block Icon"},
+          {"type": "url", "id": "link", "label": "Block link/Email"}
+        ]
+      }
+    ]
+  }
+  {% endschema %}

@@ -1,0 +1,47 @@
+       {% assign section_type = 'index-container' %}
+       {% if section.blocks.size < 3 %} 
+        {% assign section_type = 'section-container' %}
+       {% endif %}
+       <div class="scene-collection relative {{section_type}}">
+        {% for block in section.blocks %}
+            {%- assign scene_pos = '' -%}
+            {% if forloop.index == 1 %}
+                {%- assign scene_pos = 'scene-item-left' -%}
+            {% elsif forloop.index == 2 %}
+                {%- assign scene_pos = 'scene-item-center' -%}
+            {% elsif forloop.index == 3 %}
+                {%- assign scene_pos = 'scene-item-right' -%}
+            {% endif %}
+            <div class="scene-item gs_reveal absolute {{scene_pos}}" data-id="{{block.settings.title | handle}}">
+                {%- 
+                    render 'responsive-image', 
+                    image: block.settings.image,
+                    width: 756,
+                    mwidth: 360
+                -%}
+
+                <div class="scene-item-content absolute top-0 left-0 bottom-0 right-0 flex flex-col items-center justify-center">
+                    <div class="jky-text-2xl">{{block.settings.title}}</div>
+                    {% render 'icon-double-arrow-down', class: 'icon-double-arrow-down w-5 lg:w-9' %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% schema %}
+        {
+            "name": "Scene collection",
+            "tag": "section",
+            "class": "section scene-collectiona-section",
+            "max_blocks": 3,
+            "blocks": [
+                {
+                    "type": "scene_collectiona", "name": "Scene collection Block",
+                    "settings": [
+                        {"type": "text", "id": "title", "label": "Scene collection name"},
+                        {"type": "image_picker", "id": "image", "label": "Scene collection Image"}
+                    ]
+                }
+            ]
+        }
+    {% endschema %}

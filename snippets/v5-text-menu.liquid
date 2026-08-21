@@ -1,0 +1,110 @@
+{%-liquid
+    assign has_submenu = true    
+    if settings.menu_list.links.size == 1 
+        assign first_lv1 = settings.menu_list.links | first
+        unless first_lv1.links.size > 0
+            assign has_submenu = false
+            assign menu_link = first_lv1.url
+        endunless
+    endif
+-%}
+
+<jky-text-menu {% if shopify_attributes != blank %}{{ shopify_attributes }}{% endif %} class="lg:block hidden h-full">
+    <div 
+        class="v5-header-main__menu-item list-none h-full flex items-center px-5 cursor-pointer flex-col"
+        data-ga-event="5.0_top_nav_user_clicks"
+        data-ga-params-module="Main Menu"
+        data-ga-params-position="{{ settings.menu_heading | default: settings.menu_list.title }}" 
+        {% if has_submenu != true  %}
+            data-unhover 
+            data-ga-action="mouseenter" 
+            data-ga-params-link="{{ menu_link }}" 
+        {% else %}
+            data-ga-action="click" 
+            data-ga-params-link="NULL" 
+        {%- endif -%} 
+    >
+        {%- if settings.menu_tag != blank -%}
+            <div class="w-full text-right h-0 relative">
+                <span class="absolute top-1 text-right v5-header-main__menu-tag text-xs font-medium background-text-accent text-white break-keep whitespace-nowrap right-0">{{ settings.menu_tag | escape }}</span>
+            </div>
+        {%- endif -%}
+
+        {%- if has_submenu == true  -%}
+            <span style="--left: 0;--right: 0;--color-text-main: {{ section.settings.text_color | default: '#242f20' }};{% if settings.fk_color != blank %}color: {{settings.fk_color}};{% endif %}" class="transition-medium-ease color-text-main-secondery v5-header-main__menu-name underline-animate relative h-full flex items-center font-semibold text-base">{{ settings.menu_heading | default: settings.menu_list.title }}</span>
+        {%- else -%}
+            <a style="--left: 0;--right: 0;--color-text-main: {{ section.settings.text_color | default: '#242f20' }};{% if settings.fk_color != blank %}color: {{settings.fk_color}};{% endif %}" href="{{ menu_link }}" class="transition-medium-ease color-text-main v5-header-main__menu-name underline-animate relative h-full flex items-center font-semibold text-base">{{ settings.menu_heading | default: settings.menu_list.title }}</a>
+        {%- endif -%}
+
+        {%- if has_submenu == true  -%}
+            <div class="v5-header-main__shop-wrapper h-auto absolute top-full w-full left-0 pointer-events-none">
+                <div class="v5-header-main__shop-content transition-medium-ease invisible v5-header-main__text-menu-content section-container-lg opacity-0 flex gap-x-10 py-10 h-full">
+                    <div style="max-height: min(calc(80vh - 80px), 516px);overflow-y: auto;" class="w-full px-5">
+                        <div class="masonry-columns" style="column-count: 4;column-gap:1rem;column-fill: balance;">
+                            {%- for link in settings.menu_list.links -%}
+                                <div class="menu-masonry-item v5-menu-animate pl-5" style="break-inside: avoid;width: 100%;margin-bottom: 5rem;padding-left: 20px;--index: {{ forloop.index }}">
+                                    <div class="color-text-weak font-normal text-sm mb-6">{{ link.title }}</div>
+                                    <div class="flex flex-col gap-y-10">
+                                        {%- for childlink in link.links -%}
+                                            <a href="{{ childlink.url }}" style="word-break: break-all;max-width: fit-content;" class="color-text-main-secondery v5-text-menu-link text-xl font-medium cursor-pointer relative transition-medium-ease"
+                                             data-ga-event="5.0_top_nav_user_clicks"
+                                             data-ga-action="click"
+                                             data-ga-params-module="{{ settings.handle.title | strip_html | escape }}"
+                                             data-ga-params-position="{{ childlink.title | strip | escape }}"
+                                             data-ga-params-link="{{ childlink.url | escape }}"
+                                            >{{ childlink.title }}</a>
+                                        {%- endfor -%}
+                                    </div>
+                                </div>
+                            {%- endfor -%}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="v5-header-main__shop-bg transition-medium-ease bg-white absolute top-0 w-full left-0"></div>
+            </div>
+        {%- endif -%}
+    </div>
+</jky-text-menu>
+
+{% comment %} 移动端menu 开关 {% endcomment %}
+<drawer-opener {% if has_submenu == true %}data-drawer="#Drawer__text_{{ id }}"{% endif %} class="lg:hidden block" {% if shopify_attributes != blank %}{{ shopify_attributes }}{% endif %}>
+    {%- if has_submenu == true  -%}
+        <div 
+            class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+            data-ga-event="5.0_top_nav_user_clicks"
+            data-ga-params-module="Main Menu"
+            data-ga-params-position="{{ settings.menu_heading | default: settings.menu_list.title }}"
+            data-ga-action="click"
+            data-ga-params-link="NULL" 
+        >
+    {%- else -%}
+        <a href="{{ menu_link }}" 
+            class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+            data-ga-event="5.0_top_nav_user_clicks"
+            data-ga-params-module="Main Menu"
+            data-ga-params-position="{{ settings.menu_heading | default: settings.menu_list.title }}"
+            data-ga-action="click"
+            data-ga-params-link="{{ menu_link }}"
+        >
+    {%- endif -%}
+
+        <div class="flex items-center flex-nowrap gap-x-2">
+            <span class="text-base font-semibold line-clamp-2 flex-1">
+                {{ settings.menu_heading | default: settings.menu_list.title }}
+            </span>
+
+            {%- if settings.menu_tag != blank -%}
+                <span style="padding: 0 1px;" class="text-xs font-medium bg-primary text-white h-fit">{{ settings.menu_tag | escape }}</span>
+            {%- endif -%}
+        </div>
+        <div class="w-6 h-6 flex items-center justify-center">
+            {%- render "icon-arrow", class: 'w-3 h-3' -%}
+        </div>
+
+    {%- if has_submenu == true  -%}
+        </div>
+    {%- else -%}
+        </a>
+    {%- endif -%}
+</drawer-opener>

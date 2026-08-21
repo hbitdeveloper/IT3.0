@@ -1,0 +1,73 @@
+<div class="pt-80 lg:j-pt-90 lg:j-pb-120 bg-f5">
+    <h2 class="collection-title">{{section.settings.title | newline_to_br}}</h2>
+    
+    <div class="block lg:hidden card-swiper page-section-swiper relative" style="padding-top:0;">
+        <div class="card-swiper-container relative swiper">
+            <div class="swiper-wrapper">
+                {% for block in section.blocks limit: section.settings.blog_size %}
+                    {% assign article = block.settings.blog %}
+                        <div class="swiper-slide flex-col">
+                            <div class="image-text-imgblock focus-zoom-container">
+                                {% render 'responsive-image', image: article.image, mimage: article.image, image_class: 'object-cover focus-zoom'  %}
+                            </div>
+                            <div class="card-swiper-slide-content flex flex-col">
+                                <div class="blog-tags flex items-center">
+                                  {% for tag in article.tags %}
+                                      <div class="blog-tag jky-text-xs text-sub">{{tag}}</div>
+                                  {% endfor %}
+                                </div>
+                                <div class="font-600 jky-text-lg card-swiper-slide-title text-overflow-2">
+                                    {{article.title | escape}}
+                                </div>
+
+                                <div class="flex items-center justify-center" style="width: 100%;">
+                                    {% if article.published_at != blank %}
+                                        <span class="card-date" style="flex: 1;">{{article.published_at | time_tag: format: 'date'}}</span>
+                                    {% endif %}
+                                    <a class="slide-link a-button-fill jky-text-base" href="{{article.url}}">
+                                        {{ 'general.action_text.view_more' | t }}
+                                        <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="slideshow-pagination"></div>
+    </div>
+    <div class="hidden lg:block blog-cate-list">
+        <div class="blog-cate-main section-container">
+            <div class="blog-cards">
+                {% for block in section.blocks limit: section.settings.blog_size %}
+                    {% render 'article-card',
+                        main: false,
+                        article: block.settings.blog,
+                        lazy_load: true
+                    %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ 'sections-collection-blog.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "Blog",
+        "class": "section section-collection-blog section-sp-pps-sg-collection",
+        "settings": [
+            {"type": "textarea", "id": "title", "label": "Blog Title", "default": "Blog Recommendation"},
+            {"type": "range", "id": "blog_size", "min": 1, "max": 6, "step": 1, "label": "Blogs show number", "default": 3}
+        ],
+        "blocks": [
+            {
+                "type": "blog_article", "name": "Blog Acticle",
+                "settings": [
+                    {"type": "article", "id": "blog", "label": "Recommend Blog"}
+                ]
+            }
+        ]
+    }
+{% endschema %}

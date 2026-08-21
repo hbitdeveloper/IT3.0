@@ -1,0 +1,1112 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{% style %}
+  .bundle-quantity {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  .quantity-btn svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .quantity-btn:hover {
+    background: #e9ecef;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .quantity-btn svg {
+      width: 2.6666667vw;
+      height: 2.6666667vw;
+    }
+  }
+
+  .quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .quantity-selector .quantity-btn {
+    background: #f8f8f8;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .quantity-selector .quantity-btn:hover {
+    background: #e8e8e8;
+  }
+
+  .quantity-selector .quantity-btn:disabled {
+    background: #f0f0f0;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .quantity-selector .quantity-input {
+    border: none;
+    outline: none;
+    background: white;
+  }
+{% endstyle %}
+<jky-recommend-product
+  section-id="{{ section.id }}"
+  data-handle="{{ section.settings.handle }}"
+  data-copy-success="{{ section.settings.copy_success | default: 'Copy Success' }}"
+  class="{% if section.settings.type == 'embed' %}embed-component{% endif %}">
+  <div
+    class="v-recommend-product section-padding"
+    {% if section.settings.anchor != blank %}anchor-target="{{ section.settings.anchor | escape }}"{% endif %}
+    style="background: {{ section.settings.bg_color | default: 'transparent' }};{{ style }};--recommend-product-bg: {{ section.settings.bg_color | default: 'transparent' }};">
+    <div class="v-recommend-product--inner section-container-lg">
+      {% assign block_product = section.settings.product %}
+      {% assign block_img = section.settings.product_img %}
+      {% assign block_title = section.settings.product_title %}
+
+      {% if block_title != blank and block_title contains 'Jackery' %}
+        {% assign block_title = block_title | remove_first: 'Jackery' | strip %}
+      {% endif %}
+
+      {% assign block_product_discount_price = section.settings.product_discount_price %}
+      {% if section.settings.product_discount_price != blank %}
+        {% assign block_product_discount_price = section.settings.product_discount_price | times: 100.00 %}
+      {% endif %}
+
+      {% assign block_product_origin_price = blank %}
+      {% assign block_product = block_product.selected_or_first_available_variant %}
+      {% assign selected_variant = blank %}
+      {% for variant in section.settings.product.variants %}
+        {% assign vid = variant.id | append: '' %}
+        {% if vid == section.settings.variant_id %}
+          {% assign selected_variant = variant %}
+          {% assign block_product = variant %}
+        {% endif %}
+      {% endfor %}
+      {% if block_img == blank %}
+        {%- if block_product.featured_image != blank -%}
+          {% assign block_img = block_product.featured_image %}
+        {%- else -%}
+          {% assign block_img = section.settings.product.featured_image %}
+        {%- endif -%}
+      {% endif %}
+
+      {% if block_title == blank %}
+        {% assign block_title = block_product.title %}
+        {% if block_title != blank and block_title contains 'Jackery' %}
+          {% assign block_title = block_title | remove_first: 'Jackery' | strip %}
+        {% endif %}
+      {% endif %}
+
+      {% if block_product_discount_price == blank or block_product_discount_price == 0 %}
+        {% if selected_variant != blank %}
+          {% assign block_product_discount_price = selected_variant.price %}
+        {% else %}
+          {% comment %} 使用第一个变体的价格而不是最低价格 {% endcomment %}
+          {% assign block_product_discount_price = section.settings.product.variants.first.price %}
+        {% endif %}
+      {% endif %}
+
+      {% if section.settings.product != blank %}
+        {% if selected_variant != blank %}
+          {% if selected_variant.compare_at_price != blank and selected_variant.compare_at_price > selected_variant.price %}
+            {% assign block_product_origin_price = selected_variant.compare_at_price %}
+          {% endif %}
+        {% else %}
+          {% if block_product.compare_at_price != blank and block_product.compare_at_price > block_product.price %}
+            {% assign block_product_origin_price = block_product.compare_at_price %}
+          {% endif %}
+        {% endif %}
+      {% endif %}
+
+      {%- if section.settings.product != blank -%}
+        <div class="recommend-product-card w-full flex bg-white lg:justify-between lg:flex-row flex-col relative lg:rounded-[1rem] rounded-[0.75rem] items-center">
+          <div class="recommend-p-card--content transition-transform duration-300 lg:w-[50rem] w-full lg:h-[37.5rem] h-[16.09375rem] flex items-center justify-center relative">
+              <div class="discount-container absolute top-0 left-[1.25rem] lg:w-[6.25rem] lg:gap-0 gap-[0.3125rem] w-[4.6875rem] lg:h-20 h-[4.6875rem] flex items-center justify-center flex-col" style="display: none;">
+                {%- if section.settings.discount_img != blank -%}
+                  {%- render "responsive-image",
+                      mimage: section.settings.discount_img,
+                      image: section.settings.discount_img,
+                      width: 80,
+                      mwidth: 68,
+                      image_class: "object-cover lg:w-[6.25rem] w-[4.6875rem] lg:h-20 h-[4.6875rem] absolute top-0 left-0 z-[1]" -%}
+                {%- else -%}
+                  {%- if section.settings.save_txt_up != blank -%}
+                    <img class="object-cover lg:w-[6.25rem] w-[4.6875rem] lg:h-20 h-[4.6875rem] absolute top-0 left-0 z-[1]"
+                            alt="{{ section.settings.heading }}"
+                            loading="lazy"
+                            src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-image.svg?v=1760005467" />
+                        <div class="product_discount__num font-semibold text-white lg:text-[1.75rem] lg:leading-[2rem] text-[1.5rem] leading-[1.5rem] relative z-[1]"></div>
+                        <div class="product_discount__text font-semibold text-white lg:text-[0.875rem] lg:leading-[1.5rem] text-[0.75rem] leading-[0.75rem] relative z-[1]">
+                          {{ section.settings.save_txt_up | default: 'Save' }}
+                        </div>
+                  {%- endif -%}
+                {%- endif -%}
+              </div>
+            {%- if section.settings.discount_tag != blank -%}
+              <div class="absolute z-[1] font-semibold lg:top-[1.5rem] lg:right-[1.5rem] top-[1rem] right-[1.25rem] text-[var(--jds-color-primary)] text_b2 landing-block--product--ptag--1">
+                {{ section.settings.discount_tag }}
+              </div>
+            {%- endif -%}
+
+            {%- if block_img != blank -%}
+              {% render "responsive-image",
+                  image: block_img,
+                  width: 800,
+                  mwidth: 343,
+                  image_class: "group-hover:scale-[1.03] transition-transform duration-300 object-cover lg:w-[50rem] lg:min-w-[50rem] w-[21.4375rem] lg:h-[37.5rem] h-[16.09375rem] rounded-tl-[0.75rem] rounded-tr-[0.75rem] lg:rounded-tr-none lg:rounded-bl-[1rem]" %}
+            {%- else -%}
+              <img class="object-contain lg:w-[50rem] lg:min-w-[50rem] w-[21.4375rem] lg:h-[37.5rem] h-[16.09375rem] rounded-tl-[0.75rem] rounded-tr-[0.75rem] lg:rounded-tr-none lg:rounded-bl-[1rem]"
+                   src="{{ 'placeholder.webp' | asset_url }}"
+                   alt="" />
+            {%- endif -%}
+
+            {%- if block_product != blank -%}
+              <a class="absolute z-[2] inset-0 opacity-0" href="{{ block_product.url }}"></a>
+            {%- endif -%}
+          </div>
+          <div class="recommend-product-card--right flex flex-col py-[1.25rem] lg:py-[2.25rem] justify-between">
+            <div class="recommend-product-message lg:px-[4.125rem] px-[1.5rem] text-center">
+              {%- if block_product != blank -%}
+                <a href="{{ block_product.url }}"
+                   class="recommend-product-card--title font-medium text-[#1A1A1A] jds-h4 relative line-clamp-2 lg:line-clamp-2 lg:min-h-14 lg:mb-[0.75rem] mb-[0.5rem] cursor-pointer z-[3]">
+                  {{ block_title }}
+                </a>
+              {%- else -%}
+                <div class="recommend-product-card--title font-medium text-[#1A1A1A] jds-h4 relative line-clamp-2 lg:line-clamp-2 lg:min-h-14 lg:mb-[0.75rem] mb-[0.5rem]">
+                  {{ block_title }}
+                </div>
+              {%- endif -%}
+              {%- if section.settings.selling_points != blank -%}
+                <div class="recommend-product-card--selling text-[#666666] text_b2 relative line-clamp-1 lg:mb-[1rem] mb-[0.75rem]">
+                  {{ section.settings.selling_points }}
+                </div>
+              {%- endif -%}
+
+              {% comment %} icon信息展示 {% endcomment %}
+              {% content_for 'block', type: '_recommend-icon', id: 'recommend-icon-block' %}
+
+            {%- comment -%} Bundle产品展示区域 - 通过API动态获取 {%- endcomment -%}
+            <div class="bundle-recommend-product lg:rounded-lg rounded-[0.25rem] lg:w-[19.875rem] w-full lg:mx-auto lg:py-[0.5rem] p-[0.5rem] lg:pl-[0.375rem] lg:pr-[0.5rem] mb-[1rem]"
+                 style="display: none;border: 1px solid #DDDDDD;"
+                 pid="{% if selected_variant != blank %}{{ selected_variant.id }}{% elsif section.settings.variant_id != blank %}{{ section.settings.variant_id }}{% else %}{{ section.settings.product.selected_or_first_available_variant.id }}{% endif %}">
+              <div class="bundle-left lg:mr-[0.625rem] mr-[0.5rem]">
+                <img class="bundle-img lg:w-[4rem] lg:h-[4rem] w-[3.75rem] h-[3.75rem] object-contain"
+                     src=""
+                     alt="Bundle Product"
+                     loading="lazy">
+              </div>
+              <div class="bundle-right flex flex-col justify-between flex-1">
+                <div class="bundle-title text-left lg:w-[14rem] w-[11.5625rem] text-[#666666] line-clamp-2 text_b3 lg:leading-[1.125rem]"></div>
+                <div class="bundle-message-bottom flex items-end justify-between">
+                  <div class="bundle-message-price flex items-end">
+                    <div class="bundle-price text_b3 text-[var(--jds-color-primary)] font-semibold lg:mr-[0.5rem] mr-[0.25rem]"></div>
+                    <div class="bundle-line-price line-through text_b3 text-[#999999]" style="display: none;"></div>
+                  </div>
+                  <div class="bundle-quantity quantity-selector">
+                    <button class="quantity-btn minus w-6 lg:h-6 h-6 flex items-center justify-center"
+                            name="minus"
+                            type="button">
+                      {% render 'icon-minus' %}
+                    </button>
+                    <input class="quantity-input w-6 lg:h-6 h-6 text-center"
+                           type="number"
+                           value="0"
+                           min="0"
+                           max="999"
+                           step="1" />
+                    <button class="quantity-btn plus w-6 h-6 flex items-center justify-center"
+                            name="plus"
+                            type="button">
+                      {% render 'icon-plus' %}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% comment %} 时间范围验证 {% endcomment %}
+            {%- assign use_configured_price = false -%}
+            {%- assign current_time = 'now' | date: '%s' | times: 1 -%}
+
+            {%- if section.settings.begin_time != blank and section.settings.end_time != blank -%}
+              {% comment %} 同时配置了开始时间和结束时间 {% endcomment %}
+              {%- assign begin_timestamp = section.settings.begin_time | date: '%s' | times: 1 -%}
+              {%- assign end_timestamp = section.settings.end_time | date: '%s' | times: 1 -%}
+              {%- if current_time >= begin_timestamp and current_time <= end_timestamp -%}
+                {%- assign use_configured_price = true -%}
+              {%- endif -%}
+            {%- elsif section.settings.begin_time != blank -%}
+              {% comment %} 只配置了开始时间 {% endcomment %}
+              {%- assign begin_timestamp = section.settings.begin_time | date: '%s' | times: 1 -%}
+              {%- if current_time >= begin_timestamp -%}
+                {%- assign use_configured_price = true -%}
+              {%- endif -%}
+            {%- elsif section.settings.end_time != blank -%}
+              {% comment %} 只配置了结束时间 {% endcomment %}
+              {%- assign end_timestamp = section.settings.end_time | date: '%s' | times: 1 -%}
+              {%- if current_time <= end_timestamp -%}
+                {%- assign use_configured_price = true -%}
+              {%- endif -%}
+            {%- else -%}
+              {% comment %} 如果没有设置时间范围，但配置了价格，也使用配置价格 {% endcomment %}
+              {%- if section.settings.product_discount_price != blank and section.settings.product_discount_price != "" -%}
+                {%- assign use_configured_price = true -%}
+              {%- endif -%}
+            {%- endif -%}
+
+               {% comment %} 价格计算逻辑 {% endcomment %}
+               {%- assign current_price = blank -%}
+               {%- assign original_price = blank -%}
+               {% comment %} 根据时间范围决定使用配置价格还是产品价格 {% endcomment %}
+               {%- if use_configured_price and section.settings.product_discount_price != blank and section.settings.product_discount_price != "" -%}
+                 {% comment %} 在时间范围内且配置了价格，使用配置价格 {% endcomment %}
+                 {%- assign current_price = block_product_discount_price -%}
+                 {%- if section.settings.product_price != blank and section.settings.product_price != "" -%}
+                   {%- assign original_price = section.settings.product_price | times: 100.00 -%}
+                 {%- else -%}
+                   {% comment %} 如果没有配置原价，使用产品的compare_at_price或price作为原价 {% endcomment %}
+                   {%- if selected_variant != blank -%}
+                     {%- if selected_variant.compare_at_price != blank and selected_variant.compare_at_price > 0 -%}
+                       {%- assign original_price = selected_variant.compare_at_price -%}
+                     {%- else -%}
+                       {%- assign original_price = selected_variant.price -%}
+                     {%- endif -%}
+                   {%- else -%}
+                     {%- if block_product.compare_at_price != blank and block_product.compare_at_price > 0 -%}
+                       {%- assign original_price = block_product.compare_at_price -%}
+                     {%- else -%}
+                       {%- assign original_price = block_product.price -%}
+                     {%- endif -%}
+                   {%- endif -%}
+                 {%- endif -%}
+                {%- else -%}
+                  {% comment %} 不在时间范围内或未配置价格，使用产品默认价格 {% endcomment %}
+                  {%- if selected_variant != blank -%}
+                    {%- assign current_price = selected_variant.price -%}
+                    {%- if selected_variant.compare_at_price != blank and selected_variant.compare_at_price > selected_variant.price -%}
+                      {%- assign original_price = selected_variant.compare_at_price -%}
+                    {%- endif -%}
+                  {%- else -%}
+                    {%- assign current_price = block_product.price -%}
+                    {%- if block_product.compare_at_price != blank and block_product.compare_at_price > block_product.price -%}
+                      {%- assign original_price = block_product.compare_at_price -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endif -%}
+
+                {% comment %} 如果当前价格为空，设置默认值 {% endcomment %}
+                {%- if current_price == blank or current_price == 0 -%}
+                  {%- if selected_variant != blank -%}
+                    {%- assign current_price = selected_variant.price -%}
+                  {%- else -%}
+                    {%- assign current_price = block_product.price -%}
+                  {%- endif -%}
+                {%- endif -%}
+
+                {% comment %} 计算折扣百分比 {% endcomment %}
+                {%- assign discount_percent = 0 -%}
+                {%- if original_price != blank and original_price > current_price -%}
+                  {%- assign discount_amount = original_price | minus: current_price -%}
+                  {%- assign discount_percent = discount_amount | times: 100 | divided_by: original_price | floor -%}
+                {%- endif -%}
+
+                <div class="recommend-price-content flex justify-center mt-1 lg:mb-[0.8125rem] mb-[1rem] items-baseline">
+                  <span
+                    class="recommend-price--current text-primary font-semibold line-clamp-2 jds-h4 text-[1.5rem] leading-none lg:text-[1.75rem] lg:mr-[0.5rem] mr-[0.625rem]">
+                    {{ current_price | money_without_trailing_zeros }}
+                  </span>
+
+                  {%- if original_price != blank and original_price > current_price -%}
+                    <span class="recommend-price--origin text_b3 line-through text-[#999999] text-xs lg:text-sm lg:mr-[0.5rem] mr-[0.625rem]">
+                      {{ original_price | money_without_trailing_zeros }}
+                    </span>
+
+                    {%- if section.settings.show_discount_amount -%}
+                      {%- assign discount_amount = original_price | minus: current_price -%}
+                      {%- assign discount_amount_floored = discount_amount | divided_by: 100 | floor | times: 100 -%}
+                      <span class="recommend-price--discount text_b3 text-[var(--jds-color-primary)] text-xs lg:text-sm shrink-0">
+                        -{{ discount_amount_floored | money_without_trailing_zeros }}
+                      </span>
+                    {%- endif -%}
+                  {%- endif -%}
+                </div>
+                {%- if section.settings.installment != blank -%}
+                  <div class="recommend-installment jds-c1 lg:mb-[1rem] mb-[1rem] flex justify-center items-end">
+                    <span class="lg:mr-[0.1875rem] mr-[0.24rem] line-clamp-1 lg:leading-[0.75rem] leading-[0.75rem]">
+                      {{ section.settings.installment }}
+                    </span>
+                    {%- if section.settings.installment_img != blank -%}
+                      <img class="lg:w-[2.75rem] w-[2.40625rem] h-4 object-cover"
+                           src="{{ section.settings.installment_img | image_url: width: 77 }}"
+                           alt="{{ section.settings.installment | escape}}"
+                           loading="lazy" />
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+                {%- if section.settings.code_text != blank -%}
+                  <div class="recommend-code text_b3 lg:w-fit lg:mb-[1rem] mb-[0.75rem] w-full mx-auto lg:p-[0.5rem] p-[0.5rem] lg:rounded-lg rounded-[0.4375rem] bg-[#FFF9EE] flex lg:justify-center justify-between items-center">
+                    <div class="recommend-right-code lg:mr-[2.1875rem] flex items-center">
+                      <img class="lg:w-6 lg:h-6 w-5 h-5 lg:mr-[0.5rem] mr-[0.5rem]"
+                             src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-product.svg?v=1760005210"
+                             alt="{{ section.settings.installment | escape}}"
+                             loading="lazy" />
+                      <span class="text-[#8E8168] font-medium">{{ section.settings.code_text }}</span>
+                    </div>
+                    <span class="recommend-copy text-[var(--jds-color-primary)] underline underline-offset-1 font-semibold cursor-pointer">
+                      {{ section.settings.copy_text }}
+                    </span>
+                  </div>
+                {%- endif -%}
+                {% comment %} 为JavaScript提供价格数据 {% endcomment %}
+                <script type="application/json" class="price-data">
+                  {
+                    "current_price": {{ current_price | times: 100.00 | json }},
+                    "original_price": {{ original_price | times: 100.00 | json }},
+                    "discount_percent": {{ discount_percent | json }},
+                    "use_configured_price": {{ use_configured_price | json }},
+                    "configured_discount_price": {{ section.settings.product_discount_price | json }},
+                    "configured_original_price": {{ section.settings.product_price | json }},
+                    "begin_time": {{ section.settings.begin_time | json }},
+                    "end_time": {{ section.settings.end_time | json }}
+                  }
+                </script>
+          </div>
+          <div class="recommend-product-btn flex items-center justify-center">
+            {% assign priority_product = selected_variant | default: block_product | default: section.settings.product %}
+           {% content_for 'block', type: '_product-action-buttons', id: 'newrecommend-button-block-1', fisrtProduct: priority_product %}
+            {% content_for 'block', type: '_product-action-buttons', id: 'newrecommend-button-block-2', fisrtProduct: priority_product %}
+          </div>
+        </div>
+      </div>
+      {%- endif -%}
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+</jky-recommend-product>
+
+<script>
+if (!customElements.get("jky-recommend-product")) {
+    class JkyRecommendProduct extends HTMLElement {
+       constructor() {
+       super();
+       this._initialized = false;
+       this._readyObserver = null;
+  }
+
+  connectedCallback() {
+    this.discountPrice = Number(this.getAttribute("p-discount")) || 0;
+    this.salePrice = Number(this.getAttribute("p-sale")) || 0;
+    this.originPrice = Number(this.getAttribute("p-origin")) || 0;
+    this.discountType = this.getAttribute("p-discount_type");
+    this.discountOff = this.getAttribute("p-discount_off") || false;
+
+    // 等待内部子节点解析完成后再初始化
+    this.initWhenReady();
+  }
+
+      // 在子节点就绪后再收集引用并初始化
+      initWhenReady() {
+        // 收集引用（作用域限定在当前组件实例内）
+        this.bundleElements = this.querySelectorAll('.bundle-recommend-product[pid]');
+        this.copyButton = this.querySelector('.recommend-copy');
+        this.discountContainer = this.querySelector('.discount-container');
+        this.discountElement = this.querySelector('.product_discount__num');
+        this.discountTextElement = this.querySelector('.product_discount__text');
+        this.productDataScript = this.querySelector('script.price-data[type="application/json"]');
+        this.quantityContainers = this.querySelectorAll('.quantity-selector');
+
+        const ready = (
+          this.productDataScript ||
+          (this.bundleElements && this.bundleElements.length > 0) ||
+          (this.quantityContainers && this.quantityContainers.length > 0) ||
+          !!this.discountContainer
+        );
+
+        // 如果内部结构尚未解析完成，使用 MutationObserver 等待
+        if (!ready) {
+          if (!this._readyObserver) {
+            this._readyObserver = new MutationObserver(() => {
+              this.initWhenReady();
+            });
+            this._readyObserver.observe(this, { childList: true, subtree: true });
+          }
+          return;
+        }
+
+        if (this._readyObserver) {
+          this._readyObserver.disconnect();
+          this._readyObserver = null;
+        }
+
+        this.executeInit();
+      }
+
+      // 执行实际的初始化逻辑
+      executeInit() {
+        if (this._initialized) return;
+        this._initialized = true;
+        this.resetQuantityInputs();
+        this.loadBundleProducts();
+        this.initQuantityControls();
+        this.initDiscountDisplay();
+        this.initCopyFunction();
+      }
+
+      // 重置所有quantity-selector的值为0
+      resetQuantityInputs() {
+        const quantityInputs = this.querySelectorAll('.quantity-selector .quantity-input');
+        quantityInputs.forEach(input => {
+          // 强制同步input的value属性和显示值
+          input.value = '0';
+          input.setAttribute('value', '0');
+
+          // 触发input事件确保显示值同步
+          const inputEvent = new Event('input', { bubbles: true });
+          input.dispatchEvent(inputEvent);
+
+          // 更新对应的按钮状态
+          const container = input.closest('.quantity-selector');
+          if (container) {
+            this.updateButtonStates(container);
+          }
+        });
+      }
+
+      // 初始化复制功能
+      initCopyFunction() {
+        if (this.copyButton) {
+          this.copyButton.addEventListener('click', () => {
+            // 找到前一个兄弟元素（code_text）
+            const codeText = this.copyButton.previousElementSibling;
+            if (codeText && codeText.textContent) {
+              // 获取冒号后面的内容并去除空格
+              const fullText = codeText.textContent.trim();
+              const colonIndex = fullText.indexOf(':');
+              const textToCopy = colonIndex !== -1 ? fullText.substring(colonIndex + 1).trim() : fullText;
+              this.copyStringWithUtils(textToCopy);
+            }
+          });
+        }
+      }
+
+      // 使用utils中的copyString方法
+      copyStringWithUtils(text) {
+        if (window.copyString && typeof window.copyString === 'function') {
+          // 使用全局的 copyString 方法
+          window.copyString(text, () => {
+            // 获取copy成功提示文案
+            const copySuccessText = this.getAttribute('data-copy-success') || '{{ section.settings.copy_success | default: "Copy Success" }}';
+
+            // 显示copy成功提示
+            pushSuccessMessage(copySuccessText);
+          })
+        }
+      }
+
+      // 初始化折扣显示
+      initDiscountDisplay() {
+        if (this.discountContainer) {
+          this.handleDiscount('percent');
+        }
+      }
+
+      // 处理折扣百分比显示
+      handleDiscount(type = 'percent') {
+        if (!this.discountContainer) return;
+
+        // 检查是否配置了自定义折扣图片
+        // 自定义图片通过responsive-image模板渲染，默认图片有固定的src
+        const defaultImageSrc = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-image.svg';
+        const imageElement = this.discountContainer.querySelector('img');
+        const hasCustomImage = imageElement && !imageElement.src.includes(defaultImageSrc);
+
+
+        // 从页面数据中获取价格信息
+        if (!this.productDataScript) return;
+
+        try {
+          const data = JSON.parse(this.productDataScript.textContent);
+
+          // 时间范围验证函数
+          const isInTimeRange = () => {
+            const now = new Date().getTime();
+            const beginTime = data.begin_time ? new Date(data.begin_time).getTime() : null;
+            const endTime = data.end_time ? new Date(data.end_time).getTime() : null;
+
+            if (beginTime && endTime) {
+              // 同时配置了开始时间和结束时间
+              return now >= beginTime && now <= endTime;
+            } else if (beginTime) {
+              // 只配置了开始时间
+              return now >= beginTime;
+            } else if (endTime) {
+              // 只配置了结束时间
+              return now <= endTime;
+            } else {
+              // 如果没有设置时间范围，但配置了价格，也使用配置价格
+              return data.configured_discount_price && data.configured_discount_price !== "";
+            }
+          };
+
+          let salePrice, originPrice;
+          const inTimeRange = isInTimeRange();
+
+
+
+          // 根据时间范围和配置决定使用哪个价格
+          if (inTimeRange && data.configured_discount_price && data.configured_discount_price !== "") {
+            // 在时间范围内且配置了折扣价格，使用配置价格
+            salePrice = parseFloat(data.configured_discount_price) * 100;
+
+            if (data.configured_original_price && data.configured_original_price !== "") {
+              // 如果配置了原价，使用配置的原价
+              originPrice = parseFloat(data.configured_original_price) * 100;
+            } else {
+              // 如果没有配置原价，使用产品的原价
+              originPrice = data.original_price || data.current_price || 0;
+            }
+
+          } else {
+            // 不在时间范围内或未配置价格，使用产品默认价格
+            salePrice = data.current_price || 0;
+            originPrice = data.original_price || 0;
+
+          }
+
+          let res = '';
+          let hasValidDiscount = false;
+
+
+
+          if (type === 'percent') {
+            if (originPrice && originPrice > salePrice) {
+              const discountPercent = Math.floor((originPrice - salePrice) / originPrice * 100);
+              res = discountPercent + '%';
+              hasValidDiscount = discountPercent > 0;
+            } else {
+              res = '0%';
+            }
+          } else {
+            const discountAmount = Math.floor((originPrice - salePrice) / 100) * 100;
+            if (typeof window.formatMoney === 'function' && window?.pageInfo?.currency?.money_format) {
+              res = window.formatMoney(discountAmount, window.pageInfo.currency.money_format).replace('.00', '');
+            } else {
+              res = `$${(discountAmount / 100).toFixed(2)}`;
+            }
+            hasValidDiscount = discountAmount > 0;
+          }
+          if (hasValidDiscount || hasCustomImage) {
+            // 如果有有效折扣或者配置了自定义图片，显示折扣容器
+            this.discountContainer.style.display = 'flex';
+
+            // 只有在没有自定义图片且有有效折扣时才设置文字内容
+            if (!hasCustomImage && hasValidDiscount && this.discountElement && this.discountTextElement) {
+              this.discountElement.textContent = res;
+              this.discountElement.classList.remove('opacity-0');
+              this.discountTextElement.classList.remove('opacity-0');
+            }
+          } else {
+            // 隐藏折扣容器
+            this.discountContainer.style.display = 'none';
+          }
+        } catch (error) {
+          console.error(error);
+          // 出错时，如果有自定义图片仍然显示，否则隐藏
+          if (hasCustomImage) {
+            this.discountContainer.style.display = 'flex';
+          } else {
+            this.discountContainer.style.display = 'none';
+          }
+        }
+      }
+
+      // 获取并显示捆绑产品信息
+      async loadBundleProducts() {
+        if (this.bundleElements.length === 0) return;
+
+        try {
+          // 收集所有产品ID
+          const pids = Array.from(this.bundleElements)
+            .map(el => Number(el.getAttribute('pid')))
+            .filter(pid => pid && !isNaN(pid));
+
+          if (pids.length === 0) return;
+
+          // 直接获取数据
+          const data = await this.fetchBundleData(pids);
+          if (data && data.length > 0) {
+            this.updateBundleElements(this.bundleElements, data);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      // 实际的API请求方法
+      async fetchBundleData(pids) {
+        const response = await fetch(`${window.pageInfo.api}/osconsumerapi/v1/app-bundled-sale/infos`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'cr': window?.pageInfo?.cr || '',
+            'lang': window?.pageInfo?.lang || 'en',
+          },
+          body: JSON.stringify({
+            skuIds: pids,
+            shopifyShopId: window.pageInfo.shopId,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const res = await response.json();
+        return res.code === 200 ? res.data || [] : [];
+      }
+
+      // 更新捆绑产品元素
+      updateBundleElements(bundleElements, data) {
+        bundleElements.forEach(el => {
+          const pid = Number(el.getAttribute('pid'));
+          const matchedItem = data.find(item => Number(item.originSkuId) === pid);
+
+          if (matchedItem && matchedItem.bundleGoodsList?.length > 0) {
+            const bundleObj = matchedItem.bundleGoodsList[0];
+            this.updateBundleElement(el, bundleObj);
+          }
+        });
+      }
+
+      // 更新单个捆绑产品元素
+      updateBundleElement(el, bundleObj) {
+        // 设置捆绑产品的skuId属性
+        if (bundleObj.skuId) {
+          el.setAttribute('data-skuid', bundleObj.skuId);
+
+          // 同时给当前jky-recommend-product内的product-action-buttons标签也添加data-skuid属性
+          const actionButtons = this.querySelectorAll('.landing-block--product-pmain--bottom');
+
+          actionButtons.forEach(button => {
+            button.setAttribute('data-skuid', bundleObj.skuId);
+          });
+        }
+
+        // 更新标题
+        const titleEl = el.querySelector('.bundle-title');
+        if (titleEl && bundleObj.title) {
+          titleEl.textContent = bundleObj.title.replace(/^Jackery\s*/i, '').trim();
+        }
+
+        // 更新价格
+        const priceEl = el.querySelector('.bundle-price');
+        if (priceEl && bundleObj.price !== undefined && bundleObj.price !== null && bundleObj.price >= 0) {
+          priceEl.textContent = this.formatPrice(bundleObj.price);
+        }
+
+        // 更新划线价格
+        const linePriceEl = el.querySelector('.bundle-line-price');
+        if (linePriceEl && bundleObj.originPrice !== undefined && bundleObj.originPrice !== null && bundleObj.originPrice >= 0) {
+          // 只要originPrice存在且大于等于0，就显示划线价格（包括价格为0的情况）
+          if (bundleObj.originPrice > bundleObj.price || bundleObj.originPrice === 0) {
+            linePriceEl.textContent = this.formatPrice(bundleObj.originPrice);
+            linePriceEl.style.display = 'inline';
+          }
+        }
+
+        // 更新图片
+        const imgEl = el.querySelector('.bundle-img');
+        if (imgEl && bundleObj.image) {
+          imgEl.src = bundleObj.image;
+          imgEl.alt = bundleObj.title || 'Bundle Product';
+          imgEl.onerror = () => {
+            imgEl.style.display = 'none';
+          };
+        }
+
+        // 显示捆绑产品区域
+        el.style.display = 'flex';
+      }
+
+      // 格式化价格
+      formatPrice(price) {
+        if (typeof window.formatMoney === 'function' && window?.pageInfo?.currency?.money_format) {
+          const formattedPrice = window.formatMoney(price * 100, window.pageInfo.currency.money_format);
+          // 如果价格为0，保持显示$0，否则移除.00
+          return price === 0 ? formattedPrice.replace('.00', '') || '$0' : formattedPrice.replace('.00', '');
+        }
+        // 如果价格为0，显示$0，否则移除.00后缀
+        const formatted = `$${price.toFixed(2)}`;
+        return price === 0 ? '$0' : formatted.replace('.00', '');
+      }
+
+      // 初始化数量控制器
+      initQuantityControls() {
+        // 防抖变量，防止移动端双重触发
+        let isProcessing = false;
+        let lastTouchTime = 0;
+
+        // 使用事件委托处理点击和触摸事件
+        const handleButtonEvent = (e) => {
+          if (e.type === 'click' && Date.now() - lastTouchTime < 500) {
+            return;
+          }
+
+          const button = e.target.closest('.quantity-btn');
+          if (button && !button.disabled && !isProcessing) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // 设置防抖标志
+            isProcessing = true;
+
+            this.handleQuantityChange(button);
+
+            // 300ms后重置防抖标志
+            setTimeout(() => {
+              isProcessing = false;
+            }, 300);
+          }
+        };
+
+        this.addEventListener('touchend', (e) => {
+          lastTouchTime = Date.now();
+          handleButtonEvent(e);
+        });
+        this.addEventListener('click', handleButtonEvent);
+
+        // 监听input值变化
+        this.addEventListener('input', (e) => {
+          if (e.target.classList.contains('quantity-input')) {
+            this.validateAndUpdateInput(e.target);
+          }
+        });
+
+        // 监听input失去焦点
+        this.addEventListener('blur', (e) => {
+          if (e.target.classList.contains('quantity-input')) {
+            this.validateAndUpdateInput(e.target);
+          }
+        }, true);
+
+        // 初始化按钮状态
+        const quantityContainers = this.querySelectorAll('.quantity-selector');
+        quantityContainers.forEach(container => {
+          this.updateButtonStates(container);
+        });
+      }
+
+      // 处理数量变化
+      handleQuantityChange(button) {
+        if (!button || button.disabled) return;
+
+        const quantityContainer = button.closest('.quantity-selector');
+        const input = quantityContainer?.querySelector('.quantity-input');
+
+        if (!input || !quantityContainer) return;
+
+        const currentValue = parseInt(input.value) || 0;
+        const minValue = parseInt(input.getAttribute('min')) || 0;
+        const maxValue = parseInt(input.getAttribute('max')) || 999;
+        const isMinusBtn = button.classList.contains('minus');
+        const isPlusBtn = button.classList.contains('plus');
+
+        let newValue = currentValue;
+
+        if (isMinusBtn && currentValue > minValue) {
+          newValue = currentValue - 1;
+        } else if (isPlusBtn && currentValue < maxValue) {
+          newValue = currentValue + 1;
+        }
+
+        // 只有当值真正改变时才更新
+        if (newValue !== currentValue) {
+          input.value = newValue;
+          input.setAttribute('value', newValue);
+
+          // 更新按钮状态
+          this.updateButtonStates(quantityContainer);
+
+          // 触发自定义事件
+          const bundleProduct = input.closest('.bundle-recommend-product');
+          input.dispatchEvent(new CustomEvent('quantityChanged', {
+            detail: {
+              value: newValue,
+              productId: bundleProduct?.getAttribute('pid'),
+              oldValue: currentValue
+            },
+            bubbles: true
+          }));
+        }
+      }
+
+      // 验证并更新输入值
+      validateAndUpdateInput(input) {
+        const oldValue = parseInt(input.getAttribute('value')) || 0;
+        let value = parseInt(input.value);
+
+        // 如果输入的不是有效数字或小于0，设置为0
+        if (isNaN(value) || value < 0) {
+          value = 0;
+          input.value = value;
+          input.setAttribute('value', value);
+        }
+
+        // 确保显示值与实际值同步
+        if (input.value !== input.getAttribute('value')) {
+          input.setAttribute('value', input.value);
+        }
+
+        const container = input.closest('.quantity-selector');
+        if (container) {
+          this.updateButtonStates(container);
+        }
+
+        // 如果值发生了变化，触发 quantityChanged 事件
+        const newValue = parseInt(input.value) || 0;
+        if (newValue !== oldValue) {
+          const bundleProduct = input.closest('.bundle-recommend-product');
+          input.dispatchEvent(new CustomEvent('quantityChanged', {
+            detail: {
+              value: newValue,
+              productId: bundleProduct?.getAttribute('pid'),
+              oldValue: oldValue
+            },
+            bubbles: true
+          }));
+        }
+      }
+
+      // 更新按钮状态
+      updateButtonStates(quantityContainer) {
+        if (!quantityContainer) return;
+
+        const input = quantityContainer.querySelector('.quantity-input');
+        const minusBtn = quantityContainer.querySelector('.quantity-btn.minus');
+        const plusBtn = quantityContainer.querySelector('.quantity-btn.plus');
+
+        if (!input || !minusBtn || !plusBtn) return;
+
+        const currentValue = parseInt(input.value) || 0;
+        const maxValue = parseInt(input.getAttribute('max')) || 999;
+
+        // 更新减按钮状态
+        if (currentValue <= 0) {
+          minusBtn.disabled = true;
+          minusBtn.style.opacity = '0.5';
+          minusBtn.style.cursor = 'not-allowed';
+          minusBtn.setAttribute('aria-disabled', 'true');
+        } else {
+          minusBtn.disabled = false;
+          minusBtn.style.opacity = '1';
+          minusBtn.style.cursor = 'pointer';
+          minusBtn.removeAttribute('aria-disabled');
+        }
+
+        // 更新加按钮状态
+        if (currentValue >= maxValue) {
+          plusBtn.disabled = true;
+          plusBtn.style.opacity = '0.5';
+          plusBtn.style.cursor = 'not-allowed';
+          plusBtn.setAttribute('aria-disabled', 'true');
+        } else {
+          plusBtn.disabled = false;
+          plusBtn.style.opacity = '1';
+          plusBtn.style.cursor = 'pointer';
+          plusBtn.removeAttribute('aria-disabled');
+        }
+      }
+    }
+
+    customElements.define("jky-recommend-product", JkyRecommendProduct);
+  }
+</script>
+
+{% schema %}
+{
+  "name": "V-主推产品",
+  "class": "v-recommend-product",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "type",
+      "label": "类型",
+      "default": "embed",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle（当前页面唯一的handle）",
+      "default": "embed-component-bird"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色",
+      "default": "#F5F5F5"
+    },
+    { "type": "header", "content": "内边距" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 76
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 76
+    },
+    { "type": "header", "content": "产品配置" },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    },
+    {
+      "type": "text",
+      "id": "variant_id",
+      "label": "商品变体ID",
+      "info": "单变体产品无法自动拉取，必需手动填写",
+      "visible_if": "{{ section.settings.product != blank }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "product_img",
+      "label": "商品图片",
+      "info": "建议上传800px*600px的图片"
+    },
+    {
+      "type": "text",
+      "id": "product_title",
+      "label": "商品标题",
+      "default": "Navi 2000 Balkonkra twerkNavi 2000 Balkonkraftwerk"
+    },
+    {
+      "type": "text",
+      "id": "selling_points",
+      "label": "商品卖点",
+      "default": "1264Wh Capacity | LiFePO4 Battery 1264Wh"
+    },
+    {
+      "type": "text",
+      "id": "installment",
+      "label": "分期付款文案",
+      "default": "Starting at $100/mo or 0% APR with"
+    },
+    {
+      "type": "image_picker",
+      "id": "installment_img",
+      "label": "分期付款图片",
+      "info": "建议上传77px*31px的图片"
+
+    },
+    {
+      "type": "text",
+      "id": "code_text",
+      "label": "Code码",
+      "info": "Code: xxxxxx",
+      "default": "Code: xxxxxxxx"
+    },
+    {
+      "type": "text",
+      "id": "copy_text",
+      "label": "copy文案",
+      "default": "Copy >"
+    },
+    {
+      "type": "text",
+      "id": "copy_success",
+      "label": "copy成功提醒文案",
+      "default": "Copy Success"
+    },
+    {
+      "type": "text",
+      "id": "product_discount_price",
+      "label": "产品价格",
+      "default": "100"
+    },
+    {
+      "type": "text",
+      "id": "product_price",
+      "label": "产品原价格",
+      "default": "100"
+    },
+    {
+      "type": "text",
+      "id": "begin_time",
+      "label": "开始时间",
+      "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/06/06 00:00:00"
+    },
+    {
+      "type": "text",
+      "id": "end_time",
+      "label": "结束时间",
+      "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/06/06 00:00:00"
+    },
+    {
+      "type": "text",
+      "id": "save_txt_up",
+      "label": "折扣角标文案",
+      "default": "Save"
+    },
+    {
+      "type": "image_picker",
+      "id": "discount_img",
+      "label": "折扣背景图片",
+      "info": "建议上传100px*80px的图片"
+    },
+    {
+      "type": "text",
+      "id": "discount_tag",
+      "label": "角标标签",
+      "default": "new"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_discount_amount",
+      "label": "显示折扣金额",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-主推产品"
+    }
+  ]
+}
+{% endschema %}

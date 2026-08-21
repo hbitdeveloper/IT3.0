@@ -1,0 +1,1040 @@
+{%- if section.settings.show_section == true -%}
+    {{ 'section-collection-main.css' | asset_url | stylesheet_tag }}
+
+    {%- assign show_compare = false -%}
+    {%- if collection.metafields.custom.show_compare == true -%}
+        {%- assign show_compare = true -%}
+    {%- endif -%}
+    {%- if show_compare == true -%}
+        <script defer src="{{ 'app-bundled-compare.min.js' | asset_url }}"></script>
+    {%- endif -%}
+
+    {%-liquid
+        assign is_jp_collection = false
+        case shop.id
+            when 10015375438, 56124375224
+                assign is_jp_collection = true
+            else
+                assign is_jp_collection = false
+        endcase
+    -%}
+
+    {%- for block in section.blocks -%}
+        {%- case block.type -%}
+            {%- when '@app' -%}
+                {% render block %}
+            {%- when 'breadcrumbs' -%}
+                {%- if collection.handle != 'all' -%}
+                    {% style %}
+                        .collection-breadcrumbs.collection-wrapper-container {gap: 5px;}
+                        .collection-breadcrumbs.collection-wrapper-container a:hover {text-decoration: underline;text-underline-offset: 4px;}
+                    {% endstyle %}
+                    <div {{ block.shopify_attributes }} class="collection-breadcrumbs collection-wrapper-container mx-auto flex w-[1312px] max-w-[90vw] text-sm text-[#666666] lg:text-base max-lg:max-w-[87.2vw]" collection="{{collection.handle}}">
+                        <a href="/collections/all" style="color: #666666;">{{block.settings.all_product_text}}</a> / <span>{{collection.title}}</span>
+                    </div>
+                {%- endif -%}
+            {%- when 'heading_des' -%}
+                {% style %}
+                    .collection-heading-des {border-bottom: solid 1px #D8D8D8;}
+                    .collection--heading-count:not(.is-active) {display: none;}
+                    @media screen and (max-width: 1023.98px) {
+                        .collection-heading-des {border-bottom: none;}
+                    }
+                {% endstyle %}
+                <div {{ block.shopify_attributes }} class="collection-heading-des collection-wrapper-container mx-auto flex w-[1312px] max-w-[90vw] flex-col gap-0 pt-1 pb-4 lg:pb-6 max-lg:max-w-[87.2vw]">
+                    <div class="block lg:flex collection-heading-wrapper pb-2 lg:pb-3 items-baseline flex-wrap gap-2">
+                        <h1 class="collection--heading lg:block inline text-3xl lg:text-6xl text-[#1A1A1A]">
+                            {%- if collection.metafields.custom.banner_heading != blank -%}
+                                {{ collection.metafields.custom.banner_heading }}
+                            {%- else -%}
+                                {{ collection.title }}
+                            {%- endif -%}
+                        </h1>
+                        {%- if block.settings.product_count != blank -%}
+                        <span class="collection--heading-count whitespace-nowrap text-xs lg:text-base text-[#666666]">({{block.settings.product_count}})</span>
+                        {%- endif -%}
+                    </div>
+                    {%- if collection.metafields.custom.banner_subheading != blank -%}
+                        <div class="collection-des-wrapper text-sm lg:text-base text-[#666666]">{{ collection.metafields.custom.banner_subheading }}</div>
+                    {%- endif -%}
+                </div>
+            {%- when 'prodcut_grid' -%}
+                <div
+                    class="collection-wrapper pb-5 lg:pb-9 pt-9 lg:pt-12" 
+                    data-open="{{section.settings.open_new}}"
+                    data-show_compare="{{show_compare}}"
+                    data-handle="{{ collection.handle }}"
+                    data-add_cart_solid="{{ section.settings.add_cart_solid }}"
+                    data-shop_solid="{{ section.settings.shop_solid }}"
+                    data-open_reviewrating="{{ section.settings.open_reviewrating }}"
+                    style="--btn-bgcolor:{{ section.settings.solid_bgcolor }};--btn-color:{{ section.settings.solid_color }}"
+                    data-freetax="{{ section.settings.freetax }}"
+                    data-show_diff="{{section.settings.show_fiff}}"
+                    data-open-auto-discount-price="{{settings.open_auto_discount_price}}"
+                    data-discount-tag-display-style="{{settings.discount_tag_display_style}}"
+                    data-discount-amount-display-style="{{settings.discount_amount_display_style}}"
+                    data-discount-percent-display-style="{{settings.discount_percent_display_style}}"
+                    {{ block.shopify_attributes }}
+                >
+                    <div class="collection-wrapper-container mx-auto flex w-[1312px] max-w-[90vw] lg:gap-x-1 max-lg:max-w-[87.2vw] {% if is_jp_collection %} gap-[19px] {% else %} gap-10  {% endif %}">
+                        <div class="filters--overlay"></div>
+                        <div class="filters-container w-auto {% if is_jp_collection %} filters-container-jp lg:w-[19.5rem] {% else %} lg:w-60 {% endif %}">
+                            <div class="filters-top border-b border-solid border-[#ddd] text-base font-semibold text-[#1A1A1A] {% if is_jp_collection %}border-none{% endif %}">
+                                <div class="filters-toolbar--top mb-5 h-[50px] leading-[50px] lg:mb-4 lg:h-10 lg:leading-10">{{ 'sections.collection_template.filters' | t }}</div>
+
+                                <svg class="filters--btn-close" style="top: 12px;right: 18px;zoom: 0.7;" width="40" height="40" viewBox="0 0 40 40">
+                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                        <g transform="translate(-606.000000, -218.000000)" fill-rule="nonzero">
+                                            <g transform="translate(606.000000, 218.000000)">
+                                                <path d="M20,40 C22.7272727,40 25.2964427,39.4762846 27.7075099,38.4288538 C30.1185771,37.3814229 32.2463768,35.9387352 34.0909091,34.1007905 C35.9354414,32.2628458 37.3814229,30.1350461 38.4288538,27.7173913 C39.4762846,25.2997365 40,22.7272727 40,20 C40,17.2727273 39.4762846,14.7002635 38.4288538,12.2826087 C37.3814229,9.86495389 35.9354414,7.73715415 34.0909091,5.89920949 C32.2463768,4.06126482 30.1185771,2.61857708 27.7075099,1.57114625 C25.2964427,0.523715415 22.7206851,0 19.9802372,0 C17.2397892,0 14.6640316,0.523715415 12.2529644,1.57114625 C9.84189723,2.61857708 7.72068511,4.06126482 5.88932806,5.89920949 C4.05797101,7.73715415 2.61857708,9.86495389 1.57114625,12.2826087 C0.523715415,14.7002635 0,17.2727273 0,20 C0,22.7272727 0.520421607,25.2997365 1.56126482,27.7173913 C2.60210804,30.1350461 4.04479578,32.2628458 5.88932806,34.1007905 C7.73386034,35.9387352 9.86166008,37.3814229 12.2727273,38.4288538 C14.6837945,39.4762846 17.259552,40 20,40 Z" fill="#999999"></path>
+                                                <path d="M13.3399209,28.1225296 C12.944664,28.1225296 12.6054018,27.9808959 12.3221344,27.6976285 C12.0388669,27.414361 11.8972332,27.0750988 11.8972332,26.6798419 C11.8972332,26.2714097 12.0421607,25.9222661 12.3320158,25.6324111 L17.944664,20.0197628 L12.3320158,14.4268775 C12.0421607,14.1238472 11.8972332,13.7747036 11.8972332,13.3794466 C11.8972332,12.9710145 12.0388669,12.6284585 12.3221344,12.3517787 C12.6054018,12.0750988 12.944664,11.9367589 13.3399209,11.9367589 C13.7351779,11.9367589 14.0843215,12.0750988 14.3873518,12.3517787 L20.0197628,17.9644269 L25.6719368,12.3517787 C25.9617918,12.0619236 26.3043478,11.916996 26.6996047,11.916996 C27.0948617,11.916996 27.4341238,12.055336 27.7173913,12.3320158 C28.0006588,12.6086957 28.1422925,12.9512516 28.1422925,13.3596838 C28.1422925,13.7549407 27.997365,14.1040843 27.7075099,14.4071146 L22.0750988,20.0197628 L27.687747,25.6126482 C27.9776021,25.8893281 28.1225296,26.2450593 28.1225296,26.6798419 C28.1225296,27.0750988 27.9808959,27.414361 27.6976285,27.6976285 C27.414361,27.9808959 27.0685112,28.1225296 26.6600791,28.1225296 C26.2384717,28.1225296 25.8893281,27.9776021 25.6126482,27.687747 L20.0197628,22.0948617 L14.4268775,27.687747 C14.1370224,27.9776021 13.7747036,28.1225296 13.3399209,28.1225296 Z" fill="#FFFFFF"></path>
+                                            </g>
+                                        </g>
+                                    </g>
+                                </svg>
+                            </div>
+
+                            <div class="selected-filters--mb hide lg:hidden pt-3 lg:pt-4 pb-4 lg:pb-6 lg:gap-4 gap-3 flex-wrap">
+                                <div class="selected-filters-clear text-primary text-sm cursor-pointer flex items-center h-8">{{section.settings.clear_all}}</div>
+                            </div>
+
+                            <div class="filters-toolbar--skeleton">
+                                <div class="filters-toolbar--skeleton-item">
+                                    <div class="skeleton collection--skeleton-title"></div>
+                                </div>
+
+                                <div class="filters-toolbar--skeleton-item">
+                                    <div class="skeleton collection--skeleton-title"></div>
+                                </div>
+
+                                <div class="filters-toolbar--skeleton-item">
+                                    <div class="skeleton collection--skeleton-title"></div>
+                                </div>
+
+                                <div class="filters-toolbar--skeleton-item">
+                                    <div class="skeleton collection--skeleton-title"></div>
+                                </div>
+
+                                <div class="filters-toolbar--skeleton-item">
+                                    <div class="skeleton collection--skeleton-title"></div>
+                                </div>
+                            </div>
+                            <div class="filters-group-container {% if is_jp_collection %} flex-1 flex flex-col lg:gap-y-6 {% endif %}"></div>
+                            <div class="mb-view-filters flex lg:hidden absolute bottom-0 left-0 right-0 items-center justify-center px-4 bg-white font-medium text-white">
+                                <div class="mb-view-filters--btn w-full rounded text-center text-base h-10 bg-primary flex items-center justify-center ">{{ 'sections.collection_template.use_view_items_filters_html' | t: mount: 0 }}</div>
+                            </div>
+                        </div>
+
+                        <div class="product-with-result min-h-[60vh] flex-1">
+                            <div class="result-toolbar flex justify-between max-lg:sticky max-lg:top-[var(--jky-header-h)] max-lg:z-[999] max-lg:mx-[-10vw] max-lg:w-[calc(100%+20vw)]">
+                                <div class="filters-toolbar--top result-toolbar--text mb-5 h-[50px] leading-[50px] text-base font-normal text-[#333333] lg:mb-4 lg:h-10 lg:leading-10 max-lg:hidden">
+                                    <div class="skeleton result-toolbar--skeleton"></div>
+                                    <span>{{ 'sections.collection_template.use_amount_filters_html' | t: mount: 0 }}</span>
+                                </div>
+                                <div class="filters-toolbar--top filters-toolbar-dropdown mb-5 h-[50px] w-full justify-between bg-white px-[10vw] lg:mb-4 flex gap-2.5 lg:h-10 lg:w-auto lg:bg-transparent lg:px-0 lg:leading-10">
+                                    <div class="filters-trigger hidden flex-1 items-center gap-1.5 text-[15px] font-medium text-[#1A1A1A] max-lg:flex">
+                                        <svg width="32" height="32" viewBox="0 0 32 32">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                <g transform="translate(-48.000000, -672.000000)">
+                                                    <g transform="translate(0.000000, 637.000000)">
+                                                        <g transform="translate(48.000000, 35.000000)">
+                                                            <rect x="0" y="0" width="32" height="32"></rect>
+                                                            <path d="M0,9.22222222 L25.1428571,9.22222222 L25.1428571,6.11111111 L0,6.11111111 L0,9.22222222 L0,9.22222222 Z M29.7142857,1 C28.4519206,1 27.4285714,1.99492278 27.4285714,3.22222222 L27.4285714,12.1111111 C27.4285714,13.3384106 28.4519206,14.3333333 29.7142857,14.3333333 C30.9766509,14.3333333 32,13.3384106 32,12.1111111 L32,3.22222222 C32,1.99492278 30.9766509,1 29.7142857,1 Z M16,22.1111111 L16,19.2222222 C16,17.9949228 14.9766509,17 13.7142857,17 C12.4519206,17 11.4285714,17.9949228 11.4285714,19.2222222 L11.4285714,28.1111111 C11.4285714,29.3384106 12.4519206,30.3333333 13.7142857,30.3333333 C14.9766509,30.3333333 16,29.3384106 16,28.1111111 L16,25.2222222 L32,25.2222222 L32,22.1111111 L16,22.1111111 L16,22.1111111 Z M0,25.2222222 L9.14285714,25.2222222 L9.14285714,22.1111111 L0,22.1111111 L0,25.2222222 Z" fill="#999999" fill-rule="nonzero"></path>
+                                                        </g>
+                                                    </g>
+                                                </g>
+                                            </g>
+                                        </svg>
+                                        {{ 'sections.collection_template.filters' | t }}
+                                    </div>
+                                    <span class="sort_txt hidden text-[1rem] font-normal text-[#666666] lg:inline">
+                                        {{ 'sections.collection_template.sort_by' | t }}
+                                    </span>
+
+                                    <drop-down data-key="sort" class="filters-toolbar-dropdown_main">
+                                        <div trigger>
+                                            <div class="trigger--summery">
+                                                <span class="inline lg:hidden">{{ 'sections.collection_template.sort_by' | t }} </span>
+                                                <span class="text-overflow-1">{{ 'sections.collection_template.sort_popularity'  | t }}</span>
+                                                <svg class="w-4 rotate-90 max-lg:w-4 lg:w-3" viewBox="0 0 1024 1024" version="1.1"
+                                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                                                    <path
+                                                        d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z"
+                                                        fill="#1a1a1a"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+
+                                        <div trigger-content class="drop-down--detail">
+                                            <div class="trigger--detail">
+                                                <div
+                                                    data-ga-event="product_collection4.0_user_clicks" data-ga-action="click"
+                                                    data-ga-params-module="Sort"
+                                                    data-ga-params-position="{{ 'sections.collection_template.sort_popularity'  | t }}"
+                                                    data-value="Popularity"
+                                                    class="trigger--detail-item text-overflow-5 active">{{ 'sections.collection_template.sort_popularity'  | t }}</div>
+                                                <div
+                                                    data-ga-event="product_collection4.0_user_clicks" data-ga-action="click"
+                                                    data-ga-params-module="Sort"
+                                                    data-ga-params-position="{{ 'sections.collection_template.sort_newest'  | t }}"
+                                                    data-value="Newest" class="trigger--detail-item text-overflow-5">{{ 'sections.collection_template.sort_newest' | t }}</div>
+                                                <div
+                                                    data-ga-event="product_collection4.0_user_clicks" data-ga-action="click"
+                                                    data-ga-params-module="Sort"
+                                                    data-ga-params-position="{{ 'sections.collection_template.sort_oldest'  | t }}"
+                                                    data-value="Oldest" class="trigger--detail-item text-overflow-5">{{ 'sections.collection_template.sort_oldest' | t }}</div>
+                                                <div
+                                                    data-ga-event="product_collection4.0_user_clicks" data-ga-action="click"
+                                                    data-ga-params-module="Sort"
+                                                    data-ga-params-position="{{ 'sections.collection_template.sort_highest_price'  | t }}"
+                                                    data-value="HighestPrice" class="trigger--detail-item text-overflow-5">{{ 'sections.collection_template.sort_highest_price' | t }}</div>
+                                                <div
+                                                    data-ga-event="product_collection4.0_user_clicks" data-ga-action="click"
+                                                    data-ga-params-module="Sort"
+                                                    data-ga-params-position="{{ 'sections.collection_template.sort_lowest_price'  | t }}"
+                                                    data-value="LowestPrice" class="trigger--detail-item text-overflow-5">{{ 'sections.collection_template.sort_lowest_price' | t }}</div>
+                                            </div>
+                                        </div>
+                                    </drop-down>
+                                </div>
+                            </div>
+
+                            <div class="selected-filters hide flex lg:pt-4 pt-3 lg:pb-6 pb-4 gap-3 lg:gap-4 flex-wrap">
+                                <div class="selected-filters-clear text-primary text-sm cursor-pointer flex items-center h-8">{{section.settings.clear_all}}</div>
+                            </div>
+
+                            <div class="collection_search--skeleton mb-10 grid grid-cols-3 gap-x-4 gap-y-8 overflow-hidden rounded-[10px] max-lg:grid-cols-1 max-lg:gap-x-0 max-lg:gap-y-6">
+                                {%- for i in (1..9) -%}
+                                    <div class="collection--skeleton-item">
+                                        <div class="skeleton w-full h-[15.625rem] mb-2.5 lg:h-[17.125rem] lg:mb-3"></div>
+                                        <div class="skeleton collection--skeleton-title"></div>
+                                        <div class="skeleton collection--skeleton-subtitle"></div>
+                                        <div class="skeleton collection--skeleton-price"></div>
+                                        <div class="skeleton collection--skeleton-button"></div>
+                                    </div>
+                                {%- endfor -%}
+                            </div>
+
+                            <div class="result-product-grid grid grid-cols-3 gap-x-4 gap-y-8 max-lg:grid-cols-1 max-lg:gap-x-0 max-lg:gap-y-6{% if is_jp_collection %} result-product-grid-jp gap-x-6 gap-y-6{% endif %}"></div>
+
+                            {%- if show_compare == true -%}
+                            <div class="compare-wrapper" data-add_to_cart_text="{{ 'products.product.add_to_cart' | t }}" data-open_auto_discount_price="{{settings.open_auto_discount_price}}">
+                                <div class="compare-wrapper--header flex">
+                                    <button class="flex compare-wrapper--header-title" aria-label="toggle sheet" type="button">
+                                        <svg height="16" width="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" class="lululemon_mwa_selective_comparison__headerChevron__RdeFRo lululemon_mwa_selective_comparison__chevronDown__tKGek8" focusable="false" role="img" data-lll-pl="icon" aria-hidden="true"><path d="M11 15 4.54 8.53a.74.74 0 0 1 0-1.06L11 1l.35.35a1 1 0 0 1 0 1.41L6.13 8l5.26 5.24a1 1 0 0 1 0 1.41L11 15Z" fill="#1a1a1a"></path></svg>
+                                        <h2>{{ 'sections.collection_template.compare_title_html' | t: mount: 0, amount: 3 }}</h2>
+                                    </button>
+
+                                    <div class="compare-wrapper--sheetButtons flex">
+                                        <button
+                                            class="sheetButtons--clear"
+                                            data-ga-action="click"
+                                            data-ga-params-module="Compare"
+                                            data-ga-params-position="Clear All"
+                                            data-ga-event="section_products_compare_user_clicks"
+                                            aria-label="{{ 'sections.collection_template.compare_clear_button_text' | t }}"
+                                            type="button" class="compare--clean">{{ 'sections.collection_template.compare_clear_button_text' | t }}</button>
+                                        <button
+                                            data-ga-action="click"
+                                            data-ga-params-module="Compare"
+                                            data-ga-params-position="Clear All"
+                                            data-ga-params-button_name="{{ 'sections.collection_template.compare_start_button_text' | t}}"
+                                            data-ga-event="section_products_compare_user_clicks"
+                                            class="zc_button start_compare">{{ 'sections.collection_template.compare_start_button_text' | t}}</button>
+                                    </div>
+                                </div>
+                                <div class="compare-wrapper--main flex">
+                                    <div class="compare--item compare--item_add flex compare--item_add__1">
+                                        <div
+                                            data-ga-event="section_products_compare_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="Compare"
+                                            data-ga-params-position=" Select another product"
+                                            class="relative compare-img__wrapper">
+                                        </div>
+                                        <h3 class="text-overflow-3">{{'sections.collection_template.compare_select_another_text' | t}}</h3>
+                                    </div>
+
+                                    <div class="compare--item compare--item_add flex">
+                                        <div
+                                            data-ga-event="section_products_compare_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="Compare"
+                                            data-ga-params-position=" Select another product"
+                                            class="relative compare-img__wrapper">
+                                        </div>
+                                        <h3 class="text-overflow-3">{{'sections.collection_template.compare_select_another_text' | t}}</h3>
+                                    </div>
+                                </div>
+                                <div class="mb__compare_start flex flex-1 justify-center items-center lg:hidden">
+                                    <div class="zc_button text-overflow-1">{{ 'sections.collection_template.compare_start_button_text' | t}}</div>
+                                </div>
+                            </div>
+                            {%- endif -%}
+
+                            {% comment %} 分页 {% endcomment %}
+                            <div class="collection-pagination-wrapper justify-center items-center hide hidden lg:flex pt-6 gap-4 text-base font-normal text-[#333333]">
+                                <div class="collection-pagination__prev collection-pagination__item is-disabled w-12 h-12 rounded-full flex text-center justify-center items-center cursor-pointer">
+                                    {% render 'icon-arrow', class: 'collection-pagination__icon', width: 16, height: 16, color: '#333333' %}
+                                </div>
+                                <div class="collection-pagination__count">
+                                    <span class="collection-pagination__current inline-block min-w-3 text-center select-none">1</span>/<span class="collection-pagination__total_count inline-block min-w-3 text-center select-none">1</span>
+                                </div>
+                                <div class="collection-pagination__next collection-pagination__item is-disabled w-12 h-12 rounded-full flex text-center justify-center items-center cursor-pointer">
+                                    {% render 'icon-arrow', class: 'collection-pagination__icon', width: 16, height: 16, color: '#333333' %}
+                                </div>
+                            </div>
+
+                            <div class="flex collection-pagination-wrapper--mb justify-center items-center hide lg:hidden text-primary font-medium pt-5 text-sm gap-3">
+                                <span>{{section.settings.view_more_text}}</span>
+                                {% render 'icon-arrow', class: 'collection-pagination-wrapper--mb-icon', width: 16, height: 16, color: 'var(--jds-color-primary)' %}
+                            </div>
+                            {% comment %} 分页 {% endcomment %}
+
+                            {% comment %} 无搜索结果状态 {% endcomment %}
+                            <div class="no_data_main hidden pt-20 pb-20 pr-6 pl-4 lg:pt-28 lg:pb-14 lg:pr-32 lg:pl-32 gap-4 lg:gap-6 text-center justify-center flex-col items-center">
+                                <span class="no_data_heading text-base font-medium text-[#1A1A1A]">{{ 'sections.collection_template.no_product_found' | t }}  </span>
+                                <div class="zc_button">
+                                    {{ 'sections.collection_template.clear_filters' | t }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {%- when 'popular_recommendations' -%}
+                <div class="popular-products-group w-full mx-auto">
+                    <div class="section-container-lg my-8 lg:my-12 mx-auto">
+                        <div class="popular-title mb-4 font-semibold lg:mb-8 lg:font-medium">{{ block.settings.module_title | escape}}</div> 
+                        <div class="popular-swiper-products w-full relative">
+                            <div class="swiper w-full swiper--{{ block.id }}">
+                                <div class="swiper-wrapper">
+                                    {% for i in (1..5) %}
+                                        {% assign product_key = 'product_' | append: i %}
+                                        {% assign product = block.settings[product_key] %}
+                                        {% if product == blank %}
+                                            {% continue %}
+                                        {% endif %}
+                                        
+                                        {% assign variants = product.variants %}
+                                        {% assign skus = variants | map: 'id' | join: ',' %}
+
+                                        {% assign itemSku_key = 'sku_' | append: i %}
+                                        {% assign itemSku = block.settings[itemSku_key] %}
+                                        {% assign current_variant = nil %}
+                                        {% for variant in variants %}
+                                            {% if variant.sku == itemSku %}
+                                                {% assign current_variant = variant %}
+                                                {% break %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% unless current_variant %}
+                                            {% assign current_variant = product.variants | first %}
+                                        {% endunless %}
+
+                                        {% if settings.open_auto_discount_price %}
+                                            {% assign auto_discount_price = current_variant.metafields.custom.auto_discount_price | times: 1 %}
+                                            {% if auto_discount_price > 0 %}
+                                                {% assign current_price = current_variant.price %}
+                                                {% if auto_discount_price < current_variant.price %}
+                                                    {% assign current_price = auto_discount_price %}
+                                                {% endif %} 
+                                            {% else %}
+                                                {% assign current_price = current_variant.price %} 
+                                            {% endif %}
+                                        {% else %}
+                                            {% assign current_price = current_variant.price %}
+                                        {% endif %} 
+                                        {% assign compare_at_price = current_variant.compare_at_price | default: current_price %}
+
+                                        {% assign title_key = 'title_' | append: i %}
+                                        {% assign title = block.settings[title_key] | default: current_variant.title %}
+                                        {% if title == blank or title == "Default Title" %}
+                                            {% assign title = product.title %}
+                                        {% endif %}
+                                        {% assign img_key = 'image_' | append: i %}
+                                        {% assign img = block.settings[img_key] | default: current_variant.featured_image | default: product.featured_image %}
+                                        {% assign ranking_key = 'ranking_' | append: i %}
+                                        {% assign ranking = block.settings[ranking_key] %}
+                                        {% assign pc_capacity_key = 'pc_capacity_' | append: i %}
+                                        {% assign pc_capacity = block.settings[pc_capacity_key] %}
+                                        {% assign mb_capacity_key = 'mb_capacity_' | append: i %}
+                                        {% assign mb_capacity = block.settings[mb_capacity_key] %}
+
+                                        <div class="swiper-slide rounded-md lg:rounded-lg overflow-hidden">
+                                            <a class="w-full"
+                                                target="{% if block.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ product.url }}?variant={{ current_variant.id }}">
+                                                <div class="mian-top flex w-full h-7 lg:h-10 text-white">
+                                                    <span class="mian-top-ranking h-full font-semibold text-sm lg:text-xl">{{ ranking }}</span>
+                                                    <span class="hidden lg:block mian-top-capacity flex-1 h-full font-medium text-right">{{ pc_capacity }}</span>
+                                                    <span class="block lg:hidden mian-top-capacity flex-1 h-full font-medium text-right">{{ mb_capacity }}</span>
+                                                </div>
+                                                <div class="popular-image w-full lg:px-5 lg:pb-6" style="background: {{ block.settings.bg_color }};">
+                                                    <div class="popular-main-image">
+                                                        {% if img != blank %}
+                                                            {% render 'diff-end-img',
+                                                                class: 'w-full h-full max-w-none object-cover object-center block',
+                                                                pc_img: img,
+                                                                mb_img: img,
+                                                                alt: title
+                                                            %}
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="icons">
+                                                        {% render 'product-tag', product: product, variant: current_variant %}
+                                                    </div>
+                                                    <div class="popular-content-info mt-1 lg:mt-3">
+                                                        <div class="title flex-1 mb-1 lg:mb-3 font-medium lg:font-semibold line-clamp-3 lg:line-clamp-2">
+                                                            {{ title }}
+                                                        </div>
+                                                        <div class="popular-content-info-price flex justify-start items-center flex-wrap {% if is_jp_collection %} popular-content-info-jp-price {% endif %} ">
+                                                            <span class="popular-current-price font-semibold">{{ current_price | money }}</span>
+                                                            {%- if block.settings.suffix != blank -%}
+                                                                <span class="suffix-text font-medium text-xs lg:text-sm">{{ block.settings.suffix | escape }}</span>
+                                                            {%- endif -%}
+                                                            {%- if compare_at_price > current_price -%}
+                                                                <span class="popular-origin-price font-medium text-xs lg:text-base text-gray-60 line-through">{{ compare_at_price | money }}</span>
+                                                            {%- else -%}
+                                                                {%- if current_variant.price > current_price -%}
+                                                                    <span class="popular-origin-price font-medium text-xs lg:text-base text-gray-60 line-through">{{ compare_at_price | money }}</span>
+                                                                {%- endif -%}
+                                                            {%- endif -%}
+                                                        </div>
+                                                    </div>
+                                                    <div class="hidden">{{ skus }}</div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% if block.settings.product_1 != blank or block.settings.product_2 != blank or block.settings.product_3 != blank or block.settings.product_4 != blank or block.settings.product_5 != blank %}
+                                {% assign product_count = 0 %}
+                                {% for i in (1..5) %}
+                                    {% assign prod_key = 'product_' | append: i %}
+                                    {% if block.settings[prod_key] != blank %}
+                                        {% assign product_count = product_count | plus: 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if product_count > 4 %}
+                                    <div class="popular-swiper-operate flex justify-between align-center">
+                                        <div class="popular-swiper-navigation popular-product-prev"> 
+                                            {% render 'icon-arrow-left-default', class: 'icon-arrow icon-arrow-left-default' %}
+                                        </div>
+                                        <div class="popular-swiper-navigation popular-product-next">
+                                            {% render 'icon-arrow-right-default', class: 'icon-arrow icon-arrow-right-default' %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <script type="module">
+                    document.addEventListener('DOMContentLoaded', () => {
+                        initAllGeneralCardSwipers();
+                    });
+
+                    document.addEventListener('shopify:section:load', (e) => {
+                        if (e.target.querySelector('.popular-products-group')) {
+                        initAllGeneralCardSwipers();
+                        }
+                    });
+
+                    function initAllGeneralCardSwipers() {
+                        document.querySelectorAll('.popular-products-group .swiper:not(.swiper-initialized)').forEach(container => {
+                            if (container.swiper) container.swiper.destroy(true, true);
+
+                            const section = container.closest('[id^="shopify-section-"]');
+                            const sectionId = section ? section.id.replace('shopify-section-', '') : '';
+                            const blocksSize = parseInt(container.dataset.blocksSize || '0');
+
+                            const options = {
+                                slidesPerView: 'auto',
+                                spaceBetween: 10,
+                                breakpoints: {
+                                    750: { spaceBetween: 10 },
+                                    1024: { slidesPerView: 4, spaceBetween: 24 }
+                                },
+                                loop: blocksSize > 3,
+                                lazy: { loadPrevNext: true, loadPrevNextAmount: 2 },
+                                observer: true,
+                                observeParents: true,
+                                pagination: { el: '.popular-product-pagination' },
+                                navigation: {
+                                    prevEl: '.popular-product-prev',
+                                    nextEl: '.popular-product-next',
+                                },
+                            };
+
+                            new Swiper(container, options);
+                            container.classList.add('swiper-initialized');
+                        });
+                    }
+                </script>
+            {%- when 'prodcut_subscribe' -%}
+                {%- liquid
+                    assign sub_time_now = 'now' | date: '%s'
+                    assign sub_is_show = false
+                    assign sub_begin_time = 0
+                    if block.settings.begin_time != blank
+                        assign sub_begin_time = block.settings.begin_time | date: '%s'
+                    endif
+                    assign sub_end_time = 0
+                    if block.settings.end_time != blank
+                        assign sub_end_time = block.settings.end_time | date: '%s'
+                    endif
+                    if sub_begin_time == 0 and sub_end_time == 0
+                        assign sub_is_show = true
+                    endif
+                    if sub_begin_time != 0 and sub_end_time == 0 and sub_begin_time < sub_time_now
+                        assign sub_is_show = true
+                    endif
+                    if sub_begin_time == 0 and sub_end_time != 0 and sub_end_time > sub_time_now
+                        assign sub_is_show = true
+                    endif
+                    if sub_begin_time != 0 and sub_end_time != 0 and sub_end_time > sub_time_now and sub_begin_time < sub_time_now
+                        assign sub_is_show = true
+                    endif
+
+                    assign sub_is_login = false
+                    if customer
+                        assign sub_is_login = true
+                    endif
+                    assign sub_module_show_timing = block.settings.module_show_timing | default: 'default'
+                    assign sub_show_module = true
+                    if sub_module_show_timing == 'show_before_login' and sub_is_login == true
+                        assign sub_show_module = false
+                    endif
+                    if sub_module_show_timing == 'show_after_login' and sub_is_login == false
+                        assign sub_show_module = false
+                    endif
+
+                    capture sub_pc_size
+                        render 'v-font-size-class', fs: block.settings.pc_heading_size, default_class: 'heading_6'
+                    endcapture
+                    assign sub_pc_size = sub_pc_size | strip
+
+                    capture sub_mb_size
+                        render 'v-font-size-class', fs: block.settings.mb_heading_size, default_class: 'heading_6'
+                    endcapture
+                    assign sub_mb_size = sub_mb_size | strip
+                    if block.settings.mb_content_type == 'default'
+                        assign sub_mb_size = sub_pc_size
+                    endif
+
+                    capture sub_pc_weight
+                        render 'v-font-weight-number', fw: block.settings.pc_font_weight
+                    endcapture
+                    assign sub_pc_weight = sub_pc_weight | strip
+                    assign sub_pc_style = ''
+                    if sub_pc_weight != blank
+                        assign sub_pc_style = '--jds-font-weight:' | append: sub_pc_weight | append: ';'
+                    endif
+
+                    if block.settings.mb_content_type == 'default'
+                        assign sub_mb_style = sub_pc_style
+                    else
+                        capture sub_mb_weight
+                            render 'v-font-weight-number', fw: block.settings.mb_font_weight
+                        endcapture
+                        assign sub_mb_weight = sub_mb_weight | strip
+                        assign sub_mb_style = ''
+                        if sub_mb_weight != blank
+                            assign sub_mb_style = '--jds-font-weight:' | append: sub_mb_weight | append: ';'
+                        endif
+                    endif
+
+                    assign sub_align_class = ''
+                    if block.settings.alignment_mb != blank
+                        assign sub_align_class = 'text-' | append: block.settings.alignment_mb | append: ' lg:text-' | append: block.settings.alignment
+                    endif
+                -%}
+                {%- if sub_is_show == true and sub_show_module == true -%}
+                    {%- capture sub_style -%}
+                        {% render 'spacing-padding', settings: block.settings %}
+                    {%- endcapture -%}
+                    <div class="collection-subscribe-outer collection-wrapper-container mx-auto flex w-[1312px] max-w-[90vw] max-lg:max-w-[87.2vw]" {{ block.shopify_attributes }}>
+                        <div
+                            {% if block.settings.anchor != blank %}anchor-target="{{ block.settings.anchor | escape }}"{% endif %}
+                            class="collection-subscribe-banner group blocks-subscribe-banner blocks-subscribe-banner--form section-padding h-auto w-full type-subs_mode_color-{{ section.id }} type-subs_mode_color relative flex justify-center items-center {% if settings.enable_animations_scroll %}scroll-trigger animate--slide-in{% endif %}"
+                            style="{{ sub_style }}; background-color: {{ block.settings.comp_bg_color }};"
+                        >
+                            <div
+                                class="subscribe-banner-content section-container-lg relative z-2 rounded-xl h-full lg:h-fit lg:justify-between flex flex-col {% if block.settings.align_right == 'right' %}subs-banner-right-group items-end{% endif %}"
+                                style="background: {{ block.settings.subs_bg_color }};"
+                            >
+                                {%- if block.settings.img_pc != blank -%}
+                                    {%- assign sub_mimage = block.settings.img_pc -%}
+                                    {%- if block.settings.img_mb != blank -%}
+                                        {%- assign sub_mimage = block.settings.img_mb -%}
+                                    {%- endif -%}
+                                    {% render 'responsive-image', image: block.settings.img_pc, image_class: 'blocks-image-pic w-full h-full inset-0 absolute object-cover rounded-xl overflow-hidden', mimage: sub_mimage, width: 1312, mwidth: 680 %}
+                                {%- endif -%}
+
+                                <div class="blocks-subscribe-banner-form section-padding relative rounded-xl {% if block.settings.has_blur == true %}backdrop-blur{% endif %} pt-4 lg:pt-6 pb-5 lg:pb-4 px-3 lg:px-6 box-border w-full lg:w-[28rem] max-w-xl" style="--section-padding-top:0;--section-padding-bottom:0;--section-bg:{{ block.settings.form_bg_color | default: 'transparent' }};background: var(--section-bg);">
+                                    <div class="w-fit lg:w-full pr-7 lg:pr-5 relative blocks-subscribe-banner-form_inner z-[2]">
+                                        {%- capture sub_text_padding -%}
+                                            --section-padding-top: {{ block.settings.sub_padding_top | default: 0 }};--section-padding-bottom: {{ block.settings.sub_padding_bottom | default: 16 }};--section-padding-left: 0;--section-padding-right: 0;
+                                        {%- endcapture -%}
+                                        {%- if block.settings.pc_subheading != blank or block.settings.mb_subheading != blank -%}
+                                            <div
+                                                class="blocks-heading-content blocks-content-subheading section-padding {{ sub_align_class }}"
+                                                style="color: {{ block.settings.text_color }};--jds-rte-text-color: {{ block.settings.text_color }};--active-color: {{ block.settings.active_color }};{{ sub_text_padding }}"
+                                            >
+                                                <div class="hidden lg:block {{ sub_pc_size }}" {% if sub_pc_style != blank %}style="{{ sub_pc_style }}"{% endif %}>{{ block.settings.pc_subheading | newline_to_br }}</div>
+                                                <div class="block lg:hidden {{ sub_mb_size }}" {% if sub_mb_style != blank %}style="{{ sub_mb_style }}"{% endif %}>{{ block.settings.mb_subheading | newline_to_br }}</div>
+                                            </div>
+                                        {%- endif -%}
+
+                                        {%- if block.settings.subs_tips != blank -%}
+                                            <div class="absolute top-0 right-0 lg:top-[0.2rem] lg:-right-4 subs_mode_color--show hidden">
+                                                <div class="hidden tooltip__top tooltip__top--left tooltip__top--right tooltip__bottom tooltip__bottom--left tooltip__bottom--right"></div>
+                                                {%- render 'component-tooltip', content: block.settings.subs_tips, icon_color: block.settings.icon_tips_color -%}
+                                            </div>
+                                        {%- endif -%}
+
+                                        <jky-form
+                                            data-unpush
+                                            jky-form-id="collection-subscribe--{{ block.id }}"
+                                            class="subscribe-email subscribe-banner-form_main"
+                                            onsubmitcall="(e)=>toScheduleCollectionSubscribe(e)"
+                                        >
+                                            <form data-action="{% if block.settings.tag_type == 'klaviyo' and block.settings.klaviyo_id != blank %}/osconsumerapi/v1/notice/klaviyoSubscribe{% else %}/osconsumerapi/v1/notice/subscribe{% endif %}">
+                                                <div class="form-container w-full">
+                                                    <div class="form-row flex flex-col full">
+                                                        <div class="flex w-full group form-item-group mb-6 lg:mb-5">
+                                                            <div
+                                                                class="subscribe-blocks-box form-item h-11 lg:h-12 bg-transparent required flex-1 relative after:content-['*'] after:text-[var(--jds-color-primary)] after:absolute after:left-3 after:top-0 after:bottom-0 after:-translate-x-1/2 after:flex after:items-center after:font-[monospace]"
+                                                                data-field="input"
+                                                                style="min-height: unset;"
+                                                            >
+                                                                <input
+                                                                    type="email"
+                                                                    id="email"
+                                                                    name="email"
+                                                                    placeholder="{{ 'newsletter.email_placeholder' | t }}"
+                                                                    data-error="{{ 'newsletter.email_empty_info' | t }}"
+                                                                    data-value="email"
+                                                                    data-reg="email"
+                                                                    data-subscribe-email="{{ block.id }}"
+                                                                    data-regerror="{{ 'newsletter.email_error_info' | t }}"
+                                                                    class="h-full w-full text_b2 px-5 lg:px-6 group-[.form-item-group]:rounded-l-lg group-[.form-item-group]:rounded-r-none"
+                                                                    {% if block.settings.input_text_color != blank %}
+                                                                        style="color: {{ block.settings.input_text_color }};"
+                                                                    {% endif %} 
+                                                                >
+                                                                {%- if block.settings.input_placeholder_color != blank -%}
+                                                                    <style>
+                                                                        .collection-subscribe-outer [data-subscribe-email="{{ block.id }}"]::placeholder{color: {{ block.settings.input_placeholder_color }};}
+                                                                    </style>
+                                                                {%- endif -%}
+                                                            </div>
+                                                            <div class="flex lg:group-[.form-item-group]:w-auto">
+                                                                <button
+                                                                    class="form_sub_btn z-button-middle text_b3 h-full lg:leading-[3rem] group-[.form-item-group]:font-semibold group-[.form-item-group]:rounded-r-lg group-[.form-item-group]:rounded-l-none px-2 lg:px-4"
+                                                                    data-success="{{ 'newsletter.success' | t }}"
+                                                                    style="background:{{ block.settings.subcribe_btn_color | default: '#FD5000' }}"
+                                                                >{{ block.settings.subcribe_btn }}</button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="form-row form-row_check_box flex full mb-6">
+                                                            <div
+                                                                class="form-item required relative"
+                                                                data-field="check_box"
+                                                                data-error="{{ 'newsletter.policy_empty_info' | t }}"
+                                                                style="min-height: unset;color:{{ block.settings.policy_color }};"
+                                                            >
+                                                                {% render 'jky-formField-checkbox', key: block.settings.privacy_policy | newline_to_br, value: 'agree_recevie', class: 'text_b3 agree_provicy' %}
+                                                            </div>
+                                                        </div>
+
+                                                        <div style="display: none;" class="form-row flex full">
+                                                            <div class="form-item form-item_const" data-field="input">
+                                                                {%- if block.settings.tag_type == 'klaviyo' -%}
+                                                                    <input type="text" id="list_id" name="list_id" data-value="list_id" value="{{ block.settings.klaviyo_id }}">
+                                                                {%- else -%}
+                                                                    <input type="text" id="tags" name="tags" data-value="tags" value="{% if block.settings.subs_tag != blank %}{{ block.settings.subs_tag }}{% else %}{{ request.path | split: '/' | last }}{% endif %}">
+                                                                {%- endif -%}
+                                                            </div>
+                                                        </div>
+
+                                                        {%- if block.settings.klaviyo_id != blank -%}
+                                                            {%- assign sub_CR = settings.shop_cr | default: localization.country.iso_code | default: 'US' -%}
+                                                            <div style="display: none;" class="form-row flex full">
+                                                                <div class="form-item form-item_const" data-field="input">
+                                                                    <input type="text" id="cr" name="cr" data-error="" data-value="cr" data-reg="" value="{{ sub_CR }}" data-regerror="">
+                                                                </div>
+                                                            </div>
+                                                        {%- endif -%}
+
+                                                        <div style="display: none;" class="form-row flex">
+                                                            <div class="form-item form-item_const" data-field="input">
+                                                                {%- assign sub_pageUrlWithHost = content_for_header | split:'"pageurl":"' | last | split:'"' | first | replace:'\/','/' | replace:'%20',' ' | replace:'\u0026','&' -%}
+                                                                <input type="text" id="pageUrl" name="pageUrl" data-value="pageUrl" value="{{ sub_pageUrlWithHost }}">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </jky-form>
+
+                                        {%- if block.settings.subs_tips != blank -%}
+                                            <div class="absolute top-3 right-3 lg:top-6 lg:right-6 subs_mode_pic--show hidden z-[2]">
+                                                <div class="hidden tooltip__top tooltip__top--left tooltip__top--right tooltip__bottom tooltip__bottom--left tooltip__bottom--right"></div>
+                                                {%- render 'component-tooltip', content: block.settings.subs_tips, icon_color: block.settings.icon_tips_color -%}
+                                            </div>
+                                        {%- endif -%}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script type="module">
+                        function toScheduleCollectionSubscribe(data) {
+                            if (data.response?.code === 200) {
+                                const msg = document.querySelector('.collection-subscribe-banner .subscribe-banner-form_main .form_sub_btn')?.getAttribute('data-success') || data.response.message;
+                                pushSuccessMessage(msg);
+                                const buttons = document.querySelectorAll('.schedule-item jds-button');
+                                if (!buttons.length) return;
+                                const subscribedText = buttons[0].getAttribute('data-subscribed');
+                                if (!subscribedText) return;
+                                buttons.forEach((btn) => {
+                                    btn.textContent = subscribedText;
+                                    btn.classList.add('active');
+                                });
+                            }
+                        }
+                        window.toScheduleCollectionSubscribe = toScheduleCollectionSubscribe;
+                    </script>
+                {%- endif -%}
+            {%- when 'help_choose' -%}
+                <div class="collection-help-choose py-[100px] max-lg:py-[50px]" {{ block.shopify_attributes }}>
+                    <div class="collection-wrapper-container mx-auto flex h-[108px] w-[1312px] max-w-[90vw] items-center justify-between rounded-[10px] bg-white px-8 max-lg:h-auto max-lg:max-w-[90vw] max-lg:flex-col max-lg:gap-4 max-lg:px-3 max-lg:py-4 max-lg:pb-6 max-lg:text-center">
+                        <span class="text-lg font-semibold text-[#333333] max-lg:text-base max-lg:font-medium max-lg:leading-[22px] max-lg:text-[#1A1A1A]">{{block.settings.title | escape}}</span>
+                        <a
+                            data-ga-event="product_collection4.0_user_clicks"
+                            data-ga-action="click"
+                            data-ga-params-module="Text Block_B"
+                            data-ga-params-position="{{block.settings.title | escape}}"
+                            data-ga-params-button_name="{{block.settings.btn_title | escape}}"
+                            data-ga-params-link="{{block.settings.help_link | escape}}"
+                            {% if section.settings.open_new == true %}target="_blank" {% endif %} href="{{block.settings.help_link | escape}}" class="flex h-12 items-center justify-center whitespace-nowrap rounded-[var(--theme-btn-border-radius,8px)] bg-[#FFECE4] px-3.5 text-lg font-semibold text-primary no-underline max-lg:h-10 max-lg:text-base">{{block.settings.btn_title | escape}}</a>
+                    </div>
+                </div>
+            {%- endcase -%}
+    {%- endfor -%}
+    <script defer src="{{ 'section-collection-main.js' | asset_url }}"></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Collection Main",
+  "class": "section section-collection__main lg:pt-10 pt-4",
+  "enabled_on": {
+      "templates": ["collection"]
+  },
+  "settings": [
+    {"type": "checkbox", "id": "show_section", "label": "是否显示4.0","default": false, "info": "显示4.0，请隐藏或移除其它section"},
+    {"type": "text", "id": "clear_all", "label": "清除搜索条件文案", "default": "Clear All"},
+    {"type": "text", "id": "view_more_text", "label": "移动端分页加载文案", "default": "View More"},
+    {
+      "type": "header",
+      "content": "产品卡片设置"
+    },
+    {"type": "checkbox", "id": "open_new", "label": "链接点击是否新开标签","default": false},
+    {"type": "checkbox", "id": "add_cart_solid", "label": "加购按钮是否实心", "default": true},
+    {"type": "checkbox", "id": "shop_solid", "label": "商品详情按钮是否实心", "default": true},
+    {"type": "checkbox", "id": "open_reviewrating", "label": "是否显示星级评分","default": false},
+    {"type": "color","id": "solid_bgcolor","label": "实心按钮背景色","default": "#fd5000" },
+    {"type": "color","id": "solid_color","label": "实心按钮文字颜色","default": "#ffffff" },
+    {"type": "text", "id": "freetax", "label": "免税文案"},
+    {
+      "type": "header",
+      "content": "产品对比弹窗配置"
+    },
+    { "type": "text", "id": "show_fiff", "label": "显示参数差异","default": "Diff"}
+  ],
+  "blocks": [
+        {
+            "name": "人气推荐产品",
+            "type": "popular_recommendations",
+            "settings": [
+                { "type": "text", "id": "module_title", "label": "模块标题(必填)" },
+                { "type": "color_background", "id": "bg_color", "label": "产品背景颜色", "default": "#fff" },
+                { "type": "checkbox", "id": "new_window", "label": "打开产品是否新开标签", "default": false },
+                { "type": "text", "id": "suffix", "label": "含税文案" },
+                { "type": "header", "content": "推荐产品1" },
+                { "type": "product", "id": "product_1", "label": "选择产品(必填)" },
+                { "type": "text", "id": "sku_1", "label": "产品Sku" },
+                { "type": "text", "id": "ranking_1", "label": "销售排名" },
+                { "type": "text", "id": "pc_capacity_1", "label": "产品容量(PC展示)" },
+                { "type": "text", "id": "mb_capacity_1", "label": "产品容量(MB展示)" },
+                { "type": "text", "id": "title_1", "label": "产品标题" },
+                { "type": "image_picker", "id": "image_1", "label": "产品图片", "info": "大小: 300x300" },
+                { "type": "header", "content": "推荐产品2" },
+                { "type": "product", "id": "product_2", "label": "选择产品(必填)" },
+                { "type": "text", "id": "sku_2", "label": "产品Sku" },
+                { "type": "text", "id": "ranking_2", "label": "销售排名" },
+                { "type": "text", "id": "pc_capacity_2", "label": "产品容量(PC展示)" },
+                { "type": "text", "id": "mb_capacity_2", "label": "产品容量(MB展示)" },
+                { "type": "text", "id": "title_2", "label": "产品标题" },
+                { "type": "image_picker", "id": "image_2", "label": "产品图片", "info": "大小: 300x300" },
+                { "type": "header", "content": "推荐产品3" },
+                { "type": "product", "id": "product_3", "label": "选择产品(必填)" },
+                { "type": "text", "id": "sku_3", "label": "产品Sku" },
+                { "type": "text", "id": "ranking_3", "label": "销售排名" },
+                { "type": "text", "id": "pc_capacity_3", "label": "产品容量(PC展示)" },
+                { "type": "text", "id": "mb_capacity_3", "label": "产品容量(MB展示)" },
+                { "type": "text", "id": "title_3", "label": "产品标题" },
+                { "type": "image_picker", "id": "image_3", "label": "产品图片", "info": "大小: 300x300" },
+                { "type": "header", "content": "推荐产品4" },
+                { "type": "product", "id": "product_4", "label": "选择产品(必填)" },
+                { "type": "text", "id": "sku_4", "label": "产品Sku" },
+                { "type": "text", "id": "ranking_4", "label": "销售排名" },
+                { "type": "text", "id": "pc_capacity_4", "label": "产品容量(PC展示)" },
+                { "type": "text", "id": "mb_capacity_4", "label": "产品容量(MB展示)" },
+                { "type": "text", "id": "title_4", "label": "产品标题" },
+                { "type": "image_picker", "id": "image_4", "label": "产品图片", "info": "大小: 300x300" },
+                { "type": "header", "content": "推荐产品5" },
+                { "type": "product", "id": "product_5", "label": "选择产品(必填)" },
+                { "type": "text", "id": "sku_5", "label": "产品Sku" },
+                { "type": "text", "id": "ranking_5", "label": "销售排名" },
+                { "type": "text", "id": "pc_capacity_5", "label": "产品容量(PC展示)" },
+                { "type": "text", "id": "mb_capacity_5", "label": "产品容量(MB展示)" },
+                { "type": "text", "id": "title_5", "label": "产品标题" },
+                { "type": "image_picker", "id": "image_5", "label": "产品图片", "info": "大小: 300x300" }
+            ],
+        },
+        {
+            "name": "订阅组件",
+            "type": "prodcut_subscribe",
+            "settings": [
+                { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+                {
+                    "type": "select",
+                    "id": "align_right",
+                    "label": "PC端内容位置",
+                    "options": [
+                        { "value": "left", "label": "左" },
+                        { "value": "right", "label": "右" }
+                    ],
+                    "default": "left",
+                    "info": "PC端指所有文案+订阅模块位置"
+                },
+                {
+                    "type": "color_background",
+                    "id": "comp_bg_color",
+                    "label": "背景颜色"
+                },
+                {
+                    "type": "color_background",
+                    "id": "subs_bg_color",
+                    "label": "组件内背景颜色",
+                    "default": "#333333"
+                },
+                { "type": "header", "content": "组件有效期" },
+                { "type": "text", "id": "begin_time", "label": "开始时间", "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00" },
+                { "type": "text", "id": "end_time", "label": "结束时间", "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00" },
+                { "type": "header", "content": "桌面端图片配置" },
+                { "type": "image_picker", "id": "img_pc", "label": "图片地址", "info": "建议图片尺寸：1312 * 178二倍图，若修改了高度请按实际比例调整上传" },
+                { "type": "header", "content": "移动端图片配置" },
+                { "type": "image_picker", "id": "img_mb", "label": "图片地址", "info": "建议图片尺寸：654 * 368，若修改了高度请按实际比例调整上传" },
+                { "type": "header", "content": "功能交互配置" },
+                {
+                    "type": "select",
+                    "id": "module_show_timing",
+                    "label": "此版块展示时机",
+                    "options": [
+                        { "value": "default", "label": "一直展示" },
+                        { "value": "show_before_login", "label": "仅登录前展示" },
+                        { "value": "show_after_login", "label": "仅登录后展示" }
+                    ],
+                    "default": "default"
+                },
+                { "type": "header", "content": "文案内容" },
+                {
+                    "type": "richtext",
+                    "id": "pc_subheading",
+                    "label": "PC副标题",
+                    "default": "<p>Subscribe now for sales updates!</p>",
+                    "info": "该处富文本功能只支持换行和斜体高亮标记"
+                },
+                {
+                    "type": "richtext",
+                    "id": "mb_subheading",
+                    "label": "MB副标题",
+                    "default": "<p>Subscribe now for sales updates!</p>",
+                    "info": "该处富文本功能只支持换行和斜体高亮标记"
+                },
+                { "type": "color", "id": "text_color", "label": "文本颜色", "default": "#FFFFFF" },
+                { "type": "color", "id": "active_color", "label": "文本强调颜色", "default": "#fd5000" },
+                { "type": "text_alignment", "id": "alignment", "label": "PC对齐方式", "default": "left" },
+                { "type": "text_alignment", "id": "alignment_mb", "label": "MB对齐方式", "default": "left" },
+                { "type": "header", "content": "PC排版" },
+                {
+                    "type": "select",
+                    "id": "pc_heading_size",
+                    "label": "字号",
+                    "default": "heading_6",
+                    "options": [
+                        { "value": "heading_1", "label": "一级标题" },
+                        { "value": "heading_2", "label": "二级标题" },
+                        { "value": "heading_3", "label": "三级标题" },
+                        { "value": "heading_4", "label": "四级标题" },
+                        { "value": "heading_5", "label": "五级标题" },
+                        { "value": "heading_6", "label": "六级标题" }
+                    ]
+                },
+                {
+                    "type": "select",
+                    "id": "pc_font_weight",
+                    "label": "字重",
+                    "default": "jky-font-default",
+                    "options": [
+                        { "value": "jky-font-default", "label": "默认" },
+                        { "value": "font-extrabold", "label": "800" },
+                        { "value": "font-bold", "label": "700" },
+                        { "value": "font-semibold", "label": "600" },
+                        { "value": "font-medium", "label": "500" },
+                        { "value": "font-normal", "label": "400" }
+                    ]
+                },
+                { "type": "header", "content": "MB排版" },
+                {
+                    "type": "select",
+                    "id": "mb_content_type",
+                    "label": "MB排版",
+                    "default": "default",
+                    "options": [
+                        { "value": "default", "label": "默认" },
+                        { "value": "custom", "label": "自定义" }
+                    ]
+                },
+                {
+                    "type": "select",
+                    "id": "mb_heading_size",
+                    "label": "字号",
+                    "default": "heading_6",
+                    "visible_if": "{{ block.settings.mb_content_type == 'custom' }}",
+                    "options": [
+                        { "value": "heading_0", "label": "特大标题" },
+                        { "value": "heading_1", "label": "一级标题" },
+                        { "value": "heading_2", "label": "二级标题" },
+                        { "value": "heading_3", "label": "三级标题" },
+                        { "value": "heading_4", "label": "四级标题" },
+                        { "value": "heading_5", "label": "五级标题" },
+                        { "value": "heading_6", "label": "六级标题" }
+                    ]
+                },
+                {
+                    "type": "select",
+                    "id": "mb_font_weight",
+                    "label": "字重",
+                    "default": "jky-font-default",
+                    "visible_if": "{{ block.settings.mb_content_type == 'custom' }}",
+                    "options": [
+                        { "value": "jky-font-default", "label": "默认" },
+                        { "value": "font-extrabold", "label": "800" },
+                        { "value": "font-bold", "label": "700" },
+                        { "value": "font-semibold", "label": "600" },
+                        { "value": "font-medium", "label": "500" },
+                        { "value": "font-normal", "label": "400" }
+                    ]
+                },
+                { "type": "header", "content": "副标题内边距" },
+                { "type": "range", "id": "sub_padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 0 },
+                { "type": "range", "id": "sub_padding_bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 16 },
+                { "type": "header", "content": "表单信息配置" },
+                {
+                    "type": "richtext",
+                    "id": "privacy_policy",
+                    "label": "隐私协议条款",
+                    "default": "<p>I agree to Jackery's Terms of Service and Privacy policy.</p>"
+                },
+                { "type": "color", "id": "policy_color", "label": "隐私协议条款颜色", "default": "#ffffff" },
+                { "type": "text", "id": "subcribe_btn", "label": "订阅按钮文案", "default": "SUBSCRIBE" },
+                { "type": "color", "id": "subcribe_btn_color", "label": "订阅按钮颜色", "default": "#FD5000" },
+                {
+                    "type": "select",
+                    "id": "tag_type",
+                    "label": "用户标签类型",
+                    "options": [
+                        { "value": "custome", "label": "自研" },
+                        { "value": "klaviyo", "label": "Klaviyo" }
+                    ],
+                    "default": "custome"
+                },
+                { "type": "text", "id": "subs_tag", "label": "用户订阅标签", "info": "留空则使用页面地址标记，例如/pages/login，则新增login标签", "visible_if": "{{ block.settings.tag_type == 'custome' }}" },
+                { "type": "text", "id": "klaviyo_id", "label": "Klaviyo的List对象ID", "info": "填写则走Klaviyo订阅接口，否则使用自研订阅接口", "visible_if": "{{ block.settings.tag_type == 'klaviyo' }}" },
+                { "type": "header", "content": "说明信息配置" },
+                { "type": "color", "id": "icon_tips_color", "label": "说明ICON颜色", "default": "#ffffff" },
+                { "type": "richtext", "id": "subs_tips", "label": "订阅说明文案", "default": "<p>If it is an inductive load appliance, such as a household refrigerator, induction cooker, etc., the output power of the energy storage needs to be greater than the starting power of the appliance.</p>", "info": "留空则不显示" },
+                { "type": "header", "content": "表单样式配置" },
+                { "type": "color_background", "id": "form_bg_color", "label": "表单背景颜色", "default": "linear-gradient(180deg, rgba(188, 187, 187, 0.3) 0%, rgba(101, 95, 84, 0.3) 100%)" },
+                { "type": "color", "id": "input_text_color", "label": "Input文字颜色" },
+                { "type": "color", "id": "input_placeholder_color", "label": "Placeholder颜色" },
+                { "type": "checkbox", "id": "has_blur", "label": "开启毛玻璃？", "default": true },
+                { "type": "header", "content": "组件内边距" },
+                { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 0 },
+                { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 0 },
+                { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0 },
+                { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0 }
+            ]
+        },
+        {
+            "name": "产品列表",
+            "type": "prodcut_grid",
+            "settings": []
+        },
+        {
+            "name": "智能选购",
+            "type": "help_choose",
+            "settings": [
+                {"type": "text", "id": "title", "label": "Heading", "default": "Customized recommendations for you"},
+                {"type": "text", "id": "btn_title", "label": "Button Heading", "default": "Help You Choose"},
+                {"type": "url","id": "help_link", "label": "智能选购链接链接"}
+            ]
+        },
+        {
+            "type": "@app"
+        },
+        {
+            "name": "面包屑导航",
+            "type": "breadcrumbs",
+            "settings": [
+                {
+                    "type": "text",
+                    "id": "all_product_text",
+                    "label": "所有产品文案",
+                    "default": "All products",
+                    "info": "/collections/all 不显示面包屑导航"
+                }
+            ]
+        },
+        {
+            "name": "标题描述",
+            "type": "heading_des",
+            "settings": [
+                {
+                    "type": "text",
+                    "id": "product_count",
+                    "label": "产品系列数量文案",
+                    "default": "$count products",
+                    "info": "$count是产品系列的数量，插值替换，请不要改动"
+                }
+            ]
+        }
+    ],
+    "presets": [
+        {
+        "name": "集合页4.0版块",
+            "blocks": [
+                {
+                    "type": "prodcut_grid"
+                }
+            ]
+        }
+    ]
+}
+{% endschema %}

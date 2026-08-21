@@ -1,0 +1,104 @@
+<script type="application/json" id="{{id}}">
+  {%- if variants != blank -%}
+    [
+      {% for variant in variants %}
+        {%- assign current_price = variant.price -%}
+        {%- assign current_origin_price = variant.compare_at_price | default: current_price -%}
+
+        {%- if settings.open_auto_discount_price and show_discount_price %}
+            {%- assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1 -%}   
+            {%- if auto_discount_price > 0 and auto_discount_price < variant.price -%}
+                {%- assign current_price = auto_discount_price -%}
+            {%- else -%}
+                {%- assign current_price = variant.price -%}
+            {%- endif -%}
+        {%- endif -%}
+
+        {%- if current_origin_price < variant.price -%}
+            {%- assign current_origin_price = variant.price -%}
+        {%- endif -%}
+        {%- assign current_title = variant.title -%}
+        {%- if current_title == 'Default Title' or current_title == blank -%}
+            {%- assign current_title = product.title -%}
+        {%- endif -%}
+
+        {
+          "id": {{ variant.id | json }},
+          "title": {{ current_title | json }},
+          "option1": {{ variant.option1 | json }},
+          "option2": {{ variant.option2 | json }},
+          "option3": {{ variant.option3 | json }},
+          "options": {{ variant.options | json }},
+          "sku": {{ variant.sku | json }},
+          "available": {{ variant.available | json }},
+          "price": {{ current_price | json }},
+          "shopify_price": {{ variant.price | json }},
+          "compare_at_price": {{ current_origin_price | json }},
+          "inventory_quantity": {{ variant.inventory_quantity | json }},
+          "inventory_management": {{ variant.inventory_management | json }},
+          "inventory_policy": {{ variant.inventory_policy | json }},
+          "quantity_rule": {{ variant.quantity_rule | json }},
+          "featured_image": {%- if variant.featured_image -%} {{ variant.featured_image | image_url: width: 2048 | json }} {%- else -%} null {%- endif -%},
+          "featured_media": {{ variant.featured_media | json }},
+          "variant_tag": {{ variant.metafields.custom.variant_tag | json }},
+          "sku_warranty_info": {{ variant.metafields.custom.sku_warranty_info.value | default: variant.metafields.custom.sku_warranty_info | json }},
+          "open_tax_free_popup_before_buy": {{ variant.metafields.custom.open_tax_free_popup_before_buy.value | json }},
+          "membership_activity_price": {{ variant.metafields.custom.member_activity_price.value | json }},
+          "membership_price": {{ variant.metafields.custom.member_price.value | json }},
+          "membership_price_unclaimed_image": {%- if variant.metafields.custom.membership_price_unclaimed_image -%} {{ variant.metafields.custom.membership_price_unclaimed_image | image_url: width: 686 | json }} {%- else -%} null {%- endif -%},
+          "membership_price_claimed_image": {%- if variant.metafields.custom.membership_price_claimed_image -%} {{ variant.metafields.custom.membership_price_claimed_image | image_url: width: 686 | json }} {%- else -%} null {%- endif -%}
+        }
+        {%- unless forloop.last -%},{%- endunless -%}
+      {% endfor %}
+    ]
+  {%- elsif variant != blank -%}
+    {%- assign current_price = variant.price -%}
+    {%- assign current_origin_price = variant.compare_at_price | default: current_price -%}
+
+    {%- if settings.open_auto_discount_price and show_discount_price %}
+        {%- assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1 -%}   
+        {%- if auto_discount_price > 0 and auto_discount_price < variant.price -%}
+            {%- assign current_price = auto_discount_price -%}
+        {%- else -%}
+            {%- assign current_price = variant.price -%}
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if current_origin_price < variant.price -%}
+        {%- assign current_origin_price = variant.price -%}
+    {%- endif -%}
+    {%- assign current_title = variant.title -%}
+    {%- if current_title == 'Default Title' or current_title == blank -%}
+        {%- assign current_title = product.title -%}
+    {%- endif -%}
+    
+    [
+      {
+        "id": {{ variant.id | json }},
+        "title": {{ current_title | json }},
+        "option1": {{ variant.option1 | json }},
+        "option2": {{ variant.option2 | json }},
+        "option3": {{ variant.option3 | json }},
+        "options": {{ variant.options | json }},
+        "sku": {{ variant.sku | json }},
+        "available": {{ variant.available | json }},
+        "price": {{ current_price | json }},
+        "shopify_price": {{ variant.price | json }},
+        "compare_at_price": {{ current_origin_price | json }},
+        "inventory_quantity": {{ variant.inventory_quantity | json }},
+        "inventory_management": {{ variant.inventory_management | json }},
+        "inventory_policy": {{ variant.inventory_policy | json }},
+        "quantity_rule": {{ variant.quantity_rule | json }},
+        "featured_image": {%- if variant.featured_image -%} {{ variant.featured_image | image_url: width: 2048 | json }} {%- else -%} null {%- endif -%},
+        "featured_media": {{variant.featured_media | json}},
+        "variant_tag": {{ variant.metafields.custom.variant_tag | json }},
+        "sku_warranty_info": {{ variant.metafields.custom.sku_warranty_info.value | default: variant.metafields.custom.sku_warranty_info | json }},
+        "open_tax_free_popup_before_buy": {{ variant.metafields.custom.open_tax_free_popup_before_buy.value | json }},
+        "membership_activity_price": {{ variant.metafields.custom.member_activity_price.value | json }},
+        "membership_price": {{ variant.metafields.custom.member_price.value | json }},
+        "membership_price_unclaimed_image": {%- if variant.metafields.custom.membership_price_unclaimed_image -%} {{ variant.metafields.custom.membership_price_unclaimed_image | image_url: width: 686 | json }} {%- else -%} null {%- endif -%},
+        "membership_price_claimed_image": {%- if variant.metafields.custom.membership_price_claimed_image -%} {{ variant.metafields.custom.membership_price_claimed_image | image_url: width: 686 | json }} {%- else -%} null {%- endif -%}
+      }
+    ]
+  {%- endif -%}
+</script>

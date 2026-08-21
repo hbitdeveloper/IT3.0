@@ -1,0 +1,121 @@
+{% comment %} 文本+视频卡片组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Text Video Card",
+  "tag": "section",
+  "class": "text-video-card",
+  "blocks": [
+    {
+      "name": "Card Item",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "select",
+          "id": "themeColor",
+          "label": "Theme Color",
+          "default": "light",
+          "options": [
+            {
+              "value": "light",
+              "label": "Light"
+            },
+            {
+              "value": "dark",
+              "label": "Dark"
+            }
+          ]
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "textarea",
+          "id": "mb_title",
+          "label": "MB Title"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description"
+        },
+        {
+          "type": "video",
+          "id": "videoSrc",
+          "label": "Video Src"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+<style>
+  @media screen and (max-width: 1024px) {
+    .hide-mb {
+      display: none;
+    }
+    .hide-pc {
+      display: initial!important;
+    }
+  }
+  .hide-pc {
+    display: none;
+  }
+</style>
+<div class="card-container">
+  {% for block in section.blocks %}
+    {% assign iconOpacity = 0.3 %}
+    {% if block.settings.themeColor == 'dark' %}
+      {% assign iconOpacity = 1 %}
+    {% endif %}
+    <div class="card-item theme-{{ block.settings.themeColor }}">
+      <div class="text-box">
+        <div class="item-title text-overflow-3">
+          {%- liquid
+            assign mb_title = block.settings.title
+            if block.settings.mb_title != blank
+              assign mb_title = block.settings.mb_title
+            endif
+          -%}
+          <span class="hide-mb">{{ block.settings.title | newline_to_br}}</span>
+          <span class="hide-pc">{{ mb_title | newline_to_br}}</span>
+        </div>
+        <div class="item-desc">{{ block.settings.description }}</div>
+      </div>
+      <div class="video-box">
+        <svg class="icon-refresh" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"
+             xmlns:xlink="http://www.w3.org/1999/xlink">
+          <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+            <g>
+              <circle fill="#000000" opacity="{{ iconOpacity }}" cx="45" cy="45" r="45"></circle>
+              <path
+                  d="M22.5,44.9151973 C22.5,47.9767459 23.0882118,50.8597042 24.2646355,53.5640722 C25.4410591,56.2684401 27.059555,58.6484297 29.1201231,60.7040409 C31.1806913,62.7596521 33.56642,64.3742545 36.2773092,65.5478482 C38.9881985,66.7214418 41.8781088,67.3082386 44.94704,67.3082386 C48.0013573,67.3082386 50.8839606,66.7214418 53.5948499,65.5478482 C56.3057391,64.3742545 58.6951213,62.7596521 60.7629964,60.7040409 C62.8308715,58.6484297 64.4493674,56.2684401 65.6184841,53.5640722 C66.7876008,50.8597042 67.3721591,47.9767459 67.3721591,44.9151973 C67.3721591,42.2326976 66.9118194,39.6777623 65.99114,37.2503917 C65.0704607,34.823021 63.7880858,32.6252664 62.1440155,30.657128 C60.4999452,28.6889896 58.5782097,27.0415849 56.3788089,25.7149138 C54.1794082,24.3882427 51.8009865,23.4697782 49.2435438,22.9595201 L49.2435438,19.8761032 C49.2435438,19.0596903 49.0097204,18.5567216 48.5420738,18.3671971 C48.0744271,18.1776727 47.5264037,18.3015925 46.8980035,18.7389566 L39.7956197,23.6593026 C39.2695172,24.0237727 39.0064659,24.4502027 39.0064659,24.9385926 C39.0064659,25.4269825 39.2695172,25.8534124 39.7956197,26.2178825 L46.8760825,31.1819649 C47.5044827,31.619329 48.0561597,31.7396041 48.5311133,31.5427903 C49.0060669,31.3459765 49.2435438,30.8466525 49.2435438,30.0448183 L49.2435438,26.9832697 C51.2894979,27.4497914 53.1746986,28.233402 54.8991456,29.3341016 C56.6235927,30.4348013 58.1215235,31.7833405 59.3929378,33.3797195 C60.6643522,34.9760984 61.6544479,36.7510677 62.3632249,38.7046272 C63.0720018,40.6581868 63.4263903,42.7283769 63.4263903,44.9151973 C63.4263903,47.4810666 62.9514367,49.8829244 62.0015294,52.1207707 C61.0516221,54.3586169 59.7290589,56.3194659 58.0338397,58.0033177 C56.3386205,59.6871694 54.3730431,61.0029064 52.1371075,61.9505286 C49.9011719,62.8981507 47.5044827,63.3719618 44.94704,63.3719618 C42.3749833,63.3719618 39.9673337,62.8981507 37.7240911,61.9505286 C35.4808485,61.0029064 33.5152711,59.6871694 31.8273589,58.0033177 C30.1394467,56.3194659 28.8168835,54.3586169 27.8596692,52.1207707 C26.902455,49.8829244 26.4238478,47.4810666 26.4238478,44.9151973 C26.4238478,42.8741649 26.7380479,40.9315394 27.3664481,39.0873208 C27.9948483,37.2431023 28.8753393,35.5592505 30.0079211,34.0357656 C31.1405029,32.5122807 29.1201231,29.3341016 26.873227,31.7833405 C24.6263309,34.2325794 24.418082,35.7086832 23.6508492,37.9392401 C22.8836164,40.1697969 22.5,42.495116 22.5,44.9151973 Z"
+                  fill="#FFFFFF" fill-rule="nonzero"></path>
+            </g>
+          </g>
+        </svg>
+
+        {% assign defaultAlt = block.settings.title | replace: '<br/>', ' ' | strip_html %}
+        {% for sources in block.settings.videoSrc.sources %}
+          {% if sources.format == 'mp4' %}
+            {% assign videoOriginalUrl = sources.url %}
+            {% assign videoUrlArray = sources.url | split: '/' %}
+            {% for word in videoUrlArray -%}
+              {% if forloop.index == 9 and word != '' %}
+                {% assign videoOriginalUrl = 'https://cdn.shopify.com/videos/c/o/v/' | append: word | append: '.mp4' %}
+              {% endif %}
+            {%- endfor %}
+
+            <video class="lazy" muted preload="metadata" playsinline
+                   aria-label="{{ block.settings.videoSrc.alt | default: defaultAlt }}"
+                   data-src="{{ videoOriginalUrl }}"
+                   poster="{{ block.settings.videoSrc.preview_image | image_size: '680x' }}">
+              <source src="{{ videoOriginalUrl }}" type="video/mp4">
+            </video>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</div>

@@ -1,0 +1,43 @@
+
+{%- if section.settings.enable_shortage_reminds -%}
+  {% capture shortage_root_id %}app-shortage-remind-{{ section.id }}-{{ block.id }}{% endcapture %}
+  {%- assign target = product.selected_or_first_available_variant -%}
+
+  <div id="{{ shortage_root_id }}" {{ block.shopify_attributes }}>
+    <product-shortage>
+      {%- if target.available == false -%}
+        {%- assign page_url_with_host = content_for_header | split:'"pageurl":"' | last | split:'"' | first | replace:'\/','/' | replace: '%20', ' ' | replace: '\u0026', '&' -%}
+        <div
+          ddd-available="{{target.available}}"
+          class="product-shortage-container mt-3 lg:mt-4"
+          data-title="{{section.settings.shortage_title | escape}}"
+          data-content="{{section.settings.shortage_content | escape}}"
+          data-email_placeholder="{{section.settings.shortage_input_tips | escape}}"
+          data-shortage_policy="{{section.settings.shortage_policy | escape}}"
+          data-email_empty_info="{{'newsletter.email_empty_info' | t}}"
+          data-email_error_info="{{'newsletter.email_error_info' | t}}"
+          data-policy_empty_info="{{'newsletter.policy_empty_info' | t}}"
+          data-shortage_submit="{{section.settings.shortage_submit | escape}}"
+          data-shortage_reminds_success="{{section.settings.shortage_reminds_success | escape}}"
+          data-shortage_reminds_error="{{section.settings.shortage_reminds_error | escape}}"
+
+          variant-sku="{{target.sku}}"
+          variant-goods_name="{{product.title}}"
+          variant-sku_goods_name="{{target.title}}"
+          variant-source="1"
+          variant-id="{{target.id}}"
+          variant_url="{{ page_url_with_host }}"
+        >
+          <button class="appearance-none font-semibold w-full flex items-center justify-center bg-primary text-white text-base px-[1.125rem] h-10 lg:text-xl lg:h-12 lg:px-10">{{ section.settings.shortage_title | escape}}</button>
+        </div>
+      {%- endif -%}
+    </product-shortage>
+
+    {% render 'lazy-load-asset-group',
+      script: 'snippet-v5-app-pdp-shortage-remind.js',
+      style: 'snippet-v5-app-pdp-shortage-remind.css',
+      strategy: 'idle',
+      delay: 1800
+    %}
+  </div>
+{%- endif -%}

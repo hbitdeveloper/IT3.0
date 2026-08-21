@@ -1,0 +1,1069 @@
+{% comment %} 临时活动新增-圣诞活动 {% endcomment %}
+{%- render 'jky-tooltip' -%}
+
+<style>
+    .christmas-main {background-color: {{schema_settings.pc_chris_bg_color}};}
+    .christmas-main .christmas-container {padding-top: {{schema_settings.pc_padding_top}}px;padding-bottom: {{schema_settings.pc_padding_bottom}}px;width: 1440px;max-width: 100%;margin: 0 auto;}
+    .christmas-main .christmas-container .christmas--title {color: {{schema_settings.title_color}};margin-bottom: {{schema_settings.pc_padding_content}}px;}
+    .christmas-main .christmas-container .christmas--subtitle {margin-bottom: {{schema_settings.pc_padding_subcontent}}px;}
+    .christmas-main .christmas-container .christmas-grid {margin: 0 auto;width: {{schema_settings.pc_grid_w}}px;display: grid;grid-template-columns: repeat(6, 1fr);grid-template-rows: repeat(4, 1fr);grid-column-gap: {{schema_settings.pc_grid_gap}}px;grid-row-gap: {{schema_settings.pc_grid_gap}}px;}
+    .christmas-main .christmas-container .christmas-grid .christmas-item--lg {grid-area: 4 / 5 / 5 / 7;}
+    .christmas-main .christmas-container .christmas-grid .christmas-item {height: 150px;border-radius: 12px;overflow: hidden;background: #fff;display: flex;align-items: flex-end;justify-content: center;position: relative;}
+    .christmas-main .christmas-container .christmas-grid .christmas-item.lock::after {content: '';position: absolute;top: 0;bottom: 0;left: 0;right: 0;background: #ffffff;opacity: 0.8;}
+    .christmas-main .christmas-container .christmas-grid .christmas-item--button {user-select: none;text-align: center;margin: 0 6px 6px 6px;width: 100%;height: 36px;border-radius: 8px;line-height: 36px;background: {{schema_settings.button_bg_color}};transition: all 0.24s ease;color: {{schema_settings.button_color}};cursor: pointer;font-weight: 600;font-size: 16px;}
+    .christmas-main .christmas-container .christmas-grid .christmas-item--button:hover {background: {{schema_settings.button_bg_hover_color}};}
+    .christmas-main .christmas-container .christmas-grid .christmas-item--button:active {background: {{schema_settings.button_bg_active_color}};}
+    .christmas-main .christmas-container .christmas-grid .christmas-item {background-size: cover;background-repeat: no-repeat;}
+
+    @media screen and (max-width: 1024px) {
+        .christmas-main {background-color: {{schema_settings.mb_chris_bg_color}};}
+        .christmas-main .christmas-container {padding-top: {{schema_settings.mb_padding_top}}px;padding-bottom: {{schema_settings.mb_padding_bottom}}px;width: 100%;}
+        .christmas-main .christmas-container .christmas--title {font-size: 32px;line-height: 40px;margin-bottom: {{schema_settings.mb_padding_content}}px;}
+        .christmas-main .christmas-container .christmas--subtitle {margin-bottom: {{schema_settings.mb_padding_subcontent}}px;}
+        .christmas-main .christmas-container .christmas-grid {width: 91.4666vw;grid-template-columns: repeat(4, 1fr);grid-template-rows: repeat(6, 1fr);grid-column-gap: {{schema_settings.mb_grid_gap}}px;grid-row-gap: {{schema_settings.mb_grid_gap}}px;}
+        .christmas-main .christmas-container .christmas-grid .christmas-item--lg {grid-area: 6 / 3 / 7 / 5;}
+        .christmas-main .christmas-container .christmas-grid .christmas-item {height: 20vw;border-radius: 6px;}
+        .christmas-main .christmas-container .christmas-grid .christmas-item--button {margin: 0 4px 4px 4px;height: 24px;border-radius: 4px;line-height: 24px;font-weight: 500;font-size: 12px;}
+    }
+
+
+    .christmas-modal .jky-checkbox .jky-checkbox-input {padding-top: 0;}
+    .christmas-modal .jky-checkbox .jky-checkbox-label {line-height: 16px;}
+</style>
+
+{%- assign active_step = '' -%}
+{%- assign active_day = 1 -%}
+<div class="christmas-main" {%if schema_settings.anchor_id != blank%}anchor={{schema_settings.anchor_id | escape}}{%endif%}>
+    <div class="christmas-container">
+        <div class="christmas--title section-container font-semibold text-center lg:text-5xl">{{ schema_settings.title | newline_to_br}}</div>
+        {%- if schema_settings.subtitle != blank -%}
+            <div style="color: {{schema_settings.subtitle_color | default: '#FFFFFF'}};" class="christmas--subtitle section-container lg:text-lg text-sm font-semibold text-center">{{ schema_settings.subtitle | newline_to_br}}</div>
+        {%- endif -%}
+
+        {%- assign time_now = 'now' | date: '%s' | times: 1.00 -%}
+        {%- assign time_start = schema_settings.begin_time | date: '%s' -%}
+        <div class="christmas-grid" time_now="{{ time_now }}" time_start="{{ time_start }}">
+            {%- assign oneday_s = 86400 -%}
+            {%- assign all_s = 1987200 -%}
+            {%- assign time_end = time_start | plus: all_s | plus: oneday_s -%}
+            {%- assign active_step = '' -%}
+
+            {% comment %} 阶段一活动时间 {% endcomment %}
+            {%- assign step_1_start_num = schema_settings.step_1_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- assign step_1_end_num = schema_settings.step_2_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- if time_now > step_1_start_num and time_now <= step_1_end_num -%}
+                {%- assign active_step = 1 -%}
+
+                {%- assign d_1 = schema_settings.step_2_start | minus: 1  -%}
+                {%- for i in (0..d_1) -%}
+                    {%- assign i_temp = forloop.index | times:oneday_s | plus: time_start -%}
+                    {%- if time_now < i_temp -%}
+                        {%- assign active_day = forloop.index -%}
+                        {% break %}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- endif -%}
+
+            {% comment %} 阶段二活动时间 {% endcomment %}
+            {%- assign step_2_start_num = schema_settings.step_2_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- assign step_2_end_num = schema_settings.step_3_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- if time_now > step_2_start_num and time_now <= step_2_end_num -%}
+                {%- assign active_step = 2 -%}
+
+                {%- assign _d_2 = schema_settings.step_3_start | minus: schema_settings.step_2_start | minus: 1  -%}
+                {%- for i in (0.._d_2) -%}
+                    {%- assign i_temp = forloop.index | plus: schema_settings.step_2_start | minus: 1 | times:oneday_s | plus: time_start -%}
+                    {%- if time_now < i_temp -%}
+                        {%- assign active_day = forloop.index | plus: schema_settings.step_2_start | minus: 1 -%}
+                        {% break %}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- endif -%}
+
+            {% comment %} 阶段三活动时间 {% endcomment %}
+            {%- assign step_3_start_num = schema_settings.step_3_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- assign step_3_end_num = schema_settings.step_4_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- if time_now > step_3_start_num and time_now <= step_3_end_num -%}
+                {%- assign active_step = 3 -%}
+
+                {%- assign dd_3 = schema_settings.step_4_start | minus: schema_settings.step_3_start | minus: 1  -%}
+                {%- for i in (0..dd_3) -%}
+                    {%- assign i_temp = forloop.index | plus: schema_settings.step_3_start | minus: 1 | times:oneday_s | plus: time_start -%}
+                    {%- if time_now < i_temp -%}
+                        {%- assign active_day = forloop.index | plus: schema_settings.step_3_start | minus: 1 -%}
+                        {% break %}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- endif -%}
+
+            {% comment %} 阶段四活动时间 {% endcomment %}
+            {%- assign step_4_start_num = schema_settings.step_4_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- assign step_4_end_num = schema_settings.step_5_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- if time_now > step_4_start_num and time_now <= step_4_end_num -%}
+                {%- assign active_step = 4 -%}
+
+                {%- assign _d_4 = schema_settings.step_5_start | minus: schema_settings.step_4_start | minus: 1  -%}
+                {%- for i in (0.._d_4) -%}
+                    {%- assign i_temp = forloop.index | plus: schema_settings.step_4_start | minus: 1 | times:oneday_s | plus: time_start -%}
+                    {%- if time_now < i_temp -%}
+                        {%- assign active_day = forloop.index | plus: schema_settings.step_4_start | minus: 1 -%}
+                        {% break %}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- endif -%}
+
+            {% comment %} 阶段五活动时间 {% endcomment %}
+            {%- assign step_5_start_num = schema_settings.step_5_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- assign step_5_end_num = schema_settings.step_6_start | minus: 1 | times: oneday_s | plus: time_start  -%}
+            {%- if time_now > step_5_start_num and time_now <= step_5_end_num -%}
+                {%- assign active_step = 5 -%}
+
+                {%- assign _d_5 = schema_settings.step_6_start | minus: schema_settings.step_5_start | minus: 1  -%}
+                {%- for i in (0.._d_5) -%}
+                    {%- assign i_temp = forloop.index | plus: schema_settings.step_5_start | minus: 1 | times:oneday_s | plus: time_start -%}
+                    {%- if time_now < i_temp -%}
+                        {%- assign active_day = forloop.index | plus: schema_settings.step_5_start | minus: 1 -%}
+                        {% break %}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- endif -%}
+
+            {% comment %} 阶段六活动时间 {% endcomment %}
+            {%- assign step_6_start_num = schema_settings.step_6_start | minus: 1 | times: oneday_s | plus: time_start | times: 1.00 -%}
+            {%- assign step_6_end_num = time_end | times: 1.00 -%}
+            {%- if time_now > step_6_start_num and time_now <= step_6_end_num -%}
+                {%- assign active_step = 6 -%}
+                {%- assign active_day = 23 -%}
+
+                {%- assign _d_6 = 24 | minus: schema_settings.step_6_start | minus: 1  -%}
+                {%- for i in (0.._d_6) -%}
+                    {%- assign i_temp = forloop.index | plus: schema_settings.step_6_start | minus: 1 | times:oneday_s | plus: time_start -%}
+                    {%- if time_now < i_temp -%}
+                        {%- assign active_day = forloop.index | plus: schema_settings.step_6_start | minus: 1 -%}
+                        {% break %}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- endif -%}
+
+            {%- for i in (0..22) -%}
+                {%- assign index = forloop.index -%}
+                {%- assign step_num = 1 -%}
+
+                {%- if index >= schema_settings.step_2_start  -%}
+                    {%- assign step_num = 2 -%}
+                {%- endif -%}
+
+                {%- if index >= schema_settings.step_3_start  -%}
+                    {%- assign step_num = 3 -%}
+                {%- endif -%}
+
+                {%- if index >= schema_settings.step_4_start  -%}
+                    {%- assign step_num = 4 -%}
+                {%- endif -%}
+
+                {%- if index >= schema_settings.step_5_start  -%}
+                    {%- assign step_num = 5 -%}
+                {%- endif -%}
+
+                {%- if index >= schema_settings.step_6_start  -%}
+                    {%- assign step_num = 6 -%}
+                {%- endif -%}
+
+                {% comment %} step_num != active_step or  {% endcomment %}
+                {%- assign block_bg_index = 'block_bg_' | append: forloop.index -%}
+                <div style="background-image: url({{schema_settings[block_bg_index] | image_url: width: 360}});" active_step="{{active_step}}" active_day="{{active_day}}" data-step="{{step_num}}" class="christmas-item {% if forloop.index == 23 %} christmas-item--lg{% endif %} {% if step_num != active_step or active_day != forloop.index %} lock{% endif %}">
+                    <div
+                        class="christmas-item--button text-overflow-1"
+                        data-ga-event="Christmas_calendar_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-modul="ChristmasCalendar"
+                        data-ga-params-position="{{index}}"
+                        data-ga-params-button_name="{{schema_settings.button_label | escape}}"
+                        data-ga-params-type="Stage {{step_num}}"
+                    >{{schema_settings.button_label | escape}}</div>
+                </div>
+            {%- endfor -%}
+        </div>
+    </div>
+</div>
+
+{% comment %} 阶段一 {% endcomment %}
+<template id="step--1">
+    <div class="flex flex-col christmas-modal">
+        <div class="title" style="color: {{schema_settings.step_1_title_color}};">{{schema_settings.step_1_title | escape}}</div>
+        <jky-form data-scroll="false" onsubmitcall="" jky-form-id="product-shaortage-form" class="">
+            <form data-action="/osconsumerapi/v1/notice/subscribe">
+                <div class="newbee-form newbee-form_shortage">
+                    <div class="form-row flex full christmas--full">
+                        <div class="form-item required christmas--field" data-field="input">
+                            <input type="email" id="email" name="email" placeholder="{{schema_settings.email_label | escape}}" data-error="{{schema_settings.email_error_empty | escape}}" data-value="email" data-reg="email" data-regerror="{{schema_settings.email_error_reg}}">
+
+                            <button class="form_sub_btn z-button-middle">{{schema_settings.submit_text | escape}}</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 6px;" class="form-row form-row_check_box flex full">
+                            <div class="form-item required" data-field="check_box" data-error="{{schema_settings.subs_policy_error}}">
+                                <jky-checkbox class="jky-checkbox_shortage jky-checkbox">
+                                    <label class="jky-checkbox">
+                                        <span class="jky-checkbox-input">
+                                            <input type="checkbox" class="jky-checkbox-original" data-value="agree_recevie_shortage">
+                                            <span class="jky-checkbox-inner"></span>
+                                        </span>
+
+                                        <span class="jky-checkbox-label">
+                                            <span class="jky-agree">{{schema_settings.subs_policy}}</span>
+                                        </span>
+                                    </label>
+                                </jky-checkbox>
+                            </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="shopify_shop_id" name="shopify_shop_id" data-error="" data-value="shopify_shop_id" data-reg="" value="{{shop.id}}" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_01_propertyName" name="propertyName" data-error="" data-value="propertyName" data-reg="" value="MC-ACT" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_01_propertyValue" name="propertyValue" data-error="" data-value="propertyValue" data-reg="" value="MC-Unlock-1" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_01_newUserTags" name="newUserTags" data-error="" data-value="newUserTags" data-reg="" value="25MC-Subscribe" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_01_tag" name="tags" data-error="" data-value="tags" data-reg="" value="25MC-Unlock-1" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div class="flex" style="justify-content: flex-start;">
+                        <div class="z-button-middle trigger-btn">{{schema_settings.submit_text | escape}}</div>
+                    </div>
+                </div>
+            </form>
+        </jky-form>
+    </div>
+</template>
+
+{% comment %} 阶段二 {% endcomment %}
+<template id="step--2">
+    <div class="flex flex-col christmas-modal">
+        <div class="title" style="color: {{schema_settings.step_2_title_color}};">{{schema_settings.step_2_title | escape}}</div>
+        <jky-form data-scroll="false" onsubmitcall="" jky-form-id="product-shaortage-form" class="">
+            <form data-action="/osconsumerapi/v1/notice/subscribe">
+                <div class="newbee-form newbee-form_shortage">
+                    <div class="form-row flex full christmas--full">
+                        <div class="form-item required christmas--field" data-field="input">
+                            <input type="email" id="email" name="email" placeholder="{{schema_settings.email_label | escape}}" data-error="{{schema_settings.email_error_empty | escape}}" data-value="email" data-reg="email" data-regerror="{{schema_settings.email_error_reg}}">
+                            <button class="form_sub_btn z-button-middle">{{schema_settings.submit_text | escape}}</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 6px;" class="form-row form-row_check_box flex full">
+                            <div class="form-item required" data-field="check_box" data-error="{{schema_settings.subs_policy_error}}">
+                                <jky-checkbox class="jky-checkbox_shortage jky-checkbox">
+                                    <label class="jky-checkbox">
+                                        <span class="jky-checkbox-input">
+                                            <input type="checkbox" class="jky-checkbox-original" data-value="agree_recevie_shortage">
+                                            <span class="jky-checkbox-inner"></span>
+                                        </span>
+
+                                        <span class="jky-checkbox-label">
+                                            <span class="jky-agree">{{schema_settings.subs_policy}}</span>
+                                        </span>
+                                    </label>
+                                </jky-checkbox>
+                            </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="shopify_shop_id" name="shopify_shop_id" data-error="" data-value="shopify_shop_id" data-reg="" value="{{shop.id}}" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_02_propertyName" name="propertyName" data-error="" data-value="propertyName" data-reg="" value="MC-ACT" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_02_propertyValue" name="propertyValue" data-error="" data-value="propertyValue" data-reg="" value="MC-Unlock-2" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_02_newUserTags" name="newUserTags" data-error="" data-value="newUserTags" data-reg="" value="25MC-Subscribe" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_02_tag" name="tags" data-error="" data-value="tags" data-reg="" value="25MC-Unlock-2" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div class="flex" style="justify-content: flex-start;">
+                        <div class="z-button-middle trigger-btn">{{schema_settings.submit_text | escape}}</div>
+                    </div>
+                </div>
+            </form>
+        </jky-form>
+    </div>
+</template>
+
+{% comment %} 阶段三 {% endcomment %}
+<template id="step--3">
+    <div class="flex flex-col christmas-modal">
+        <div class="title" style="color: {{schema_settings.step_3_title_color}};">{{schema_settings.step_3_title | escape}}</div>
+        <jky-form data-scroll="false" onsubmitcall="" jky-form-id="product-shaortage-form" class="">
+            <form data-action="/osconsumerapi/v1/notice/subscribe">
+                <div class="newbee-form newbee-form_shortage">
+                    <div class="form-row flex full christmas--full">
+                        <div class="form-item required christmas--field" data-field="input">
+                            <input type="email" id="email" name="email" placeholder="{{schema_settings.email_label | escape}}" data-error="{{schema_settings.email_error_empty | escape}}" data-value="email" data-reg="email" data-regerror="{{schema_settings.email_error_reg}}">
+                            <button class="form_sub_btn z-button-middle">{{schema_settings.submit_text | escape}}</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 6px;" class="form-row form-row_check_box flex full">
+                            <div class="form-item required" data-field="check_box" data-error="{{schema_settings.subs_policy_error}}">
+                                <jky-checkbox class="jky-checkbox_shortage jky-checkbox">
+                                    <label class="jky-checkbox">
+                                        <span class="jky-checkbox-input">
+                                            <input type="checkbox" class="jky-checkbox-original" data-value="agree_recevie_shortage">
+                                            <span class="jky-checkbox-inner"></span>
+                                        </span>
+
+                                        <span class="jky-checkbox-label">
+                                            <span class="jky-agree">{{schema_settings.subs_policy}}</span>
+                                        </span>
+                                    </label>
+                                </jky-checkbox>
+                            </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="shopify_shop_id" name="shopify_shop_id" data-error="" data-value="shopify_shop_id" data-reg="" value="{{shop.id}}" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_03_propertyName" name="propertyName" data-error="" data-value="propertyName" data-reg="" value="MC-ACT" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_03_propertyValue" name="propertyValue" data-error="" data-value="propertyValue" data-reg="" value="MC-Unlock-3" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_03_tag" name="tags" data-error="" data-value="tags" data-reg="" value="25MC-Unlock-3" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_03_newUserTags" name="newUserTags" data-error="" data-value="newUserTags" data-reg="" value="25MC-Subscribe" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div class="flex" style="justify-content: flex-start;">
+                        <div class="z-button-middle trigger-btn">{{schema_settings.submit_text | escape}}</div>
+                    </div>
+                </div>
+            </form>
+        </jky-form>
+    </div>
+</template>
+
+{% comment %} 阶段四 {% endcomment %}
+<template id="step--4">
+    <div class="flex flex-col christmas-modal">
+        <div class="title" style="color: {{schema_settings.step_4_title_color}};">{{schema_settings.step_4_title | escape}}</div>
+        <jky-form data-scroll="false" onsubmitcall="" jky-form-id="product-shaortage-form" class="">
+            <form data-action="/osconsumerapi/v1/notice/subscribe">
+                <div class="newbee-form newbee-form_shortage">
+                    <div class="form-row flex full christmas--full">
+                        <div class="form-item required christmas--field" data-field="input">
+                            <input type="email" id="email" name="email" placeholder="{{schema_settings.email_label | escape}}" data-error="{{schema_settings.email_error_empty | escape}}" data-value="email" data-reg="email" data-regerror="{{schema_settings.email_error_reg}}">
+                            <button class="form_sub_btn z-button-middle">{{schema_settings.submit_text | escape}}</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 6px;" class="form-row form-row_check_box flex full">
+                            <div class="form-item required" data-field="check_box" data-error="{{schema_settings.subs_policy_error}}">
+                                <jky-checkbox class="jky-checkbox_shortage jky-checkbox">
+                                    <label class="jky-checkbox">
+                                        <span class="jky-checkbox-input">
+                                            <input type="checkbox" class="jky-checkbox-original" data-value="agree_recevie_shortage">
+                                            <span class="jky-checkbox-inner"></span>
+                                        </span>
+
+                                        <span class="jky-checkbox-label">
+                                            <span class="jky-agree">{{schema_settings.subs_policy}}</span>
+                                        </span>
+                                    </label>
+                                </jky-checkbox>
+                            </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="shopify_shop_id" name="shopify_shop_id" data-error="" data-value="shopify_shop_id" data-reg="" value="{{shop.id}}" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_04_propertyName" name="propertyName" data-error="" data-value="propertyName" data-reg="" value="MC-ACT" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_04_propertyValue" name="propertyValue" data-error="" data-value="propertyValue" data-reg="" value="MC-Unlock-4" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_04_tag" name="tags" data-error="" data-value="tags" data-reg="" value="25MC-Unlock-4" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_04_newUserTags" name="newUserTags" data-error="" data-value="newUserTags" data-reg="" value="25MC-Subscribe" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div class="flex" style="justify-content: flex-start;">
+                        <div class="z-button-middle trigger-btn">{{schema_settings.submit_text | escape}}</div>
+                    </div>
+                </div>
+            </form>
+        </jky-form>
+    </div>
+</template>
+
+{% comment %} 阶段五 {% endcomment %}
+<template id="step--5">
+    <div class="flex flex-col christmas-modal">
+        <div class="title" style="color: {{schema_settings.step_5_title_color}};">{{schema_settings.step_5_title | escape}}</div>
+        <jky-form data-scroll="false" onsubmitcall="" jky-form-id="product-shaortage-form" class="">
+            <form data-action="/osconsumerapi/v1/notice/subscribe">
+                <div class="newbee-form newbee-form_shortage">
+                    <div class="form-row flex full christmas--full">
+                        <div class="form-item required christmas--field" data-field="input">
+                            <input type="email" id="email" name="email" placeholder="{{schema_settings.email_label | escape}}" data-error="{{schema_settings.email_error_empty | escape}}" data-value="email" data-reg="email" data-regerror="{{schema_settings.email_error_reg}}">
+                            <button class="form_sub_btn z-button-middle">{{schema_settings.submit_text | escape}}</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 6px;" class="form-row form-row_check_box flex full">
+                            <div class="form-item required" data-field="check_box" data-error="{{schema_settings.subs_policy_error}}">
+                                <jky-checkbox class="jky-checkbox_shortage jky-checkbox">
+                                    <label class="jky-checkbox">
+                                        <span class="jky-checkbox-input">
+                                            <input type="checkbox" class="jky-checkbox-original" data-value="agree_recevie_shortage">
+                                            <span class="jky-checkbox-inner"></span>
+                                        </span>
+
+                                        <span class="jky-checkbox-label">
+                                            <span class="jky-agree">{{schema_settings.subs_policy}}</span>
+                                        </span>
+                                    </label>
+                                </jky-checkbox>
+                            </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="shopify_shop_id" name="shopify_shop_id" data-error="" data-value="shopify_shop_id" data-reg="" value="{{shop.id}}" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_05_propertyName" name="propertyName" data-error="" data-value="propertyName" data-reg="" value="MC-ACT" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_05_propertyValue" name="propertyValue" data-error="" data-value="propertyValue" data-reg="" value="MC-Unlock-5" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_05_newUserTags" name="newUserTags" data-error="" data-value="newUserTags" data-reg="" value="25MC-Subscribe" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                        <div class="form-item form-item_const" data-field="input">
+                            <input type="text" id="chris_05_tag" name="tags" data-error="" data-value="tags" data-reg="" value="25MC-Unlock-5" data-regerror="">
+                        </div>
+                    </div>
+
+                    <div class="flex" style="justify-content: flex-start;">
+                        <div class="z-button-middle trigger-btn">{{schema_settings.submit_text | escape}}</div>
+                    </div>
+                </div>
+            </form>
+        </jky-form>
+    </div>
+</template>
+
+<style>
+    {% if schema_settings.step_1_bg != blank %}
+        .christams__modal__01.modal-container.modal .modal-content {background-image: url({{schema_settings.step_1_bg | image_url: width: 1200 }});}
+    {% endif %}
+    {% if schema_settings.step_2_bg != blank %}
+        .christams__modal__02.modal-container.modal .modal-content {background-image: url({{schema_settings.step_2_bg | image_url: width: 1200 }});}
+    {% endif %}
+    {% if schema_settings.step_3_bg != blank %}
+        .christams__modal__03.modal-container.modal .modal-content {background-image: url({{schema_settings.step_3_bg | image_url: width: 1200 }});}
+    {% endif %}
+    {% if schema_settings.step_4_bg != blank %}
+        .christams__modal__04.modal-container.modal .modal-content {background-image: url({{schema_settings.step_4_bg | image_url: width: 1200 }});}
+    {% endif %}
+    {% if schema_settings.step_5_bg != blank %}
+        .christams__modal__05.modal-container.modal .modal-content {background-image: url({{schema_settings.step_5_bg | image_url: width: 1200 }});}
+    {% endif %}
+    {% if schema_settings.step_6_bg != blank %}
+        .christams__modal__06.modal-container.modal .modal-content {background-image: url({{schema_settings.step_6_bg | image_url: width: 1200 }});}
+    {% endif %}
+
+    {% if schema_settings.step_1_success_bg != blank %}
+        .christams__modal__cb_01.modal-container.modal .modal-content {background-image: url({{schema_settings.step_1_success_bg | image_url: width: 1200 }});}
+    {% endif %}
+    {% if schema_settings.step_2_success_bg != blank %}
+        .christams__modal__cb_02.modal-container.modal .modal-content {background-image: url({{schema_settings.step_2_success_bg | image_url: width: 1200 }});}
+    {% endif %}
+    {% if schema_settings.step_3_success_bg != blank %}
+        .christams__modal__cb_03.modal-container.modal .modal-content {background-image: url({{schema_settings.step_3_success_bg | image_url: width: 1200 }});} 
+    {% endif %}
+    {% if schema_settings.step_4_success_bg != blank %}
+        .christams__modal__cb_04.modal-container.modal .modal-content {background-image: url({{schema_settings.step_4_success_bg | image_url: width: 1200 }});}
+    {% endif %}
+    {% if schema_settings.step_5_success_bg != blank %}
+        .christams__modal__cb_05.modal-container.modal .modal-content {background-image: url({{schema_settings.step_5_success_bg | image_url: width: 1200 }});}
+    {% endif %}
+
+    .christams__modal__01 .newbee-form .form-row .form-item input {background: {{schema_settings.step_1_input_bg_color}};}
+    .christams__modal__02 .newbee-form .form-row .form-item input {background: {{schema_settings.step_2_input_bg_color}};}
+    .christams__modal__03 .newbee-form .form-row .form-item input {background: {{schema_settings.step_3_input_bg_color}};}
+    .christams__modal__04 .newbee-form .form-row .form-item input {background: {{schema_settings.step_4_input_bg_color}};}
+    .christams__modal__05 .newbee-form .form-row .form-item input {background: {{schema_settings.step_5_input_bg_color}};}
+
+
+    .christams__modal__01.modal-container.modal .modal-content,
+    .christams__modal__02.modal-container.modal .modal-content,
+    .christams__modal__03.modal-container.modal .modal-content,
+    .christams__modal__04.modal-container.modal .modal-content,
+    .christams__modal__05.modal-container.modal .modal-content,
+    .christams__modal__06.modal-container.modal .modal-content,
+    .christams__modal__cb_01.modal-container.modal .modal-content,
+    .christams__modal__cb_02.modal-container.modal .modal-content,
+    .christams__modal__cb_04.modal-container.modal .modal-content,
+    .christams__modal__cb_05.modal-container.modal .modal-content,
+    .christams__modal__cb_03.modal-container.modal .modal-content {width: 600px;border-radius: 18px;min-height: 400px;display: flex;flex-direction: column;background-size: cover;background-repeat: no-repeat;border: none;}
+    .christams__modal__01.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__02.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__03.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__04.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__05.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__06.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__cb_01.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__cb_02.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__cb_04.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__cb_05.modal-container.modal .modal-content .moadal-header,
+    .christams__modal__cb_03.modal-container.modal .modal-content .moadal-header {border-bottom: none;}
+    .christams__modal__01.modal-container.modal .modal-content-body,
+    .christams__modal__02.modal-container.modal .modal-content-body,
+    .christams__modal__04.modal-container.modal .modal-content-body,
+    .christams__modal__05.modal-container.modal .modal-content-body,
+    .christams__modal__06.modal-container.modal .modal-content-body,
+    .christams__modal__03.modal-container.modal .modal-content-body {padding: 0 46px 0px 46px;flex: 1;display: flex;}
+    .christams__modal__01.modal-container.modal .title,
+    .christams__modal__02.modal-container.modal .title,
+    .christams__modal__03.modal-container.modal .title,
+    .christams__modal__04.modal-container.modal .title,
+    .christams__modal__05.modal-container.modal .title,
+    .christams__modal__06.modal-container.modal .title,
+    .christams__modal__cb_01.modal-container.modal .title,
+    .christams__modal__cb_02.modal-container.modal .title,
+    .christams__modal__cb_04.modal-container.modal .title,
+    .christams__modal__cb_05.modal-container.modal .title,
+    .christams__modal__cb_03.modal-container.modal .title {font-weight: 600;font-size: 28px;color: #000000;line-height: 36px;text-align: center;}
+    .christmas-modal {justify-content: space-between;}
+    .christams__modal__01.modal-container.modal .moadal-header,
+    .christams__modal__02.modal-container.modal .moadal-header,
+    .christams__modal__03.modal-container.modal .moadal-header,
+    .christams__modal__04.modal-container.modal .moadal-header,
+    .christams__modal__05.modal-container.modal .moadal-header,
+    .christams__modal__06.modal-container.modal .moadal-header,
+    .christams__modal__cb_01.modal-container.modal .moadal-header,
+    .christams__modal__cb_02.modal-container.modal .moadal-header,
+    .christams__modal__cb_04.modal-container.modal .moadal-header,
+    .christams__modal__cb_05.modal-container.modal .moadal-header,
+    .christams__modal__cb_03.modal-container.modal .moadal-header {height: 48px;}
+    .newbee-form .form-row .form-item.christmas--field {flex-direction: row;}
+    .newbee-form .form-row .form-item.christmas--field input {flex: 1;border-radius: var(--input-radius) 0 0 var(--input-radius);}
+    .newbee-form .form-row .form-item.christmas--field input::placeholder {color: {{schema_settings.email_placeholder_color}};}
+    .newbee-form_shortage .form-item.christmas--field .form_sub_btn {width: max-content;height: 48px;border-radius: var(--input-radius);color: {{schema_settings.submit_text_color}};background: {{schema_settings.submit_bg_color}};transition: all 0.24s ease;}
+    .newbee-form_shortage .form-item.christmas--field .form_sub_btn:hover {background: {{schema_settings.submit_hover_color}};}
+    .newbee-form_shortage .form-item.christmas--field .form_sub_btn:active {background: {{schema_settings.submit_active_color}};}
+    .newbee-form .form-row.full.christmas--full {margin-bottom: 12px;}
+    .christams__modal__01 .newbee-form .form-row .field_error-tips,
+    .christams__modal__02 .newbee-form .form-row .field_error-tips,
+    .christams__modal__03 .newbee-form .form-row .field_error-tips,
+    .christams__modal__04 .newbee-form .form-row .field_error-tips,
+    .christams__modal__05 .newbee-form .form-row .field_error-tips,
+    .christams__modal__cb_01 .newbee-form .form-row .field_error-tips,
+    .christams__modal__cb_02 .newbee-form .form-row .field_error-tips,
+    .christams__modal__cb_04 .newbee-form .form-row .field_error-tips,
+    .christams__modal__cb_05 .newbee-form .form-row .field_error-tips,
+    .christams__modal__cb_03 .newbee-form .form-row .field_error-tips {color: {{schema_settings.email_error_color}};display:block;height: auto;}
+    .christams__modal__01 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__02 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__03 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__04 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__05 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__cb_01 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__cb_02 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__cb_04 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__cb_05 .newbee-form .form-row .jky-checkbox .field_error-tips,
+    .christams__modal__cb_03 .newbee-form .form-row .jky-checkbox .field_error-tips {color: {{schema_settings.subs_policy_error_color}};}
+
+    .christams__modal__cb_01 .modal-content-body .flex,
+    .christams__modal__cb_02 .modal-content-body .flex,
+    .christams__modal__cb_04 .modal-content-body .flex,
+    .christams__modal__cb_05 .modal-content-body .flex,
+    .christams__modal__cb_03 .modal-content-body .flex {flex-direction: column;}
+    .christams__modal__cb_01 .success_title,
+    .christams__modal__cb_02 .success_title,
+    .christams__modal__cb_04 .success_title,
+    .christams__modal__cb_05 .success_title,
+    .christams__modal__cb_03 .success_title {text-align: center;font-weight: 600;font-size: 28px;color: {{schema_settings.step_1_success_title_color}};line-height: 36px;max-width: 500px;margin: 0 auto 8px;}
+    .christams__modal__cb_01 .success_subtitle,
+    .christams__modal__cb_02 .success_subtitle,
+    .christams__modal__cb_04 .success_subtitle,
+    .christams__modal__cb_05 .success_subtitle,
+    .christams__modal__cb_03 .success_subtitle {text-align: center;font-weight: 400;font-size: 16px;color: {{schema_settings.step_1_success_subtitle_color}};line-height: 24px;margin-bottom:32px;}
+    .christams__modal__cb_01 .success_actions,
+    .christams__modal__cb_02 .success_actions,
+    .christams__modal__cb_04 .success_actions,
+    .christams__modal__cb_05 .success_actions,
+    .christams__modal__cb_03 .success_actions {display: flex;align-items: center;justify-content: center;gap: 24px;padding-bottom: 20px;}
+    .christams__modal__cb_01 .success_actions .rule-btn,
+    .christams__modal__cb_02 .success_actions .rule-btn,
+    .christams__modal__cb_04 .success_actions .rule-btn,
+    .christams__modal__cb_05 .success_actions .rule-btn,
+    .christams__modal__cb_03 .success_actions .rule-btn {font-weight: 600;font-size: 16px;color: {{schema_settings.step_1_rule_btn_color}};line-height: 16px;text-align: center;cursor: pointer;text-decoration: underline;}
+    .christams__modal__cb_01 .success_actions .shop-btn,
+    .christams__modal__cb_02 .success_actions .shop-btn,
+    .christams__modal__cb_04 .success_actions .shop-btn,
+    .christams__modal__cb_05 .success_actions .shop-btn,
+    .christams__modal__cb_03 .success_actions .shop-btn {font-weight: 600;font-size: 16px;color: {{schema_settings.step_1_button_color}};text-align: center;padding: 0 24px;height: 48px;display: flex;align-items: center;background: {{schema_settings.step_1_bg_color}};border-radius: 40px;cursor: pointer;transition: all .24s ease;line-height: 1;}
+    .christams__modal__cb_02 .success_actions .shop-btn {color: {{schema_settings.step_2_button_color}};background: {{schema_settings.step_2_bg_color}};}
+    .christams__modal__cb_03 .success_actions .shop-btn {color: {{schema_settings.step_3_button_color}};background: {{schema_settings.step_3_bg_color}};}
+    .christams__modal__cb_04 .success_actions .shop-btn {color: {{schema_settings.step_4_button_color}};background: {{schema_settings.step_4_bg_color}};}
+    .christams__modal__cb_05 .success_actions .shop-btn {color: {{schema_settings.step_5_button_color}};background: {{schema_settings.step_5_bg_color}};}
+    .christams__modal__cb_01 .success_actions .shop-btn:hover {background: {{schema_settings.step_1_hover_color}};}
+    .christams__modal__cb_02 .success_actions .shop-btn:hover {background: {{schema_settings.step_2_hover_color}};}
+    .christams__modal__cb_03 .success_actions .shop-btn:hover {background: {{schema_settings.step_3_hover_color}};}
+    .christams__modal__cb_04 .success_actions .shop-btn:hover {background: {{schema_settings.step_4_hover_color}};}
+    .christams__modal__cb_05 .success_actions .shop-btn:hover {background: {{schema_settings.step_5_hover_color}};}
+
+    .christams__modal__cb_01 .success_actions .shop-btn:active {background: {{schema_settings.step_1_active_color}};}
+    .christams__modal__cb_02 .success_actions .shop-btn:active {background: {{schema_settings.step_2_active_color}};}
+    .christams__modal__cb_03 .success_actions .shop-btn:active {background: {{schema_settings.step_3_active_color}};}
+    .christams__modal__cb_04 .success_actions .shop-btn:active {background: {{schema_settings.step_4_active_color}};}
+    .christams__modal__cb_05 .success_actions .shop-btn:active {background: {{schema_settings.step_5_active_color}};}
+    .christams__modal__cb_01.modal-container.modal .modal-content-body,
+    .christams__modal__cb_02.modal-container.modal .modal-content-body,
+    .christams__modal__cb_04.modal-container.modal .modal-content-body,
+    .christams__modal__cb_05.modal-container.modal .modal-content-body,
+    .christams__modal__cb_03.modal-container.modal .modal-content-body {padding: 0 32px 0px 32px;flex: 1;display: flex;}
+    .christams__modal__cb_01.modal-container.modal .modal-content,
+    .christams__modal__cb_02.modal-container.modal .modal-content,
+    .christams__modal__cb_04.modal-container.modal .modal-content,
+    .christams__modal__cb_05.modal-container.modal .modal-content,
+    .christams__modal__cb_03.modal-container.modal .modal-content {min-height: unset;border: none;}
+    .christams__modal__cb_01 .jky-tooltip .jky-tooltip__inner,
+    .christams__modal__cb_02 .jky-tooltip .jky-tooltip__inner,
+    .christams__modal__cb_04 .jky-tooltip .jky-tooltip__inner,
+    .christams__modal__cb_05 .jky-tooltip .jky-tooltip__inner,
+    .christams__modal__cb_03 .jky-tooltip .jky-tooltip__inner {max-width: 380px;background: {{schema_settings.step_1_rule_bg_color}};border-radius: 8px;color: {{schema_settings.step_1_rule_content_color}};font-size: 14px;line-height: 22px;max-height: 290px;}
+    .christams__modal__cb_01 .jky-tooltip .jky-tooltip__inner:after,
+    .christams__modal__cb_02 .jky-tooltip .jky-tooltip__inner:after,
+    .christams__modal__cb_04 .jky-tooltip .jky-tooltip__inner:after,
+    .christams__modal__cb_05 .jky-tooltip .jky-tooltip__inner:after,
+    .christams__modal__cb_03 .jky-tooltip .jky-tooltip__inner:after {bottom: -6px;margin-left: -6px;    border: 6px solid {{schema_settings.step_1_rule_bg_color}};}
+    .rule_title {display: block;font-size: 24px;font-weight: 600;color: {{schema_settings.step_1_rule_title_color}};margin-bottom: 8px;}
+    .rule_content {display: block;max-height: 220px;overflow-y: auto;}
+    .rule_content a {color: var(--jds-color-primary);}
+    .trigger-btn {display: none;}
+
+    .christams__modal__cb_01 .success_subtitle, .christams__modal__cb_02 .success_subtitle, .christams__modal__cb_04 .success_subtitle, .christams__modal__cb_05 .success_subtitle, .christams__modal__cb_03 .success_subtitle {min-height: 150px;}
+    .christmas-modal .jky-checkbox-label .jky-agree, .christmas-modal .jky-checkbox-label .jky-agree p {font-weight: 400;font-size:12px;color: {{schema_settings.subs_policy_color}};}
+
+    .christmas-modal .jky-checkbox-label .jky-agree a {
+        color: {{schema_settings.subs_policy_link_color}}!important;
+    }
+
+    @media screen and (max-width: 1024px) {
+        {% if schema_settings.mb_step_1_bg != blank %}
+            .christams__modal__01.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_1_bg | image_url: width: 1200}});}
+        {% endif %}
+        {% if schema_settings.mb_step_2_bg != blank %}
+            .christams__modal__02.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_2_bg | image_url: width: 1200}});}
+        {% endif %}
+        {% if schema_settings.mb_step_3_bg != blank %}
+            .christams__modal__03.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_3_bg | image_url: width: 1200}});}
+        {% endif %}
+        {% if schema_settings.mb_step_4_bg != blank %}
+            .christams__modal__04.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_4_bg | image_url: width: 1200}});}  
+        {% endif %}
+        {% if schema_settings.mb_step_5_bg != blank %}
+            .christams__modal__05.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_5_bg | image_url: width: 1200}});}
+        {% endif %}
+        {% if schema_settings.mb_step_6_bg != blank %}
+            .christams__modal__06.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_6_bg | image_url: width: 1200}});}
+        {% endif %}
+
+        {% if schema_settings.mb_step_1_success_bg != blank %}
+            .christams__modal__cb_01.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_1_success_bg | image_url: width: 1200}});}
+        {% endif %}
+        {% if schema_settings.mb_step_2_success_bg != blank %}
+            .christams__modal__cb_02.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_2_success_bg | image_url: width: 1200}});}
+        {% endif %}
+        {% if schema_settings.mb_step_3_success_bg != blank %}
+            .christams__modal__cb_03.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_3_success_bg | image_url: width: 1200}});}   
+        {% endif %}
+        {% if schema_settings.mb_step_4_success_bg != blank %}
+            .christams__modal__cb_04.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_4_success_bg | image_url: width: 1200}});}  
+        {% endif %}
+        {% if schema_settings.mb_step_5_success_bg != blank %}
+            .christams__modal__cb_05.modal-container.modal .modal-content {background-image: url({{schema_settings.mb_step_5_success_bg | image_url: width: 1200}});}
+        {% endif %}
+
+        .trigger-btn {display: flex;width: 100%;height:48px;border-radius: 6px;font-size: 15px;font-weight: 600;}
+        .newbee-form_shortage .form-item.christmas--field .form_sub_btn {display: none;}
+
+        .newbee-form .form-row .form-item.christmas--field input {height: 48px;padding: 0 16px;border-radius: var(--input-radius);}
+        .newbee-form .form-row.full.christmas--full {margin-bottom: 16px;}
+
+        .christams__modal__01.modal-container.modal,
+        .christams__modal__02.modal-container.modal,
+        .christams__modal__03.modal-container.modal,
+        .christams__modal__04.modal-container.modal,
+        .christams__modal__05.modal-container.modal,
+        .christams__modal__06.modal-container.modal,
+        .christams__modal__cb_01.modal-container.modal,
+        .christams__modal__cb_02.modal-container.modal,
+        .christams__modal__cb_04.modal-container.modal,
+        .christams__modal__cb_05.modal-container.modal,
+        .christams__modal__cb_03.modal-container.modal {align-items: flex-end;}
+
+        .christams__modal__01.modal-container.modal .modal-content-body,
+        .christams__modal__02.modal-container.modal .modal-content-body,
+        .christams__modal__04.modal-container.modal .modal-content-body,
+        .christams__modal__05.modal-container.modal .modal-content-body,
+        .christams__modal__06.modal-container.modal .modal-content-body,
+        .christams__modal__03.modal-container.modal .modal-content-body {padding: 0 16px 0px 16px;}
+
+        .christams__modal__01.modal-container.modal .modal-content, .christams__modal__02.modal-container.modal .modal-content, .christams__modal__03.modal-container.modal .modal-content, .christams__modal__04.modal-container.modal .modal-content, .christams__modal__05.modal-container.modal .modal-content, .christams__modal__06.modal-container.modal .modal-content, .christams__modal__cb_01.modal-container.modal .modal-content, .christams__modal__cb_02.modal-container.modal .modal-content, .christams__modal__cb_04.modal-container.modal .modal-content, .christams__modal__cb_05.modal-container.modal .modal-content, .christams__modal__cb_03.modal-container.modal .modal-content {opacity: 1;transform: translateY(100%) translateZ(0);border-radius: 12px 12px 0 0;min-height: 133vw;max-height: 100vh;}
+        .christams__modal__01.modal-container.modal .modal-content.fade-in, .christams__modal__02.modal-container.modal .modal-content.fade-in, .christams__modal__03.modal-container.modal .modal-content.fade-in, .christams__modal__04.modal-container.modal .modal-content.fade-in, .christams__modal__05.modal-container.modal .modal-content.fade-in, .christams__modal__06.modal-container.modal .modal-content.fade-in, .christams__modal__cb_01.modal-container.modal .modal-content.fade-in, .christams__modal__cb_02.modal-container.modal .modal-content.fade-in, .christams__modal__cb_04.modal-container.modal .modal-content.fade-in, .christams__modal__cb_05.modal-container.modal .modal-content.fade-in, .christams__modal__cb_03.modal-container.modal .modal-content.fade-in {opacity: 1;transform: translateY(0) translateZ(0);}
+
+        .christams__modal__01.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__02.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__03.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__04.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__05.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__06.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__cb_01.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__cb_02.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__cb_04.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__cb_05.modal-container.modal .modal-content .moadal-header,
+        .christams__modal__cb_03.modal-container.modal .modal-content .moadal-header {background: transparent;height: 32px;}
+
+        .christams__modal__01.modal-container.modal .title, .christams__modal__02.modal-container.modal .title, .christams__modal__03.modal-container.modal .title, .christams__modal__04.modal-container.modal .title, .christams__modal__05.modal-container.modal .title, .christams__modal__06.modal-container.modal .title, .christams__modal__cb_01.modal-container.modal .title, .christams__modal__cb_02.modal-container.modal .title, .christams__modal__cb_04.modal-container.modal .title, .christams__modal__cb_05.modal-container.modal .title, .christams__modal__cb_03.modal-container.modal .title {text-align: left;padding: 0 16px;}
+
+        .christams__modal__01 .jky-checkbox-label .jky-agree, .christams__modal__01 .jky-checkbox-label .jky-agree p,
+        .christams__modal__02 .jky-checkbox-label .jky-agree, .christams__modal__02 .jky-checkbox-label .jky-agree p,
+        .christams__modal__03 .jky-checkbox-label .jky-agree, .christams__modal__03 .jky-checkbox-label .jky-agree p,
+        .christams__modal__04 .jky-checkbox-label .jky-agree, .christams__modal__04 .jky-checkbox-label .jky-agree p,
+        .christams__modal__05 .jky-checkbox-label .jky-agree, .christams__modal__05 .jky-checkbox-label .jky-agree p {font-size: 12px;}
+
+        .christams__modal__cb_01 .success_title, .christams__modal__cb_02 .success_title, .christams__modal__cb_04 .success_title, .christams__modal__cb_05 .success_title, .christams__modal__cb_03 .success_title {text-align: left;}
+        .christams__modal__cb_01 .success_subtitle, .christams__modal__cb_02 .success_subtitle, .christams__modal__cb_04 .success_subtitle, .christams__modal__cb_05 .success_subtitle, .christams__modal__cb_03 .success_subtitle {text-align: left;font-size: 14px;line-height: 22px;margin-bottom: 24px;max-height: 50vh;overflow: auto;min-height: 20vh;}
+
+        .christams__modal__cb_01 .success_actions, .christams__modal__cb_02 .success_actions, .christams__modal__cb_04 .success_actions, .christams__modal__cb_05 .success_actions, .christams__modal__cb_03 .success_actions {flex-direction: column-reverse;margin: 0 -16px;}
+        .christams__modal__cb_01 .success_actions .shop-btn, .christams__modal__cb_02 .success_actions .shop-btn, .christams__modal__cb_04 .success_actions .shop-btn, .christams__modal__cb_05 .success_actions .shop-btn, .christams__modal__cb_03 .success_actions .shop-btn {   width: 100%;text-align: center;justify-content: center;border-radius: 6px;}
+    }
+</style>
+
+{%- if schema_settings.step_1_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_1_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_2_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_2_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_3_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_3_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_4_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_4_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_5_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_5_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_6_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_6_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_1_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_1_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_2_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_2_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_3_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_3_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_4_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_4_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.step_5_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.step_5_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_1_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_1_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_2_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_2_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_3_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_3_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_4_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_4_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_5_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_5_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_6_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_6_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_1_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_1_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_2_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_2_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_3_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_3_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_4_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_4_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+{%- if schema_settings.mb_step_5_success_bg != blank -%}
+        <link rel="preload" as="image" href="{{ schema_settings.mb_step_5_success_bg | image_url: width: 1200 }}" fetchpriority="low">
+{%- endif -%}
+
+<script>
+    document.querySelectorAll(".christmas-item--button").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const parent = this.closest(".christmas-item");
+            const _step = parent?.getAttribute("data-step");
+            const _active_day = "{{active_day}}";
+            let _active_step = "{{active_step}}";
+
+            if (_step == 6) {
+                ZModle.getInstance(`
+                    <div class="title" style="text-align:center;width: 100%;color: {{ schema_settings.step_6_content_color }};">
+                    {{schema_settings.step_6_content}}
+                    </div>
+                `, {
+                    id: `modal-christams__${_active_step}`,
+                    class: `christams__modal__0${_active_step}`,
+                });
+                return;
+            }
+
+            if (_step !== _active_step) return;
+            const templateEl = document.querySelector(`body template[id="step--${_active_step}"]`);
+            const temp = templateEl?.innerHTML || "";
+            ZModle.getInstance(temp, {
+                id: `modal-christams__${_active_step}`,
+                class: `christams__modal__0${_active_step}`,
+                cb: (el) => {
+                    el.querySelector("jky-form").beforeFb = (params) => {
+                        return new Promise((resolve, reject) => {
+                            fetch(`${pageInfo.api}/osconsumerapi/v1/notice/getUserSubscribe?shopifyShopId=${pageInfo.shopId}&email=${params.email}`, {headers: {
+                                cr: window?.pageInfo?.cr,
+                                lang: window?.pageInfo?.lang,
+                            }})
+                            .then((response) => response.json())
+                            .then(res => {
+                                if(res.code === 200 && res?.data?.tags) {
+                                    if(res?.data?.tags.indexOf(`25MC-Unlock-${_active_step}`) !== -1) {
+                                        pushErrorMessage("{{schema_settings.repeat_submit_txt}}")
+                                        reject()
+                                        setTimeout(() => {
+                                            el.querySelector(".form_sub_btn").classList.remove("loading")
+                                        }, 500)
+                                    } else {
+                                        resolve(res)
+                                    }
+
+                                    window.dataLayer?.push({
+                                        event: "ga4Event",
+                                        event_name: "Christmas_calendar_user_clicks",
+                                        event_parameters: {
+                                            "module": 'Unlock',
+                                            'button_name': el.querySelector(".form_sub_btn").textContent.trim(),
+                                            'position': el.querySelector(".title").textContent.trim(),
+                                            'type': `Stage${_active_step}`,
+                                        }
+                                    });
+                                } else {
+                                    resolve(res)
+                                }
+                            })
+                            .catch(e => {
+                                console.error(e)
+                                reject(e)
+                            })
+                        })
+                    }
+
+                    el.querySelector("jky-form").afterFb = (params) => {
+                        const modal = document.querySelector(`.christams__modal__0${_active_step}`);
+                        modal?.querySelector('.close')?.click();
+
+                        {%- assign success_title = 'step_' | append: active_step | append: '_success_title' -%}
+                        {%- assign success_subtitle = 'step_' | append: active_step | append: '_success_subtitle' -%}
+                        {%- assign rule_title = 'step_' | append: active_step | append: '_rule_title' -%}
+                        {%- assign rule_content = 'step_' | append: active_step | append: '_rule_content' -%}
+                        {%- assign rule_btn = 'step_' | append: active_step | append: '_rule_btn' -%}
+                        {%- assign buyurl = 'step_' | append: active_step | append: '_buyurl' -%}
+                        {%- assign buy_btn = 'step_' | append: active_step | append: '_buy_btn' -%}
+                        {%- assign success_title_color = 'step_' | append: active_step | append: '_success_title_color' -%}
+                        {%- assign subtitle_color = 'step_' | append: active_step | append: '_success_subtitle_color' -%}
+                        {%- assign rule_content_color = 'step_' | append: active_step | append: '_rule_content_color' -%}
+                        {%- assign rule_bg_color = 'step_' | append: active_step | append: '_rule_bg_color' -%}
+                        {%- assign rule_title_color = 'step_' | append: active_step | append: '_rule_title_color' -%}
+                        {%- assign rule_btn_color = 'step_' | append: active_step | append: '_rule_btn_color' -%}
+
+                        setTimeout(() => {
+                            ZModle.getInstance(`
+                                <div class="flex">
+                                    <div class="success_content">
+                                        <div class="success_title" style="color:{{schema_settings[success_title_color]}};">{{schema_settings[success_title]}}</div>
+                                        <div class="success_subtitle" style="color:{{schema_settings[subtitle_color]}};">{{schema_settings[success_subtitle]}}</div>
+                                    </div>
+
+                                    <div class="success_actions">
+                                        <div class="jky-tooltip app-wishlist-tooltip">
+                                            <div class="jky-tooltip__inner jky-tooltip__inner--top">
+                                            <span class="rule_title" style="color:{{schema_settings[rule_title_color]}};">{{schema_settings[rule_title]}}</span>
+                                            <div class="rule_content" style="color: {{schema_settings[rule_content_color]}};background:{{schema_settings[rule_bg_color]}}">{{schema_settings[rule_content]}}</div></div>
+
+                                            <span class="rule-btn" style="color:{{schema_settings[rule_btn_color]}};">{{schema_settings[rule_btn]}}</span>
+                                        </div>
+
+                                        <a href="{{schema_settings[buyurl]}}" class="shop-btn">{{schema_settings[buy_btn]}}</a>
+                                    </div>
+                                </div>
+                            `, {
+                                id: `modal-christams__cb_${_active_step}`,
+                                class: `christams__modal__cb_0${_active_step}`,
+                                cb: (el) => {
+                                    // 埋点事件
+                                    el.querySelector(".rule-btn").addEventListener("mouseover", function() {
+                                        window.dataLayer?.push({
+                                            event: "ga4Event",
+                                            event_name: "Christmas_calendar_user_clicks",
+                                            event_parameters: {
+                                                "module": 'Unlock',
+                                                'button_name': el.querySelector(".rule-btn").textContent.trim(),
+                                                'position': el.querySelector(".success_title").textContent.trim(),
+                                                'type': `Stage${_active_step}`,
+                                            }
+                                        });
+                                    })
+
+
+                                    el.querySelector(".shop-btn").addEventListener("click", function() {
+                                        window.dataLayer?.push({
+                                            event: "ga4Event",
+                                            event_name: "Christmas_calendar_user_clicks",
+                                            event_parameters: {
+                                                "module": 'Unlock',
+                                                'button_name': el.querySelector(".shop-btn").textContent.trim(),
+                                                'position': el.querySelector(".success_title").textContent.trim(),
+                                                'type': `Stage${_active_step}`,
+                                            }
+                                        });
+                                    });
+                                }
+                            })
+                        }, 2000)
+                    }
+
+                    el.querySelectorAll(".trigger-btn").forEach(btn => {
+                        const newBtn = btn.cloneNode(true);
+                        btn.replaceWith(newBtn);
+
+                        newBtn.addEventListener("click", function () {
+                            el.querySelector(".form_sub_btn")?.click();
+                        });
+                    });
+                }
+            })
+        })
+    })
+</script>

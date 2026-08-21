@@ -1,0 +1,178 @@
+{{ 'section-index-blogs.min.css' | asset_url | stylesheet_tag }}
+
+<div class="index-blogs {% if section.settings.types == 'embed' %}embed-component{% endif %}" data-handle="{{ section.settings.handle }}" anchor="{{ section.settings.anchor | escape }}">
+    <div class="new-main-container">
+        <div class="blogs">
+            <div class="module-title flex justify-between font-medium">
+                <div class="title overflow-hidden"> <span class="jky-slideup inline-block">{{ section.settings.module_title | escape}}</span></div>
+                {%- if section.settings.button_text != blank -%}
+                    <a
+                        data-ga-event="home_page_featured_blogs4.0"
+                        data-ga-action="click"
+                        data-ga-params-module="{{ section.settings.module_title | escape }}"
+                        data-ga-params-button_name="{{ section.settings.button_text | escape}}"
+                        data-ga-params-link="{{section.settings.url }}"
+                        data-ga-params-type="Featured Blogs"
+                        class="pc-block" target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ section.settings.url }}">
+                        <button class="index-button !font-bold !text-primary">
+                            <span>{{ section.settings.button_text | escape}}</span>
+                            <div>
+                                <div class="arrow">
+                                    <svg class="line" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <g class="svg-arrow" transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                                <g transform="translate(672.000000, 286.000000)">
+                                                    <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                                </g>
+                                            </g>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
+                        </button>
+                    </a>
+                {%- endif -%}
+            </div>
+
+            {%- assign type = section.settings.type -%}
+            {% comment %} 博客分类 {% endcomment %}
+            {% assign articleList = "" | split: ',' %}
+            {% if type == 'standards' %}
+                {% assign blog = section.settings.blog %}
+                {% for item in blog.articles limit: 3 %}
+                     {% assign handle = item.handle | split: ',' %}
+                     {% assign articleList = articleList | concat: handle %}
+                {% endfor %}
+            {% else %}
+            {% comment %} 自定义博客 {% endcomment %}
+                {% for item in section.blocks %}
+                      {% assign handle = item.settings.article.handle | split: ',' %}
+                     {% assign articleList = articleList | concat: handle %}
+                {% endfor %}
+            {% endif %}
+            <div class="swiper blogs-swiper">
+                <div class="swiper-wrapper">
+                    {% for item in articleList %}
+                      {% assign articleObj = articles[item] %}
+                        <div class="swiper-slide">
+                            <a
+                                data-ga-event="home_page_featured_blogs4.0"
+                                data-ga-action="click"
+                                data-ga-params-module="{{ section.settings.module_title | escape }}"
+                                data-ga-params-position="{{articleObj.title}}"
+                                data-ga-params-link="{{ articleObj.url }}"
+                                data-ga-params-type="Featured Blogs"
+                                target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ articleObj.url }}">
+                                <div class="content overflow-hidden">
+                                    <div class="image relative overflow-hidden ">
+                                        {% render 'responsive-image', image: articleObj.image, width: 440, mwidth: 300, image_class: "object-cover w-full h-full" %}
+                                    </div>
+                                    <div class="info flex flex-col justify-between">
+                                        <div>
+                                          <div class="category ellipsis font-semibold">
+                                              {% for tag in articleObj.tags %}
+                                                {{ tag }}  {% if forloop.last != true %}| {% endif %}
+                                              {% endfor %}
+                                          </div>
+                                          <div class="title line-clamp-2 font-medium">{{articleObj.title}}</div>
+                                        </div>
+                                        <div class="date ellipsis font-medium">{{ articleObj.published_at | time_tag: format: 'date' }}</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+
+                </div>
+                <div class="mb-pagination blogs-pagination flex"></div>
+            </div>
+            {%- if section.settings.button_text != blank -%}
+                <div class="view-more flex items-center justify-center mt-8 pr-6">
+                    <a
+                        data-ga-event="home_page_featured_blogs4.0"
+                        data-ga-action="click"
+                        data-ga-params-module="{{ section.settings.module_title | escape }}"
+                        data-ga-params-button_name="{{ section.settings.button_text | escape}}"
+                        data-ga-params-link="{{section.settings.url }}"
+                        data-ga-params-type="Featured Blogs"
+                        class="mobile-block" target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ section.settings.url }}">
+                        <button class="index-button !font-bold !text-primary">
+                            <span>{{ section.settings.button_text | escape}}</span>
+                        </button>
+                    </a>
+                </div>
+            {%- endif -%}
+        </div>
+    </div>
+</div>
+
+<script src="{{ 'section-index-blogs.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "首页-博客推荐",
+
+        "settings": [
+          {
+            "type": "select",
+            "id": "types",
+            "label": "类型",
+            "default": "independent",
+            "options": [
+              {
+                "value": "embed",
+                "label": "内嵌使用"
+              },
+              {
+                "value": "independent",
+                "label": "独立使用"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "id": "handle",
+            "label": "Handle（当前页面唯一的handle）",
+            "default": "embed-component-01"
+          },
+          { "type": "text", "id": "anchor", "label": "二级标题定位锚点", "info": "搭配二级导航锚点定位未使用到定位则不配置" },
+            { "type": "text", "id": "module_title", "label": "模块标题(必填)" },
+            { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+            { "type": "text", "id": "button_text", "label": "按钮文案" },
+            { "type": "url", "id": "url", "label": "跳转地址" },
+            { "type": "header", "content": "类型说明", "info": "如果选择博客分类，则只需要配置一个博客分类即可；若选择自定义博客，则需要配置三个自定义博客"},
+            {  "type": "select", "label": "类型", "id": "type",
+                "options": [
+                  { "value": "standards", "label": "博客分类" },
+                  { "value": "customizes", "label": "自定义博客"}
+                ]
+            },
+            { "type": "blog", "id": "blog", "label": "博客分类"}
+        ],
+        "blocks": [
+            {
+                "type": "block",
+                "name": "自定义博客",
+                "limit": 3,
+                "settings": [
+                    { "type": "article", "id": "article", "label": "博客" }
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "首页-博客推荐",
+                "settings": {
+                    "module_title": "Featured Blogs",
+                    "new_window": false,
+                    "button_text": "View More BLOGS"
+                },
+                "blocks": [
+                    {
+                        "type": "block"
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

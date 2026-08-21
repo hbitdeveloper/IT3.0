@@ -1,0 +1,527 @@
+{% comment %}
+  V5-滚动产品特性
+  1. 当前仅用于商详页，后续考虑放开，故需要判断pdp
+  2. 移动端使用的整张图片
+  3. 当前默认图片地址在demo店铺-内容-文件中，待确认后迁移到美站
+
+  PC端
+    1. header:4.1666667vw 最大60px
+    2. 产品二级导航:66px
+    3. 吸底购物车：3.75rem
+  移动端：
+    1. header: 3.125rem
+    2. 产品二级导航: 12.8vw
+    3. 吸底购物车: 26.6666vw - 高度随内容动态变化
+{% endcomment %}
+{% style %}
+  /* 定义关键帧动画 */
+  @keyframes v5LineStretch {
+    0% {
+      height: 0;
+    }
+    100% {
+      height: 100%;
+    }
+  }
+  @keyframes v5LineLeaveStretch {
+    0% {
+      height: 100%;
+    }
+    100% {
+      height: 0;
+    }
+  }
+  @media screen and (min-width: 1024px) {
+    .v5-scroll-product-features .page-content.active .line {
+      box-shadow: 0px 0px 12px 0.5px color-mix(in srgb, var(--jds-color-primary), transparent 70%);
+    }
+    .v5-scroll-product-features .first-page-content.active .line {
+      animation: v5LineStretch 0.6s ease-in-out forwards;
+    }
+  }
+
+  @media screen and (max-width: 1023.98px) {
+    .v5-scroll-product-features .page-content.mb-active .line-container .line {
+      animation: v5LineStretch 0.6s ease-in-out forwards;
+      box-shadow: 0px 0px 12px 0.5px color-mix(in srgb, var(--jds-color-primary), transparent 70%);
+    }
+    .v5-scroll-product-features .page-content.mb-active-leave .line-container{
+      align-items: flex-end;
+      bottom:0;
+    }
+    .v5-scroll-product-features .page-content.mb-active-leave .line-container .line {
+      animation: v5LineLeaveStretch 0.6s ease-in-out forwards;
+    }
+
+    .v5-scroll-product-features .page-content .blocks-content-des {
+      max-height: 0;
+      padding-top: 0;
+      overflow: hidden;
+      visibility: hidden;
+    }
+    .v5-scroll-product-features .page-content.show .blocks-content-des {
+      max-height: 500px;
+      padding-top: 1rem;
+      visibility: visible;
+      transition: visibility 0.6s ease-in-out, max-height 0.6s ease-in-out, padding-top 0.1s ease-in-out;
+    }
+
+    .v5-scroll-product-features .blocks-content-des.jds-rte p {
+      font-size: var(--jds-font-size-24);
+    }
+  }
+{% endstyle %}
+
+{%- liquid
+  assign wrapper_class = 'v5-scroll-product-features [&_.blocks-content-subheading]:hidden [&_.blocks-content-subheading]:lg:block relative w-full h-auto pt-[4rem] mb-[2rem] lg:pt-0 lg:mb-0 lg:h-[37.5rem] lg:overflow-hidden'
+
+  assign pc_bg_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-bg-pc.png?v=1762755892'
+  if block.settings.pc_bg_img != blank
+    assign pc_bg_img = block.settings.pc_bg_img | image_url: width: 1440
+  endif
+
+  assign pc_product_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-product-pc.png?v=1762755894'
+  if block.settings.pc_product_img != blank
+    assign pc_product_img = block.settings.pc_product_img | image_url: width: 1440
+  endif
+
+  assign pc_battery_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-battery-pc.png?v=1762760336'
+  if block.settings.pc_battery_img != blank
+    assign pc_battery_img = block.settings.pc_battery_img | image_url: width: 200
+  endif
+
+  assign mb_product_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-product-mb.png?v=1762769105'
+  if block.settings.mb_product_img != blank
+    assign mb_product_img = block.settings.mb_product_img | image_url: width: 311
+  endif
+%}
+
+<div
+  id="v5ScrollProductFeatures"
+  class="{{ wrapper_class }}"
+  {{ block.shopify_attributes }}
+  {% if block.settings.anchor != blank %}
+    anchor-target="{{block.settings.anchor | escape}}"
+  {% endif %}
+  data-more-compatible-components="{{ block.settings.more_compatible_components | escape }}"
+  data-single-compatible-components="{{ block.settings.single_compatible_components | escape }}"
+>
+  {%- if block.settings.pc_bg_img == blank -%}
+    <picture class="bg-img hidden lg:block lg:absolute lg:bottom-0 lg:left-0 lg:z-0 lg:w-full lg:h-auto lg:object-cover">
+      <source
+        srcset="{{ pc_bg_img }}"
+        media="(min-width: 1024px)"
+      >
+      <img
+        class="w-full h-auto"
+        src=""
+        width="1440"
+        height="600"
+        loading="lazy"
+        alt="Product Features Scroll Background Image"
+      >
+    </picture>
+  {%- else -%}
+    {%- 
+      render 'responsive-image', 
+      image: block.settings.pc_bg_img, 
+      width: 1440, 
+      image_class: "w-full h-auto",
+      picture_class: "bg-img hidden lg:block lg:absolute lg:bottom-0 lg:left-0 lg:z-0 lg:w-full lg:h-auto lg:object-cover"
+    -%}
+  {%- endif -%}
+
+  {%- if block.settings.pc_product_img == blank -%}
+    <picture class="pc-product-img hidden lg:block lg:absolute lg:bottom-0 lg:left-0 lg:z-10 w-full h-full lg:object-cover">
+      <source
+        srcset="{{ pc_product_img }}"
+        media="(min-width: 1024px)"
+      >
+      <img
+        class="block w-auto h-full m-auto"
+        src=""
+        width="1440"
+        height="600"
+        loading="lazy"
+        alt="{{ block.settings.pc_product_img.alt | default: 'Product Image' }}"
+      >
+    </picture>
+  {%- else -%}
+    {%- 
+      render 'responsive-image', 
+      image: block.settings.pc_product_img, 
+      width: 1440, 
+      image_class: "block w-auto h-full m-auto",
+      picture_class: "pc-product-img hidden lg:block lg:absolute lg:bottom-0 lg:left-0 lg:z-10 w-full h-full lg:object-cover"
+    -%}
+  {%- endif -%}
+
+  <i class="all-line w-[0.125rem] bg-[#C3C3BE] absolute top-0 left-[1rem] lg:left-[50%] lg:translate-x-[-50%] bottom-0 -z-10"></i>
+  <div class="info-box relative ml-[1rem] lg:ml-0 lg:absolute lg:top-[8.125rem] lg:left-[50%] lg:right-0 lg:bottom-0 lg:z-20">
+    <div class="first-page-content relative pl-[1.5rem] w-full pr-[1.4375rem] lg:absolute lg:top-0 lg:left-0 lg:pr-0 lg:w-[40.25rem]">
+      <div class="line-container hidden lg:flex items-center justify-start lg:justify-center w-[0.125rem] bg-[#C3C3BE] absolute top-0 -left-[0.0625rem] bottom-0 z-10">
+        <i class="line w-[0.125rem] h-0 bg-[var(--jds-color-primary)]"></i>
+      </div>
+      {% content_for 'block', type: '_v-heading-content-heading', id: 'firstPageTitle' %}
+      <picture class="mb-product-img block lg:hidden mb-[2.5rem] w-[19.4375rem] h-[12.6875rem]">
+        <source
+          srcset="{{ mb_product_img }}"
+          media="(max-width: 1023.98px)"
+        >
+        <img
+          class="block w-auto h-auto m-auto"
+          src=""
+          width="311"
+          height="203"
+          loading="lazy"
+          alt="{{ block.settings.mb_product_img.alt | default: 'Product Image' }}"
+        >
+      </picture>
+    </div>
+    <div class="lg:opacity-0 page-content second-page-content show relative pl-[1.5rem] w-full pr-[1.4375rem] lg:absolute lg:top-[37.5rem] lg:left-0 lg:pr-0 lg:w-[40.25rem]" data-index="1">
+      <i
+        class="item-line hidden lg:block w-[0.125rem] bg-[var(--jds-color-primary)] absolute top-0 -left-[0.0625rem] bottom-[2.5rem] lg:bottom-0 z-10"
+      ></i>
+      <div class="line-container flex lg:hidden items-start justify-center w-[0.125rem] bg-[#C3C3BE] absolute top-0 left-0 bottom-[2.5rem] z-10">
+        <i class="line w-[0.125rem] h-0 bg-[var(--jds-color-primary)]"></i>
+      </div>
+      {% content_for 'block', type: 'v-heading-content', id: 'secondPageContent' %}
+    </div>
+    <div class="lg:opacity-0 third-page-content page-content flex lg:justify-start lg:gap-[24px] relative pl-[1.5rem] w-full pr-[1.4375rem] lg:absolute lg:top-[37.5rem] lg:left-0 lg:pr-0 lg:w-[40.25rem]" data-index="2">
+      <i
+        class="item-line hidden lg:block w-[0.125rem] bg-[var(--jds-color-primary)] absolute top-0 -left-[0.0625rem] bottom-[2.5rem] lg:bottom-0 z-10"
+      ></i>
+      <div class="line-container flex lg:hidden items-start justify-center w-[0.125rem] bg-[#C3C3BE] absolute top-0 left-0 bottom-[2.5rem] z-10">
+        <i class="line w-[0.125rem] h-0 bg-[var(--jds-color-primary)]"></i>
+      </div>
+      <picture class="battery-img hidden lg:block">
+        <source
+          srcset="{{ pc_battery_img }}"
+          media="(min-width: 1024px)"
+        >
+        <img
+          class="block w-auto h-full m-auto"
+          src=""
+          width="200"
+          height="212"
+          loading="lazy"
+          alt="{{ block.settings.pc_battery_img.alt | default: 'Battery Image' }}"
+        >
+      </picture>
+      {% content_for 'block', type: 'v-heading-content', id: 'thirdPageContent' %}
+    </div>
+    <div class="lg:opacity-0 page-content fourth-page-content relative pl-[1.5rem] w-full pr-[1.4375rem] lg:absolute lg:top-[37.5rem] lg:left-0 lg:pr-0 lg:w-[40.25rem]" data-index="3">
+      <i class="item-line hidden lg:block w-[0.125rem] bg-[var(--jds-color-primary)] absolute top-0 -left-[0.0625rem] bottom-0 z-10"></i>
+      <div class="line-container flex lg:hidden items-start justify-center w-[0.125rem] bg-[#C3C3BE] absolute top-0 left-0 bottom-0 z-10">
+        <i class="line w-[0.125rem] h-0 bg-[var(--jds-color-primary)]"></i>
+      </div>
+      {% content_for 'block', type: 'v-heading-content', id: 'fourthPageContent' %}
+    </div>
+  </div>
+</div>
+<script src="{{ 'gsap.js' | asset_url }}" defer></script>
+<script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+<script src="{{ 'block-v5-scroll-pf.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-滚动产品特性",
+  "class": "block-v5-scroll-pf",
+  "settings": [
+    {
+      "type": "header",
+      "content": "基础配置"
+    },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "header",
+      "content": "基础图片配置"
+    },
+    {
+      "type": "image_picker",
+      "id": "pc_bg_img",
+      "label": "PC端背景图",
+      "info": "建议尺寸: 1440x600px"
+    },
+    {
+      "type": "image_picker",
+      "id": "pc_product_img",
+      "label": "PC端产品图",
+      "info": "建议尺寸: 1440x600px"
+    },
+    {
+      "type": "image_picker",
+      "id": "pc_battery_img",
+      "label": "PC端电池图",
+      "info": "建议尺寸: 200x212px"
+    },
+    {
+      "type": "image_picker",
+      "id": "mb_product_img",
+      "label": "移动端产品图",
+      "info": "建议尺寸: 311x203px"
+    },
+    {
+      "type": "header",
+      "content": "监听关联组件适配配置（面向开发）"
+    },
+    {
+      "type": "textarea",
+      "id": "more_compatible_components",
+      "label": "需要持续监听的关联组件类名/ID 或 自定义DOM元素标签",
+      "info": "多个组件请用英文逗号隔开，示例：.v5-pdp-variant-compare,#v5PdpComparison"
+    },
+    {
+      "type": "textarea",
+      "id": "single_compatible_components",
+      "label": "只监听一次的关联组件类名/ID 或 自定义DOM元素标签",
+      "info": "多个组件请用英文逗号隔开，示例：.v5-pdp-variant-compare,#v5PdpComparison,jky-media-swiper"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-滚动产品特性",
+      "category": "V5.0",
+      "settings": {
+        "anchor": "v5ScrollProductFeatures"
+      },
+      "blocks": [
+        {
+          "type": "_v-heading-content-heading",
+          "id": "firstPageTitle",
+          "static": true,
+          "settings": {
+            "heading": "<p><em>CERTIFIED SAFE.</em></p><p>TRUSTED POWER.</p>",
+            "mb_heading": "<p><em>CERTIFIED SAFE.</em></p><p>TRUSTED POWER.</p>",
+            "padding_top": 4,
+            "padding_bottom": 4,
+            "mb_padding_type": "custom",
+            "padding_bottom_mb": 40,
+            "alignment": "left",
+            "alignment_mb": "left",
+            "text_color": "#333333",
+            "active_color": "#fd5000",
+            "font_family": "v5-font-oxm",
+            "heading_size": "heading_1",
+            "font_weight": "font-extrabold"
+          }
+        },
+        {
+          "type": "v-heading-content",
+          "id": "secondPageContent",
+          "static": true,
+          "settings": {
+            "page_width": "w-full",
+            "content_width": "content_full",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "mb_padding_type": "custom",
+            "padding_bottom_mb": 80,
+            "radius_3": 0,
+            "radius_4": 0
+          },
+          "blocks": [
+            {
+              "type": "_v-heading-content-subheading",
+              "settings": {
+                "heading": "<p>ChargeShield™ 2.0</p>",
+                "mb_heading": "",
+                "padding_top": 0,
+                "padding_bottom": 32,
+                "mb_padding_type": "custom",
+                "padding_bottom_mb": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#333333",
+                "active_color": "#fd5000",
+                "heading_size": "heading_5"
+              }
+            },
+            {
+              "type": "_v-heading-content-heading",
+              "settings": {
+                "heading": "<p><em>The Safest Power Yet </em></p>",
+                "mb_heading": "<p>The Safest Power Yet —ChargeShield™ 2.0</p>",
+                "padding_top": 0,
+                "padding_bottom": 32,
+                "mb_padding_type": "custom",
+                "padding_bottom_mb": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#333333",
+                "active_color": "#fd5000",
+                "heading_size": "heading_2",
+                "font_weight": "font-semibold",
+                "mb_content_type": "custom",
+                "mb_heading_size": "heading_4",
+              }
+            },
+            {
+              "type": "_v-heading-content-des",
+              "settings": {
+                "heading": "<p>Engineered with ceramic battery cells tested up to 302 °F and strong performance down to -4 °F, Jackery stays safe in any climate. </p><p>Surge protection up to 2000 V and UL-certified fire safeguards keep your home protected. </p>",
+                "mb_heading": "<p>Engineered with ceramic battery cells tested up to 302 °F and strong performance down to -4 °F, Jackery stays safe in any climate. </p><p>Surge protection up to 2000 V and UL-certified fire safeguards keep your home protected. </p>",
+                "show_italic": false,
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "mb_padding_type": "custom",
+                "padding_top_mb": 32,
+                "padding_bottom_mb": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#333333",
+                "active_color": "#fd5000",
+                "heading_size": "text_b2",
+                "font_weight": "jky-font-default"
+              }
+            }
+          ]
+        },
+        {
+          "type": "v-heading-content",
+          "id": "thirdPageContent",
+          "static": true,
+          "settings": {
+            "page_width": "w-full",
+            "content_width": "content_full",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "mb_padding_type": "custom",
+            "padding_top_mb": 0,
+            "padding_bottom_mb": 80,
+            "radius_3": 0,
+            "radius_4": 0
+          },
+          "blocks": [
+            {
+              "type": "_v-heading-content-subheading",
+              "settings": {
+                "heading": "<p>Last for More Than 10+ Years</p>",
+                "padding_top": 0,
+                "padding_bottom": 32,
+                "mb_padding_type": "custom",
+                "padding_top_mb": 0,
+                "padding_bottom_mb": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#333333",
+                "active_color": "#fd5000",
+                "heading_size": "heading_4",
+                "font_weight": "jky-font-default"
+              }
+            },
+            {
+              "type": "_v-heading-content-heading",
+              "settings": {
+                "heading": "<p><em>6000+</em></p>",
+                "mb_heading": "<p>Last for More Than 10+ Years</p>",
+                "padding_top": 0,
+                "padding_bottom": 32,
+                "mb_padding_type": "custom",
+                "padding_top_mb": 0,
+                "padding_bottom_mb": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#333333",
+                "active_color": "#fd5000",
+                "heading_size": "heading_2",
+                "font_weight": "font-semibold",
+                "mb_content_type": "custom",
+                "mb_heading_size": "heading_4",
+              }
+            },
+            {
+              "type": "_v-heading-content-des",
+              "settings": {
+                "heading": "<p>Cycles with ≥70% capacity retention. Way Above Industry Standard.</p>",
+                "mb_heading": "<p>6000+ cycles with ≥70% capacity retention. Way Above Industry Standard.</p>",
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "mb_padding_type": "custom",
+                "padding_top_mb": 32,
+                "padding_bottom_mb": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#333333",
+                "active_color": "#fd5000",
+                "heading_size": "text_b1",
+                "font_weight": "jky-font-default"
+              }
+            }
+          ]
+        },
+        {
+          "type": "v-heading-content",
+          "id": "fourthPageContent",
+          "static": true,
+          "settings": {
+            "page_width": "w-full",
+            "content_width": "content_full",
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "mb_padding_type": "default",
+            "padding_top_mb": 0,
+            "padding_bottom_mb": 0,
+            "radius_3": 0,
+            "radius_4": 0
+          },
+          "blocks": [
+            {
+              "type": "_v-heading-content-heading",
+              "settings": {
+                "heading": "<p><em>5-Year Warranty</em></p>",
+                "mb_heading": "<p>5-Year Warranty</p>",
+                "padding_top": 0,
+                "padding_bottom": 32,
+                "padding_left": 0,
+                "padding_right": 0,
+                "mb_padding_type": "custom",
+                "padding_top_mb": 0,
+                "padding_bottom_mb": 0,
+                "padding_left_mb": 0,
+                "padding_right_mb": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#333333",
+                "active_color": "#fd5000",
+                "font_family": "",
+                "heading_size": "heading_2",
+                "font_weight": "font-semibold",
+                "mb_content_type": "custom",
+                "mb_heading_size": "heading_4",
+              }
+            },
+            {
+              "type": "_v-heading-content-des",
+              "settings": {
+                "heading": "<p>You’ll receive a full 5-year warranty, available exclusively when you buy directly from Jackery.com.</p>",
+                "mb_heading": "<p>You’ll receive a full 5-year warranty, available exclusively when you buy directly from Jackery.com.</p>",
+                "show_italic": false,
+                "padding_top": 0,
+                "padding_bottom": 4,
+                "padding_left": 0,
+                "padding_right": 0,
+                "mb_padding_type": "custom",
+                "padding_top_mb": 0,
+                "padding_bottom_mb": 0,
+                "padding_left_mb": 0,
+                "padding_right_mb": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#333333",
+                "active_color": "#fd5000",
+                "heading_size": "text_b1",
+                "font_weight": "jky-font-default"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

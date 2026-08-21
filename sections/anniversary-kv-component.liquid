@@ -1,0 +1,89 @@
+{% comment %} 11周年首屏KV组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Anniversary KV Component",
+  "tag": "section",
+  "class": "anniversary-kv-component",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enablePCScrollingEffect",
+      "default": false,
+      "label": "Enable PC side scrolling effect"
+    },
+    {
+      "type": "image_picker",
+      "id": "pcKVImg",
+      "label": "KV Image (PC)"
+    },
+    {
+      "type": "image_picker",
+      "id": "mbKVImg",
+      "label": "KV Image (Mobile)"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle"
+    },
+    {
+      "type": "image_picker",
+      "id": "credentialImg",
+      "label": "Credential Image"
+    }
+  ]
+}
+{% endschema %}
+<div class="anniversary-kv-box{% if section.settings.enablePCScrollingEffect %} has-effect {% else %} non-effect{% endif %}" data-enable-effect="{{ section.settings.enablePCScrollingEffect}}">
+	{% if section.settings.enablePCScrollingEffect %}
+		{% comment %} 首屏动效图片列表 Start {% endcomment %}
+		<picture class="effect-img">
+			<source media="(min-width:1024px)" srcset="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/kv-sky.jpg?v=1698056536">
+			<img class="kv-img kv-sky" />
+		</picture>
+		<picture class="effect-img">
+			<source media="(min-width:1024px)" srcset="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/kv-ground.png?v=1698056537">
+			<img class="kv-img kv-ground" />
+		</picture>
+		<picture>
+			{% assign kvImgAlt = section.settings.mbKVImg.alt %}
+			{% if section.settings.pcKVImg.alt != blank %}
+				{% assign kvImgAlt = section.settings.pcKVImg.alt %}
+			{% endif %}
+			<source media="(min-width:1024px)" srcset="{{ section.settings.pcKVImg | image_url: width: 1920 }}">
+			<img class="bg-img kv-img kv-text" src="{{ section.settings.mbKVImg | image_url: width: 750 }}" alt="{{ kvImgAlt }}" />
+		</picture>
+		<picture class="effect-img">
+			<source media="(min-width:1024px)" srcset="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/kv-people.png?v=1698056537">
+			<img class="kv-img kv-people" />
+		</picture>
+		{% comment %} 首屏动效图片列表 End {% endcomment %}
+	{% else %}
+		{% render 'responsive-image',
+				image: section.settings.pcKVImg,
+				mimage: section.settings.mbKVImg,
+				image_class: 'bg-img'
+		%}
+		{% if section.settings.title != blank or section.settings.subtitle != blank %}
+			<div class="box-content">
+				{% if section.settings.title != blank %}
+					<h2 class="title">{{ section.settings.title }}</h2>
+				{% endif %}
+				{% if section.settings.subtitle != blank %}
+					<h3 class="subtitle">{{ section.settings.subtitle }}</h3>
+				{% endif %}
+			</div>
+		{% endif %}
+	{% endif %}
+
+	{% if section.settings.credentialImg %}
+		<div class="credential-box">
+			<img class="credential-img" src="{{ section.settings.credentialImg | image_url: width: 320 }}" alt="{{ section.settings.credentialImg.alt }}" loading="lazy">
+		</div>
+	{% endif %}
+</div>

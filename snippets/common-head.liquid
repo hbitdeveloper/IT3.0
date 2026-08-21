@@ -1,0 +1,52 @@
+{%- doc -%}
+  公共head代码
+{%- enddoc -%}
+
+{% comment %} 特定页面识别并重定向 {% endcomment %}
+{% render 'url-redirect' %}
+
+{% comment %} 页面meta标签 {% endcomment %}
+{% render 'head-meta-tags' %}
+
+<link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+<link rel="canonical" href="{{ canonical_url }}">
+
+{% comment %} 预加载关键资源 {% endcomment %}
+{% render 'v5-preload-critical-assets' %}
+
+{% comment %} 自定义favicon {% endcomment %}
+{%- if settings.favicon != blank -%}
+  <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+{%- endif -%}
+
+{% comment %} 页面的本地化版本 {% endcomment %}
+{% render 'head-hreflang' %}
+
+{% comment %} Head样式 {% endcomment %}
+{% render 'v5-head-styles' %}
+
+{% comment %} module.json生成的 对应页面模板 样式文件 {% endcomment %}
+{% render 'style-tags' %}
+
+{% comment %} 全局JS变量 {% endcomment %}
+{% render 'head-global-js-variables' %}
+
+{% comment %} 公共JS文件 {% endcomment %}
+<script src="{{ 'global-core.js' | asset_url }}" data-cookieconsent="ignore"></script>
+<script src="{{ 'global-deferred.js' | asset_url }}" defer data-cookieconsent="ignore"></script>
+
+{% comment %} jquery {% endcomment %}
+{% assign need_jquery =
+"page.legal-person,page.olight,page.userGuide,page.solar-mars-bot,page.welcome,page.events,page.story,blog,page.affiliate,page.indoor,page.outdoor,page.specialCrowd,page.specialCrowd-1,page.specialCrowd-2,page.student-discount,page.refer-old-friend,page.plus-series-event,page.product-presale-page,page.anniversary,page.disaster-prevent-day,page.benefits-collection,page.earth-day,page.oil-engine,page.where-to-buy,page.MEC2024,page.ces2024"
+| split: "," %}
+{% if need_jquery contains template %}
+  <script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+{% endif %}
+
+<script src="{{ 'swiper-8.4.7.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+
+{% comment %} 立即使用的全局自定义组件 {% endcomment %}
+<script src="{{ 'global.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+
+{% comment %} GTM 管理 {% endcomment %}
+{% render 'ga-manger', shown_place: 'head' %}

@@ -1,0 +1,770 @@
+{%- liquid
+  assign sort_by = search.sort_by | default: search.default_sort_by
+  assign terms = search.terms | escape
+  assign search_url = '?q=' | append: terms | append: '&options%5Bprefix%5D=last&sort_by=' | append: sort_by
+
+  assign search_check_pii_enable = settings.search_check_pii_enable | default: false
+  assign search_pii_sensitive_info = settings.search_pii_sensitive_info | default: 'Sensitive information detected. Please search using product names or keywords.'
+-%}
+
+<style>
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  .search-banner img {
+    width: 100%;
+  }
+  .search-banner .section-container {
+    left: 50%;
+    top: 4.16vw;
+    transform: translateX(-50%);
+    text-align: right;
+    color: #fff;
+  }
+  .template-search .field{
+    display: flex;
+  }
+
+  .template-search .search__button, search-suggest .search__button {
+    background: var(--primary-color);
+    position: relative;
+    top: 0;
+    bottom: 0;
+    width: 150px;
+    right: 0;
+    color: #fff;
+    transform: translateY(0);
+    left: unset;
+  }
+
+  .template-search .search__input {
+    padding: 12px 2px 12px 28px;
+  }
+  .template-search .recommend-search-list{
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background-color: #fff;
+    padding-bottom: 20px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 1px 2px #ccc;
+  }
+  .template-search .field.show-recommend {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .template-search .recommend-search-list .predictive-search__heading{
+    width: calc(100% - 64px);
+  }
+  .template-search .recommend-search-list .predictive-search__results-list{
+    max-height: 450px;
+    overflow-y: auto;
+  }
+  .template-search .recommend-search-list .predictive-search__item{
+    padding: 14px 32px;
+  }
+  .template-search .recommend-search-list .predictive-search__item span{
+    height: fit-content;
+  }
+  .template-search .recommend-search-list a{
+    font-size: 14px;
+    color: #333;
+  }
+  .template-search .v5-pii-warning {
+    font-size: 14px;
+    line-height: 18px;
+    color: #f72626;
+    text-align: left;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  @media screen and (max-width: 750px) {
+    .search-banner .section-container {
+      top: 45px;
+      text-align: center;
+    }
+
+    .template-search .search__button, search-suggest .search__button {
+      width: auto;
+      padding: 0 18px;
+    }
+    .template-search .recommend-search-list .predictive-search__results-list{
+      max-height: 225px;
+    }
+  }
+</style>
+<div class="template-search{% unless search.performed and search.results_count > 0 %} template-search--empty{% endunless %}">
+  <div class="search-banner relative">
+    {% render 'responsive-image' with image: section.settings.banner_image, image_class: "search-banner-img", mimage: section.settings.m_banner_image, fcp: true %}
+
+    <div class="section-container absolute">
+      <h2 class="jky-text-3xl font-bold">{{section.settings.banner_title | escape}}</h2>
+    </div>
+  </div>
+
+  <div class="template-search__header page-width center">
+    <div class="template-search__search">
+      {%- if settings.predictive_search_enabled -%}
+        <predictive-search data-loading-text="{{ 'accessibility.loading' | t }}">
+      {%- endif -%}
+        <form action="{{ routes.search_url }}" method="get" role="search" class="search relative">
+          <div class="field">
+            <input
+              class="search__input field__input"
+              id="Search-In-Template"
+              type="search"
+              name="q"
+              value="{{ search.terms | escape }}"
+              placeholder="{{ 'general.search.search' | t }}"
+              {%- if settings.predictive_search_enabled -%}
+                role="combobox"
+                aria-expanded="false"
+                aria-owns="predictive-search-results-list"
+                aria-controls="predictive-search-results-list"
+                aria-haspopup="listbox"
+                aria-autocomplete="list"
+                autocorrect="off"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+              {%- endif -%}
+            >
+            <input id="params_first" name="options[prefix]" type="hidden" value="last">
+            <input id="params_second" name="type" type="hidden" value="product">
+
+            {%- if settings.predictive_search_enabled -%}
+              <div class="predictive-search predictive-search--search-template" tabindex="-1" data-predictive-search>
+                <div class="predictive-search__loading-state">
+                  <svg aria-hidden="true" focusable="false" role="presentation" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+                  </svg>
+                </div>
+              </div>
+
+              <span class="predictive-search-status visually-hidden" role="status" aria-hidden="true"></span>
+            {%- endif -%}
+
+            <button type="submit" class="search__button field__button jky-text-base font-bold !break-keep" aria-label="{{ 'general.search.search' | t }}">
+              {{ 'general.action_text.search_button_text' | t }}
+            </button>
+          </div>
+
+          <div class="v5-pii-warning" role="alert"></div>
+
+          {% comment %} 全局推荐搜索词列表 {% endcomment %}
+          {% if settings.predictive_search_enable_recommend %}
+            <div class="recommend-search-list"></div>
+          {% endif %}
+        </form>
+      {%- if settings.predictive_search_enabled -%}
+        </predictive-search>
+      {%- endif -%}
+    </div>
+  </div>
+
+  <div class="search-category-main flex justify-center items-center" dd="{{search.performed}}">
+    <li class="search-category-item jky-text-lg font-300 underlines-btn active" data-cate="product">{{'templates.search.type_product' | t}}</li>
+    <li class="search-category-item jky-text-lg font-300 underlines-btn" data-cate="support">{{'templates.search.type_support' | t}}</li>
+    <li class="search-category-item jky-text-lg font-300 underlines-btn" data-cate="article">{{'templates.search.type_explore' | t}}</li>
+  </div>
+
+  {%- if search.performed -%}
+    {%- if search.results_count > 0 -%}
+      <h2 role="status" class="section-container jky-text-xl resault_counts">{{ 'templates.search.results_with_count_and_term' | t: terms: search.terms, count: search.results_count }}</h2>
+    {%- endif -%}
+    {%- if search.results_count == 0 or terms == blank -%}
+      <h2
+        role="status" cc="{{search.results_count}}"
+        class="section-container jky-text-2xl text-center">{{ 'templates.search.noresults' | t }}</h2>
+
+        <div class="resaults_empty text-center">
+          <img class="object-cover"
+            src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/IP.png?v=1675326479"
+            alt="{{ 'templates.search.no_results' | t: terms: search.terms }}"
+            loading="lazy"
+          >
+          <p class="font-bold jky-text-xl">{{'templates.search.try_again_tips' | t}}</p>
+        </div>
+    {%- endif -%}
+
+    <div id="page-search-container" {% if section.settings.filter_type == 'vertical' %} class="facets-vertical page-width"{% endif %}>
+      {%- if search.filters != empty -%}
+        {%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
+          <aside aria-labelledby="verticalTitle" class="facets-wrapper{% unless section.settings.enable_filtering %} facets-wrapper--no-filters{% endunless %}{% if section.settings.filter_type != 'vertical' %} page-width{% endif %}" id="main-search-filters" data-id="{{ section.id }}">
+          </aside>
+        {%- endif -%}
+      {%- endif -%}
+      <div class="product-grid-container section-container" id="ProductGridContainer">
+        {%- if search.results.size == 0 and search.filters != empty -%}
+          <div class="template-search__results collection collection--empty{% if section.settings.filter_type != 'vertical' %} page-width{% endif %}" id="product-grid" data-id="{{ section.id }}">
+            <div class="loading-overlay gradient"></div>
+            <div class="title-wrapper center">
+              <h2 class="title title--primary">
+                {{ 'sections.collection_template.empty' | t }}<br>
+                {{ 'sections.collection_template.use_fewer_filters_html' | t: link: search_url, class: "underlined-link link" }}
+              </h2>
+            </div>
+          </div>
+        {%- else -%}
+
+          {% paginate search.results by 9 %}
+            <div class="template-search__results collection{% if section.settings.filter_type != 'vertical' %} page-width{% endif %}" id="product-grid" data-id="{{ section.id }}">
+              <div class="loading-overlay gradient"></div>
+
+                {% comment %} {%- for item in search.results -%}
+                  {% if forloop.index0 == 0 %}
+                      {%- case item.object_type -%}
+                        {%- when 'article' -%}
+                          {% render 'article-card',
+                            article: item,
+                            main: true,
+                            lazy_load: false
+                          %}
+                      {%- endcase -%}
+                  {% endif %}
+                {%- endfor -%} {% endcomment %}
+              <ul class="search-grid" data="{{paginate.pages}}-{{search.results.size}}">
+                {%- for item in search.results -%}
+                    {% assign lazy_load = false %}
+                    {%- if forloop.index > 2 -%}
+                      {%- assign lazy_load = true -%}
+                    {%- endif -%}
+
+                      {%- case item.object_type -%}
+                        {%- when 'product' -%}
+                          {%- capture product_settings -%}{%- if section.settings.product_show_vendor -%}vendor,{%- endif -%}title,price{%- endcapture -%}
+                          {% render 'card-product',
+                            card_product: item,
+                            media_aspect_ratio: section.settings.image_ratio,
+                            show_secondary_image: section.settings.show_secondary_image,
+                            show_vendor: section.settings.show_vendor,
+                            show_rating: section.settings.show_rating,
+                            lazy_load: lazy_load
+                          %}
+                        {%- when 'article' -%}
+                            {% render 'article-card',
+                              article: item,
+                              main: false,
+                              lazy_load: lazy_load
+                            %}
+                        {%- when 'page' -%}
+                          <div class="article-card-wrapper card-wrapper underline-links-hover">
+                            <div class="card card--card card--text ratio color-{{ settings.blog_card_color_scheme }}" style="--ratio-percent: 100%;">
+                              <div class="card__content">
+                                <div class="card__information">
+                                  <h3 class="card__heading">
+                                    <a href="{{ item.url }}" class="full-unstyled-link">
+                                      {{ item.title | truncate: 50 | escape }}
+                                    </a>
+                                  </h3>
+                                </div>
+                                <div class="card__badge {{ settings.badge_position }}">
+                                  <span class="badge color-background-1">{{ 'templates.search.page' | t }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                      {%- endcase -%}
+
+                {%- endfor -%}
+              </ul>
+              {%- if paginate.pages > 0 -%}
+                {% render 'pagination', paginate: paginate %}
+              {%- endif -%}
+            </div>
+          {% endpaginate %}
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {%- unless search.performed and terms -%}
+      <h2
+        role="status" cc="{{search.results_count}}"
+        class="section-container h2 text-center">{{ 'templates.search.no_results' | t: terms: search.terms }}</h2>
+
+        <div class="resaults_empty text-center">
+          <img class="object-cover"
+            src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/IP.png?v=1675326479"
+            alt="{{ 'templates.search.no_results' | t: terms: search.terms }}"
+            loading="lazy"
+          >
+          <p class="font-bold jky-text-xl">{{'templates.search.try_again_tips' | t}}</p>
+        </div>
+  {%- endunless -%}
+</div>
+
+<script type="module">
+  document.addEventListener('DOMContentLoaded', function() {
+    const SEARCH_CHECK_PII_ENABLE = {{ search_check_pii_enable | json }};
+    const SEARCH_PII_SENSITIVE_INFO = {{ search_pii_sensitive_info | json }};
+    const piiValidator = window.JkyPiiValidator ? new window.JkyPiiValidator({ enabled: SEARCH_CHECK_PII_ENABLE }) : null;
+
+    function isSensitiveSearchTerm(searchTerm) {
+      if (!SEARCH_CHECK_PII_ENABLE) return false;
+      if (!piiValidator) return false;
+      piiValidator.enabled = SEARCH_CHECK_PII_ENABLE === true;
+      return piiValidator.isSensitiveSearchTerm(searchTerm);
+    }
+
+    function sanitizeSearchUrl() {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('q', '');
+        url.searchParams.delete('page');
+        url.searchParams.set('p', '1');
+        window.history.replaceState({}, '', url.toString());
+      } catch (e) {}
+    }
+
+    function showSensitiveSearchMessage() {
+      const el = document.querySelector('.template-search .v5-pii-warning');
+      if (!el) return;
+      const msg = (SEARCH_PII_SENSITIVE_INFO || '').trim();
+      el.innerHTML = msg ? `<div style="padding:0.5rem 0;">${msg}</div>` : '';
+    }
+
+    function clearSensitiveSearchMessage() {
+      const el = document.querySelector('.template-search .v5-pii-warning');
+      if (el) el.innerHTML = '';
+    }
+
+    var groupParamsByKey = (params = new URLSearchParams(location.search.substring(1))) => [...params.entries()].reduce((acc, tuple) => {
+      const [key, val] = tuple;
+      if(acc.hasOwnProperty(key)) {
+        if(Array.isArray(acc[key])) {
+          acc[key] = [...acc[key], val]
+        } else {
+          acc[key] = [acc[key], val];
+        }
+      } else {
+        acc[key] = val;
+      }
+
+      return acc;
+    }, {});
+
+    let supportResources = shopId === "10015375438" ? [
+      {
+        name: "Jackeryサポート",
+        des: "Jackeryサポート",
+        url: "https://support.jackery.com/",
+        img: "https://cdn.shopify.com/s/files/1/0970/9262/files/b20278468cb5d4bc2dd1eaff3d843edd_4305ee3d-d7e3-4186-a954-05f9cf5e29c7_1920x.png?v=1659349625"
+      },
+      {
+        name: "アフターサービス",
+        des: "返品から返金までの手順 返品から交換までの手順 返品交換ポリシー",
+        url: "https://support.jackery.com/returnscenter",
+        img: "https://cdn.shopify.com/s/files/1/0970/9262/files/b20278468cb5d4bc2dd1eaff3d843edd_4305ee3d-d7e3-4186-a954-05f9cf5e29c7_1920x.png?v=1659349625"
+      },
+      {
+        name: "製品を登録する",
+        des: "製品をご登録いただくことで保証期間の延長などのサービスを受けることができます",
+        url: "https://support.jackery.com/extend-warranty",
+        img: "https://cdn.shopify.com/s/files/1/0970/9262/files/p-r-20220217.jpg?v=1645090237"
+      },
+      {
+        name: "荷物追跡",
+        des: "この荷物追跡サービスには公式オンラインストアから購入の注文のみがサポートされます。お問合せ方法は？問い合わせることはできません",
+        url: "https://support.jackery.com/order-tracking/search",
+        img: "https://cdn.shopify.com/s/files/1/0970/9262/files/b20278468cb5d4bc2dd1eaff3d843edd_4305ee3d-d7e3-4186-a954-05f9cf5e29c7_1920x.png?v=1659349625"
+      }
+    ] : [
+      {
+        name: "WELCOME TO JACKERY SUPPORT",
+        des: "WELCOME TO JACKERY SUPPORT",
+        url: "https://support.jackery.com/",
+        img: "https://cdn.shopify.com/s/files/1/0970/9262/files/b20278468cb5d4bc2dd1eaff3d843edd_4305ee3d-d7e3-4186-a954-05f9cf5e29c7_1920x.png?v=1659349625"
+      },
+      {
+        name: "returns center support",
+        des: "Return & Replacement Process and Return & Refund Policy",
+        url: "https://support.jackery.com/returnscenter",
+        img: "https://cdn.shopify.com/s/files/1/0970/9262/files/b20278468cb5d4bc2dd1eaff3d843edd_4305ee3d-d7e3-4186-a954-05f9cf5e29c7_1920x.png?v=1659349625"
+      },
+      {
+        name: "EXTEND YOUR WARRANTY",
+        des: "Please register your product below to extend your warranty.The warranty is valid from the day you purchased the product.",
+        url: "https://support.jackery.com/extend-warranty",
+        img: "https://cdn.shopify.com/s/files/1/0970/9262/files/p-r-20220217.jpg?v=1645090237"
+      },
+      {
+        name: "Tracking my order",
+        des: "Please register your product below to extend your warranty.The warranty is valid from the day you purchased the product.",
+        url: "https://support.jackery.com/order-tracking/search",
+        img: "https://cdn.shopify.com/s/files/1/0970/9262/files/b20278468cb5d4bc2dd1eaff3d843edd_4305ee3d-d7e3-4186-a954-05f9cf5e29c7_1920x.png?v=1659349625"
+      }
+    ]
+
+    function PageSearchInit() {
+      const categoryItems = Array.from(document.querySelectorAll(".search-category-item"));
+      categoryItems.forEach((item) => item.classList.remove("active"));
+
+      categoryItems.forEach((item) => {
+        item.addEventListener("click", function() {
+          let params = groupParamsByKey();
+          const q = typeof params.q === 'string' ? params.q.trim() : '';
+          if (q && isSensitiveSearchTerm(q)) params.q = '';
+          params.type = this.getAttribute("data-cate");
+          params.page = 1;
+          window.location.href = `${location.origin}${location.pathname}?${new URLSearchParams(params).toString()}`;
+        });
+      });
+
+      if(groupParamsByKey().type) {
+        if (["article", "product", "support"].indexOf(groupParamsByKey().type) >= 0) {
+          document.querySelector(`[data-cate=${groupParamsByKey().type}]`)?.classList.add("active");
+        }
+      } else {
+        document.querySelector("[data-cate=product]")?.classList.add("active");
+      }
+
+      if(groupParamsByKey().type === "support") {
+        document.getElementById("page-search-container")?.remove();
+
+        let counts = 0
+        let str = ""
+        let keywords = window.pageInfo.search_terms || ''
+        supportResources.forEach(item => {
+          if(keywords && (item.name.indexOf(keywords) !== -1 || item.des.indexOf(keywords) !== -1)) {
+            counts += 1
+            let titleStr = `<div class="blog-item-title jky-text-base font-bold">${item.name}</div>`
+            if (item.url) {
+              titleStr = `<a class="blog-item-title jky-text-base font-bold" href="${item.url}">${item.name}</a>`
+            }
+            str += `<div class="article-card blog-card focus-zoom-container flex flex-col">
+            <div class="blog-img">
+                <img class="object-cover focus-zoom" src="${item.img}" alt="${item.name}" loading="lazy">
+            </div>
+            <div class="blog-info-card flex flex-col flex-1">
+                <div class="blog-tags flex"></div>
+                <div class="flex flex-col justify-between flex-1">
+                  <div class="blog-content">
+                    ${titleStr}
+                  </div>
+                  <div class="blog-item-detail flex justify-between items-center">
+                      <div class="blog-item-date jky-text-xs"></div>
+                      <a class="z-button-fill-small" href="${item.url}" data-analytics-title="${item.name}">
+                          VIEW MORE
+                          <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                      </a>
+                  </div>
+                </div>
+            </div>
+        </div>`
+          }
+        })
+
+        const resultCountsEl = document.querySelector("h2.resault_counts");
+        if(resultCountsEl && window.location.search.indexOf("type=support") !== -1) {
+          let text = resultCountsEl.textContent || '';
+          let t_
+          if(shopId === "10015375438") {
+            t_ = text.split("の")[1]
+          } else {
+            t_ = text.split(" ")[1]
+          }
+          if(t_) {
+            if(window.pageInfo.search_terms) {
+              if(shopId === "10015375438") { // 「1000」の検索結果535件
+                text = text.replace(`「${window.pageInfo.search_terms}」`, `「<span style="color: var(--jds-color-primary)">${window.pageInfo.search_terms}</span>」`)
+              } else {
+                text = text.replace(`“${window.pageInfo.search_terms}”`, `“<span style="color: var(--jds-color-primary)">${window.pageInfo.search_terms}</span>”`)
+              }
+            }
+            resultCountsEl.innerHTML = text.replace(t_, `<span style="color: var(--jds-color-primary)">${counts}</span>`);
+            if(shopId === "10015375438") {
+              resultCountsEl.innerHTML = text.replace(t_, `<span style="color: var(--jds-color-primary)">検索結果${counts}件</span>`);
+            } else {
+              resultCountsEl.innerHTML = text.replace(t_, `<span style="color: var(--jds-color-primary)">${counts}</span>`);
+            }
+          }
+        }
+
+        document.querySelector(".template-search")?.insertAdjacentHTML("beforeend", `<ul class="search-grid section-container" style="margin-bottom:40px;">${str}</ul>`);
+      }
+    }
+    /**
+     * 渲染推荐关键词
+     */
+    function renderRecommendList() {
+      const dataEl = document.getElementById('recommend-search-data');
+      if (!dataEl) { return; }
+      const websiteRecommendSearch = JSON.parse(dataEl.textContent);
+
+      let listHtml = '';
+      websiteRecommendSearch.list.forEach((item) => {
+        listHtml += `<li class="predictive-search__list-item"><a class="predictive-search__item" href="${item.link}">${item.title}</a></li>`;
+      })
+
+      const recommendListHtml = `
+      <h2 class="predictive-search__heading">${websiteRecommendSearch.title}</h2>
+      <ul class="predictive-search__results-list">${listHtml}</ul>`;
+
+      const recommendListEl = document.querySelector('.template-search .recommend-search-list');
+      if (recommendListEl) {
+        recommendListEl.innerHTML = recommendListHtml;
+      }
+
+      recommendListEvent();
+    }
+    // 推荐搜索词 相关事件处理
+    function recommendListEvent(){
+      const searchField = document.querySelector('.template-search .field');
+      const recommendSearchList = document.querySelector('.template-search .recommend-search-list');
+      const searchInput = document.querySelector('.template-search__search .search__input');
+      const form = document.querySelector('.template-search__search form.search');
+      if (!searchField || !recommendSearchList || !searchInput || !form) return;
+
+      const toggleRecommendList = (show) => {
+        searchField.classList.toggle('show-recommend', show);
+        recommendSearchList.style.display = show ? 'block' : 'none';
+      };
+
+      const handleSearchInput = function (event) {
+        event.stopPropagation();
+        const currVal = searchInput.value || '';
+        const term = typeof currVal === 'string' ? currVal.trim() : '';
+        if (term && isSensitiveSearchTerm(term)) {
+          showSensitiveSearchMessage();
+          sanitizeSearchUrl();
+        } else {
+          clearSensitiveSearchMessage();
+        }
+        toggleRecommendList(currVal.length === 0);
+      };
+
+      searchInput.addEventListener('focus', handleSearchInput);
+      searchInput.addEventListener('input', handleSearchInput);
+
+      form.addEventListener('submit', function(e) {
+        const term = (searchInput.value || '').trim();
+        if (term && isSensitiveSearchTerm(term)) {
+          e.preventDefault();
+          showSensitiveSearchMessage();
+          sanitizeSearchUrl();
+          return
+        } else {
+          clearSensitiveSearchMessage();
+        }
+      });
+
+      document.addEventListener('click', function (event){
+        if({{settings.predictive_search_enabled}} == 'true') {
+          const predictiveSearch = document.querySelector('predictive-search');
+          if (!predictiveSearch || !predictiveSearch.contains(event.target)) {
+            toggleRecommendList(false);
+          }
+        } else {
+          if (!form.contains(event.target)) {
+            toggleRecommendList(false);
+          }
+        }
+      });
+
+      recommendSearchList.addEventListener('click', function (event){
+        const target = event.target.closest('a');
+        if (!target || !recommendSearchList.contains(target)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        searchInput.value = target.textContent.trim();
+        searchInput.focus();
+        toggleRecommendList(false);
+
+        if (form?.requestSubmit) {
+          form.requestSubmit();
+        } else {
+          form?.submit();
+        }
+      });
+    }
+
+    PageSearchInit();
+    renderRecommendList();
+
+    const initQ = typeof groupParamsByKey().q === 'string' ? groupParamsByKey().q.trim() : '';
+    if (initQ && isSensitiveSearchTerm(initQ)) {
+      showSensitiveSearchMessage();
+      sanitizeSearchUrl();
+      const pageSearchContainer = document.getElementById('page-search-container');
+      const resultCountsEl = document.querySelector('h2.resault_counts');
+      if (pageSearchContainer) pageSearchContainer.style.display = 'none';
+      if (resultCountsEl) resultCountsEl.style.display = 'none';
+    }
+  })
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.main-search.name",
+  "tag": "section",
+  "class": "section page-search-section",
+  "settings": [
+    {"type": "image_picker", "id": "banner_image", "label": "banner Image", "info": "recommend size: 1920 * 300"},
+    {"type": "image_picker", "id": "m_banner_image", "label": "Mobile banner Image", "info": "recommend size: 750 * 450"},
+    {"type": "text", "id": "banner_title", "label": "banner title"},
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 1,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "t:sections.main-search.settings.columns_desktop.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.main-search.settings.header__1.content"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "options": [
+        {
+          "value": "adapt",
+          "label": "t:sections.main-search.settings.image_ratio.options__1.label"
+        },
+        {
+          "value": "portrait",
+          "label": "t:sections.main-search.settings.image_ratio.options__2.label"
+        },
+        {
+          "value": "square",
+          "label": "t:sections.main-search.settings.image_ratio.options__3.label"
+        }
+      ],
+      "default": "adapt",
+      "label": "t:sections.main-search.settings.image_ratio.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "default": false,
+      "label": "t:sections.main-search.settings.show_secondary_image.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "default": false,
+      "label": "t:sections.main-search.settings.show_vendor.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "default": false,
+      "label": "t:sections.main-search.settings.show_rating.label",
+      "info": "t:sections.main-search.settings.show_rating.info"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.main-collection-product-grid.settings.header__1.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "default": true,
+      "label": "t:sections.main-collection-product-grid.settings.enable_filtering.label",
+      "info": "t:sections.main-collection-product-grid.settings.enable_filtering.info"
+    },
+    {
+      "type": "select",
+      "id": "filter_type",
+      "options": [
+        {
+          "value": "horizontal",
+          "label": "t:sections.main-collection-product-grid.settings.filter_type.options__1.label"
+        },
+        {
+          "value": "vertical",
+          "label": "t:sections.main-collection-product-grid.settings.filter_type.options__2.label"
+        },
+        {
+          "value": "drawer",
+          "label": "t:sections.main-collection-product-grid.settings.filter_type.options__3.label"
+        }
+      ],
+      "default": "horizontal",
+      "label": "t:sections.main-collection-product-grid.settings.filter_type.label",
+      "info": "t:sections.main-collection-product-grid.settings.filter_type.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "default": true,
+      "label": "t:sections.main-collection-product-grid.settings.enable_sorting.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.main-search.settings.header__2.content",
+      "info": "t:sections.main-search.settings.header__2.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "article_show_date",
+      "default": true,
+      "label": "t:sections.main-search.settings.article_show_date.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "article_show_author",
+      "default": false,
+      "label": "t:sections.main-search.settings.article_show_author.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.main-search.settings.header_mobile.content"
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "default": "2",
+      "label": "t:sections.main-search.settings.columns_mobile.label",
+      "options": [
+        {
+          "value": "1",
+          "label": "t:sections.main-search.settings.columns_mobile.options__1.label"
+        },
+        {
+          "value": "2",
+          "label": "t:sections.main-search.settings.columns_mobile.options__2.label"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 36
+    }
+  ],
+  "blocks": []
+}
+{% endschema %}

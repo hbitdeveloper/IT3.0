@@ -1,0 +1,38 @@
+{%- doc -%}
+  首页hreflang 标签
+  说明：
+  1. 该文件用于设置网站的语言版本链接关系
+  2. 通过hreflang标签告诉搜索引擎不同地区/语言的对应页面URL
+  3. 有助于搜索引擎正确索引多语言网站内容
+{%- enddoc -%}
+
+{% comment %} 根据页面类型获取hreflang数据 {% endcomment %}
+{% assign resource = nil %}
+{% case request.page_type %}
+  {% when 'index' %}
+    {% assign resource = shop %}
+  {% when 'product' %}
+    {% assign resource = product %}
+  {% when 'collection' %}
+    {% assign resource = collection %}
+  {% when 'page' %}
+    {% assign resource = page %}
+  {% when 'blog' %}
+    {% assign resource = blog %}
+  {% when 'article' %}
+    {% assign resource = article %}
+{% endcase %}
+
+{% comment %} 输出hreflang标签 {% endcomment %}
+{% if resource != blank %}
+  {%- unless current_page > 1 -%}
+  {%- assign hreflang_data = resource.metafields.pseo.hreflang.value -%}
+  {%- if hreflang_data != blank -%}
+    {%- for item in hreflang_data -%}
+        {%- assign url = item.url | default: item.host -%}
+        {%- if url == blank -%}{%- continue -%}{%- endif -%}
+        <link rel="alternate" hreflang="{{ item.hreflang }}" href="{{ url }}" />
+    {%- endfor -%}
+  {%- endif -%}
+  {%- endunless -%}
+{% endif %}

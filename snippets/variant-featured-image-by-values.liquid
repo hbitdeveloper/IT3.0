@@ -1,0 +1,65 @@
+{%- comment -%}
+  Snippet: variant-featured-image-by-values
+
+  用法示例（在 product 模板或 section 中）：
+
+  {% render 'variant-featured-image-by-values',
+    product: product,
+    option_1_value: 'Red',
+    option_2_value: 'L',
+    option_3_value: 'Cotton',
+    image_width: 600
+  %}
+
+  约定：
+  - option_1_value 对应 product 的第 1 个属性（variant.option1）
+  - option_2_value 对应 product 的第 2 个属性（variant.option2）
+  - option_3_value 对应 product 的第 3 个属性（variant.option3）
+
+  参数说明：
+  - product         : 必传，Product 对象
+  - option_1_value  : 可选，第 1 个属性值
+  - option_2_value  : 可选，第 2 个属性值
+  - option_3_value  : 可选，第 3 个属性值
+  - image_width     : 可选，图片宽度（默认 600）
+
+  输出：
+  - 找到变体时，输出一个 <img> 标签：该变体的 featured_image
+  - 找不到时，不输出内容
+{%- endcomment -%}
+
+{%- unless product == nil or product.variants.size == 0 -%}
+    {%- assign image_width = image_width | default: 750 -%}
+    {%- assign matched_variant = nil -%}
+
+    {%- for variant in product.variants -%}
+    {%- assign match = true -%}
+
+    {%- if option_1_value -%}
+        {%- if variant.option1 != option_1_value -%}
+        {%- assign match = false -%}
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if match and option_2_value -%}
+        {%- if variant.option2 != option_2_value -%}
+        {%- assign match = false -%}
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if match and option_3_value -%}
+        {%- if variant.option3 != option_3_value -%}
+        {%- assign match = false -%}
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if match -%}
+        {%- assign matched_variant = variant -%}
+        {%- break -%}
+    {%- endif -%}
+    {%- endfor -%}
+
+    {%- if matched_variant and matched_variant.featured_image -%}
+        {{- matched_variant.featured_image.src | image_url: width: 750 -}}
+    {%- endif -%}
+{%- endunless -%}

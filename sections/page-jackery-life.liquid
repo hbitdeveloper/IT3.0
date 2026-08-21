@@ -1,0 +1,176 @@
+{{ 'page.life.min.css' | asset_url | stylesheet_tag }}
+<style>
+  [data-life-explore-wrap] img {
+    width: 100%!important;
+  }
+</style>
+
+{% case page.handle %}
+  {% when 'life-activity-open' %}
+    {% render 'life-activity-open' %}
+    <style>.swiper-slide {width: auto;!important}</style>
+
+  {% when 'life-user' %}
+    {% render 'life-user' %}
+
+  {% when 'life-upload' %}
+    {% render 'life-upload' %}
+
+  {% when 'life-explore' %}
+    <section class="jf-custom-body jf-works-list-body">
+      <div data-link="{{ section.settings.link }}" data-life-explore-wrap style="cursor: pointer;">
+        {% render 'responsive-image',
+          image: section.settings.pcBannerImg,
+          mimage: section.settings.mbBannerImg,
+          image_class: 'life-explore-banner-wrap',
+          fcp: true,
+        %}
+      </div>
+
+      {% comment %} activity rank {% endcomment %}
+      <div data-activity-rank-all></div>
+
+      {% render 'life-explore-list'
+        show: section.settings.show_explore_list,
+        isOpenBlank: section.settings.is_open_blank,
+        isLifeIconImg: section.settings.life_icon_img != blank,
+        lifeIconImg: section.settings.life_icon_img,
+        lifeIconText: section.settings.life_icon_text,
+        lifeUserTabText: section.settings.life_user_tab_text,
+        lifeUserTabLink: section.settings.life_user_tab_link,
+        from: 'life-explore'
+      %}
+    </section>
+
+  {% when 'life-detail' %}
+    {% render 'life-detail' %}
+
+{% endcase %}
+
+{%- assign isLogin = false -%}
+{% if customer %}
+  {%- assign isLogin = true -%}
+{% endif %}
+
+{% assign isOpenBlank = false %}
+{% if section.settings.is_open_blank %}
+  {%- assign isOpenBlank = true -%}
+{% endif %}
+
+{% assign isLifeIconImg = false %}
+{% if section.settings.life_icon_img != blank %}
+  {%- assign isLifeIconImg = true -%}
+{% endif %}
+
+<script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+<script src="{{ 'page.life.min.js' | asset_url }}" data-cookieconsent="ignore" type="module" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    // 获取 cookie
+    function getCookie(n) {
+      let name = n + "=";
+      let ca = document.cookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(name) === 0) {
+          return c.substring(name.length, c.length)
+        }
+      }
+      return ""
+    }
+
+    const is_open_blank = {{ isOpenBlank }}
+
+    new _receiveInstance.ReceiveJackeryLife({
+      isSign: {{ isLogin }},
+      cr: Shopify.country,
+      shopId: window.shopId,
+      authorization: {{ isLogin }} ? getCookie("_jk_user") : '',
+      oldInviteNewOpen: {{ settings.oldInviteNewOpen }},
+
+      isOpenBlank: is_open_blank,
+      isLifeIconImg: {{ isLifeIconImg }},
+      lifeIconImg: '{{ section.settings.life_icon_img | image_url: width: 44 }}',
+      lifeIconText: '{{ section.settings.life_icon_text | escape }}',
+      lifeUserTabText: '{{ section.settings.life_user_tab_text | escape }}',
+      lifeUserTabLink: '{{ section.settings.life_user_tab_link }}',
+    })
+
+    document.querySelector('[data-life-explore-wrap]')?.addEventListener('click', (e) => {
+      const target = e.target.tagName === 'IMG' ? e.target.parentElement.parentElement : e.target
+      const { link, } = target.dataset
+
+      if (link) {
+        if (link.includes('life-upload')) {
+          is_open_blank
+            ? window.open(`${window.location.origin}/pages/life-upload`, '_blank')
+            : (window.location.href = '/pages/life-upload')
+        } else {
+          window.open(link, '_blank')
+        }
+      }
+      else {
+        is_open_blank
+          ? window.open(`${window.location.origin}/pages/life-upload`, '_blank')
+          : (window.location.href = '/pages/life-upload')
+      }
+    })
+  })
+</script>
+
+{% schema %}
+  {
+    "name": "Life Explore",
+    "class": "section-life-explore-wrap",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "pcBannerImg",
+        "label": "Explore Banner Image (PC)"
+      },
+      {
+        "type": "image_picker",
+        "id": "mbBannerImg",
+        "label": "Explore Banner Image (Mobile)"
+      },
+      {
+        "type": "url",
+        "id": "link",
+        "label": "Banner Link"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_explore_list",
+        "label": "Show Explore List",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "is_open_blank",
+        "label": "是否在新窗口打开",
+        "default": false,
+        "info": "仅对Jackery Life相关页面生效"
+      },
+      {
+        "type": "image_picker",
+        "id": "life_icon_img",
+        "label": "icon 图标"
+      },
+      {
+        "type": "textarea",
+        "id": "life_icon_text",
+        "label": "icon 图标提示文案"
+      },
+      {
+        "type": "text",
+        "id": "life_user_tab_text",
+        "label": "life-user页面，Tab 文案"
+      },
+      {
+        "type": "url",
+        "id": "life_user_tab_link",
+        "label": "life-user页面，Tab 链接"
+      }
+    ]
+  }
+{% endschema %}

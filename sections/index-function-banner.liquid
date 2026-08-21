@@ -1,0 +1,189 @@
+<div class="index-function-banner {{ section.settings.class | escape }} {% if section.settings.embed_type == 'embed' %}embed-component{% endif %}" data-handle="{{ section.settings.handle }}"
+    data-type="{{ section.settings.type }}"
+    data-name="{{ section.settings.class | escape }}"
+>
+    {% assign type = section.settings.type %}
+    {%- case type -%}
+        {%- when 'countdown' -%}
+            {% assign countdown = section.blocks | where: 'type', "countdown" | first%}
+            {% render 'index-countdown-banner', countdown: countdown, new_window: section.settings.new_window %}
+        {%- when 'video' -%}
+            {% assign video = section.blocks | where: 'type', "video" | first%}
+            {% render 'index-video-banner', video: video, new_window: section.settings.new_window %}
+        {%- when 'grid' -%}
+            {% assign grid_list = section.blocks | where: 'type', "grid" %}
+            {% render 'index-grid-banner', grid_list: grid_list, new_window: section.settings.new_window %}
+        {%- else -%}
+            {% assign subscript = section.blocks | where: 'type', "subscript" | first%}
+            {% render 'index-subscript-banner', subscript: subscript, new_window: section.settings.new_window %}
+    {%- endcase -%}
+</div>
+
+{% schema %}
+    {
+        "name": "首页-功能组件",
+        "disabled_on": {
+            "templates": ["collection"]
+        },
+        "settings": [
+          {
+            "type": "select",
+            "id": "embed_type",
+            "label": "类型",
+            "default": "independent",
+            "options": [
+              {
+                "value": "embed",
+                "label": "内嵌使用"
+              },
+              {
+                "value": "independent",
+                "label": "独立使用"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "id": "handle",
+            "label": "Handle（当前页面唯一的handle）",
+            "default": "embed-component-01"
+          },
+            { "type": "text", "id": "class", "label": "类名(必填：需具有唯一性)", "info": "用于区分当前页面多个功能模块，建议以index-function-*开头" },
+            { "type": "select", "id": "type", "label": "类型选择",
+            "options": [
+                { "value": "countdown", "label": "倒计时" },
+                { "value": "video", "label": "视频" },
+                { "value": "grid", "label": "宫格" },
+                { "value": "subscript", "label": "订阅" }
+            ], "info": "倒计时/视频/订阅只能配置一个, 宫格最多配置4个"
+           },
+           { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false }
+        ],
+        "blocks": [
+            {
+                "type": "countdown",
+                "name": "倒计时",
+                "limit": 1,
+                "settings": [
+                    { "type": "richtext", "id": "title_main", "label": "主标题" },
+                    { "type": "color", "id": "title_main_color", "label": "主标题突出文案颜色", "default": "#FFFFFF" },
+                    { "type": "richtext", "id": "sub_title", "label": "副标题" },
+                    { "type": "color", "id": "sub_title_main_color", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+                    { "type": "image_picker", "id": "pc_image", "label": "PC图片(必填)", "info": "大小: 1920*800"},
+                    { "type": "image_picker", "id": "mb_image", "label": "MB图片(必填)", "info": "大小: 750x1000"},
+                    { "type": "select", "id": "pc_position", "label": "PC端位置",
+                        "options": [
+                            { "value": "left-top", "label": "左上" },
+                            { "value": "center-top", "label": "中上" },
+                            { "value": "right-top", "label": "右上" },
+                            { "value": "left-center", "label": "左中" },
+                            { "value": "right-center", "label": "右中" }
+                        ], "default": "left-top"
+
+                    },
+                    { "type": "select", "id": "mb_position", "label": "移动端位置",
+                        "options": [
+                            { "value": "left", "label": "左" },
+                            { "value": "center", "label": "中" },
+                            { "value": "right", "label": "右" }
+                        ], "default": "left"
+                    },
+                    { "type": "url", "id": "link",  "label": "跳转地址(必填)" },
+                    { "type": "text", "id": "time", "label": "结束时间(必填)",  "info": "规则: YYYY/MM/DD hh:mm:ss, 例如: 2024/05/06 00:00:00" },
+
+                    { "type": "text", "id": "button_text", "label": "按钮文案" },
+                    { "type": "color", "id": "button_color", "label": "按钮颜色", "default": "#fd5000" },
+                    { "type": "color", "id": "number_color", "label": "倒计时数字颜色(包含：)", "default": "#FFFFFF" },
+                    { "type": "color", "id": "text_color", "label": "倒计时文本颜色", "default": "#FFFFFF" },
+                    { "type": "color_background", "id": "bg_color", "label": "倒计时背景颜色", "default": "#242424" },
+                    { "type": "text", "id": "days", "label": "天", "default": "Days", "info": "天的展示文案" },
+                    { "type": "text", "id": "hours", "label": "时", "default": "Hrs", "info": "小时的展示文案" },
+                    { "type": "text", "id": "mins", "label": "分", "default": "Mins", "info": "分的展示文案" },
+                    { "type": "text", "id": "secs", "label": "秒", "default": "Secs", "info": "秒的展示文案" }
+                ]
+            },
+            {
+            "type": "subscript",
+            "name": "订阅",
+            "limit": 1,
+            "settings": [
+                { "type": "image_picker", "id": "pc_image", "label": "PC图片(必填)", "info": "大小: 1920*800" },
+                { "type": "image_picker", "id": "mb_image", "label": "MB图片(必填)", "info": "大小: 750x1000" },
+                {
+                "type": "select",
+                "id": "pc_position",
+                "label": "PC端位置",
+                "options": [
+                    { "value": "left", "label": "左" },
+                    { "value": "right", "label": "右" }
+                ],
+                "default": "left"
+                },
+                { "type": "richtext", "id": "title_main", "label": "主标题(不超过25字符)" },
+                { "type": "color", "id": "title_main_color", "label": "主标题突出文案颜色", "default": "#FFFFFF" },
+                { "type": "richtext", "id": "sub_title", "label": "副标题(不超过70字符)" },
+                { "type": "color", "id": "sub_title_main_color", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+                { "type": "text", "id": "subcribe_title", "label": "订阅模块标题" },
+                { "type": "textarea", "id": "subcribe_sub_title", "label": "订阅模块副标题" },
+                { "type": "text", "id": "subcribe_btn", "label": "Subscribe Btn" },
+                { "type": "text", "id": "loading_btn", "default": "LOADING", "label": "LOADING Btn" },
+                { "type": "richtext", "id": "privacy_policy", "label": "Privacy Policy" }
+            ]},{
+                "type": "grid",
+                "name": "宫格",
+                "limit": 4,
+                "settings": [
+                    { "type": "select", "id": "row", "label": "行",
+                        "options": [
+                            { "value": "1", "label": "1" },
+                            { "value": "2", "label": "2" }
+                        ], "default": "1", "info": "PC 和 MB所占用的行数一致"
+                    },
+                    { "type": "select", "id": "col", "label": "列",
+                        "options": [
+                            { "value": "1", "label": "1" },
+                            { "value": "2", "label": "2" }
+                        ], "default": "1", "info": "仅PC生效"
+                    },
+                    { "type": "image_picker", "id": "pc_image", "label": "PC图片(必填)", "info": "大图尺寸: 670x640, 小图尺寸: 670x312"},
+                    { "type": "image_picker", "id": "mb_image", "label": "MB图片(必填)", "info": "大图: 654x648, 小图: 654x314"},
+                    { "type": "url", "id": "link",  "label": "跳转地址(必填)" },
+                    { "type": "richtext", "id": "title_main", "label": "主标题" },
+                    { "type": "color", "id": "title_main_color", "label": "主标题突出文案颜色", "default": "#FFFFFF" },
+                    { "type": "richtext", "id": "sub_title", "label": "副标题" },
+                    { "type": "color", "id": "sub_title_main_color", "label": "副标题突出文案颜色", "default": "#FFFFFF" }
+                ]
+            },
+            {
+                "type": "video",
+                "name": "视频",
+                "limit": 1,
+                "settings": [
+                    { "type": "richtext", "id": "title_main", "label": "主标题" },
+                    { "type": "color", "id": "title_main_color", "label": "主标题突出文案颜色", "default": "#FFFFFF" },
+                    { "type": "richtext", "id": "sub_title", "label": "副标题" },
+                    { "type": "color", "id": "sub_title_main_color", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+                    { "type": "image_picker", "id": "pc_poster", "label": "PC封面图(必填)", "info": "大小: 1360*640"},
+                    { "type": "image_picker", "id": "mb_poster", "label": "MB封面图(必填)", "info": "大小: 654x1000"},
+                    { "type": "url", "id": "pc_video", "label": "PC视频地址(必填)", "info": "大小: 10M以下，比例:1360:640"},
+                    { "type": "url", "id": "mb_video", "label": "MB视频地址(必填)", "info": "大小: 10M以下,比例:654:1000"},
+                    { "type": "select", "id": "position", "label": "位置",
+                        "options": [
+                            { "value": "left", "label": "左" },
+                            { "value": "center", "label": "中" },
+                            { "value": "right", "label": "右" }
+                        ], "default": "left"
+                    },
+                    { "type": "url", "id": "link",  "label": "跳转地址(必填)" },
+                    { "type": "text", "id": "button_text", "label": "按钮文案" },
+                    { "type": "color", "id": "button_color", "label": "按钮颜色", "default": "#fd5000" }
+                ]
+            },
+        ],
+        "presets": [
+            {
+                "name": "首页-功能"
+            }
+        ]
+    }
+{% endschema %}

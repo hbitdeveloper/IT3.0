@@ -1,0 +1,666 @@
+{% comment %} 十二周年上传 {% endcomment %}
+
+{% comment %} 是否开启图片上传 {% endcomment %}
+{% assign upload_flag = false %}
+{% if section.settings.upload_proof != blank %}
+  {% assign upload_flag = true %}
+  {% comment %} aws s3桶 {% endcomment %}
+  <script src="{{ 'aws-sdk-2.1046.0.min.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+{% endif %}
+
+{% comment %} 组件模式 {% endcomment %}
+{% assign component_mode = section.settings.component_mode | default: 'default' %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="jky-12th-form section-padding {{ component_mode }} {%if component_mode == 'default' and section.settings.is_gift_block == true%} gift-anchor gift-anchor--mb{%endif%}"
+  {% if section.settings.anchor != blank %}
+  anchor="{{ section.settings.anchor | escape }}"
+  anchor-target="{{ section.settings.anchor | escape }}"
+  {% endif %}
+  data-customer-email="{{ customer.email }}"
+  data-successful="{{ section.settings.successful }}"
+  {% if component_mode == 'default' %}
+    data-show-relate-product="{{ section.settings.show_relate_product }}"
+    data-show-my-comment="true"
+  {% endif %}
+  data-upload-flag="{{ upload_flag }}"
+  data-upload_require="{{ section.settings.upload_require }}"
+  data-upload_require_msg="{{ section.settings.upload_require_msg | escape }}"
+  data-uploading="{{ section.settings.uploading | escape }}"
+  data-upload_exceed_error="{{ section.settings.upload_exceed_error | escape }}"
+  data-upload_format_error="{{ section.settings.upload_format_error | escape }}"
+  data-mode="{{ section.settings.mode }}"
+  data-share_text="{{ section.settings.share_text | escape }}"
+  data-copy_text="{{ section.settings.copy_text | escape }}"
+  data-hbid="{{ section.settings.id  | escape }}"
+  data-title="{{section.settings.title | escape }}"
+  style="--bg-color-pc:{{ section.settings.comp_bg_color_pc }};--bg-color-mb:{{ section.settings.comp_bg_color_mb }};{{ style }}"
+>
+  <div
+    class="jky-12th-container {{ component_mode }}"
+    style="--form-color:{{ section.settings.form_color }};"
+  >
+    {% if component_mode == 'default' and section.settings.title != blank %}
+      {% render 'new-title', class: 'form-title',  title: section.settings.title | escape, type: section.settings.type, bgColor: '#FFFFFF' %}
+    {% endif %}
+
+    {% comment %} 活动信息 {% endcomment %}
+    <div class="jky-up activity">
+      <div class="copywriting">
+        <div class="title">{{ section.settings.activity_title | escape }}</div>
+        <div class="jds-rte description" style="--active-color:{{ section.settings.active_color }};">
+          {{ section.settings.activity_desc }}
+        </div>
+      </div>
+      <div class="img">
+        {% render 'responsive-image', image: section.settings.pc_image, mimage: section.settings.mb_image %}
+      </div>
+    </div>
+
+    {% comment %} 留言表单 {% endcomment %}
+    <form class="jky-up form">
+      <div class="form-item">
+        <label class="form-label large-label" for="comment">{{ section.settings.topic | escape }}</label>
+        {% assign labels = section.blocks | where: 'type', 'label' %}
+        {% if labels.size > 0 %}
+          <div class="labels">
+            {% for label in labels %}
+              <div data-label="{{ label.settings.label | escape }}" class="label">
+                {{ label.settings.label | escape }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="relative">
+          <textarea
+            class="form-text form-textarea"
+            name="comment"
+            id="comment"
+            maxlength="2000"
+            placeholder="{{ section.settings.topic_placeholder | escape }}"
+          ></textarea>
+          <span class="num"> <span class="now-number">0</span>/2000 </span>
+        </div>
+        <div class="error comment-error">{{ section.settings.topic_error | escape }}</div>
+      </div>
+      {%- if upload_flag -%}
+        <div class="form-item">
+          <label class="form-label" for="file">{{ section.settings.upload_proof | escape }}</label>
+          <div class="upload">
+            <div class="image">
+              <img class="upload-image" width="auto" height="auto">
+              <div class="close">
+                {% render 'icon-close', width: 12, height: 12, color: '#fff' %}
+              </div>
+            </div>
+            <div class="upload-box">
+              {% render 'icon-plus-new',
+                class: 'icon-plus',
+                width: 24,
+                height: 24,
+                color: 'var(--form-color, #999999)'
+              %}
+              {% render 'icon-loading',
+                class: 'icon-loading',
+                width: 24,
+                height: 24,
+                color: 'var(--form-color, #999999)'
+              %}
+              <input type="file" name="file" accept="image/png, image/jpeg, image/jpg">
+            </div>
+          </div>
+          <div class="error upload-error">{{ section.settings.upload_require_msg | escape }}</div>
+        </div>
+      {%- endif -%}
+      <div class="comment">{{ section.settings.comment }}</div>
+
+      {% if section.settings.show_relate_product == true %}
+        <div class="form-item form-2x">
+          <label class="form-label">{{ section.settings.relate_product | escape }}</label>
+          <div class="select" data-placeholder="{{section.settings.relate_product_placeholder | escape}}">
+            <div class="form-text choose" id="product">
+              {{ section.settings.relate_product_placeholder | escape }}
+            </div>
+            <div class="list"></div>
+          </div>
+          <div class="error product-error">{{ section.settings.relate_product_error | escape }}</div>
+        </div>
+      {% endif %}
+
+      {% if customer.id == blank %}
+        <div>
+          <div class="form-item form-2x">
+            <label class="form-label" for="email">{{ section.settings.email | escape }}</label>
+            <input
+              class="form-text"
+              id="email"
+              type="text"
+              name="email"
+              placeholder="{{ section.settings.email_placeholder | escape }}"
+            >
+            <div class="error email-error">{{ section.settings.email_error | escape }}</div>
+          </div>
+          <div class="form-item form-2x">
+            <div class="form-check">
+              <input class="form-checkbox" id="subscribe" type="checkbox" name="subscribe">
+              <label class="form-label checkbox-label" id="checkbox-label" for="subscribe"></label>
+              <span class="info">{{ section.settings.privacy }}</span>
+            </div>
+            <div class="error subscribe-error">{{ section.settings.privacy_error | escape }}</div>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="button">
+        {% assign status = 'tourist' %}
+        {% if customer.id %}
+          {% assign status = 'logged_in' %}
+        {% endif %}
+        <button
+          class="jky-12th-btn submit-button"
+          data-ga-event="section_form_user_clicks"
+          data-ga-action="click"
+          data-ga-params-module="{{section.settings.title | escape}}"
+          data-ga-params-button_name="{{section.settings.submit | escape}}"
+          data-ga-params-status="{{ status }}"
+          style="--btn-color:{{ section.settings.btn_submit_color }}"
+        >
+          <span> {{ section.settings.submit | escape }} </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% comment %} 图片放大弹窗 {% endcomment %}
+{%- if upload_flag == true -%}
+  <div id="image-modal" class="image-modal">
+    <div class="content">
+      <img id="modal-img" class="modal-img" width="auto" height="auto">
+      <div class="close-modal">
+        {% render 'icon-close', width: 24, height: 24, color: '#fff' %}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% comment %} 弹窗分享 {% endcomment %}
+<div class="success-modal">
+  <div class="modal-wrapper">
+    <div class="content">
+      <div class="title">{{ section.settings.successful_title | escape }}</div>
+      <div class="desc rtc">
+        {{ section.settings.successful_content | replace: '<em>', '<em style="color: var(--jds-color-primary);">' }}
+      </div>
+      <div class="share">
+        {% assign share_types = 'facebook,twitter,instagram,line,whatsapp,telegram' %}
+        {% assign share_list = share_types | split: ',' %}
+        {% assign num = 0 %}
+        {% assign share_type = blank %}
+        {% for type in share_list %}
+          {% if section.settings[type] == true %}
+            {% assign num = num | plus: 1 %}
+            {% assign share_type = type %}
+          {% endif %}
+        {% endfor %}
+        {% if section.settings.facebook == true %}
+          <div class="share-button facebook " data-type="facebook">
+            {% render 'icon-facebook-new',
+              class: 'icon-facebook-new',
+              width: 40,
+              height: 40,
+              color: 'var(--facebook-icon-color)'
+            %}
+          </div>
+        {% endif -%}
+        {% if section.settings.twitter == true %}
+          <div class="share-button twitter" data-type="twitter">
+            {% render 'icon-twitter-new',
+              class: 'icon-twitter-new',
+              width: 40,
+              height: 40,
+              color: 'var(--twitter-icon-color)'
+            %}
+          </div>
+        {% endif -%}
+        {% if section.settings.instagram == true %}
+          <div class="share-button instagram" data-type="instagram">
+            {% render 'icon-instagram-new',
+              class: 'icon-instagram-new',
+              width: 40,
+              height: 40,
+              color: 'var(--instagram-icon-color)'
+            %}
+          </div>
+        {% endif -%}
+        {% if section.settings.line == true %}
+          <div class="share-button line" data-type="line">
+            {% render 'icon-line-new', class: 'icon-line-new', width: 40, height: 40, color: 'var(--line-icon-color)' %}
+          </div>
+        {% endif -%}
+        {% if section.settings.whatsapp == true %}
+          <div class="share-button whatsapp" data-type="whatsapp">
+            {% render 'icon-whatsapp-new',
+              class: 'icon-whatsapp-new',
+              width: 40,
+              height: 40,
+              color: 'var(--whatsapp-icon-color)'
+            %}
+          </div>
+        {% endif %}
+        {% if section.settings.telegram == true %}
+          <div class="share-button telegram" data-type="telegram">
+            {% render 'icon-telegram-new',
+              class: 'icon-telegram-new',
+              width: 40,
+              height: 40,
+              color: 'var(--telegram-icon-color)'
+            %}
+          </div>
+        {% endif %}
+      </div>
+      {% if num == 1 and section.settings.button_text != blank %}
+        <div class="button">
+          <button class="share-button get-it" data-type="{{ share_type }}">
+            {{ section.settings.button_text | escape }}
+          </button>
+        </div>
+      {% endif %}
+
+      <div class="close-modal">
+        {% render 'icon-close', width: 24, height: 24, color: '#fff' %}
+      </div>
+    </div>
+  </div>
+</div>
+{% if component_mode == 'default' %}
+  <div class="jky-up jky-2th-my-comments" style="background: {{ section.settings.bg_color }}">
+    <div class="jky-12th-container">
+      <div class="content">
+        <div class="title">{{ section.settings.my_comment | escape }}</div>
+        <div class="date"></div>
+        <div class="info"></div>
+        <div class="image">
+          <img>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "十二周年-留言表单",
+  "settings": [
+    {
+      "type": "header",
+      "content": "基础配置"
+    },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "select",
+      "id": "component_mode",
+      "label": "组件模式",
+      "options": [
+        { "value": "default", "label": "默认功能版（上下布局）" },
+        { "value": "base-layout", "label": "基础表单版（左右布局）" }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "paragraph",
+      "content": "1.默认功能版（上下布局）：包含所有功能"
+    },
+    {
+      "type": "paragraph",
+      "content": "2.基础表单版（左右布局）：仅包含活动介绍和留言表单, 不展示【我的留言】模块。"
+    },
+    {
+      "type": "checkbox",
+      "id": "is_gift_block",
+      "label": "是否为礼盒模块",
+      "default": false,
+      "info": "该模块的顺序请保持：KV-滚动介绍-品牌介绍-获奖Swiper",
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "标题",
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "标题类型",
+      "options": [
+        { "value": "1", "label": "小档" },
+        { "value": "2", "label": "大档" }
+      ],
+      "default": "1",
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    {
+      "type": "header",
+      "content": "组件配色"
+    },
+    {
+      "type": "color_background",
+      "id": "comp_bg_color_pc",
+      "label": "组件PC端背景色",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color_background",
+      "id": "comp_bg_color_mb",
+      "label": "组件MB端背景色",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "form_color",
+      "label": "表单配色",
+      "default": "#CCCCCC"
+    },
+    {
+      "type": "color",
+      "id": "btn_submit_color",
+      "label": "提交按钮颜色",
+      "default": "#fd5000"
+    },
+    {
+      "type": "header",
+      "content": "活动信息"
+    },
+    { "type": "text", "id": "id", "label": "活动ID（必填，否则将默认为12周年活动）" },
+    { "type": "text", "id": "activity_title", "label": "活动标题" },
+    { "type": "richtext", "id": "activity_desc", "label": "活动描述" },
+    {
+      "type": "color",
+      "id": "active_color",
+      "label": "活动描述文本强调颜色",
+      "default": "#fd5000",
+      "info": "如果需要使用强调颜色标记，请在富文本中使用斜体标记"
+    },
+    { "type": "image_picker", "id": "pc_image", "label": "活动PC占位图(414x266)" },
+    { "type": "image_picker", "id": "mb_image", "label": "活动MB占位图(654x500)" },
+    { "type": "header", "content": "话题" },
+    { "type": "text", "id": "topic", "label": "话题" },
+    { "type": "text", "id": "topic_placeholder", "label": "话题占位文案" },
+    { "type": "richtext", "id": "comment", "label": "注释" },
+    { "type": "text", "id": "topic_error", "label": "话题未填写提示文案" },
+    { "type": "header", "content": "上传图片 " },
+    { "type": "text", "id": "upload_proof", "label": "上传信息(不配置则上传图片版块不展示)" },
+    { "type": "checkbox", "id": "upload_require", "label": "图片必须上传", "default": false },
+    {
+      "type": "text",
+      "id": "upload_require_msg",
+      "label": "图片必填提示信息",
+      "default": "Please provide at least one image.",
+      "visible_if": "{{ section.settings.upload_require == true }}"
+    },
+    { "type": "text", "id": "uploading", "label": "上传中提示语", "default": "Image is being uploading, please wiat." },
+    {
+      "type": "text",
+      "id": "upload_exceed_error",
+      "label": "图片超出10M限制提示语",
+      "default": "The image should not exceed 10MB, please check."
+    },
+    {
+      "type": "text",
+      "id": "upload_format_error",
+      "label": "图片格式错误提示语",
+      "default": "Only JPG and PNG image formats are supported."
+    },
+    { "type": "header", "content": "关联产品", "visible_if": "{{ section.settings.component_mode == 'default' }}" },
+    {
+      "type": "checkbox",
+      "id": "show_relate_product",
+      "label": "是否展示关联产品",
+      "default": true,
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    {
+      "type": "text",
+      "id": "relate_product",
+      "label": "关联产品",
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    {
+      "type": "text",
+      "id": "relate_product_placeholder",
+      "label": "关联产品占位文案",
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    {
+      "type": "text",
+      "id": "relate_product_error",
+      "label": "关联产品错误文案",
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    { "type": "header", "content": "邮箱" },
+    { "type": "text", "id": "email", "label": "邮箱" },
+    { "type": "text", "id": "email_placeholder", "label": "邮箱占位文案" },
+    { "type": "text", "id": "email_error", "label": "邮箱错误文案" },
+    { "type": "header", "content": "隐私协议" },
+    { "type": "richtext", "id": "privacy", "label": "隐私协议" },
+    { "type": "text", "id": "privacy_error", "label": "隐私协议错误文案" },
+    { "type": "text", "id": "submit", "label": "提交按钮" },
+    {
+      "type": "text",
+      "id": "my_comment",
+      "label": "我的留言",
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "我的留言背景色",
+      "default": "#DBEEF9",
+      "visible_if": "{{ section.settings.component_mode == 'default' }}"
+    },
+    { "type": "header", "content": "提交成功模式" },
+    {
+      "type": "select",
+      "id": "mode",
+      "label": "提交成功模式",
+      "options": [
+        { "value": "1", "label": "Toast提示" },
+        { "value": "2", "label": "弹窗" }
+      ],
+      "default": "1"
+    },
+    { "type": "text", "id": "successful", "label": "提交成功文案", "visible_if": "{{ section.settings.mode == '1' }}" },
+    {
+      "type": "text",
+      "id": "successful_title",
+      "label": "提交成功弹窗标题",
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+    {
+      "type": "richtext",
+      "id": "successful_content",
+      "label": "提交成功弹窗内容",
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "facebook",
+      "label": "开启Facebook分享",
+      "default": false,
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "twitter",
+      "label": "开启Twitter分享",
+      "default": false,
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "instagram",
+      "label": "开启Ins分享",
+      "default": false,
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "line",
+      "label": "开启Line分享",
+      "default": false,
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "whatsapp",
+      "label": "开启WhatsApp分享",
+      "default": false,
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "telegram",
+      "label": "开启Telegram分享",
+      "default": false,
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+    { "type": "text", "id": "share_text", "label": "分享文案", "visible_if": "{{ section.settings.mode == '2' }}" },
+    { "type": "text", "id": "copy_text", "label": "拷贝成功", "visible_if": "{{ section.settings.mode == '2' }}" },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "按钮文案",
+      "default": "Got It Now",
+      "visible_if": "{{ section.settings.mode == '2' }}"
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "PC边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "label",
+      "name": "Label",
+      "settings": [{ "type": "text", "id": "label", "label": "名称", "info": "最多500字符" }]
+    }
+  ]
+}
+{% endschema %}

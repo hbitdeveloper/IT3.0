@@ -1,0 +1,66 @@
+{% comment %} 产品角标 {% endcomment %}
+
+{% comment %}  
+  params: 
+    1: promotion---> 产品右侧角标文案信息，比如HOT\NEW等，只在商详页切换变体时才会有
+    2: product ---> 当前的产品信息
+{% endcomment %}
+{% comment %} 
+  权重-右侧标签： 先取变体promotion的__label_text:，如果没有取spu的tag __label_text:
+  权重-左侧图片角标：产品 (tag_img)metafields tag
+  product.metafields.custom.product_tag_image
+{% endcomment %}
+
+{% comment %} 
+  1、如果设置了promotion，则直接取值
+  2、如果没有设置promotion,
+      1、非产品页面，则直接取产品第一个变体的promotion
+      2、如果是产品页面，则取选中变体的promotion
+  3、如果以上均没有满足，则取产品的tag下的__label_text 
+{% endcomment %}
+
+  
+{%- if template.name == 'product' -%}
+    {%- assign select_variant = product.selected_or_first_available_variant -%}
+    {%- if promotion != blank and promotion contains '__label_text:' -%}
+      {%- assign info = promotion | replace_first: '__label_text:' -%}
+    {% elsif select_variant.metafields.custom.promotion != blank and select_variant.metafields.custom.promotion contains '__label_text:' %}
+      {%- assign info = select_variant.metafields.custom.promotion | replace_first: '__label_text:' -%}
+    {% else %}
+      {% for tag in product.tags %}
+        {%- if tag contains '__label_text:' -%}
+          {%- assign info = tag | replace_first: '__label_text:' -%}
+          {% break %}
+        {%- endif -%}
+      {% endfor %}
+    {% endif %}
+  {% else %}
+    {%- assign first_variant = product.variants | first -%}
+    {%- assign variant_promotion = first_variant.metafields.custom.promotion -%}
+    {% if variant_promotion != blank %}
+      {%- if variant_promotion contains '__label_text:' -%}
+        {% assign info = variant_promotion  | replace_first: '__label_text:' %}
+      {%- endif -%}
+    {% else %}
+      {% for tag in product.tags %}
+        {%- if tag contains '__label_text:' -%}
+          {%- assign info = tag | replace_first: '__label_text:' -%}
+          {% break %}
+        {%- endif -%}
+      {% endfor %}
+    {% endif %}
+  {%- endif -%}
+  
+  {% comment %} 右侧文案角标 {% endcomment %}
+  {%- if info != blank -%}
+    <div class="product-label-tag product-tag-text">
+      <span class="product-label-tag-text"> {{ info}} </span>
+    </div>
+  {%- endif -%}
+  
+  {% comment %} 左侧图片角标 product tag img {% endcomment %}
+  {% if product.metafields.custom.product_tag_image != blank %}
+    <div class="product-label-tag product-tag-img">
+      <img src="{{product.metafields.custom.product_tag_image | img_url: 'master'}}" alt="product tag image" loading="lazy">
+    </div>
+  {%- endif -%}

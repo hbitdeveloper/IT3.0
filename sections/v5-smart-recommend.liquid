@@ -1,0 +1,137 @@
+{{ 'section-v5-smart-recommend.min.css' | asset_url | stylesheet_tag }}
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="smart-v5 section-padding"
+  style="{{style}}"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+>
+  <div
+    class="calculator-container smart-v5"
+    data-open-auto-discount-price="{{settings.open_auto_discount_price}}"
+    data-title="{{ product.title | escape }}"
+    data-error="{{section.settings.error}}"
+  >
+    <h2>{{ section.settings.title }}</h2>
+    <p class="sub">{{ section.settings.title_mini }}</p>
+
+    <div class="calculator">
+      {% comment %} 左边表单 {% endcomment %}
+      <div class="form-section">
+        <div class="form-item">
+          <label class="first">{{ section.settings.product }}</label>
+          <div id="dropdown1" class="dropdown">
+            <div class="dropdown-selected">
+              <span>{{ section.settings.select }}</span>
+              <span class="dropdown-arrow">
+                <svg width="16" height="16">
+                  <g fill="none" fill-rule="evenodd"><path opacity=".3" d="M16 16H0V0h16z"/><path d="M7.997 12.385a.619.619 0 01-.463-.219L2.187 6.178A.692.692 0 012 5.695c0-.131.028-.25.083-.355a.642.642 0 01.224-.25.612.612 0 01.77.106L8.37 11.11h-.74l5.292-5.913a.597.597 0 01.45-.196c.12 0 .226.03.32.09.095.061.17.144.225.25a.754.754 0 01.083.355.705.705 0 01-.187.49l-5.347 5.98a.632.632 0 01-.47.22z" fill="#333" fill-rule="nonzero"/></g>
+                </svg>
+              </span>
+            </div>
+            <div class="dropdown-list"></div>
+          </div>
+          <div class="hidden"><input type="hidden" name="energy"></div>
+        </div>
+
+        <div class="form-item">
+          <label>{{ section.settings.panels }}</label>
+          <div id="dropdown2" class="dropdown">
+            <div class="dropdown-selected">
+              <span>{{ section.settings.select }}</span>
+              <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                <g fill="none" fill-rule="evenodd"><path opacity=".3" d="M16 16H0V0h16z"/><path d="M7.997 12.385a.619.619 0 01-.463-.219L2.187 6.178A.692.692 0 012 5.695c0-.131.028-.25.083-.355a.642.642 0 01.224-.25.612.612 0 01.77.106L8.37 11.11h-.74l5.292-5.913a.597.597 0 01.45-.196c.12 0 .226.03.32.09.095.061.17.144.225.25a.754.754 0 01.083.355.705.705 0 01-.187.49l-5.347 5.98a.632.632 0 01-.47.22z" fill="#333" fill-rule="nonzero"/></g>
+              </svg>
+            </div>
+            <div class="dropdown-list"></div>
+          </div>
+          <div class="hidden"><input type="hidden" name="solar"></div>
+        </div>
+
+        <div class="form-item">
+          <label>{{ section.settings.number }}</label>
+          <div id="dropdown3" class="dropdown">
+            <div class="dropdown-selected">
+              <span>{{ section.settings.select }}</span>
+              <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                <g fill="none" fill-rule="evenodd"><path opacity=".3" d="M16 16H0V0h16z"/><path d="M7.997 12.385a.619.619 0 01-.463-.219L2.187 6.178A.692.692 0 012 5.695c0-.131.028-.25.083-.355a.642.642 0 01.224-.25.612.612 0 01.77.106L8.37 11.11h-.74l5.292-5.913a.597.597 0 01.45-.196c.12 0 .226.03.32.09.095.061.17.144.225.25a.754.754 0 01.083.355.705.705 0 01-.187.49l-5.347 5.98a.632.632 0 01-.47.22z" fill="#333" fill-rule="nonzero"/></g>
+              </svg>
+            </div>
+            <div class="dropdown-list"></div>
+          </div>
+          <div class="hidden"><input type="hidden" name="performance"></div>
+        </div>
+
+        <button id="calculateBtn">{{ section.settings.calculate }}</button>
+
+        <div class="middle-border mobile-block"></div>
+      </div>
+      <div class="divider"></div>
+
+      {% comment %} 右边结果 {% endcomment %}
+      <div class="result-section">
+        <div class="result-top">
+          <h3>{{ section.settings.match }}</h3>
+          <div class="hours v5-font-oxm" id="hoursText"><span>0</span> {{ section.settings.hours }}</div>
+          <small>{{ section.settings.des }}</small>
+        </div>
+
+        <div class="connector-box">
+          <h4>{{ section.settings.part_title }}</h4>
+          <div class="connector-grey-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ 'section-v5-smart-recommend.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-智能选购",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["product", "page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"},
+    { "type": "header", "content": "PC边距" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 96},
+    { "type": "range", "id": "padding_bottom", "min": 0, "max":  100, "step": 1, "unit": "px", "label": "下边距", "default": 96},
+    { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0},
+    { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0},
+    { "type": "header", "content": "MB边距" },
+    { "type": "select", "id": "mb_padding_type","label": "MB边距", "options": [ { "value": "default", "label": "与PC一致" }, { "value": "custom", "label": "单独配置" } ], "default": "custom"},
+    { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+    { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+    { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "text", "id": "title", "label": "模块大标题文案" },
+    { "type": "text", "id": "title_mini", "label": "模块小标题文案" },
+    { "type": "text", "id": "product", "label": "选择产品文案" },
+    { "type": "text", "id": "panels", "label": "选择太阳能板类型文案" },
+    { "type": "text", "id": "number", "label": "选择太阳能板数量文案" },
+    { "type": "text", "id": "calculate", "label": "计算按钮文案" },
+    { "type": "text", "id": "match", "label": "是否匹配文案" },
+    { "type": "text", "id": "hours", "label": "小时文案" },
+    { "type": "text", "id": "des", "label": "描述文案" },
+    { "type": "text", "id": "part_title", "label": "配件产品模块标题文案" },
+    { "type": "text", "id": "select", "label": "单选题框内提示语" },
+    { "type": "text", "id": "error", "label": "数据异常提示语" }
+  ],
+
+  "presets": [
+    {
+      "name": "V5-智能选购",
+      "category": "V5.0"
+    }
+  ]
+}
+{% endschema %}

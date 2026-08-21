@@ -1,0 +1,835 @@
+{{ 'common-footer.min.css' | asset_url | stylesheet_tag }}
+{{ 'sections-footer-new.css' | asset_url | stylesheet_tag }}
+
+{%- if settings.open_delivery_instructions != true -%}
+<style>
+  a[href="#delivery-instructions-freight"],
+  a[href="#delivery-instructions-time"],
+  a[href="#delivery-instructions-areas"]{
+    cursor: default;
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+    pointer-events: none;
+  }
+</style>
+{%- endif -%}
+{%- assign footer_menu = linklists[section.settings.footer_link_list] -%}
+<footer class="section-footer-container footer-new {%- if settings.open_footerSubscribe == false -%}section-footer-no-subscribe{% endif %}">
+  {%- if settings.open_footerSubscribe == true -%}
+    <div class="footer-subscribe-container section-container">
+      <div class="footer-subscribe-mini flex justify-between">
+        <div class="left-mini">
+          <h2 class="jky-text-xl font-500">{{ section.settings.newsletter_heading | escape }}</h2>
+          <p class="jky-text-base font-400">{{ section.settings.newsletter_subheading | newline_to_br }}</p>
+        </div>
+        <div class="right-mini">
+          <div class="subscribe-main">
+            <jky-form
+              onsubmitcall="(e)=>toGA(e)"
+              jky-form-id="footer-email-subscribe"
+              class="subscribe-email footer-subscribe-box"
+            >
+              <form data-action="/osconsumerapi/v1/notice/subscribe">
+                <div class="form-container newbee-form newbee-form_{{section.id}}">
+                  {% comment %} 邮箱 {% endcomment %}
+                  <div class="form-row flex  full">
+                    <div class="form-item bg-white required" data-field="input">
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="{{'newsletter.email_placeholder' | t}}"
+                        data-error="{{'newsletter.email_empty_info' | t}}"
+                        data-value="email"
+                        data-reg="email"
+                        data-regerror="{{'newsletter.email_error_info' | t}}"
+                      >
+                      <div class="required-box">
+                        <div class="required-star">*</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {% comment %} 电话 {% endcomment %}
+                  <div class="form-row flex full">
+                    <div
+                      class="form-item bg-white"
+                      data-field="phone_input"
+                    >
+                      {% render "jky-formField-phoneSelect", id: section.id, required: true, error_text: {{'newsletter.phone_error_info' | t}}, value: 'phone' %}
+                    </div>
+                  </div>
+                  {% comment %} 隐私协议 {% endcomment %}
+                  <div class="form-row privacy form-row_check_box flex full">
+                    <div
+                      class="form-item required"
+                      data-field="check_box"
+                      data-error="{{'newsletter.policy_empty_info' | t}}"
+                    >
+                      {% render 'jky-formField-checkbox',
+                        key: section.settings.privacy_policy,
+                        value: 'agree_recevie'
+                      %}
+                    </div>
+                  </div>
+
+                  <div style="display: none;" class="form-row flex  full">
+                    <div class="form-item form-item_const" data-field="input">
+                      <input
+                        type="text"
+                        id="tags"
+                        name="tags"
+                        data-error=""
+                        data-value="tags"
+                        data-reg=""
+                        value="FOOT-Email-Subcribe"
+                        data-regerror=""
+                      >
+                    </div>
+                  </div>
+
+                  <div class="newbee-form_submit flex full" data-loading="{{section.settings.loading_btn}}">
+                    <button
+                      class="form_sub_btn z-button-middle footer-new-submit"
+                      data-success="{{'newsletter.success' | t}}"
+                    >
+                      {{ section.settings.subcribe_btn }}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </jky-form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+  <div class="category-background">
+    <div class="footer-category section-container">
+      <div class="footer-menu">
+        {% comment %} 瀑布流box {% endcomment %}
+        <div
+          class="footer-menu-waterfall"
+          id="footer-menu-waterfall"
+          data-column="{{ section.settings.menu-column }}"
+          style="--columns:{{ section.settings.menu-column }};"
+        >
+          {% for link in footer_menu.links %}
+            <div class="footer-item">
+              <p class="title font-600 jky-text-base">{{ link.title }}</p>
+              <ul class="footer-column">
+                {% for childlink in link.links %}
+                  <li class="nav-item">
+                    {% if childlink.url == '#' %}
+                      <span class="jky-text-xs">{{ childlink.title }}</span>
+                    {% else %}
+                      <a href="{{childlink.url}}" class="jky-text-xs font-500">{{ childlink.title }}</a>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endfor %}
+        </div>
+        {% comment %} mb {% endcomment %}
+        {% for link in footer_menu.links %}
+          <div class="footer-item mb-waterfall">
+            <p
+              class="title font-500 jky-text-base"
+              {% if settings.jky_theme_version == 'v4' and forloop.index == 1 %}
+                style="border-top:0"
+              {% endif %}
+            >
+              {{ link.title }}
+              <jds-icon name="arrow-down" class="icon-arrow-down"></jds-icon>
+            </p>
+            <ul class="footer-column">
+              {% for childlink in link.links %}
+                <li class="nav-item">
+                  {% if childlink.url == '#' %}
+                    <span class="jky-text-xs font-500">{{ childlink.title }}</span>
+                  {% else %}
+                    <a href="{{childlink.url}}" class="jky-text-xs font-500">{{ childlink.title }}</a>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+        <div class="footer-item help-footer-item">
+          <div>
+            <p class="title font-500 jky-text-base">
+              {{ section.settings.contact_title | escape }}
+            </p>
+            <ul class="footer-column">
+              {% comment %} 悬浮 icon {% endcomment %}
+              {%- assign help_items = section.blocks | where: 'type', 'contact_item' -%}
+              {% for block in help_items %}
+                <li class="nav-item jky-text-xs font-500">
+                  {{ block.settings.text | replace: '<em>', '<em class="special">' }}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% comment %} 社交媒体 {% endcomment %}
+          <div class="footer-medias flex section-container gap-4 mb-4">
+            {%- if settings.social_facebook_link != blank -%}
+              <div class="footer-media-item icon-facebook-box">
+                <a
+                  href="{{ settings.social_facebook_link }}"
+                  title="jackery on Facebook"
+                  data-name="Facebook"
+                  class="iconfont"
+                >
+                  {% render 'icon-facebook-new',
+                    class: 'iconfont icon-facebook-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_instagram_link != blank -%}
+              <div class="footer-media-item icon-instagram-box">
+                <a
+                  href="{{ settings.social_instagram_link }}"
+                  title="jackery on Instagram"
+                  data-name="Instagram"
+                  class="iconfont"
+                >
+                  {% render 'icon-instagram-new',
+                    class: 'iconfont icon-instagram-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_twitter_link != blank -%}
+              <div class="footer-media-item icon-twitter-box">
+                <a href="{{ settings.social_twitter_link }}" title="jackery on X" data-name="X" class="iconfont">
+                  {% render 'icon-twitter-new',
+                    class: 'iconfont icon-twitter-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_linkedin_link != blank -%}
+              <div class="footer-media-item icon-linkedin-box">
+                <a
+                  href="{{ settings.social_linkedin_link }}"
+                  title="jackery on LinkedIn"
+                  data-name="LinkedIn"
+                  class="iconfont"
+                >
+                  {% render 'icon-linkedin-new',
+                    class: 'iconfont icon-linkedin-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_youtube_link != blank -%}
+              <div class="footer-media-item icon-youtube-box">
+                <a
+                  href="{{ settings.social_youtube_link }}"
+                  title="jackery on YouTube"
+                  data-name="YouTube"
+                  class="iconfont"
+                >
+                  {% render 'icon-youtube-new',
+                    class: 'iconfont icon-youtube-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_tiktok_link != blank -%}
+              <div class="footer-media-item icon-tiktok-box">
+                <a
+                  href="{{ settings.social_tiktok_link }}"
+                  title="jackery on TikTok"
+                  data-name="TikTok"
+                  class="iconfont"
+                >
+                  {% render 'icon-tiktok-new',
+                    class: 'iconfont icon-tiktok-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_pinterest_link != blank -%}
+              <div class="footer-media-item icon-pinterest-box">
+                <a
+                  href="{{ settings.social_pinterest_link }}"
+                  title="jackery on Pinterest"
+                  data-name="Pinterest"
+                  class="iconfont"
+                >
+                  {% render 'icon-pinterest-new',
+                    class: 'iconfont icon-pinterest-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_reddit_link != blank -%}
+              <div class="footer-media-item icon-reddit-box">
+                <a
+                  href="{{ settings.social_reddit_link }}"
+                  title="jackery on Reddit"
+                  data-name="Reddit"
+                  class="iconfont"
+                >
+                  {% render 'icon-reddit-new',
+                    class: 'iconfont icon-reddit-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_line_link != blank -%}
+              <div class="footer-media-item icon-line-box">
+                <a href="{{ settings.social_line_link }}" title="jackery on LINE" data-name="LINE" class="iconfont">
+                  {% render 'icon-line-new',
+                    class: 'iconfont icon-line-new',
+                    width: 32,
+                    height: 32,
+                    color: 'var(--icon-color)'
+                  %}
+                </a>
+              </div>
+            {%- endif -%}
+
+            {%- if settings.social_threads_link != blank -%}
+              <div class="footer-media-item icon-threads-box">
+                <a
+                  href="{{ settings.social_threads_link }}"
+                  title="jackery on threads"
+                  data-name="threads"
+                  class="leading-none"
+                >
+                  <jds-icon name="threads" class="iconfont icon-threads align-middle"></jds-icon>
+                </a>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-bottom-container section-container flex">
+      <div class="footer-policy-des">
+        {{ section.settings.footer_copyright }}
+      </div>
+      <ul class="footer-supply flex" style="flex-wrap: wrap;">
+        {% unless shop.enabled_payment_types == empty %}
+          {% if section.settings.show_ideal_icon %}
+            <li class="icon--payment">
+              {%- render 'icon-ideal-pay' -%}
+            </li>
+          {% endif %}
+
+          {% if section.settings.show_klarna_icon %}
+            <li class="icon--payment">
+              <svg
+                class="icon icon--full-color"
+                role="img"
+                width="38"
+                height="24"
+                viewBox="0 0 38 24"
+                aria-labelledby="pi-klarna"
+              >
+                <title id="pi-klarna">Klarna</title>
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.4-3-3-3z" fill="#FFB3C7"></path>
+                  <path d="M35 1c1.1 0 2 .9 2 2v18c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V3c0-1.1.9-2 2-2h32" fill="#FFB3C7"></path>
+                  <path d="M34.117 13.184c-.487 0-.882.4-.882.892 0 .493.395.893.882.893.488 0 .883-.4.883-.893a.888.888 0 00-.883-.892zm-2.903-.69c0-.676-.57-1.223-1.274-1.223-.704 0-1.274.547-1.274 1.222 0 .675.57 1.223 1.274 1.223.704 0 1.274-.548 1.274-1.223zm.005-2.376h1.406v4.75h-1.406v-.303a2.446 2.446 0 01-1.394.435c-1.369 0-2.478-1.122-2.478-2.507 0-1.384 1.11-2.506 2.478-2.506.517 0 .996.16 1.394.435v-.304zm-11.253.619v-.619h-1.44v4.75h1.443v-2.217c0-.749.802-1.15 1.359-1.15h.016v-1.382c-.57 0-1.096.247-1.378.618zm-3.586 1.756c0-.675-.57-1.222-1.274-1.222-.703 0-1.274.547-1.274 1.222 0 .675.57 1.223 1.274 1.223.704 0 1.274-.548 1.274-1.223zm.005-2.375h1.406v4.75h-1.406v-.303A2.446 2.446 0 0114.99 15c-1.368 0-2.478-1.122-2.478-2.507 0-1.384 1.11-2.506 2.478-2.506.517 0 .997.16 1.394.435v-.304zm8.463-.128c-.561 0-1.093.177-1.448.663v-.535H22v4.75h1.417v-2.496c0-.722.479-1.076 1.055-1.076.618 0 .973.374.973 1.066v2.507h1.405v-3.021c0-1.106-.87-1.858-2.002-1.858zM10.465 14.87h1.472V8h-1.472v6.868zM4 14.87h1.558V8H4v6.87zM9.45 8a5.497 5.497 0 01-1.593 3.9l2.154 2.97H8.086l-2.341-3.228.604-.458A3.96 3.96 0 007.926 8H9.45z" fill="#0A0B09" fill-rule="nonzero"></path>
+                </g>
+              </svg>
+            </li>
+          {% endif %}
+
+          {% assign enabled_payment_types = shop.enabled_payment_types %}
+          {% if section.settings.support_afterpay %}
+            {% assign enabled_payment_types = 'afterpay' | concat: shop.enabled_payment_types %}
+          {% endif %}
+
+          {% for type in enabled_payment_types %}
+            <li class="icon--payment">{{ type | payment_type_svg_tag: class: 'icon icon--full-color' }}</li>
+          {% endfor %}
+        {% endunless %}
+      </ul>
+    </div>
+  </div>
+</footer>
+
+{% comment %} 悬浮 icon {% endcomment %}
+{%- assign fixed_icons = section.blocks | where: 'type', 'fixed_icon' -%}
+{%- assign has_new_customer_plugin = false -%}
+
+{%- if fixed_icons.size > 0 -%}
+  {%- assign filter_icons_str = '' -%}
+  {%- assign full_page_url = request.origin | append: request.path -%}
+
+  {%- for block in fixed_icons -%}
+    {%- if block.settings.icon_type == 'new_customer_plugin' -%}
+      {%- assign has_new_customer_plugin = true -%}
+    {%- endif -%}
+
+    {%- assign all_exclude_page_url_str = block.settings.exclude_page_url -%}
+    {%- assign all_exclude_page_url = all_exclude_page_url_str | split: ',' -%}
+
+    {% comment %} 假设该 block 应该被包含 {% endcomment %}
+    {%- assign should_include = true -%}
+
+    {% comment %} 检查是否应该排除该 block {% endcomment %}
+    {%- if all_exclude_page_url.size > 0 -%}
+      {%- for exclude_url in all_exclude_page_url -%}
+        {%- assign exclude_url_trim = exclude_url | strip -%}
+        {%- if full_page_url contains exclude_url_trim -%}
+          {% comment %} 如果匹配到任何排除 URL，设置为不包含 {% endcomment %}
+          {%- assign should_include = false -%}
+          {% comment %} 找到匹配排除项后退出循环 {% endcomment %}
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+
+    {% comment %} 将符合条件的 block 添加到过滤数组 {% endcomment %}
+    {%- if should_include -%}
+      {%- assign type_part = 'type:::' | append: block.settings.icon_type | append: ';' -%}
+      {%- assign icon_image = '' -%}
+      {%- if block.settings.icon_image != blank -%}
+        {%- assign icon_image = block.settings.icon_image | image_url: width: 44, height: 44 -%}
+      {%- endif -%}
+      {%- assign image_part = 'image:::' | append: icon_image | append: ';' -%}
+      {%- assign tips_part = 'tips:::' | append: block.settings.icon_tips | append: ';' -%}
+      {%- assign link_part = 'link:::' | append: block.settings.icon_link -%}
+
+      {%- if filter_icons_str == '' -%}
+        {%- assign filter_icons_str = type_part | append: image_part | append: tips_part | append: link_part -%}
+      {%- else -%}
+        {%- assign filter_icons_str = filter_icons_str
+          | append: '^+^'
+          | append: type_part
+          | append: image_part
+          | append: tips_part
+          | append: link_part
+        -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- assign filter_icons = filter_icons_str | split: '^+^' -%}
+  {%- if filter_icons.size > 0 -%}
+    {%- render 'fixed-icons', full_icons: fixed_icons, icons: filter_icons -%}
+
+    {% comment %} 拉新插件 {% endcomment %}
+    {%- if settings.open_new_customer -%}
+      {%- assign initShow = false -%}
+      {%- unless filter_icons_str contains 'type:::new_customer_plugin' and has_new_customer_plugin == true -%}
+        {%- assign initShow = true -%}
+      {%- endunless -%}
+      {% render 'new-customer-pop', initShow: initShow %}
+    {%- endif -%}
+  {%- else -%}
+    {% comment %} 拉新插件 {% endcomment %}
+    {%- if settings.open_new_customer -%}
+      {% render 'new-customer-pop', initShow: true %}
+    {%- endif -%}
+  {%- endif -%}
+{%- else -%}
+  {% comment %} 拉新插件 {% endcomment %}
+  {%- if settings.open_new_customer -%}
+    {% render 'new-customer-pop', initShow: true %}
+  {%- endif -%}
+{%- endif -%}
+
+<script>
+  /**
+   * 原生 JS 动画版 footerMenuToggle
+   */
+  function footerMenuToggle(el = document, multiple = false) {
+    const container = el?.jquery ? el[0] : el;
+    if (!container || container.dataset.footerAccordionBound === 'true') return;
+
+    container.dataset.footerAccordionBound = 'true';
+    const mobileQuery = window.matchMedia('(max-width: 1023.98px)');
+    const titleSelector = '.mb-waterfall > .title, .help-footer-item > div > .title';
+    const duration = 260;
+    const easing = 'cubic-bezier(0.4, 0, 0.2, 1)';
+    const getContent = (item) => item?.querySelector('.footer-column');
+    const getTitle = (item) => item?.querySelector('.title');
+
+    function clearAnimation(content) {
+      if (content._footerAccordionEnd) {
+        content.removeEventListener('transitionend', content._footerAccordionEnd);
+        content._footerAccordionEnd = null;
+      }
+      if (content._footerAccordionTimer) {
+        window.clearTimeout(content._footerAccordionTimer);
+        content._footerAccordionTimer = null;
+      }
+      if (content._footerAccordionRaf) {
+        window.cancelAnimationFrame(content._footerAccordionRaf);
+        content._footerAccordionRaf = null;
+      }
+    }
+
+    function clearStyles(content) {
+      Object.assign(content.style, {
+        transition: '', overflow: '', height: '', opacity: '', paddingTop: '', paddingBottom: '', boxSizing: '',
+      });
+    }
+
+    function finish(content, isOpen) {
+      clearAnimation(content);
+      clearStyles(content);
+      content.style.display = isOpen ? 'block' : 'none';
+    }
+
+    function getExpandedPadding(content) {
+      const { paddingTop, paddingBottom } = content.style;
+      content.style.paddingTop = content.style.paddingBottom = '';
+      const style = window.getComputedStyle(content);
+      const padding = {
+        top: Number.parseFloat(style.paddingTop) || 0,
+        bottom: Number.parseFloat(style.paddingBottom) || 0,
+      };
+      content.style.paddingTop = paddingTop;
+      content.style.paddingBottom = paddingBottom;
+      return padding;
+    }
+
+    function slide(content, isOpen) {
+      if (!content) return;
+      clearAnimation(content);
+
+      const style = window.getComputedStyle(content);
+      const isHidden = style.display === 'none';
+      if (!isOpen && isHidden) return finish(content, false);
+
+      const startHeight = isHidden ? 0 : Math.round(content.getBoundingClientRect().height);
+      const startOpacity = isHidden ? 0 : Number.parseFloat(style.opacity);
+      const startPadding = isHidden
+        ? { top: 0, bottom: 0 }
+        : { top: Number.parseFloat(style.paddingTop) || 0, bottom: Number.parseFloat(style.paddingBottom) || 0 };
+
+      if (isHidden) content.style.display = 'block';
+      const targetPadding = isOpen ? getExpandedPadding(content) : { top: 0, bottom: 0 };
+      const targetHeight = isOpen ? content.scrollHeight : 0;
+
+      Object.assign(content.style, {
+        overflow: 'hidden', transition: 'none', boxSizing: 'border-box', height: `${startHeight}px`,
+        opacity: Number.isNaN(startOpacity) ? 1 : startOpacity,
+        paddingTop: `${startPadding.top}px`, paddingBottom: `${startPadding.bottom}px`,
+      });
+      void content.offsetHeight;
+
+      const done = () => finish(content, isOpen);
+      content._footerAccordionEnd = (event) => {
+        if (event.target === content && event.propertyName === 'height') done();
+      };
+      content.addEventListener('transitionend', content._footerAccordionEnd);
+      content._footerAccordionRaf = window.requestAnimationFrame(() => {
+        content.style.transition = `height ${duration}ms ${easing}, padding-top ${duration}ms ${easing}, padding-bottom ${duration}ms ${easing}, opacity 200ms ease-out`;
+        content._footerAccordionRaf = window.requestAnimationFrame(() => {
+          content._footerAccordionRaf = null;
+          Object.assign(content.style, {
+            height: `${targetHeight}px`, opacity: isOpen ? 1 : 0,
+            paddingTop: `${targetPadding.top}px`, paddingBottom: `${targetPadding.bottom}px`,
+          });
+          content._footerAccordionTimer = window.setTimeout(done, duration + 80);
+        });
+      });
+    }
+
+    function setState(item, isOpen) {
+      item.classList.toggle('open', isOpen);
+      getTitle(item)?.setAttribute('aria-expanded', String(isOpen));
+      getContent(item)?.setAttribute('aria-hidden', String(!isOpen));
+      slide(getContent(item), isOpen);
+    }
+
+    function resetForViewport() {
+      container.querySelectorAll('.footer-item').forEach((item) => {
+        const content = getContent(item);
+        if (!content) return;
+        clearAnimation(content);
+        clearStyles(content);
+        content.style.display = '';
+        item.classList.remove('open');
+        if (mobileQuery.matches) {
+          getTitle(item)?.setAttribute('aria-expanded', 'false');
+          content.setAttribute('aria-hidden', 'true');
+        } else {
+          getTitle(item)?.removeAttribute('aria-expanded');
+          content.removeAttribute('aria-hidden');
+        }
+      });
+    }
+
+    resetForViewport();
+    mobileQuery.addEventListener('change', resetForViewport);
+    container.addEventListener('click', (event) => {
+      if (!mobileQuery.matches) return;
+      const title = event.target.closest(titleSelector);
+      const currentItem = title?.closest('.footer-item');
+      if (!currentItem || !container.contains(title)) return;
+
+      if (!multiple) {
+        container.querySelectorAll('.footer-item.open').forEach((item) => {
+          if (item !== currentItem) setState(item, false);
+        });
+      }
+      setState(currentItem, !currentItem.classList.contains('open'));
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('footer-menu-waterfall')
+    const columnParsed = parseInt(container?.getAttribute('data-column') || '5', 10)
+    const columnCount = isNaN(columnParsed) ? 5 : Math.max(1, columnParsed)
+
+    function applyMasonryLayout() {
+      if (!container) return;
+      const items = Array.from(container.getElementsByClassName('footer-item'));
+      if (!items.length) return;
+      if (window.innerWidth >= 1024) {
+        const gapX = 8; // 与 CSS 保持一致
+        const gapY = 24; // 与 CSS 保持一致
+        const containerWidth = container.clientWidth;
+        const columnWidth = Math.floor((containerWidth - gapX * (columnCount - 1)) / columnCount);
+        items.forEach((item) => {
+          item.style.width = `${columnWidth}px`;
+        });
+        const columnHeights = Array(columnCount).fill(0);
+        items.forEach((item) => {
+          const minHeight = Math.min(...columnHeights);
+          const columnIndex = columnHeights.indexOf(minHeight);
+          item.style.top = `${minHeight}px`;
+          item.style.left = `${columnIndex * (columnWidth + gapX)}px`;
+          columnHeights[columnIndex] += item.offsetHeight + gapY;
+        });
+        container.style.height = `${Math.max(...columnHeights)}px`;
+        container.classList.add('masonry-initialized');
+      } else {
+        // 移动端菜单点击事件
+        footerMenuToggle(document.querySelector('.footer-menu'));
+
+        container.classList.remove('masonry-initialized');
+        items.forEach((item) => {
+          item.style.top = '';
+          item.style.left = '';
+          item.style.width = '';
+        });
+        container.style.height = '';
+      }
+    }
+
+    requestAnimationFrame(applyMasonryLayout);
+    if (window.ResizeObserver && container) {
+      const ro = new ResizeObserver(() => requestAnimationFrame(applyMasonryLayout));
+      ro.observe(container);
+      window.addEventListener('pagehide', () => ro.disconnect());
+    } else {
+      window.addEventListener('resize', () => requestAnimationFrame(applyMasonryLayout));
+    }
+
+    let loading_btn = 'LOADING';
+    const submitEl = document.querySelector('footer .newbee-form_submit');
+    if (submitEl) {
+      const attr = submitEl.getAttribute('data-loading');
+      if (attr) loading_btn = attr;
+    }
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `footer button.loading::after { content: "${loading_btn}"; }`;
+    document.head.appendChild(styleEl);
+
+    const navItems = document.querySelectorAll('footer .help-footer-item .nav-item');
+    navItems.forEach((el) => {
+      if (!el.textContent.includes('@')) {
+        el.classList.add('no-hover');
+      }
+    });
+
+    // 埋码
+    function toGA(data) {
+      if (data.response && data.response.code === 200) {
+        const msg =
+          document.querySelector('.footer-new .newbee-form_submit button')?.getAttribute?.('data-success') ||
+          data.response.message;
+        pushSuccessMessage(msg);
+        const button_name = document.querySelector('.footer-new .newbee-form_submit button')?.textContent || '';
+
+        // 数据埋码
+        gaPushDataLayer('footer_user_clicks4.0', {
+          module: 'Footer Subscribe',
+          button_name: button_name,
+        });
+
+        // 更新 订阅状态
+        setTimeout(() => {
+          document
+            .querySelector('v5-membership-get-benefit')
+            ?.getLoggedStatus?.(['email_subscription', 'sms_subscription']);
+        }, 3000);
+      }
+    }
+    window.toGA = toGA;
+  });
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.footer.name",
+  "blocks": [
+    {
+      "type": "contact_item",
+      "name": "Contact Item",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Contact info",
+          "default": "<p>Add your own custom text here.</p>"
+        }
+      ]
+    },
+    {
+      "type": "fixed_icon",
+      "name": "Fixed Icon",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon_type",
+          "options": [
+            {
+              "value": "other",
+              "label": "Other"
+            },
+            {
+              "value": "new_customer_plugin",
+              "label": "New Customer"
+            },
+            {
+              "value": "customer_service_zipchat",
+              "label": "Customer Service(Zipchat)"
+            }
+          ],
+          "default": "other",
+          "label": "Icon Type",
+          "info": "Zipchat插件的位置，请配置在前三（建议配置在第一个），配置在其它位置将不会被收纳"
+        },
+        { "type": "image_picker", "id": "icon_image", "label": "Icon Image" },
+        { "type": "textarea", "id": "icon_tips", "label": "Icon Tips" },
+        { "type": "url", "id": "icon_link", "label": "Icon Link" },
+        { "type": "textarea", "id": "exclude_page_url", "label": "不在哪些页面显示", "info": "用英文\",\"隔开" }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "default": "Subscribe Here",
+      "label": "t:sections.footer.settings.newsletter_heading.label"
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_subheading",
+      "default": "Be the first receive our latest news, how-to user guides, and exclusive! Subscribe now.",
+      "label": "Newsletter subtitle"
+    },
+    {
+      "type": "text",
+      "id": "subcribe_btn",
+      "label": "Subscribe Btn"
+    },
+    {
+      "type": "text",
+      "id": "loading_btn",
+      "default": "LOADING",
+      "label": "LOADING Btn"
+    },
+    { "type": "link_list", "id": "footer_link_list", "label": "Menu" },
+    {
+      "type": "text",
+      "id": "contact_title",
+      "default": "Need Help? Let Us Know",
+      "label": "Contact Block Heading"
+    },
+    {
+      "type": "number",
+      "id": "menu-column",
+      "default": 5,
+      "label": "Menu Column"
+    },
+
+    {
+      "type": "richtext",
+      "id": "privacy_policy",
+      "label": "Privacy policy"
+    },
+    {
+      "type": "textarea",
+      "id": "footer_delivery_instructions",
+      "label": "默认展示配送与服务说明Tab",
+      "default": "下方Footer Copyright中如果要配置默认展示运费说明Tab，那么需要在配置a链接。\n 如果默认展示运费说明，a链接为#delivery-instructions-freight，\n如果默认展示时效说明，那么a链接配置#delivery-instructions-time，\n如果默认展示配送地区，那么a链接配置#delivery-instructions-areas"
+    },
+    {
+      "type": "richtext",
+      "id": "footer_copyright",
+      "label": "Footer Copyright"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_klarna_icon",
+      "label": "Show Klarna Icon",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_ideal_icon",
+      "label": "Show iDeal Icon",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "support_afterpay",
+      "label": "Support afterpay?",
+      "info": "是否支持afterpay分期支付方式？（目前只有au站支持）",
+      "default": false
+    }
+  ]
+}
+{% endschema %}

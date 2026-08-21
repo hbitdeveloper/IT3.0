@@ -1,0 +1,661 @@
+{% comment %}
+    产品详情页 - 添加捆绑销售
+    Accepts: product
+    Usage: {% render 'app-bundled-sale' %}
+{% endcomment %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% comment %} open_bundled_sale {% endcomment %}
+{%- if settings.open_bundled_sale == true -%}
+  {% assign current_variant = product.selected_or_first_available_variant %}
+  {% capture bundled_sale_plus_root_id %}bundled-sale-plus-{{ section.id }}-{{ block.id }}{% endcapture %}
+  {% assign bundle_info = current_variant.metafields.custom.bundle_info.value %}
+  {% assign bundle_title = '' %}
+  {% assign bundle_total = 0 %}
+  {% assign bundle_goods_list = blank %}
+  {% assign show_bundle_sale = false %}
+  {% if bundle_info != blank %}
+    {% assign bundle_title = bundle_info.title | default: '' %}
+    {% assign bundle_goods_list = bundle_info.bundleGoodsList %}
+    {% assign bundle_total = bundle_info.total | default: bundle_goods_list.size | plus: 0 %}
+    {% if bundle_goods_list != blank and bundle_total > 0 %}
+      {% assign show_bundle_sale = true %}
+    {% endif %}
+  {% endif %}
+
+  <div id="{{ bundled_sale_plus_root_id }}" class="w-full"{% unless show_bundle_sale %} style="display:none;"{% endunless %}>
+    {% style %}
+      jky-v5-app-bundled-sale-plus [data-app-bundled-sale-title] pre {
+        white-space: normal;
+      }
+      jky-v5-app-bundled-sale-plus button[disabled] svg {
+        color: #B6B6B6;
+      }
+      jky-v5-app-bundled-sale-plus input[type="checkbox"] {
+        cursor: pointer;
+        position: relative;
+      }
+      jky-v5-app-bundled-sale-plus input[type="checkbox"]::after {
+        content: ' ';
+        width: 100%;
+        height: 100%;
+        border-radius: 2px;
+        background-color: #fff;
+        border: 1px solid #D8D8D8;
+        visibility: visible;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+      jky-v5-app-bundled-sale-plus input[type="checkbox"]::before {
+        content: '';
+        width: 35%;
+        height: 55%;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -60%) rotate(45deg);
+        opacity: 0;
+        z-index: 1;
+        box-sizing: border-box;
+      }
+      jky-v5-app-bundled-sale-plus input[type="checkbox"]:checked::before {
+        opacity: 1;
+      }
+      jky-v5-app-bundled-sale-plus input[type="checkbox"]:checked::after {
+        content: ' ';
+        background-color: #242F20;
+        border: none;
+      }
+      jky-v5-app-bundled-sale-plus input[type="checkbox"]:active,
+      jky-v5-app-bundled-sale-plus input[type="checkbox"]:focus {
+        background-color: transparent;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+        -webkit-user-select: none;
+        -moz-user-focus: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+      jky-v5-app-bundled-sale-plus ul {
+        width: calc(100% + 1rem);
+      }
+      jky-v5-app-bundled-sale-plus ul > :last-child {
+        margin-bottom: 1px;
+      }
+      jky-v5-app-bundled-sale-plus ul label.active{
+        border: solid 1px #242F20;
+        box-shadow: inset 0 0 0 0.5px #242F20;
+      }
+      /* 滚动条宽度 */
+      jky-v5-app-bundled-sale-plus ul::-webkit-scrollbar {
+        width: 0.375rem;
+      }
+      /* 滚动条滑块 */
+      jky-v5-app-bundled-sale-plus ul::-webkit-scrollbar-thumb {
+        background-color: #C9C9CB; /* 滑块颜色 */
+        border-radius: 10px; /* 滑块圆角 */
+      }
+      /* 滚动条轨道 */
+      jky-v5-app-bundled-sale-plus ul::-webkit-scrollbar-track {
+        background-color: transparent; /* 滚动条轨道透明 */
+      }
+      @media screen and (max-width: 1023.98px) {
+        jky-v5-app-bundled-sale-plus ul {
+          width: calc(100% + 0.75rem);
+        }
+      }
+      jky-v5-app-bundled-sale-plus [data-bundle-variant-templates] {
+        display: none;
+      }
+    {% endstyle %}
+
+    <jky-v5-app-bundled-sale-plus
+      class="flex flex-col gap-y-4 lg:gap-y-6 section-padding"
+      style="{{ style }}"
+      data-product-title="{{ product.title | escape }}"
+      data-variant-id="{{ current_variant.id }}"
+      data-variant-title="{{ current_variant.title | escape }}"
+    >
+      <div data-bundle-body>
+        {% if show_bundle_sale %}
+          <div id="{{ bundled_sale_plus_root_id }}-title" class="font-semibold text-[#242F20] text-xl lg:text-2xl mb-3 lg:mb-4" data-app-bundled-sale-title>{{ bundle_title }}</div>
+          <ul class="flex flex-col max-h-[23.5rem] gap-y-3.5 lg:gap-y-5 pr-1 overflow-y-auto lg:pr-2.5" tabindex="0" role="region" aria-labelledby="{{ bundled_sale_plus_root_id }}-title" data-app-bundled-sale-list>
+            {% for item in bundle_goods_list %}
+              {% assign item_title = item.sellerName | default: item.title %}
+              {% assign item_price = item.price | default: 0 %}
+              {% assign item_origin_price = item.originPrice | default: 0 %}
+              {% assign item_price_cents = item_price | times: 100 %}
+              {% assign item_origin_price_cents = item_origin_price | times: 100 %}
+              {% assign item_stock = item.stock | default: 1 | plus: 0 %}
+              {% assign item_sku_id = item.skuId | default: 0 %}
+              {% assign item_goods_id = item.goodsId | default: 0 %}
+              {% assign item_default_chosen = item.defaultChosen | default: 0 | plus: 0 %}
+              {% assign item_positioning_tag = item.positioningTag | default: '' %}
+              {% assign item_positioning_desc = item.positioningDesc | default: '' %}
+              {% assign item_positioning_desc_color = item.positioningDescColor | default: '#999999' %}
+              {% assign item_image = item.image | default: '' | remove: '`' | strip %}
+              {% assign item_image_base = item_image | split: '?' | first %}
+              {% capture item_product_json %}{"goodsId":{{ item_goods_id | json }},"title":{{ item_title | json }},"price":{{ item_price | json }},"originPrice":{{ item_origin_price | json }},"image":{{ item_image | json }}}{% endcapture %}
+              {% capture quantity_input_markup %}
+                <div class="flex">
+                  <button
+                    class="appearance-none bg-[#F5F5F5] flex-center w-6 h-6 lg:w-8 lg:h-8 disabled:cursor-not-allowed"
+                    disabled
+                    aria-label="Decrease quantity for {{ item_title | escape }}"
+                    data-button-minus
+                    data-sku-title="{{ item_title | escape }}"
+                    data-sku-price="{{ item_price_cents | money | escape }}"
+                  >
+                    <svg class="text-[#333] w-3 h-3" width="12" height="2" viewBox="0 0 12 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <mask id="path-1-inside-1_306_5222" fill="white">
+                        <path d="M12 2H0V0H12V2Z"/>
+                      </mask>
+                      <path d="M12 2V3H13V2H12ZM0 2H-1V3H0V2ZM0 0V-1H-1V0H0ZM12 0H13V-1H12V0ZM12 2V1H0V2V3H12V2ZM0 2H1V0H0H-1V2H0ZM0 0V1H12V0V-1H0V0ZM12 0H11V2H12H13V0H12Z" fill="currentColor" mask="url(#path-1-inside-1_306_5222)"/>
+                    </svg>
+                  </button>
+                  <input
+                    aria-label="purchase quantity"
+                    class="flex-center font-semibold text-center w-8 h-6 lg:w-11 lg:h-8 text-base lg:text-lg"
+                    type="number"
+                    value="1"
+                    readonly
+                    data-quantity-input
+                    data-max="{{ item_stock }}"
+                    data-sku-id="{{ item_sku_id }}"
+                    data-sku-title="{{ item_title | escape }}"
+                    data-sku-price="{{ item_price_cents | money | escape }}"
+                  />
+                  <button
+                    class="appearance-none bg-[#F5F5F5] flex-center w-6 h-6 lg:w-8 lg:h-8 disabled:cursor-not-allowed"
+                    {% if item_stock <= 1 %}disabled{% endif %}
+                    aria-label="Increase quantity for {{ item_title | escape }}"
+                    data-button-plus
+                    data-sku-title="{{ item_title | escape }}"
+                    data-sku-price="{{ item_price_cents | money | escape }}"
+                  >
+                    <svg class="text-[#333] w-3 h-3" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <mask id="path-1-inside-1_306_5240" fill="white">
+                        <path d="M7 5.25H12V7.25H7V12H5V7.25H0V5.25H5V0H7V5.25Z"/>
+                      </mask>
+                      <path d="M7 5.25H6V6.25H7V5.25ZM12 5.25H13V4.25H12V5.25ZM12 7.25V8.25H13V7.25H12ZM7 7.25V6.25H6V7.25H7ZM7 12V13H8V12H7ZM5 12H4V13H5V12ZM5 7.25H6V6.25H5V7.25ZM0 7.25H-1V8.25H0V7.25ZM0 5.25V4.25H-1V5.25H0ZM5 5.25V6.25H6V5.25H5ZM5 0V-1H4V0H5ZM7 0H8V-1H7V0ZM7 5.25V6.25H12V5.25V4.25H7V5.25ZM12 5.25H11V7.25H12H13V5.25H12ZM12 7.25V6.25H7V7.25V8.25H12V7.25ZM7 7.25H6V12H7H8V7.25H7ZM7 12V11H5V12V13H7V12ZM5 12H6V7.25H5H4V12H5ZM5 7.25V6.25H0V7.25V8.25H5V7.25ZM0 7.25H1V5.25H0H-1V7.25H0ZM0 5.25V6.25H5V5.25V4.25H0V5.25ZM5 5.25H6V0H5H4V5.25H5ZM5 0V1H7V0V-1H5V0ZM7 0H6V5.25H7H8V0H7Z" fill="currentColor" mask="url(#path-1-inside-1_306_5240)"/>
+                    </svg>
+                  </button>
+                </div>
+              {% endcapture %}
+
+              <label skuId="{{ item_sku_id }}" for="add-on-{{ item_sku_id }}--{{ forloop.index0 }}" class="w-full max-w-[21.4375rem] flex shrink-0 items-start flex-row border-solid border-[#C6C7C8] gap-x-3 border min-h-[7.25rem] lg:gap-x-4 px-3.5 py-5 lg:px-6 {% if item_positioning_tag != blank %} lg:pt-8 {% else %} lg:pt-6 {% endif %} lg:pb-6 lg:max-w-[39rem] lg:min-h-[7rem] cursor-pointer relative {% if item_default_chosen == 1 %}active{% endif %}">
+                {% if item_positioning_tag != blank %}
+                  <span class="absolute right-0 top-0 bg-[#FFEEE6] z-[-1] text-primary font-medium text-xs rounded-bl lg:text-base px-2 lg:px-3">{{ item_positioning_tag }}</span>
+                {% endif %}
+                <div class="flex items-start gap-x-2.5 lg:gap-x-4">
+                  <input skuId="{{ item_sku_id }}" type="checkbox" id="add-on-{{ item_sku_id }}--{{ forloop.index0 }}" title="{{ item_title | escape }}" price="{{ item_price_cents | money | escape }}" data-bundle-sku-id="{{ item_sku_id }}" data-bundle-title="{{ item_title | escape }}" data-bundle-display-title="{{ item_title | escape }}" data-bundle-price="{{ item_price }}" data-bundle-origin-price="{{ item_origin_price }}" data-bundle-image="{{ item_image | escape }}" class="w-4 h-4 lg:w-5 lg:h-5" {% if item_default_chosen == 1 %}checked{% endif %}>
+                  <img class="w-11 h-11 lg:w-16 lg:h-16 object-contain cursor-pointer" src="{{ item_image_base }}?width=128" alt="{{ item_title | escape }}" loading="lazy" width="64" height="64">
+                </div>
+                <div class="flex flex-col flex-1">
+                  <h4 class="text-[#242F20] font-semibold text-sm lg:text-xl cursor-pointer -mt-1 lg:-mt-1.5">{{ item_title }}</h4>
+                  {% if item_positioning_desc != blank %}
+                    <p class="text-black/65 font-medium lg:font-normal mt-1.5 lg:mt-2 text-xs lg:text-base" style="color:{{ item_positioning_desc_color }};">{{ item_positioning_desc }}</p>
+                  {% endif %}
+                  <div class="flex items-center justify-between mt-2">
+                    <div class="flex items-center">
+                      <em class="text-[#242F20] font-semibold not-italic text-sm lg:text-base">{{ item_price_cents | money }}</em>
+                      {% if item_origin_price > item_price %}
+                        <span class="text-black/65 font-normal text-sm ml-2 line-through lg:text-base">{{ item_origin_price_cents | money }}</span>
+                      {% endif %}
+                    </div>
+                    <div class="hidden lg:flex items-center justify-end lg:gap-x-[1.875rem]">
+                      <button aria-label="show modal" class="appearance-none bg-transparent w-fit h-6 lg:h-8 flex items-center gap-x-1" data-product="{{ item_product_json | escape }}" data-action="show-modal">
+                        <span class="text-[#707070] text-sm lg:text-base">{{ block.settings.details_button_text | escape }}</span>
+                        <svg class="shrink-0" width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="8.50195" cy="8.50122" r="8" stroke="#707070" stroke-width="1.0024"/>
+                          <line x1="8.51097" y1="5.06201" x2="8.51097" y2="11.9392" stroke="#707070" stroke-width="1.0024"/>
+                          <line x1="11.9414" y1="8.51243" x2="5.06421" y2="8.51243" stroke="#707070" stroke-width="1.0024"/>
+                        </svg>
+                      </button>
+                      <div class="flex justify-end">
+                        {{ quantity_input_markup }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex lg:hidden items-center justify-between mt-2">
+                    <button aria-label="show modal" class="appearance-none bg-transparent w-fit h-6 lg:h-8 flex items-center gap-x-1" data-product="{{ item_product_json | escape }}" data-action="show-modal">
+                      <span class="text-[#707070] text-sm lg:text-base">{{ block.settings.details_button_text | escape }}</span>
+                      <svg class="shrink-0" width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="8.50195" cy="8.50122" r="8" stroke="#707070" stroke-width="1.0024"/>
+                        <line x1="8.51097" y1="5.06201" x2="8.51097" y2="11.9392" stroke="#707070" stroke-width="1.0024"/>
+                        <line x1="11.9414" y1="8.51243" x2="5.06421" y2="8.51243" stroke="#707070" stroke-width="1.0024"/>
+                      </svg>
+                    </button>
+                    <div class="flex justify-end">
+                      {{ quantity_input_markup }}
+                    </div>
+                  </div>
+                </div>
+              </label>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="fixed inset-0 fix flex-col justify-center items-center z-[9999999999] hidden bg-black bg-opacity-70 overflow-hidden" id="bundle-product-modal">
+        <div id="loading-box" class="relative bg-white overflow-y-auto box-border">
+          <div class="flex flex-col items-center justify-center h-full">
+            <svg class="icon animate-spin [animation-duration:1.5s] h-12 w-12" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+              <path d="M843.307 742.24c0 3.217 2.607 5.824 5.824 5.824s5.824-2.607 5.824-5.824a5.823 5.823 0 0 0-5.824-5.824 5.823 5.823 0 0 0-5.824 5.824zM714.731 874.912c0 6.398 5.186 11.584 11.584 11.584s11.584-5.186 11.584-11.584-5.186-11.584-11.584-11.584-11.584 5.186-11.584 11.584zM541.419 943.2c0 9.614 7.794 17.408 17.408 17.408s17.408-7.794 17.408-17.408-7.794-17.408-17.408-17.408-17.408 7.794-17.408 17.408z m-186.56-9.152c0 12.795 10.373 23.168 23.168 23.168s23.168-10.373 23.168-23.168-10.373-23.168-23.168-23.168-23.168 10.373-23.168 23.168zM189.355 849.12c0 16.012 12.98 28.992 28.992 28.992s28.992-12.98 28.992-28.992-12.98-28.992-28.992-28.992-28.992 12.98-28.992 28.992zM74.731 704.736c0 19.228 15.588 34.816 34.816 34.816s34.816-15.588 34.816-34.816-15.588-34.816-34.816-34.816-34.816 15.588-34.816 34.816z m-43.008-177.28c0 22.41 18.166 40.576 40.576 40.576s40.576-18.166 40.576-40.576-18.166-40.576-40.576-40.576-40.576 18.166-40.576 40.576z m35.392-176.128c0 25.626 20.774 46.4 46.4 46.4s46.4-20.774 46.4-46.4c0-25.626-20.774-46.4-46.4-46.4-25.626 0-46.4 20.774-46.4 46.4z m106.176-142.016c0 28.843 23.381 52.224 52.224 52.224s52.224-23.381 52.224-52.224c0-28.843-23.381-52.224-52.224-52.224-28.843 0-52.224 23.381-52.224 52.224z m155.904-81.344c0 32.024 25.96 57.984 57.984 57.984s57.984-25.96 57.984-57.984-25.96-57.984-57.984-57.984-57.984 25.96-57.984 57.984z m175.104-5.056c0 35.24 28.568 63.808 63.808 63.808s63.808-28.568 63.808-63.808c0-35.24-28.568-63.808-63.808-63.808-35.24 0-63.808 28.568-63.808 63.808z m160.32 72.128c0 38.421 31.147 69.568 69.568 69.568s69.568-31.147 69.568-69.568-31.147-69.568-69.568-69.568-69.568 31.147-69.568 69.568z m113.92 135.488c0 41.638 33.754 75.392 75.392 75.392s75.392-33.754 75.392-75.392-33.754-75.392-75.392-75.392-75.392 33.754-75.392 75.392z m45.312 175.488c0 44.854 36.362 81.216 81.216 81.216s81.216-36.362 81.216-81.216c0-44.854-36.362-81.216-81.216-81.216-44.854 0-81.216 36.362-81.216 81.216z" fill="#bfbfbf"></path>
+            </svg> 
+          </div>
+        </div>
+
+        <div id="pop-box" class="relative bg-white overflow-x-hidden overflow-y-auto box-border">
+          <style>
+            #loading-box{
+              padding: 48px 64px;
+            }
+            #loading-box,#pop-box{
+              width: 640px;
+              max-height: calc(100vh - 128px);
+              border-radius: var(--theme-btn-border-radius, 0.5rem);
+            }
+            #pop-box::-webkit-scrollbar-track {
+              border-radius: 0;
+            }
+            #pop-box::-webkit-scrollbar-thumb {
+              border-radius: 0;
+            }
+            @media (min-width: 768.1px) and (max-width: 1023.99px) {
+              #loading-box, #pop-box {
+                width: 94%;
+              }
+            }
+            @media (max-width: 768px) {
+              #loading-box{
+                padding: 2.25rem 0.5rem 1rem 0.5rem;
+              }
+              #loading-box, #pop-box {
+                width: 20.4375rem;
+                max-height: calc(100dvh - 4rem);
+                border-radius: var(--theme-btn-border-radius, 0.75rem);
+              }
+            }
+          </style>
+          <!-- 关闭按钮 -->
+          <svg id="modal-close" class="icon absolute right-2 top-2 md:right-4 md:top-4 w-5 h-5 md:w-10 md:h-10 cursor-pointer z-20" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <title>XX</title>
+              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g>
+                      <rect x="0" y="0" width="40" height="40"></rect>
+                      <line x1="8" y1="9" x2="32" y2="33" stroke="#242F20" stroke-width="2" stroke-linecap="round"></line>
+                      <line x1="32" y1="9" x2="8" y2="33" stroke="#242F20" stroke-width="2" stroke-linecap="round"></line>
+                  </g>
+              </g>
+          </svg>
+
+          <div class="pop-box-swiper w-full h-auto">
+            <!-- 轮播组件 -->
+            <div class="relative flex justify-center items-center" id="modal-carousel">
+              <!-- 左侧按钮 -->
+              <svg class="carousel-prev border border-solid border-[#242F20] rounded-full cursor-pointer" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect class="icon-bg" x="0.5" y="0.5" width="40" height="40" rx="20" fill="white" fill-opacity="0.5"/>
+                <g>
+                  <path d="M28.5 20.25H16.2578" stroke="#242F20" stroke-width="1.6" />
+                  <path d="M19.0078 14L12.7581 20.2498L19.0078 26.4995" stroke="#242F20" stroke-width="1.6" />
+                </g>
+              </svg>
+              <!-- 轮播容器 -->
+              <div class="carousel-container flex items-center justify-center box-border shrink-0 overflow-hidden">
+                <div class="carousel-wrapper w-full h-full flex transition-transform duration-300" id="modal-carousel-wrapper"></div>
+              </div>
+              <style>
+                .pop-box-swiper{
+                  padding: 3rem 4rem 0;
+                }
+                .carousel-prev{
+                  margin-right: 48px;
+                  width: 40px;
+                  height: 40px
+                }
+                .carousel-container{
+                  width: 240px;
+                  height: 240px
+                }
+                .carousel-wrapper {
+                  will-change: transform;
+                }
+                .carousel-item {
+                  min-width: 100%;
+                  padding: 0 2px;
+                }
+                @media (min-width: 768.1px) and (max-width: 1023.99px) {
+                    .pop-box-swiper{
+                    padding: 3rem 2rem 0;
+                  }
+                }
+                @media (max-width: 768px) {
+                  .pop-box-swiper{
+                    padding: 2.25rem 0.5rem 0 0.5rem
+                  }
+                  .carousel-container{
+                    width: 13.75rem;
+                    height: 13.75rem
+                  }
+                  .carousel-prev{
+                    margin-right: 0.71875rem;
+                    width: 1.875rem;
+                    height: 1.875rem;
+                  }
+                }
+                
+              </style>
+              <!-- 右侧按钮 -->
+              <svg class="carousel-next border border-solid border-[#242F20] rounded-full cursor-pointer"  width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect class="icon-bg" x="0.5" y="0.5" width="40" height="40" rx="20" fill="white" fill-opacity="0.5"/>
+                <g>
+                  <path d="M11.5 20.25H23.7422" stroke="#242F20" stroke-width="1.6"/>
+                  <path d="M20.9922 14L27.2419 20.2498L20.9922 26.4995" stroke="#242F20" stroke-width="1.6"/>
+                </g>
+              </svg>
+            </div>
+            <!-- 轮播计数器 -->
+              <div class="pop-box-swiper-num flex flex-col items-center">
+                <div class="mt-2 text-sm text-[#666]" id="modal-carousel-counter"></div>
+              </div>
+            <!-- 产品标题 -->
+            <h3 class="pop-box-product-text md:text-2xl text-[#242F20] font-semibold md:mb-2 line-clamp-2 md:p-0" id="modal-title"></h3>
+            <!-- 产品价格 -->
+            <div id="modal-price" class="flex justify-ceter items-center md:mb-3 md:p-0">
+              <div class="discount-price md:text-2xl md:mr-4 font-semibold"></div>
+              <div class="original-price text-[#999] md:text-base font-medium line-through"></div>
+            </div>
+            <style>
+              .carousel-next {
+                margin-left: 48px;
+                width: 40px;
+                height: 40px
+              }
+              .pop-box-swiper-num{
+                margin-top: 0.375rem;
+                margin-bottom: 16px;
+              }
+              .discount-price {
+                color: var(--jds-color-primary);
+              }
+              @media (max-width: 768px) {
+                .carousel-next {
+                  margin-left: 0.71875rem;
+                  width: 1.875rem;
+                  height: 1.875rem;
+                }
+                .pop-box-swiper-num{
+                  margin-top: 0.53125rem;
+                  margin-bottom: 0.71875rem;
+                }
+                .pop-box-product-text{
+                  padding: 0 0.5rem;
+                  margin-bottom: 0.75rem;
+                  line-height: 1.21875rem;
+                  font-size: 1rem;
+                }
+                #modal-price{
+                  margin-bottom: 0.75rem;
+                  padding: 0 0.5rem;
+                }
+                .discount-price{
+                  margin-right: 0.75rem;
+                  line-height: 1.25rem;
+                  font-size: 1.25rem;
+                }
+                .original-price{
+                  line-height: 1.375rem;
+                  font-size: 0.875rem;
+                }
+              }
+            </style>
+          </div>
+          <!-- 产品描述 -->
+          <div class="pop-box-desc w-full">
+            <div id="modal-description" tabindex="0" role="region" aria-label="Product details" class="w-full md:text-base text-[#666] md:pr-12 overflow-x-hidden md:overflow-y-auto font-normal"></div>
+            <style>
+              .pop-box-desc{
+                padding: 0 0.75rem 3rem 4rem;
+              }
+              @media (min-width: 768.1px) and (max-width: 1023.99px) {
+                .pop-box-desc{
+                  padding:  0 0.75rem 2rem 2rem;
+                }
+              }
+              @media (max-width: 768px) {
+                .pop-box-desc{
+                  padding: 0 1rem 1rem
+                }
+              }
+              #modal-description * {
+                font-size: 1rem !important;          
+                line-height: 1.5rem !important;
+                overflow-wrap: break-word;
+                hyphens: auto;
+                color: #242F20;
+              }
+              #modal-description{
+                height: 172px;
+                min-height: 10.3125rem;
+              }
+              @media (max-width: 768px) {
+                #modal-description *{
+                  font-size: 0.875rem !important;          
+                  line-height: 1.375rem !important;
+                  color: #666;
+                }
+                #modal-description{
+                  height: auto;
+                  line-height: 1.375rem;
+                  font-size: 0.875rem;
+                }
+              }
+              #modal-description ul,
+              #modal-description ol,
+              #modal-description p,
+              #modal-description div,
+              #modal-description li,
+              #modal-description table { 
+                width: 100%!important;
+              }
+              .product-main-block .product-info-container #modal-description .product__description{
+                background: none;
+                padding: 0;
+              }
+              .product-main-block .product-info-container #modal-description .product__description ul{
+                margin-bottom: 1rem;
+              }
+              #modal-description h1 strong,
+              #modal-description h2 strong,
+              #modal-description h3 strong,
+              #modal-description h4 strong,
+              #modal-description h5 strong,
+              #modal-description h6 strong {
+                display: inline-block;
+                margin-bottom: 6px;
+                line-height: 26px;
+                font-size: 16px;
+                font-weight: 600;
+              }
+              #modal-description ul li p {
+                display: inline;
+              }
+              #modal-description::-webkit-scrollbar {
+                width: 6px;
+              }
+              #modal-description::-webkit-scrollbar-track {
+                background: transparent;
+                border-radius: 4px;
+              }
+              #modal-description::-webkit-scrollbar-thumb {
+                background: #B2B2B2;
+                border-radius: 4px;
+              }
+            </style>
+          </div>
+        </div>
+          </div>
+
+      <script type="application/json" data-bundle-info>
+        {
+          {% for variant in product.variants %}
+            "{{ variant.id }}": {{ variant.metafields.custom.bundle_info.value | json }}{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        }
+      </script>
+
+      <div data-bundle-variant-templates>
+        {% for variant in product.variants %}
+          {% assign variant_bundle_info = variant.metafields.custom.bundle_info.value %}
+          {% assign variant_bundle_title = '' %}
+          {% assign variant_bundle_total = 0 %}
+          {% assign variant_bundle_goods_list = blank %}
+          {% assign variant_show_bundle_sale = false %}
+          {% if variant_bundle_info != blank %}
+            {% assign variant_bundle_title = variant_bundle_info.sellerName | default: variant_bundle_info.title %}
+            {% assign variant_bundle_goods_list = variant_bundle_info.bundleGoodsList %}
+            {% assign variant_bundle_total = variant_bundle_info.total | default: variant_bundle_goods_list.size | plus: 0 %}
+            {% if variant_bundle_goods_list != blank and variant_bundle_total > 0 %}
+              {% assign variant_show_bundle_sale = true %}
+            {% endif %}
+          {% endif %}
+          <template data-bundle-template data-variant-id="{{ variant.id }}">
+            {% if variant_show_bundle_sale %}
+              <div id="{{ bundled_sale_plus_root_id }}-title-{{ variant.id }}" class="font-semibold text-[#242F20] text-xl lg:text-2xl mb-3 lg:mb-4" data-app-bundled-sale-title>{{ variant_bundle_title }}</div>
+              <ul class="flex flex-col max-h-[23.5rem] gap-y-3.5 lg:gap-y-5 pr-1 overflow-y-auto lg:pr-2.5" tabindex="0" role="region" aria-labelledby="{{ bundled_sale_plus_root_id }}-title-{{ variant.id }}" data-app-bundled-sale-list>
+                {% for item in variant_bundle_goods_list %}
+                  {% assign item_title = item.sellerName | default: item.title %}
+                  {% assign item_price = item.price | default: 0 %}
+                  {% assign item_origin_price = item.originPrice | default: 0 %}
+                  {% assign item_price_cents = item_price | times: 100 %}
+                  {% assign item_origin_price_cents = item_origin_price | times: 100 %}
+                  {% assign item_stock = item.stock | default: 1 | plus: 0 %}
+                  {% assign item_sku_id = item.skuId | default: 0 %}
+                  {% assign item_goods_id = item.goodsId | default: 0 %}
+                  {% assign item_default_chosen = item.defaultChosen | default: 0 | plus: 0 %}
+                  {% assign item_positioning_tag = item.positioningTag | default: '' %}
+                  {% assign item_positioning_desc = item.positioningDesc | default: '' %}
+                  {% assign item_positioning_desc_color = item.positioningDescColor | default: '#999999' %}
+                  {% assign item_image = item.image | default: '' | remove: '`' | strip %}
+                  {% assign item_image_base = item_image | split: '?' | first %}
+                  {% capture item_product_json %}{"goodsId":{{ item_goods_id | json }},"title":{{ item_title | json }},"price":{{ item_price | json }},"originPrice":{{ item_origin_price | json }},"image":{{ item_image | json }}}{% endcapture %}
+                  {% capture quantity_input_markup %}
+                    <div class="flex">
+                      <button
+                        class="appearance-none bg-[#F5F5F5] flex-center w-6 h-6 lg:w-8 lg:h-8 disabled:cursor-not-allowed"
+                        disabled
+                        aria-label="Decrease quantity for {{ item_title | escape }}"
+                        data-button-minus
+                        data-sku-title="{{ item_title | escape }}"
+                        data-sku-price="{{ item_price_cents | money | escape }}"
+                      >
+                        <svg class="text-[#333] w-3 h-3" width="12" height="2" viewBox="0 0 12 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <mask id="path-1-inside-1_306_5222" fill="white">
+                            <path d="M12 2H0V0H12V2Z"/>
+                          </mask>
+                          <path d="M12 2V3H13V2H12ZM0 2H-1V3H0V2ZM0 0V-1H-1V0H0ZM12 0H13V-1H12V0ZM12 2V1H0V2V3H12V2ZM0 2H1V0H0H-1V2H0ZM0 0V1H12V0V-1H0V0ZM12 0H11V2H12H13V0H12Z" fill="currentColor" mask="url(#path-1-inside-1_306_5222)"/>
+                        </svg>
+                      </button>
+                      <input
+                        aria-label="purchase quantity"
+                        class="flex-center font-semibold text-center w-8 h-6 lg:w-11 lg:h-8 text-base lg:text-lg"
+                        type="number"
+                        value="1"
+                        readonly
+                        data-quantity-input
+                        data-max="{{ item_stock }}"
+                        data-sku-id="{{ item_sku_id }}"
+                        data-sku-title="{{ item_title | escape }}"
+                        data-sku-price="{{ item_price_cents | money | escape }}"
+                      />
+                      <button
+                        class="appearance-none bg-[#F5F5F5] flex-center w-6 h-6 lg:w-8 lg:h-8 disabled:cursor-not-allowed"
+                        {% if item_stock <= 1 %}disabled{% endif %}
+                        aria-label="Increase quantity for {{ item_title | escape }}"
+                        data-button-plus
+                        data-sku-title="{{ item_title | escape }}"
+                        data-sku-price="{{ item_price_cents | money | escape }}"
+                      >
+                        <svg class="text-[#333] w-3 h-3" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <mask id="path-1-inside-1_306_5240" fill="white">
+                            <path d="M7 5.25H12V7.25H7V12H5V7.25H0V5.25H5V0H7V5.25Z"/>
+                          </mask>
+                          <path d="M7 5.25H6V6.25H7V5.25ZM12 5.25H13V4.25H12V5.25ZM12 7.25V8.25H13V7.25H12ZM7 7.25V6.25H6V7.25H7ZM7 12V13H8V12H7ZM5 12H4V13H5V12ZM5 7.25H6V6.25H5V7.25ZM0 7.25H-1V8.25H0V7.25ZM0 5.25V4.25H-1V5.25H0ZM5 5.25V6.25H6V5.25H5ZM5 0V-1H4V0H5ZM7 0H8V-1H7V0ZM7 5.25V6.25H12V5.25V4.25H7V5.25ZM12 5.25H11V7.25H12H13V5.25H12ZM12 7.25V6.25H7V7.25V8.25H12V7.25ZM7 7.25H6V12H7H8V7.25H7ZM7 12V11H5V12V13H7V12ZM5 12H6V7.25H5H4V12H5ZM5 7.25V6.25H0V7.25V8.25H5V7.25ZM0 7.25H1V5.25H0H-1V7.25H0ZM0 5.25V6.25H5V5.25V4.25H0V5.25ZM5 5.25H6V0H5H4V5.25H5ZM5 0V1H7V0V-1H5V0ZM7 0H6V5.25H7H8V0H7Z" fill="currentColor" mask="url(#path-1-inside-1_306_5240)"/>
+                        </svg>
+                      </button>
+                    </div>
+                  {% endcapture %}
+
+                  <label skuId="{{ item_sku_id }}" for="add-on-{{ item_sku_id }}--{{ forloop.index0 }}" class="w-full max-w-[21.4375rem] flex shrink-0 items-start flex-row border-solid border-[#C6C7C8] gap-x-3 border min-h-[7.25rem] lg:gap-x-4 px-3.5 pb-3.5 lg:px-6 {% if item_positioning_tag != blank %} pt-5 lg:pt-8 {% else %} pt-3.5 lg:pt-6 {% endif %} lg:pb-6 lg:max-w-[39rem] lg:min-h-[7rem] cursor-pointer relative {% if item_default_chosen == 1 %}active{% endif %}">
+                    {% if item_positioning_tag != blank %}
+                      <span class="absolute right-0 top-[1px] bg-[#FFF0E9] z-[-1] text-primary font-medium text-xs rounded-bl lg:text-base px-2 lg:px-3">{{ item_positioning_tag }}</span>
+                    {% endif %}
+                    <div class="flex items-start gap-x-2.5 lg:gap-x-4">
+                      <input skuId="{{ item_sku_id }}" type="checkbox" id="add-on-{{ item_sku_id }}--{{ forloop.index0 }}" title="{{ item_title | escape }}" price="{{ item_price_cents | money | escape }}" data-bundle-sku-id="{{ item_sku_id }}" data-bundle-title="{{ item_title | escape }}" data-bundle-display-title="{{ item_title | escape }}" data-bundle-price="{{ item_price }}" data-bundle-origin-price="{{ item_origin_price }}" data-bundle-image="{{ item_image | escape }}" class="w-4 h-4 lg:w-5 lg:h-5" {% if item_default_chosen == 1 %}checked{% endif %}>
+                      <img class="w-11 h-11 lg:w-16 lg:h-16 object-contain cursor-pointer" src="{{ item_image_base }}?width=128" alt="{{ item_title | escape }}" loading="lazy" width="64" height="64">
+                    </div>
+                    <div class="flex flex-col flex-1">
+                      <h4 class="text-[#242F20] font-semibold text-sm lg:text-xl cursor-pointer -mt-1 lg:-mt-1.5">{{ item_title }}</h4>
+                      {% if item_positioning_desc != blank %}
+                        <p class="text-black/65 font-medium lg:font-normal mt-1.5 lg:mt-2 text-xs lg:text-base" style="color:{{ item_positioning_desc_color }};">{{ item_positioning_desc }}</p>
+                      {% endif %}
+                      <div class="flex items-center justify-between mt-2">
+                        <div class="flex items-center">
+                          <em class="text-[#242F20] font-semibold not-italic text-sm lg:text-base">{{ item_price_cents | money }}</em>
+                          {% if item_origin_price > item_price %}
+                            <span class="text-black/65 font-normal text-sm ml-2 line-through lg:text-base">{{ item_origin_price_cents | money }}</span>
+                          {% endif %}
+                        </div>
+                        <div class="hidden lg:flex items-center justify-end lg:gap-x-[1.875rem]">
+                          <button aria-label="show modal" class="appearance-none bg-transparent w-fit h-6 lg:h-8 flex items-center gap-x-1" data-product="{{ item_product_json | escape }}" data-action="show-modal">
+                            <span class="text-[#707070] text-sm lg:text-base">{{ block.settings.details_button_text | escape }}</span>
+                            <svg class="shrink-0" width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="8.50195" cy="8.50122" r="8" stroke="#707070" stroke-width="1.0024"/>
+                              <line x1="8.51097" y1="5.06201" x2="8.51097" y2="11.9392" stroke="#707070" stroke-width="1.0024"/>
+                              <line x1="11.9414" y1="8.51243" x2="5.06421" y2="8.51243" stroke="#707070" stroke-width="1.0024"/>
+                            </svg>
+                          </button>
+                          <div class="flex justify-end">
+                            {{ quantity_input_markup }}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex lg:hidden items-center justify-between mt-2">
+                        <button aria-label="show modal" class="appearance-none bg-transparent w-fit h-6 lg:h-8 flex items-center gap-x-1" data-product="{{ item_product_json | escape }}" data-action="show-modal">
+                          <span class="text-[#707070] text-sm lg:text-base">{{ block.settings.details_button_text | escape }}</span>
+                          <svg class="shrink-0" width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8.50195" cy="8.50122" r="8" stroke="#707070" stroke-width="1.0024"/>
+                            <line x1="8.51097" y1="5.06201" x2="8.51097" y2="11.9392" stroke="#707070" stroke-width="1.0024"/>
+                            <line x1="11.9414" y1="8.51243" x2="5.06421" y2="8.51243" stroke="#707070" stroke-width="1.0024"/>
+                          </svg>
+                        </button>
+                        <div class="flex justify-end">
+                          {{ quantity_input_markup }}
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </template>
+        {% endfor %}
+      </div>
+    </jky-v5-app-bundled-sale-plus>
+  </div>
+  {% render 'lazy-load-asset-group',
+    script: 'snippet-v5-app-bundled-sale-plus.min.js',
+    strategy: 'idle',
+    delay: 1800
+  %}
+{% endif %}

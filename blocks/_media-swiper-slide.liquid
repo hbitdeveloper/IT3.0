@@ -1,0 +1,244 @@
+{% comment %} 内容被引用于：theme\blocks\_meida-swiper-slide.liquid {% endcomment %}
+
+{%- liquid
+    assign desk_width = section.settings.desktop_width
+    assign mobile_width = section.settings.mobile_width
+    assign observe = false
+
+    if desk_width >= 1312
+        assign desk_width = 1312
+    endif
+
+    if mobile_width > 622
+        assign mobile_width = 622
+    endif
+
+    if mobile_width < 300
+        assign mobile_width = 300
+    endif
+    if section.settings.page_width == 'w-full'
+        if desk_width >= 1920
+            assign desk_width = 1920
+        endif
+    endif
+-%}
+
+{%- liquid
+  assign pc_video = block.settings.desktop_video
+  assign pc_preview_image = block.settings.poster_pc
+  if block.settings.poster_pc == blank and block.settings.desktop_source == "uploaded"
+    assign pc_preview_image = block.settings.desktop_video.preview_image
+  endif
+
+  if block.settings.desktop_source == "url"
+    assign pc_video = block.settings.desktop_video_url
+  endif
+
+
+  assign mb_video = block.settings.mobile_video
+  assign mb_preview_image = block.settings.poster_mb
+  if block.settings.poster_mb == blank and block.settings.mobile_source == "uploaded"
+    assign mb_preview_image = block.settings.mobile_video.preview_image
+  endif
+
+  if block.settings.mobile_source == "url"
+    assign mb_video = block.settings.mobile_video_url
+  endif
+
+  # 判断是否为内部链接，若为外部链接需要添加noopener noreferrer
+  assign is_internal_link = false
+  assign href_downcase = block.settings.link | downcase
+  assign first_char = href_downcase | slice: 0, 1
+
+  if href_downcase contains 'jackery.com' or href_downcase contains 'jackery.jp' or href_downcase contains request.host or first_char == '/' or first_char == '#' or href contains 'mailto:' or href contains 'tel:'
+    assign is_internal_link = true
+  endif
+-%}
+
+{%- capture sizes -%}
+    (min-width: 1024px) {{desk_width | divided_by: 16.0}}rem, {{mobile_width | divided_by: 16.0}}rem
+{%- endcapture -%}
+
+{% style %}
+    .swiper-slide.media-swiper-slide {transform: translate3d(0, 0, 0);backface-visibility: hidden;perspective: 1000px;}
+    .swiper-slide.media-swiper-slide img {will-change: transform, opacity;}
+    .swiper-container {-webkit-transform-style: preserve-3d;-webkit-backface-visibility: hidden;}
+    .swiper-slide.media-swiper-slide .video-play-btn {transform: translateX(-50%) translateY(-50%) translateZ(0);-webkit-transform: translateX(-50%) translateY(-50%) translateZ(0);backface-visibility: hidden;-webkit-backface-visibility: hidden;}
+{% endstyle %}
+
+{% comment %} PC {% endcomment %}
+<div class="hidden pc-slide lg:block h-full w-full overflow-hidden relative" style="border-radius: {{section.settings.desktop_radius | divided_by: 16.0}}rem;width: {{desk_width | divided_by: 16.0}}rem;" observe="{{observe}}">
+    {%- if block.settings.link != blank -%}
+        <a
+            class="absolute z-10 inset-0"
+            {% if block.settings.link_mode %}
+              target="_blank"
+              {% unless is_internal_link %}
+                rel="noopener noreferrer"
+              {% endunless %}
+            {% endif %}
+            role="link" href="{{block.settings.link}}"></a>
+    {%- endif -%}
+
+    {%- if pc_video != blank -%}
+        {%- if block.settings.desktop_source == "url" -%}
+            {%- render 'viewport-youtube',
+                video: pc_video.id,
+                url: pc_video.url,
+                observe: observe,
+                api: true,
+                poster: pc_preview_image,
+                sizes: sizes,
+                loop: section.settings.loop
+            -%}
+        {%- else -%}
+            {%- render 'viewport-video',
+                url: pc_video,
+                observe: observe,
+                poster: pc_preview_image,
+                sizes: sizes,
+                loop: section.settings.loop,
+                controls: section.settings.controls
+            -%}
+        {%- endif -%}
+    {%- else -%}
+        {%- if pc_preview_image != blank -%}
+            {%- render 'responsive-image', image: pc_preview_image, mimage: pc_preview_image, image_class: 'w-full h-full object-cover', width: desk_width -%}
+        {%- else -%}
+            {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover translate3d' }}
+        {%- endif -%}
+    {%- endif -%}
+</div>
+
+{% comment %} MB {% endcomment %}
+<div class="block mb-slide lg:hidden h-full w-full overflow-hidden relative" style="border-radius: {{section.settings.mobile_radius | divided_by: 16.0}}rem;width: {{mobile_width | divided_by: 16.0}}rem;transform: translate3d(0,0,0);">
+    {%- if block.settings.link != blank -%}
+        <a
+            class="absolute z-10 inset-0"
+            {% if block.settings.link_mode %}
+              target="_blank"
+              {% unless is_internal_link %}
+                rel="noopener noreferrer"
+              {% endunless %}
+            {% endif %}
+            role="link" href="{{block.settings.link}}"></a>
+    {%- endif -%}
+    {%- if mb_video != blank -%}
+        {%- if block.settings.mobile_source == "url" -%}
+            {%- render 'viewport-youtube',
+                video: mb_video.id,
+                url: mb_video.url,
+                observe: observe,
+                api: true,
+                poster: mb_preview_image,
+                sizes: sizes,
+                loop: section.settings.loop
+            -%}
+        {%- else -%}
+            {%- render 'viewport-video',
+                url: mb_video,
+                observe: observe,
+                poster: mb_preview_image,
+                sizes: sizes,
+                loop: section.settings.loop,
+                controls: section.settings.controls
+            -%}
+        {%- endif -%}
+    {%- else -%}
+        {%- if mb_preview_image != blank -%}
+            {%- render 'responsive-image', image: mb_preview_image, mimage: mb_preview_image, image_class: 'w-full h-full object-cover translate3d', width: mobile_width -%}
+        {%- else -%}
+            {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+        {%- endif -%}
+    {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "轮播项",
+  "class": "swiper-slide media-swiper-slide h-full w-fit",
+  "blocks": [],
+  "settings": [
+    { "type": "url", "id": "link", "label": "跳转链接" },
+    {
+      "type": "checkbox",
+      "id": "link_mode",
+      "label": "是否新标签页打开",
+      "default": false
+    },
+
+    { "type": "header", "content": "PC视频相关配置" },
+    { "type": "image_picker", "id": "poster_pc", "label": "封面地址", "info": "默认推荐尺寸360 * 180多倍图"},
+    {
+      "type": "select",
+      "id": "desktop_source",
+      "label": "视频来源",
+      "options": [
+        {
+          "value": "uploaded",
+          "label": "本地"
+        },
+        {
+          "value": "url",
+          "label": "Youtube"
+        }
+      ],
+      "default": "uploaded"
+    },
+    {
+      "type": "video",
+      "id": "desktop_video",
+      "label": "视频",
+      "visible_if": "{{ block.settings.desktop_source == 'uploaded' }}"
+    },
+    {
+      "type": "video_url",
+      "id": "desktop_video_url",
+      "label": "YouTube视频地址",
+      "accept": ["youtube"],
+      "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+      "visible_if": "{{ block.settings.desktop_source == 'url' }}"
+    },
+
+    { "type": "header", "content": "MB视频相关配置" },
+    { "type": "image_picker", "id": "poster_mb", "label": "封面地址", "info": "默认推荐尺寸440 * 544"},
+    {
+      "type": "select",
+      "id": "mobile_source",
+      "label": "视频来源",
+      "options": [
+        {
+          "value": "uploaded",
+          "label": "本地"
+        },
+        {
+          "value": "url",
+          "label": "Youtube"
+        }
+      ],
+      "default": "uploaded"
+    },
+    {
+      "type": "video",
+      "id": "mobile_video",
+      "label": "视频",
+      "visible_if": "{{ block.settings.mobile_source == 'uploaded' }}"
+    },
+    {
+      "type": "video_url",
+      "id": "mobile_video_url",
+      "label": "YouTube视频地址",
+      "info": "请使用 YouTube视频",
+      "accept": ["youtube"],
+      "info": "如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+      "visible_if": "{{ block.settings.mobile_source == 'url' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "轮播项",
+      "blocks": []
+    }
+  ]
+}
+{% endschema %}

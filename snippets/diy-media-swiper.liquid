@@ -1,0 +1,533 @@
+{% comment %}
+    依赖： diy-tabs js & css
+ {% endcomment %}
+
+ <style>
+    .diy-media-swiper jky-video .jky-video_media {
+        object-fit: cover;
+    }
+
+    .diy-media-swiper .swiper-btns {
+        display: none;
+    }
+    jky-diy-media jky-tabs {
+        margin: 0 4.26666vw;
+    }
+    jky-diy-media jky-tabs .action-btn {
+        opacity: 0;
+        z-index: -1;
+        display: none!important;
+    }
+
+    jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-item{
+        color: rgba(34, 34, 38, 0.4);
+        padding: 18px 0;
+    }
+    jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-item.active{
+        color: #222226;
+    }
+    jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-scroll-inner {
+        width: 1200px;
+    }
+    jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-scroll-inner .jky-tabs-slideline{
+        border-bottom: 1px solid #D9d9d9;
+    }
+    jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-scroll-inner .jky-tabs-slideline .jky-tabs-slideline--inner{
+        height: 3px;
+    }
+
+    .diy-media-swiper {
+        margin: 32px auto;
+    }
+    .diy-media-swiper .diy-media-module-title{
+        color: #1A1A1A;
+        letter-spacing: -3%;
+        width: 720px;
+    }
+
+    .diy-media-swiper-container {
+        height: var(--desktop-img-h, 500px);
+    }
+    .diy-media-swiper-container .swiper-container .swiper-slide {
+        width:  100%;
+        height: var(--desktop-img-h, 500px);
+        -ms-flex: 0 0 auto;
+    }
+    jky-diy-media jky-video.jky-video--pc{
+        --video-ratio: var(--desktop-img-h, 500px);
+    }
+    .diy-media-swiper-container .swiper-container .swiper-slide>div {
+        height:100%;
+    }
+    .diy-media-swiper-container .swiper-container .swiper-slide a {
+        display: block;
+    }
+
+    .diy-media-swiper-navigation .swiper-btn {
+        background-color: rgba(26, 26, 26, .2);
+        bottom: -66px;
+    }
+    .diy-media-swiper-navigation .swiper-btn:hover {
+        background-color:  rgba(26, 26, 26, .4);
+    }
+    .diy-media-swiper-navigation .swiper-btn .arrow-icon {
+        width: 10px;
+        height: 16px;
+        background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iN3B4IiBoZWlnaHQ9IjEycHgiIHZpZXdCb3g9IjAgMCA3IDEyIiB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPgogICAgPHRpdGxlPuWbvuaghy1pY29uPC90aXRsZT4KICAgIDxkZWZzPgogICAgICAgIDxwYXRoIGQ9Ik04LjMyODMzMzE5LDEyLjUyOTIzOTUgQzguMDM2NjM0NTQsMTIuMjM2NjgxNiA4LjAzNjM4OTE0LDExLjc2Mjg4NTkgOC4zMjc1OTcsMTEuNDcwMDIzMSBMOC4zMjcyNDQzNSwxMS40Njk2Njk5IEwxMy43ODc5NDMyLDYgQzE0LjM3Mjc2ODksNi41ODU3ODY0NCAxNC4zNzI3Njg5LDcuNTM1NTMzOTEgMTMuNzg3OTQzMiw4LjEyMTMyMDM0IEw5LjkxNTYyNTE2LDEyIEwxMy43ODc5NDMyLDE1Ljg3ODY3OTcgQzE0LjM3Mjc2ODksMTYuNDY0NDY2MSAxNC4zNzI3Njg5LDE3LjQxNDIxMzYgMTMuNzg3OTQzMiwxOCBMOC4zMjcyNDQzNSwxMi41MzAzMzAxIEw4LjMyODMzMzE5LDEyLjUyOTIzOTUgWiIgaWQ9InBhdGgtMSI+PC9wYXRoPgogICAgPC9kZWZzPgogICAgPGcgaWQ9Iumhtemdoi0xIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgICAgICA8ZyBpZD0icGMvaGVyby8xIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjAuMDAwMDAwLCAtMzk0LjAwMDAwMCkiPgogICAgICAgICAgICA8ZyBpZD0iaW1nLSstZGl2LSstc3dpcGVyLXNjcm9sbGVyLWl0ZW0tKy1uYXYtbWFpbi3okpnniYgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0wLjExMDIzMywgMC4wMDAwMDApIj4KICAgICAgICAgICAgICAgIDxnIGlkPSJpbWciIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAuMDAwMDAwLCAtMTg3LjAwMDAwMCkiPgogICAgICAgICAgICAgICAgICAgIDxnIGlkPSJDYXJvdXNlbC0tLei1sOmprOeBry/pgJrmoI8tLS1XaWRlIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjExMDIzMywgNzUuMDAwMDAwKSI+CiAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSLwn5qr5qih54mILXRlbXBsYXRlIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxnIGlkPSLlt6bkvqfnrq3lpLQtbGVmdC1hcnJvdyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsIDQ2NC4wMDAwMDApIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZyBpZD0ibGlnaHQvYW5nbGUtbGVmdCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIuMDAwMDAwLCAzNi4wMDAwMDApIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPG1hc2sgaWQ9Im1hc2stMiIgZmlsbD0id2hpdGUiPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHVzZSB4bGluazpocmVmPSIjcGF0aC0xIj48L3VzZT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9tYXNrPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dXNlIGlkPSJTaGFwZSIgZmlsbD0iI0ZGRkZGRiIgZmlsbC1ydWxlPSJldmVub2RkIiB4bGluazpocmVmPSIjcGF0aC0xIj48L3VzZT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgIDwvZz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPg==);
+    }
+    .diy-media-swiper-navigation .swiper-btn.swiper-btn-prev {
+        right: 52px;
+    }
+    .slide-contents {
+        color: #86868B;
+        margin: 0 0 36px;
+        margin-bottom: 35px;
+        width: 1000px;
+    }
+    .slide-contents .slide-content.active {
+        display: block;
+    }
+
+    @media screen and (max-width: 1440px) {
+        jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-item{
+            padding: 1.25vw 0;
+        }
+        jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-scroll-inner {
+            width: 83.3333333333333vw;
+        }
+        jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-scroll-inner .jky-tabs-slideline .jky-tabs-slideline--inner{
+            height: 3px;
+        }
+        .diy-media-swiper{
+            width: 91.1111111111111vw;
+            margin: 8.53333333333333vw auto;
+        }
+        .diy-media-swiper .diy-media-module-title{
+            width: 59vw;
+        }
+
+        .diy-media-swiper-container {
+            height: 34.7222222222222vw;
+        }
+        .diy-media-swiper-container .swiper-container .swiper-slide {
+            width:  91.111111111111vw;
+            height: 34.7222222222222vw;
+        }
+        jky-diy-media jky-video.jky-video--pc{
+            --video-ratio: 34.7222222222222vw;
+        }
+
+        .diy-media-swiper-navigation .swiper-btn {
+            bottom: -4.58333333333333vw;
+        }
+        .diy-media-swiper-navigation .swiper-btn .arrow-icon {
+            width: .694444444444444vw;
+            height: 1.11111111111111vw;
+        }
+        .diy-media-swiper-navigation .swiper-btn.swiper-btn-prev {
+            right: 3.61111111111111vw;
+        }
+        .slide-contents {
+            margin: 0 0 2.5vw;
+            margin-bottom: 2.5vw;
+            width: 69.4444444444444vw;
+        }
+    }
+    @media screen and (max-width: 1024px) {
+        jky-diy-media {
+            position: relative;
+        }
+        jky-diy-media jky-tabs {
+            display: block;
+            margin: 2.66666666666667vw auto;
+            width: 80vw;
+        }
+        jky-diy-media jky-tabs .action-btn {
+            opacity: 1;
+            display: flex !important;
+            position: absolute;
+        }
+        jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-item {
+            font-size: 5.33333vw;
+            line-height: 7.46666666666667vw;
+            white-space: nowrap;
+            color: rgba(34, 34, 38, 0.30);
+        }
+        jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-item.active {
+            color: #222226;
+        }
+        jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-scroll-inner .jky-tabs-slideline {
+            display: none;
+        }
+
+        jky-diy-media jky-tabs .jky-tabs-scroll .inner-w {
+            gap: 4.26666666666667vw;
+        }
+        jky-diy-media jky-tabs .jky-tabs-scroll .prev-action{
+            z-index: 2;
+        }
+        jky-diy-media jky-tabs .jky-tabs-scroll .next-action{
+            right: -11.4vw;
+            width: 11.333333vw;
+            z-index: 2;
+            background: linear-gradient(275deg, #FFFFFF 75%, rgba(255, 255, 255, 0) 100%);
+        }
+        jky-diy-media jky-tabs .jky-tabs-scroll .prev-action {
+            left: -7.4vw;
+            background: linear-gradient(267deg, #FFFFFF 75%, rgba(255, 255, 255, 0) 100%);
+            width: 8.333333vw;
+        }
+
+        jky-diy-media jky-tabs .jky-tabs-scroll .prev-action  svg, jky-diy-media jky-tabs .jky-tabs-scroll .next-action svg{
+            width: 6.4vw;
+            height: 6.4vw;
+            fill: rgba(0,0,0,0.8);
+        }
+
+        jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-scroll-inner{
+            width: 100%;
+        }
+
+        .diy-media-swiper{
+            width: 91.4666666666667vw;
+            margin: 8.53333333333333vw auto;
+        }
+
+        .diy-media-swiper .diy-media-module-title{
+            letter-spacing: -3%;
+            margin: 0 auto;
+            width: 82.9333333333333vw;
+        }
+
+        .diy-media-swiper-container {
+            height: var(--mobile-img-h, 86vw);
+        }
+        .diy-media-swiper-container .swiper-container .swiper-slide {
+            width: 100%;
+            height: var(--mobile-img-h, 86vw);
+        }
+        jky-diy-media jky-video.jky-video--mb{
+            --video-ratio: var(--mobile-img-h, 86vw);
+        }
+        jky-diy-media jky-video iframe,
+        jky-diy-media jky-video video,
+        jky-diy-media jky-video img
+        {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+        .diy-media-swiper-navigation .swiper-btn {
+            display: none;
+        }
+        .slide-contents {
+            height: auto;
+            width: 82.9333333333333vw;
+            margin: 2.2vw auto 0;
+            margin-bottom: 5.3333vw;
+            text-align: left;
+        }
+        .slide-contents .slide-content {
+            -webkit-line-clamp: 7;
+        }
+        .slide-contents .slide-content.active {
+            opacity: 1;
+        }
+        .diy-media-swiper .swiper-btns {
+            position: sticky;
+            bottom: 0;
+            display: flex;
+            width: 100%;
+            padding: 12px 4.26666vw;
+            margin: 0 auto;
+            gap: 4.26666vw;
+            justify-content: flex-end;
+            background: var(--btns-color);
+            z-index: 3;
+        }
+        .diy-media-swiper .swiper-btns .swiper-prev-area,
+        .diy-media-swiper .swiper-btns .swiper-next-area {
+            height: 21.3333vw;
+            height: 10.6666vw;
+            width: 10.6666vw;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(34, 34, 38, 0.3);
+        }
+        .diy-media-swiper .swiper-btns .swiper-prev-area:active,
+        .diy-media-swiper .swiper-btns .swiper-next-area:active {
+            background: rgba(34, 34, 38, 0.6);
+        }
+        .diy-media-swiper .swiper-btns .swiper-prev-area .arrow-icon,
+        .diy-media-swiper .swiper-btns .swiper-next-area .arrow-icon {
+            width: 10px;
+            height: 20px;
+        }
+        .diy-media-swiper .swiper-btns .swiper-next-area .arrow-icon {
+            transform: rotate(180deg);
+        }
+    }
+
+    jky-diy-media .jky-tabs-scroll-inner, jky-diy-media .inner-w {gap: 30px;}
+    jky-diy-media jky-tabs .jky-tabs-scroll .jky-tabs-item.active {color: var(--primary-color);}
+</style>
+
+{%- assign tabs_array = '' -%}
+{% assign brandColor = '<em style="color: var(--jds-color-primary);">' %}
+<jky-diy-media
+    style="--desktop-img-h: {{settings.desktop_height | default: 500}}px;--mobile-img-h: {{settings.mobile_height | default: 420 | divided_by: 7.5}}vw;"
+>
+    <div class="diy-media-swiper {{settings.page_width | default: 'section-container-lg'}}">
+        {%- if settings.module_title -%}
+            <h2 class="diy-media-module-title lg:text-5xl text-3xl lg:font-medium font-semibold lg:mb-8 mb-5 mx-auto">
+                {{ settings.module_title | replace: '<em>', brandColor }}
+            </h2>
+        {%- endif -%}
+        <div class="diy-media-swiper-container m-0 relative overflow-hidden rounded-xl">
+            <div class="swiper-container h-full mx-auto relative overflow-hidden z-[4]">
+                <div class="swiper-wrapper">
+                    {%- for i in (0..5) -%}
+                    {% assign name_index = 'scene_name_' | append: forloop.index %}
+                    {% assign desc_index = 'scene_description_' | append: forloop.index %}
+                    {% assign poster_index = 'poster_' | append: forloop.index %}
+                    {% assign poster_mb_index = 'poster_mb_' | append: forloop.index %}
+                    {% assign video_index = 'video_url_' | append: forloop.index %}
+                    {% assign video_mb_index = 'video_mb_url_' | append: forloop.index %}
+                    {% assign link_index = 'link_' | append: forloop.index %}
+                    {%- if settings[name_index] != blank -%}
+                    {%- assign tabs_array = tabs_array | append: '-' | append: settings[name_index] -%}
+
+                    <div class="swiper-slide relative shrink-0 overflow-hidden" data-tab="{{settings[name_index] | escape}}">
+                    {%- if settings[link_index] != blank -%}
+                        <a href="{{settings[link_index]}}" aria-label="{{settings[name_index] | escape}}">
+                    {%- else -%}
+                        <div>
+                    {%- endif -%}
+                                <div class="slide-video-poster hidden lg:block absolute top-0 w-full h-full bg-cover rounded-xl bg-no-repeat bg-center" {% if settings[poster_index] != blank %}style="background-image: url({{settings[poster_index] | image_url: width: 1320 }});"{% endif %}></div>
+                                <div class="slide-video-poster block lg:hidden absolute top-0 w-full h-full bg-cover rounded-xl bg-no-repeat bg-center" {% if settings[poster_mb_index] != blank %}style="background-image: url({{settings[poster_mb_index] | image_url: width: 686 }});"{% endif %}></div>
+
+                                {% comment %} PC {% endcomment %}
+                                {%- if settings[video_index] != blank -%}
+                                    {%-
+                                        render 'jky-video',
+                                        class: "jky-video--pc",
+                                        poster: settings[poster_index],
+                                        video_url: settings[video_index],
+                                        autoplay: true,
+                                        loop: true,
+                                        controls: false,
+                                        isHidePauseBtn: true
+                                    -%}
+                                {%- endif -%}
+
+                                {% comment %} Mobile {% endcomment %}
+                                {%- if settings[video_mb_index] != blank -%}
+                                    {%-
+                                        render 'jky-video',
+                                        class: "jky-video--mb",
+                                        poster: settings[poster_mb_index],
+                                        mbPoster: settings[poster_mb_index],
+                                        video_url: settings[video_mb_index],
+                                        autoplay: true,
+                                        loop: true,
+                                        controls: false,
+                                        isHidePauseBtn: true
+                                    -%}
+                                {%- endif -%}
+
+                    {%- if settings[link_index] != blank -%}
+                        </a>
+                    {%- else -%}
+                        </div>
+                    {%- endif -%}
+                </div>
+                {%- endif -%}
+                {%- endfor -%}
+            </div>
+        </div>
+    </div>
+
+    <div style="z-index: 12;" class="diy-media-swiper-navigation relative">
+        <button tabindex="0" aria-label="Swiper Prev" class="swiper-btn-prev swiper-btn lg:flex hidden absolute cursor-pointer z-[3] rounded-full items-center justify-center w-9 h-9 transition-all duration-300 ease-in"><div class="arrow-icon bg-cover bg-center bg-no-repeat"></div></button>
+        <button tabindex="0" aria-label="Swiper Next" class="swiper-btn-next swiper-btn lg:flex hidden absolute right-0 cursor-pointer z-[3] rounded-full items-center justify-center w-9 h-9 transition-all duration-300 ease-in"><div class="arrow-icon bg-cover bg-center bg-no-repeat rotate-180"></div></button>
+    </div>
+
+    <jky-tabs class="h-full max-h-full" data-type="section">
+        <div class="jky-tabs-scroll relative h-full">
+            <div class="action-btn prev-action absolute top-0 items-center h-full unvisible">
+                <svg class="rotate-180" width="16" height="16" viewBox="0 0 1024 1024" version="1.1"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path
+                            d="M332.501333 183.168a42.666667 42.666667 0 0 1 57.621334-2.496l2.709333 2.496 298.666667 298.666667a42.666667 42.666667 0 0 1 2.496 57.621333l-2.496 2.709333-298.666667 298.666667a42.666667 42.666667 0 0 1-62.826667-57.621333l2.496-2.709334L600.96 512 332.501333 243.498667a42.666667 42.666667 0 0 1-2.496-57.621334l2.496-2.709333z"></path>
+                </svg>
+            </div>
+
+            <div class="jky-tabs-scroll-inner relative h-full overflow-hidden flex justify-between flex-nowrap will-change-auto">
+                <div class="inner-w flex justify-between flex-nowrap will-change-auto relative h-full">
+                    {%- for i in (0..5) -%}
+                        {% assign name_index = 'scene_name_' | append: forloop.index %}
+                        {%- if settings[name_index] != blank -%}
+                            <div style="--tw-text-opacity:0.5;" class="jky-tabs-item flex items-center font-semibold py-0.5 text-black transition-all duration-200 ease-in-out lg:text-xl text-sm cursor-pointer shrink-0 {% if forloop.index0 == 0 %}active{% endif %}">{{settings[name_index] | escape}}</div>
+                        {%- endif -%}
+                    {%- endfor -%}
+
+                    <div class="jky-tabs-slideline absolute left-0 right-0 z-[2] h-0.5 bottom-0">
+                        <div class="jky-tabs-slideline--inner absolute left-0 h-0.5 bg-primary transition-all duration-200 ease-in"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-btn next-action flex top-0 h-full items-center">
+                <svg class="" width="16" height="16" viewBox="0 0 1024 1024" version="1.1"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path
+                            d="M332.501333 183.168a42.666667 42.666667 0 0 1 57.621334-2.496l2.709333 2.496 298.666667 298.666667a42.666667 42.666667 0 0 1 2.496 57.621333l-2.496 2.709333-298.666667 298.666667a42.666667 42.666667 0 0 1-62.826667-57.621333l2.496-2.709334L600.96 512 332.501333 243.498667a42.666667 42.666667 0 0 1-2.496-57.621334l2.496-2.709333z"></path>
+                </svg>
+            </div>
+        </div>
+    </jky-tabs>
+
+    <div class="slide-contents font-medium relative lg:text-base text-sm">
+        {%- for i in (0..5) -%}
+            {% assign name_index = 'scene_name_' | append: forloop.index %}
+            {% assign desc_index = 'scene_description_' | append: forloop.index %}
+            {%- if settings[name_index] != blank -%}
+                <div class="slide-content hidden transition-all duration-200 ease-in-out">{{settings[desc_index] | replace: '<em>', brandColor}}</div>
+            {%- endif -%}
+        {%- endfor -%}
+    </div>
+
+    </div>
+</jky-diy-media>
+
+<script type="module">
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!customElements.get('jky-diy-media')) {
+            customElements.define('jky-diy-media', class JkyDiyMedia extends HTMLElement {
+                constructor() {
+                    super();
+                    this.DOM = this.querySelector(".diy-media-swiper .swiper-container")
+                    if (this.DOM) {
+                        this.isMobile = window.innerWidth < 1024;
+                        window.initLazyScript(this, this.init.bind(this))
+                        const firstTab = this.querySelector(".jky-tabs-item");
+                        firstTab?.classList.add('curr_tab');
+                    }
+                }
+
+                init() {
+                    const that = this
+                    this.diyMediaSwiper = new Swiper(this.DOM, {
+                        centeredSlides: true,
+                        observer: false,
+                        observeParents: true,
+                        allowTouchMove: false,
+                        navigation: {
+                            nextEl: this.querySelector(".diy-media-swiper-navigation .swiper-btn-next"),
+                            prevEl: this.querySelector(".diy-media-swiper-navigation .swiper-btn-prev")
+                        },
+                        speed: 800,
+                        on: {
+                            init: function() {
+                                const this_swiper = this;
+                                const firstSlideContent = that.querySelector(".slide-contents .slide-content");
+                                firstSlideContent?.classList.add("active");
+                                that.playSlidesVideo();
+
+                                const tabsItems = that.querySelectorAll("jky-tabs .jky-tabs-item");
+                                tabsItems.forEach(function(tab, index) {
+                                    tab.addEventListener('click', function(e) {
+                                        this_swiper.slideTo(index);
+                                        const jkytab = that.querySelector("jky-tabs");
+                                        jkytab?.slideToVisiable?.(this);
+
+                                        // 移除所有兄弟元素的 active 类
+                                        const siblings = this.parentElement.children;
+                                        for (let i = 0; i < siblings.length; i++) {
+                                            siblings[i].classList.remove("active");
+                                        }
+                                        this.classList.add("active");
+
+                                        that.setTabsUnderline_t();
+
+                                        // 更新 slide-content 的 active 状态
+                                        const slideContents = that.querySelectorAll(".slide-contents .slide-content");
+                                        slideContents.forEach(function(content) {
+                                            content.classList.remove("active");
+                                        });
+                                        slideContents[index]?.classList.add("active");
+                                    })
+                                })
+                            },
+                            slideChangeTransitionStart: function() {
+                                that.pasueSlidesVideo();
+                                const tabsItems = that.querySelectorAll("jky-tabs .jky-tabs-item");
+                                tabsItems.forEach(function(tab) {
+                                    tab.classList.remove('active');
+                                });
+                                tabsItems[this.activeIndex]?.classList.add("active");
+                                that.setTabsUnderline_t();
+
+                                const slideContents = that.querySelectorAll(".slide-contents .slide-content");
+                                slideContents.forEach(function(content) {
+                                    content.classList.remove("active");
+                                });
+                                slideContents[this.activeIndex]?.classList.add("active");
+                            },
+                            slideChangeTransitionEnd: function() {
+                                that.playSlidesVideo();
+                            }
+                        }
+                    })
+
+                     that.setTabsUnderline_t()
+                }
+
+                setTabsUnderline_t() {
+                    const tabs_under = this.querySelector("jky-tabs .jky-tabs-slideline--inner");
+                    const active_tab = this.querySelector("jky-tabs .jky-tabs-item.active");
+                    if (!tabs_under || !active_tab) return;
+
+                    const activeRect = active_tab.getBoundingClientRect();
+                    const parentRect = tabs_under.parentElement.getBoundingClientRect();
+                    tabs_under.style.width = `${activeRect.width}px`;
+                    tabs_under.style.left = `${activeRect.left - parentRect.left}px`;
+                }
+
+                playSlidesVideo() { // 播放slide中的视频
+                    const activeSlide = this.querySelector(".diy-media-swiper-container .swiper-slide-active");
+                    const clas = this.isMobile ? '.jky-video--mb': '.jky-video--pc';
+                    const video = activeSlide?.querySelector(`jky-video${clas}`);
+
+                    if(video) {
+                        const play = function () {
+                            try {
+                                video.jsPlay(false)
+                            } catch (error) {
+                                setTimeout(() => {
+                                    video.jsPlay(false)
+                                }, 1000)
+                            }
+                        }
+                        play()
+                    }
+                }
+                pasueSlidesVideo() {
+                    const videos = this.querySelectorAll("jky-video");
+                    videos.forEach(function(curr) {
+                        if(!curr) return;
+                        const parent = curr.parentElement;
+                        if(parent && parent.classList.contains("swiper-slide-active")) {
+                            return;
+                        }
+                        curr.pause && curr.pause()
+                    })
+                }
+            })
+        }
+    })
+</script>

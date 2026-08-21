@@ -1,0 +1,460 @@
+<style>
+  {% comment %} drop-down [trigger-content] {
+      max-height: calc(100vh - 30rem);
+  } {% endcomment %}
+  drop-down [trigger-content] {
+      display: none;
+      opacity: 0;
+      transform: translateY(-0.5rem);
+      will-change: height, opacity, transform;
+      transition: height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  drop-down[open='true']>.pdp-v5-specs-item_trigger>.trigger--summery svg {
+      transform: rotate(180deg);
+  }
+
+  .section-pdp-specs-v5 .pdp-v5-specs-item_header {
+      box-sizing: border-box;
+      height: 4.5rem;
+      padding-right: 1rem;
+      padding-left: 1rem;
+      z-index: 1;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+  }
+
+  .section-pdp-specs-v5 .pdp-v5-specs-item_trigger {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+  }
+
+  .section-pdp-specs-v5 .pdp-v5-specs-item_header:not(.pdp-specs-v5-content .pdp-v5-specs-item_header) {
+    background: #f2f4f5;
+    transition: background 0.3s ease-in-out;
+  }
+
+  .section-pdp-specs-v5 .pdp-v5-specs-item_header:not(.pdp-specs-v5-content .pdp-v5-specs-item_header):hover {
+    background: #e8eced;
+  }
+
+  .pdp-v5-specs-item_header h3 {
+      color: #242F20;
+      flex: 1 1 auto;
+      min-width: 0;
+      line-height: 1.2;
+      margin: 0;
+  }
+
+  .pdp-v5-specs-item_header svg {
+      display: block;
+      flex: none;
+      transform-origin: center;
+      will-change: transform;
+      backface-visibility: hidden;
+  }
+
+  .pdp-v5-specs-item_header .trigger--summery__underline {
+      height: 1px;
+      background: #C6C7C8;
+  }
+
+  .pdp-v5-specs-item__content .pdp-v5-specs-item__unit:last-child {
+      margin-bottom: 0;
+  }
+
+  .section-pdp-specs-v5 .pdp-specs-v5_heading {
+      color: #242F20;
+      font-size: 5.25rem;
+      line-height: 1.1;
+  }
+
+  @media (max-width: 1024px) {
+      .section-pdp-specs-v5 .pdp-specs-v5_heading {
+          font-size: 2.25rem;
+      }
+
+      .pdp-v5-specs-item_header {
+          height: 3rem;
+      }
+
+      .section-pdp-specs-v5 .pdp-v5-specs-item_header {
+        height: 3.5rem;
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+    }
+  }
+</style>
+
+<div
+  class="lg:pt-24 pt-12 lg:pb-16 pb-6 section-container-lg"
+  {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %}
+>
+  {%- if section.settings.heading != blank -%}
+    <h2 class="pdp-specs-v5_heading v5-font-oxm font-extrabold lg:text-center text-left lg:mb-8 mb-4 mx-auto">{{ section.settings.heading | replace: "\n", "<br>" | strip}}</h2>
+  {%- endif -%}
+
+  {%- for block in section.blocks -%}
+    {%- liquid
+      assign item_heading = ''
+      if block.type == 'pdp_specs'
+        assign item_heading = block.settings.part_heading
+      elsif block.type == 'pdp_product'
+        assign item_heading = block.settings.part_1_heading
+      elsif block.type == 'what_in_the_box'
+        assign item_heading = block.settings.part_3_heading
+      elsif block.type == 'product_manual'
+        assign item_heading = block.settings.part_4_heading
+      endif
+    -%}
+
+    <drop-down init="open" doc="false" class="block">
+      <div 
+        data-ga-event="5.0_products_details_page_user_clicks"
+        data-ga-action="click" 
+        data-ga-params-product_spu_name="{{ product.title | escape }}"
+        data-ga-params-module="Parameter"
+        data-ga-params-position="{{ item_heading | escape }}"
+        data-ga-params-type="fold"
+        trigger class="cursor-pointer bg-white pdp-v5-specs-item_trigger list-none relative"
+      >
+        <div class="pdp-v5-specs-item_header trigger--summery flex items-center justify-between relative">
+          <h3 class="text-overflow-1 lg:text-xl text-base font-semibold">{{ item_heading }}</h3>
+          <svg class="lg:w-6 w-4 lg:h-6 h-4 transition-all duration-300 ease-in-out" width="22" height="12" viewBox="0 0 22 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0.6875 0.726563L10.6875 10.2266L20.6875 0.726563" stroke="black" stroke-opacity="0.65" stroke-width="2"/>
+          </svg>
+          {%- unless forloop.first -%}
+          <div class="trigger--summery__underline absolute top-0 w-full left-0 lg:right-6 right-4"></div>
+          {%- endunless -%}
+        </div>
+      </div>
+      <div trigger-content class="hide-scroll-bar w-full overflow-y-auto overflow-x-hidden">
+        {%- case block.type -%}
+          {%- when 'pdp_specs' -%}
+            {% if block.settings.version == '5' %}
+              {%- render "v5-specs-variant", settings: block.settings -%}
+            {% else %}
+                {%- render "v5-specs-variant-5-plus", settings: block.settings, product: product -%}
+            {% endif %}
+          {%- when 'pdp_product' -%}
+            {%- render "v5-specs-product", settings: block.settings -%}
+          {%- when 'what_in_the_box' -%}
+            {% if block.settings.version == '5' %}
+                {%- render "v5-pdp-what-box", settings: block.settings, product: product -%}
+            {% else %}
+                {%- render "v5-pdp-what-box-5-plus", settings: block.settings, product: product -%}
+            {% endif %}
+          {%- when 'product_manual' -%}
+            {%- render "v5-pdp-product-manual", settings: block.settings, product: product -%}
+        {%- endcase -%}
+      </div>
+    </drop-down>
+  {%- endfor -%}
+</div>
+
+<script>
+  if (!customElements.get("drop-down")) {
+    class DropDown extends HTMLElement {
+      constructor() {
+        super();
+        this.animationDuration = 300;
+        this.animationTimer = null;
+        this.trigger = this.querySelector("[trigger]");
+        this.content = this.querySelector("[trigger-content]");
+        this.unDocClickAble = this.getAttribute("doc") === "false";
+        this.init_open = this.getAttribute("init") === "open";
+
+        if (this.trigger && this.content) {
+          this.initClickTrigger();
+          if (!this.unDocClickAble) {
+            {% comment %} 避免重复绑定 {% endcomment %}
+            this.handleDocClick = this.docClick.bind(this);
+            document.addEventListener("click", this.handleDocClick);
+          }
+        }
+      }
+
+      connectedCallback() {
+        if (this.init_open) {
+          setTimeout(() => {
+            this.open(true);
+          }, 5000);
+        } else {
+          this.close(true);
+        }
+      }
+
+      disconnectedCallback() {
+        this.trigger.removeEventListener("click", this.handleClick);
+        clearTimeout(this.animationTimer);
+        if (!this.unDocClickAble) {
+          document.removeEventListener("click", this.handleDocClick);
+        }
+      }
+
+      handleClick = (e) => {
+        e.preventDefault();
+        this.hasAttribute("open") ? this.close() : this.open();
+      };
+
+      initClickTrigger() {
+        this.trigger.addEventListener("click", this.handleClick);
+      }
+
+      docClick(e) {
+        if (!this.contains(e.target)) {
+          this.close();
+        }
+      }
+
+      open(isInit = false) {
+        if (this.classList.contains("closing") || this.classList.contains("opening")) return;
+
+        this.classList.add("opening");
+        this.setAttribute("open", "true");
+        this.setAttribute("aria-expanded", "true");
+
+        this.content.style.display = "block";
+        this.content.style.overflow = "hidden";
+        clearTimeout(this.animationTimer);
+
+        const height = this.content.scrollHeight;
+
+        if (isInit) {
+          this.content.style.transition = "none";
+          this.content.style.height = "auto";
+          this.content.style.overflow = "visible";
+          this.content.style.opacity = "1";
+          this.content.style.transform = "translateY(0)";
+          this.classList.remove("opening");
+        } else {
+          this.content.style.transition = "";
+          this.content.style.height = "0px";
+          this.content.style.opacity = "0";
+          this.content.style.transform = "translateY(-0.5rem)";
+          this.content.offsetHeight;
+          requestAnimationFrame(() => {
+            this.content.style.height = `${height}px`;
+            this.content.style.opacity = "1";
+            this.content.style.transform = "translateY(0)";
+          });
+
+          this.animationTimer = setTimeout(() => {
+            this.content.style.height = "auto";
+            this.content.style.overflow = "visible";
+            this.classList.remove("opening");
+          }, this.animationDuration);
+        }
+
+        this.trigger.setAttribute("data-ga-params-type", "open");
+      }
+
+      close(isInit = false) {
+        if (this.classList.contains("opening") || this.classList.contains("closing")) return;
+
+        this.classList.add("closing");
+        this.setAttribute("aria-expanded", "false");
+        clearTimeout(this.animationTimer);
+
+        const height = this.content.scrollHeight;
+        this.content.style.display = "block";
+        this.content.style.overflow = "hidden";
+        this.content.style.transition = isInit ? "none" : "";
+        this.content.style.height = `${height}px`;
+        this.content.style.opacity = "1";
+        this.content.style.transform = "translateY(0)";
+        this.content.offsetHeight;
+
+        this.removeAttribute("open");
+
+        if (isInit) {
+          this.content.style.height = "0px";
+          this.content.style.opacity = "0";
+          this.content.style.transform = "translateY(-0.5rem)";
+          this.content.style.display = "none";
+          this.classList.remove("closing");
+        } else {
+          requestAnimationFrame(() => {
+            this.content.style.height = "0px";
+            this.content.style.opacity = "0";
+            this.content.style.transform = "translateY(-0.5rem)";
+          });
+
+          this.animationTimer = setTimeout(() => {
+            this.content.style.display = "none";
+            this.classList.remove("closing");
+          }, this.animationDuration);
+        }
+
+        this.trigger.setAttribute("data-ga-params-type", "fold");
+      }
+    }
+
+    customElements.define("drop-down", DropDown);
+  }
+</script>
+
+{% schema %}
+{
+  "name": "产品参数-V5（正式版）",
+  "tag": "section",
+  "class": "section section-pdp-specs-v5",
+  "enabled_on": {
+    "templates": ["product","page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+
+    { "type": "inline_richtext", "id": "heading", "label": "大标题", "default": "Are Your Solar Panels Compatible?", "info": "需要换行，请使用 \\n " },
+  ],
+  "blocks": [
+    {
+      "type": "pdp_specs",
+      "name": "产品参数",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "part_heading", "label": "Specs 展开标题", "default": "Tech Specs"},
+        {
+          "type": "select",
+          "id": "version",
+          "label": "当前版本",
+          "default": "5",
+          "options": [
+            {"value": "5", "label": "5.0版本"},
+            {"value": "5-plus", "label": "5-plus版本"}
+          ]
+        },
+      ]
+    },
+    {
+      "type": "pdp_product",
+      "name": "产品介绍",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "part_1_heading", "label": "Part 1 heading", "default": "Ports and Dimensions"},
+
+        {"type": "header", "content": "Part 1 - 主产品左侧面配置"},
+        {"type": "image_picker", "id": "part_1_img_2", "label": "Part 1 - 主产品左侧面参数图"},
+        {"type": "text", "id": "part_1_product_2_title", "label": "Part 1 主产品左侧名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_2_desc_1", "label": "Part 1 主产品左侧面参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_2_desc_2", "label": "Part 1 主产品左侧面参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_2_desc_3", "label": "Part 1 主产品左侧面参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_2_desc_4", "label": "Part 1 主产品左侧面参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_2_desc_5", "label": "Part 1 主产品左侧面参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_2_desc_6", "label": "Part 1 主产品左侧面参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_2_desc_7", "label": "Part 1 主产品左侧面参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_2_desc_8", "label": "Part 1 主产品左侧面参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_2_desc_9", "label": "Part 1 主产品左侧面参数说明 9"},
+        {"type": "text", "id": "part_1_product_2_desc_10", "label": "Part 1 主产品左侧面参数说明 10"},
+        
+        {"type": "header", "content": "Part 1 - 主产品正面配置"},
+        {"type": "image_picker", "id": "part_1_img", "label": "Part 1 - 主产品参数图"},
+        {"type": "text", "id": "part_1_product_title", "label": "Part 1 主产品名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_desc_1", "label": "Part 1 主产品参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_desc_2", "label": "Part 1 主产品参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_desc_3", "label": "Part 1 主产品参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_desc_4", "label": "Part 1 主产品参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_desc_5", "label": "Part 1 主产品参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_desc_6", "label": "Part 1 主产品参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_desc_7", "label": "Part 1 主产品参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_desc_8", "label": "Part 1 主产品参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_desc_9", "label": "Part 1 主产品参数说明 9"},
+        {"type": "text", "id": "part_1_product_desc_10", "label": "Part 1 主产品参数说明 10"},
+        {"type": "text", "id": "part_1_product_desc_11", "label": "Part 1 主产品参数说明 11"},
+        {"type": "text", "id": "part_1_product_desc_12", "label": "Part 1 主产品参数说明 12"},
+        {"type": "text", "id": "part_1_product_desc_13", "label": "Part 1 主产品参数说明 13"},
+        {"type": "text", "id": "part_1_product_desc_14", "label": "Part 1 主产品参数说明 14"},
+        {"type": "text", "id": "part_1_product_desc_15", "label": "Part 1 主产品参数说明 15"},
+        {"type": "text", "id": "part_1_product_desc_16", "label": "Part 1 主产品参数说明 16"},
+        {"type": "text", "id": "part_1_product_desc_17", "label": "Part 1 主产品参数说明 17"},
+        {"type": "text", "id": "part_1_product_desc_18", "label": "Part 1 主产品参数说明 18"},
+        {"type": "text", "id": "part_1_product_desc_19", "label": "Part 1 主产品参数说明 19"},
+        {"type": "text", "id": "part_1_product_desc_20", "label": "Part 1 主产品参数说明 20"},
+
+        {"type": "header", "content": "Part 1 - 主产品右侧面配置"},
+        {"type": "image_picker", "id": "part_1_img_3", "label": "Part 1 - 主产品右侧面参数图"},
+        {"type": "text", "id": "part_1_product_3_title", "label": "Part 1 主产品右侧名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_3_desc_1", "label": "Part 1 主产品右侧面参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_3_desc_2", "label": "Part 1 主产品右侧面参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_3_desc_3", "label": "Part 1 主产品右侧面参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_3_desc_4", "label": "Part 1 主产品右侧面参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_3_desc_5", "label": "Part 1 主产品右侧面参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_3_desc_6", "label": "Part 1 主产品右侧面参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_3_desc_7", "label": "Part 1 主产品右侧面参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_3_desc_8", "label": "Part 1 主产品右侧面参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_3_desc_9", "label": "Part 1 主产品右侧面参数说明 9"},
+        {"type": "text", "id": "part_1_product_3_desc_10", "label": "Part 1 主产品右侧面参数说明 10"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 1 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_1", "label": "Part 1 配件1产品名称", "default": "SolarSaga 200W"},
+        {"type": "image_picker", "id": "part_1_bundle_img_1", "label": "Part 1 image - 配件1产品参数图"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 2 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_2", "label": "Part 1 配件2产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_2", "label": "Part 1 image - 配件2产品参数图"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 3 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_3", "label": "Part 1 配件3产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_3", "label": "Part 1 image - 配件3产品参数图"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 4 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_4", "label": "Part 1 配件4产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_4", "label": "Part 1 image - 配件4产品参数图"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 5 信息配置"},
+        {"type": "text", "id": "part_1_bundle_title_5", "label": "Part 1 配件5产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_5", "label": "Part 1 image - 配件5产品参数图"}
+      ]
+    },
+    {
+      "type": "what_in_the_box",
+      "name": "加电包信息配置",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "part_3_heading", "label": "Part 3 heading", "default": "What's in The Box"},
+        {
+          "type": "select",
+          "id": "version",
+          "label": "当前版本",
+          "default": "5",
+          "options": [
+            {"value": "5", "label": "5.0版本"},
+            {"value": "5-plus", "label": "5-plus版本"}
+          ]
+        },
+        {"type": "text", "id": "compare_text", "label": "对比文案", "default": "Compare all variants"},
+        {
+          "type": "textarea",
+          "id": "what_box_desc",
+          "label": "加电包说明文案",
+          "visible_if": "{{block.settings.version == '5-plus'}}"
+        }
+      ]
+    },
+    {
+      "type": "product_manual",
+      "name": "产品说明书配置",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "part_4_heading", "label": "Part 4 heading", "default": "User Manual"},
+        {
+          "type": "select",
+          "id": "page_type",
+          "options": [
+            {"value": "pps_detail", "label": "pps系列"},
+            {"value": "sp_gather", "label": "sp系列"},
+            {"value": "sg_gather", "label": "sg系列"}
+          ],
+          "default": "sg_gather",
+          "label": "产品类型【pps/sg/sp】"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "产品参数-V5（正式版）"
+    }
+  ]
+}
+{% endschema %}

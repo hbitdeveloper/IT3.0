@@ -1,0 +1,79 @@
+<style>
+  .page-section-award{
+    background: {{ section.settings.background }};
+  }
+  .quality-award-card-{{ section.id }}{
+    padding-top:{{ section.settings.pc_padding_top }}px;
+    padding-bottom:{{ section.settings.pc_padding_bottom }}px;
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px){
+    .quality-award-card-{{ section.id }}{
+      padding-top: calc( {{ section.settings.pc_padding_top }}  * 100vw / 1440 );
+      padding-bottom: calc( {{ section.settings.pc_padding_bottom }}  * 100vw / 1440 );
+    }
+  }
+  @media screen and (max-width: 1023.98px){
+    .quality-award-card-{{ section.id }}{
+      padding-top: calc( {{ section.settings.mb_padding_top }}  * 100vw / 750 );
+      padding-bottom: calc( {{ section.settings.mb_padding_bottom }}  * 100vw / 750 );
+    }
+  }
+</style>
+<div class="quality-award-card quality-center-container quality-award-card-{{ section.id }}" anchor="{{ section.settings.anchor | escape }}">
+  {% if section.settings.pc_title != blank and section.settings.mb_title %}
+    {% render 'quality-title', settings: section.settings, index: section.id %}
+  {% endif %}
+  <div class="quality-card swiper quality-swiper">
+    <div class="swiper-wrapper">
+        {%- for item in section.blocks -%}
+          {% assign titleColor = '<em style="color: ' | append: item.des_color | append: '">' %}
+            <div class="quality-card-item swiper-slide">
+                <div class="card-item">
+                    {% render 'responsive-image', image: item.settings.img, image_class: 'blocks-image' %}
+                    <div class="card-item-text">{{ item.settings.subtitle | replace: '<em>', titleColor }}</div>
+                </div>
+            </div>
+        {%- endfor -%}
+    </div>
+    <div class="mb-pagination quality-pagination"></div>
+  </div>
+</div>
+{% schema %}
+{
+  "name": "Quality Award Card",
+  "tag": "section",
+  "class": "section page-section-award",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "二级标题定位锚点", "info": "搭配二级导航锚点定位未使用到定位则不配置" },
+    { "type": "richtext", "id": "pc_title", "label": "PC Section title" },
+    { "type": "richtext", "id": "mb_title", "label": "Mobile Section title" },
+    { "type": "color", "id": "title_color", "label": "标题整体颜色以及svg颜色", "default": "#BA8D6B" },
+    { "type": "color_background", "id": "background", "label": "背景颜色" },
+    { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+    { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC", "default": 40 },
+    { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+    { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB", "default": 48 }
+  ],
+  "blocks": [{
+    "type": "award",
+    "name": "quality award Item",
+    "limit": 3,
+    "settings": [
+      { "type": "image_picker", "id": "img", "label": "Award Image", "info": "pc和mb共用一张图,推荐尺寸320px" },
+      { "type": "richtext", "id": "subtitle", "label": "Product SubHeading" },
+      { "type": "color", "id": "des_color", "label": "高亮颜色", "info": "富文本斜体高亮" }
+    ]
+  }],
+  "presets": [{
+    "name": "品质中心 - 奖项卡片",
+    "blocks": [
+      {
+        "type": "award"
+      }
+    ]
+  }]
+}
+{% endschema %}

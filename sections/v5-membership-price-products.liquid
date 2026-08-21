@@ -1,0 +1,189 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="w-full section-padding"
+  {{ section.shopify_attributes }}
+  data-section-id="{{ section.id }}"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{ section.settings.anchor | escape}}"
+  {% endif %}
+  style="background-color: {{section.settings.bg_color | default: '#FFFFFF' }};{{ style }}"
+>
+  {%- if section.settings.module_title != blank -%}
+    <h2 class="section-container-lg text-center text-2xl lg:text-5xl text-[#242F20] font-semibold mb-10 lg:mb-16 leading-[1.1]">
+      {{ section.settings.module_title | newline_to_br }}
+    </h2>
+  {%- endif -%}
+
+  <div class="section-container-lg overflow-hidden w-full">
+    <div class="w-full grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6" data-view-more-list>
+      {% for block in section.blocks %}
+        {%- assign card_style = "background-color:" | append: block.settings.bg_color | default: '#F5F5F3' -%}
+        {%- render 'v5-story-detail-products',
+          style: card_style,
+          class: 'w-full lg:w-[19.5rem]',
+          product: block.settings.product,
+          variant_id: block.settings.variant_id,
+          product_title: block.settings.product_title,
+          pc_product_image: block.settings.pc_product_image,
+          mb_product_image: block.settings.mb_product_image,
+          pc_img_width: 312,
+          mb_img_width: 343,
+          show_membership_price: true,
+          price_layout: 'vertical'
+        -%}
+      {% endfor %}
+    </div>
+
+    <div class="w-full flex items-center justify-center">
+      <button
+        class="appearance-none bg-transparent font-semibold text-[#242F20] text-sm lg:text-base underline underline-offset-4 mt-4 lg:mt-6"
+        data-view-more-btn
+        style="display:none;"
+      >{{ section.settings.view_more | default: 'View More' }}</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    var section = document.querySelector('[data-section-id="{{ section.id }}"]');
+    if (!section) return;
+    var list = section.querySelector('[data-view-more-list]');
+    var btn = section.querySelector('[data-view-more-btn]');
+    if (!list || !btn) return;
+    var items = Array.prototype.filter.call(list.children, function(el) {
+      return el.nodeType === 1;
+    });
+    if (!items.length) return;
+    var expanded = false;
+    var MOBILE_MAX_WIDTH = 1023.98;
+    function updateView() {
+      if (expanded) return;
+      var width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth || 0;
+      var isMobile = width <= MOBILE_MAX_WIDTH;
+      var limit = isMobile ? 3 : 4;
+      if (items.length <= limit) {
+        items.forEach(function(item) {
+          item.style.display = "block";
+        });
+        btn.style.display = "none";
+        return;
+      }
+      items.forEach(function(item, index) {
+        item.style.display = index < limit ? "" : "none";
+      });
+      btn.style.display = "block";
+    }
+    updateView();
+    window.addEventListener("resize", updateView);
+    btn.addEventListener("click", function() {
+      expanded = true;
+      items.forEach(function(item) {
+        item.style.display = "block";
+      });
+      btn.style.display = "none";
+    });
+
+    // 登录按钮点击事件
+    const loginBtns = document.querySelectorAll('[data-login-btn]');
+    loginBtns.forEach(loginBtn => {
+      loginBtn.addEventListener('click', () => {
+        if(window.jackeryLoginApp) {
+          window.jackeryLoginApp.modalLogin({
+            return_url: window.location.href,
+            register_act: 'MEM-Register'
+          })
+        }
+      });
+    });
+  })();
+</script>
+
+{%  schema %}
+{
+  "name": "V5-会员-会员价产品",
+  "tag": "section",
+  "enabled_on": {
+    "templates": ["product", "page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 96 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 64 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#FFFFFF" },
+    { "type": "textarea", "id": "module_title", "label": "版块标题", "default": "Member Exclusive Price" },
+    { "type": "text", "id": "view_more", "label": "View More文案", "default": "View More" }
+  ],
+  "blocks": [
+    {
+      "name": "产品",
+      "type": "product",
+      "settings": [
+        { "type": "color_background", "id": "bg_color", "label": "产品卡片背景色", "default": "#F5F5F3" },
+        { "type": "product", "id": "product", "label": "选择产品" },
+        { "type": "number", "id": "variant_id", "label": "变体ID(必填)" },
+        { "type": "textarea", "id": "product_title", "label": "产品标题" },
+        { "type": "image_picker", "id": "pc_product_image", "label": "PC端产品图", "info": "宽度356, 高度268" },
+        { "type": "image_picker", "id": "mb_product_image", "label": "MB端产品图", "info": "宽度303, 高度236" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-会员-会员价产品",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "product"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,117 @@
+{% comment %} 批量购买商品 {% endcomment %}
+
+{%- assign show_compare = false -%}
+
+{%- for block in bulk_program -%}
+    {%- if block.compare_text != blank -%}
+        {%- assign show_compare = true -%}
+        {%- break -%}
+    {%- endif -%}
+{%- endfor -%}
+
+{%- if show_compare -%}
+    {{ 'app-bundled-compare.min.css' | asset_url | stylesheet_tag }}
+    <script defer src="{{ 'app-bundled-compare.min.js' | asset_url }}"></script>
+{%- endif -%}
+
+<div
+    {{ attributes }}
+    class="bulk-program--product"
+    data-unit="{{ 'bulk_program.product.unit' | t }}"
+    data-off="{{ 'bulk_program.product.off' | t }}"
+    data-more="{{ 'bulk_program.product.more' | t }}"
+    data-each="{{ 'bulk_program.product.each' | t }}"
+    data-quantity="{{ 'bulk_program.product.quantity' | t }}"
+    data-subtotal="{{ 'bulk_program.product.sub_total' | t }}"
+    data-total="{{ 'bulk_program.product.total' | t }}"
+    data-buyitnow="{{ 'bulk_program.product.buy_it_now' | t }}"
+    data-downloadPriceList="{{ 'bulk_program.price_list.download_price_list' | t }}"
+    data-addtocart="{{ 'products.product.add_to_cart' | t }}"
+    data-viewmore="{{ 'general.action_text.view_more' | t }}"
+>
+    <div class="bulk-program--container">
+        {% for block in bulk_program %}
+            <div class="bulk-program--collection" data-product-handle="{{ block.title | handleize }}" >
+                <div class="bulk-program--collection-title">{{ block.title | escape }}</div>
+                <div class="bulk-program--collection-description rte">{{ block.description | metafield_tag  | replace: '<em>', '<em style="color: var(--jds-color-primary)">' }}</div>
+                <div class="bulk-program--collection-list">
+                    {% assign num = 0 %}
+                    {%- assign variant_ids = '' -%}
+                    {% for item in block.items.value %}
+                        {% assign product = item.product.value %}
+                        {%- if product.available == true -%}
+                            {% assign num = num | plus: 1 %}
+                            {% assign current_variant = product.variants | where: "available", true | where: "sku", item.sku | first %}
+                            {% if current_variant == blank %}
+                                {% assign current_variant = product.selected_or_first_available_variant %}
+                            {% endif %}
+                            {%- if forloop.index <= 3 -%}
+                                {%- assign variant_ids = variant_ids | append: current_variant.id  | append: ',' -%}
+                            {%- endif -%}
+                            <div class="bulk-program--collection-item">
+                                <div>
+                                    <div class="image">
+                                        {%- assign image = current_variant.featured_image | default: product.featured_image  -%}
+                                        {% render 'responsive-image', image: image %}
+                                    </div>
+                                    <div class="title">{{ item.title | escape }}</div>
+                                    <div class="description-{{current_variant.id}}" style="display: none;">
+                                        <div class="rte"> {{ product.description }} </div>
+                                    </div>
+                                    {%- if current_variant.sku == item.sku -%}
+                                        <div class="discount-list">
+                                            <div class="variant-{{current_variant.id}}" data-variant-id="id-{{current_variant.id}}"></div>
+                                        </div>
+                                    {%- endif -%}
+                                </div>
+                                 <div>
+                                    <div class="price">{{ current_variant.price | money }} </div>
+                                    <div class="select">
+                                        <button
+                                            class="select-button"
+                                            data-id="{{ current_variant.id}}"
+                                            data-ga-event="bulk_program_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="{{ block.title | escape }}"
+                                            data-ga-params-position="{{ item.title | escape}}"
+                                            data-ga-params-button_name="{{ 'bulk_program.product.select' | t }}"
+                                            data-ga-params-type="main_page"
+                                            data-open-auto-discount-price="{{settings.open_auto_discount_price}}"
+                                        >
+                                            <span>{{ 'bulk_program.product.select' | t }}</span>
+                                        </button>
+                                    </div>
+                                 </div>
+                            </div>
+                        {%- endif -%}
+                    {% endfor %}
+                </div>
+                {%- if num > 6 -%}
+                <div class="show-more" data-handle="{{ block.title | handleize }}">
+                    <span>{{ 'general.action_text.view_more' | t }}</span>
+                    {% render 'icon-arrow', width: 12, height: 12, color: 'var(--jds-color-primary)' %}
+                </div>
+                {%- endif -%}
+                {% comment %} 开启产品对比 {% endcomment %}
+                {%- if block.compare_text != blank and block.compare_id != blank -%}
+                    {%- assign variant_ids = variant_ids | remove_last: ',' -%}
+                    {%- assign variant_list = variant_ids | split: ',' -%}
+                    <div class="compare">
+                        <button
+                            class="select-button"
+                            data-id="{{ block.compare_id | escape }}"
+                            data-variant_ids={{ variant_list | json }}
+                            data-ga-event="bulk_program_user_clicks"
+                            data-ga-action="click"
+                            data-ga-params-module="{{ block.title | escape }}"
+                            data-ga-params-button_name="{{ block.compare_text | escape }}"
+                            data-open-auto-discount-price="{{settings.open_auto_discount_price}}"
+                        >
+                            <span>{{ block.compare_text | escape }}</span>
+                        </button>
+                    </div>
+                {%- endif -%}
+            </div>
+        {% endfor %}
+    </div>
+</div>

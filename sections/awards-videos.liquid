@@ -1,0 +1,89 @@
+{% comment %} Awards Videos 组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Awards Videos",
+  "tag": "section",
+  "class": "awards-videos",
+  "settings": [
+    {"type": "textarea", "id": "awards_title", "label": "Awards Videos Title", "default": "Awards"},
+    {"type": "video", "id": "awards_video", "label": "Awards PC Videos URL"},
+    {"type": "image_picker", "id": "awards_mobile_image", "label": "Awards Mobile Image"}
+  ],
+  "blocks": [{
+    "type": "slide",
+    "name": "Slide Awards",
+    "settings": [
+      {"type": "text", "id": "awards_name", "label": "Awards Name", "default": "Text"},
+      {"type": "image_picker", "id": "awards_pc_icon", "label": "Awards PC Icon"},
+      {"type": "image_picker", "id": "awards_mobile_icon", "label": "Awards Mobile Icon"}
+    ]
+  }]
+}
+{% endschema %}
+<div class="awards-videos-body">
+  <div class="awards-videos-title">{{ section.settings.awards_title | escape }}</div>
+  <div class="awards-pc">
+    {% assign defaultAlt = section.settings.awards_title | replace:'<br/>',' ' | strip_html %}
+    {% for sources in section.settings.awards_video.sources %}
+      {% if sources.format == 'mp4' %}
+        {% assign videoOriginalUrl = sources.url %}
+        {% assign videoUrlArray = sources.url | split: '/' %}
+        {% for word in videoUrlArray -%}
+          {% if forloop.index == 9 and word != '' %}
+            {% assign videoOriginalUrl = 'https://cdn.shopify.com/videos/c/o/v/' | append: word | append: '.mp4' %}
+          {% endif %}
+        {%- endfor %}
+
+        <video class="lazy" muted preload="metadata" playsinline
+               aria-label="{{ section.settings.awards_video.alt | default: defaultAlt }}"
+               data-src="{{ videoOriginalUrl }}"
+               poster="{{ section.settings.awards_video.preview_image | image_size: '1440x' }}">
+          <source src="{{ videoOriginalUrl }}" type="video/mp4">
+        </video>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <div class="awards-mobile">
+    {%
+            render 'responsive-image',
+            mimage: section.settings.awards_mobile_image,
+            image_class:'awards-mobile-img'
+    %}
+  </div>
+  <div class="total-image">
+    {% for block in section.blocks %}
+      <div class="awards-all-image">
+        <div class="awards-all-img">
+          {%
+                  render 'responsive-image',
+                  image: block.settings.awards_pc_icon,
+                  mimage:block.settings.awards_mobile_icon,
+                  image_class:'all-img'
+          %}
+          <div class="awards-all-text">{{ block.settings.awards_name }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // 监听是否在视窗内，处理视频播放与暂停事件
+    window.addEventListener('scroll', () => {
+      document.querySelectorAll('.awards-videos video').forEach((item) => {
+        const flag = item.getAttribute('data-play');
+        if (flag === 'false' || flag === null) {
+          if (window.Jackery.Utils.isElementInViewport(item)) {
+            item.play();
+            item.setAttribute('data-play', 'true');
+          }
+        } else {
+          if (window.Jackery.Utils.isElementOutOfViewport(item)) {
+            item.pause();
+            item.setAttribute('data-play', 'false');
+          }
+        }
+      })
+    })
+  })
+</script>

@@ -1,0 +1,27 @@
+{%- doc -%}
+    @description 
+        全站最新的博客文章（按更新时间倒序）
+    @param { number } [limit] 文章数量，默认6篇
+    @param { string } [title] 标题
+    @example
+        {% render 'latest-articles', limit: limit %}
+{%- enddoc -%}
+
+{% assign blog_handles = "" %}
+{% for link in linklists.blog-list.links %}
+    {% assign blog = link.object %}
+    {% assign blog_handles = blog_handles | append: blog.handle | append: ',' %}
+{% endfor %}
+
+{% assign blog_handles  = blog_handles | split: ',' | uniq %}
+{% assign limit_num = limit | default: 6 %}
+{%- assign all_articles = '' | split: '' -%}
+{% for handle in blog_handles %}
+    {% assign all_articles = all_articles | concat: blogs[handle].articles %}
+{% endfor %}
+
+{% assign sorted_articles = all_articles | sort: "updated_at" | reverse %}
+
+{% for article in sorted_articles limit: limit_num %}
+    {% render 'article-snippet', article: article, title: title %}
+{% endfor %}

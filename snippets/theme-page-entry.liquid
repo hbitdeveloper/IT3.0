@@ -1,0 +1,220 @@
+{% comment %} 特定页面识别并重定向 {% endcomment %}
+{% render 'url-redirect' %}
+
+{% comment %} 页面meta标签 {% endcomment %}
+{% render 'meta-tags' %}
+
+<link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+<link rel="canonical" href="{{ canonical_url }}">
+
+{% comment %} 预加载关键资源 {% endcomment %}
+{% render 'preload-critical-assets' %}
+
+{% comment %} 自定义favicon {% endcomment %}
+{%- if settings.favicon != blank -%}
+  <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+{%- endif -%}
+
+{% comment %} 页面的本地化版本 {% endcomment %}
+{% render 'head-hreflang' %}
+
+{% comment %} Head样式 {% endcomment %}
+{% render 'head-styles' %}
+
+{% comment %} module.json生成的 对应页面模板 样式文件 {% endcomment %}
+{% render 'style-tags' %}
+
+{% comment %} Key Page CSS Entry Start {% endcomment %}
+{%- if template == 'index' -%}
+  {% if settings.new_index == true %}
+    {{ 'index-new.min.css' | asset_url | stylesheet_tag }}
+  {% else %}
+    {{ 'index.bundle.css' | asset_url | stylesheet_tag }}
+  {% endif %}
+{%- endif -%}
+{% comment %} Key Page CSS Entry End {% endcomment %}
+
+{% comment %} 全局JS变量 {% endcomment %}
+{% render 'head-global-js-variables' %}
+
+{% comment %} 公共JS文件 {% endcomment %}
+<script src="{{ 'global-core.js' | asset_url }}" data-cookieconsent="ignore"></script>
+<script src="{{ 'global-deferred.js' | asset_url }}" defer data-cookieconsent="ignore"></script>
+
+{% comment %} jquery {% endcomment %}
+{% assign need_jquery =
+"page.legal-person,page.olight,page.userGuide,page.solar-mars-bot,page.welcome,page.events,page.story,blog,page.affiliate,page.indoor,page.outdoor,page.specialCrowd,page.specialCrowd-1,page.specialCrowd-2,page.student-discount,page.refer-old-friend,page.plus-series-event,page.product-presale-page,page.anniversary,page.disaster-prevent-day,page.benefits-collection,page.earth-day,page.oil-engine,page.where-to-buy,page.MEC2024,page.ces2024,page.landing-page-100plus,page.landing-page-muzen-cobranding"
+| split: "," %}
+{% if need_jquery contains template %}
+  <script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+{% endif %}
+
+<script src="{{ 'swiper-8.4.7.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+
+{% comment %} 立即使用的全局自定义组件 {% endcomment %}
+<script src="{{ 'global.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+
+{% comment %} GTM 管理 {% endcomment %}
+{% render 'ga-manger', shown_place: 'head' %}
+
+{% comment %} gsap {% endcomment %}
+{% assign need_gsaps =
+ "page.userGuide,page.events,page.care,page.news,page.welcome,blog,page.affiliate,page.accessories,page.solar-generator,page.solar-panels,page.portable-power-stations,page.indoor,page.outdoor,page.howToBuy,page.plus-series-event,page.product-presale-page,page.anniversary,page.solar-mars-bot,page.marketing-3000-v2"
+ | split: "," %}
+{% if need_gsaps contains template %}
+  <script src="{{ 'gsap.js' | asset_url }}" defer></script>
+{% endif %}
+
+{% comment %} gsapscroll {% endcomment %}
+{% assign need_gsapscroll = "page.indoor,page.outdoor,page.howToBuy,page.anniversary,page.photovolatic-collection,page.solar-mars-bot,page.marketing-3000-v2" | split: "," %}
+{% if need_gsapscroll contains template %}
+  <script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+{% endif %}
+
+{% comment %} page entry {% endcomment %}
+{%- if template == 'index' -%}
+  {% if settings.new_index == true %}
+    <script src="{{ 'index-new.min.js' | asset_url }}" defer></script>
+  {% else %}
+  <script src="{{ 'index.bundle.js' | asset_url }}" defer></script>
+  {% endif %}
+{%- endif -%}
+
+{%- if template == 'page.events' -%}
+  {{- 'page.events.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'page.events.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template contains 'care' -%}
+  <script src="{{ 'page.events.bundle.js' | asset_url }}" defer></script>
+  {{- 'page.events.bundle.css' | asset_url | stylesheet_tag -}}
+{%- endif -%}
+
+{%- if template contains 'news' -%}
+  {{- 'page.events.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'page.events.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template == 'page.story' -%}
+  {{- 'page.story.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'gsap.js' | asset_url }}" defer></script>
+  <script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+  <script src="{{ 'page.story.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template contains 'five' -%}
+  <script src="{{ 'gsap.js' | asset_url }}" defer></script>
+  <script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template contains 'welcome' -%}
+  {{- 'index.bundle.css' | asset_url | stylesheet_tag -}}
+{%- endif -%}
+
+{%- if template == 'blog' -%}
+  {{- 'blogs.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'blogs.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template == 'page.affiliate' -%}
+  {{- 'page.affiliate.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'page.affiliate.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template == 'page.indoor' or template == 'page.outdoor' -%}
+  {{- 'page.indoor.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'page.indoor.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template contains 'page.specialCrowd' or template == 'page.student-discount' -%}
+  {{- 'page.specialCrowd.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'page.specialCrowd.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template == 'cart' -%}
+  {{- 'cart.bundle.css' | asset_url | stylesheet_tag -}}
+{%- endif -%}
+
+{%- if template == 'page.refer-old-friend' -%}
+  {{- 'page.refer-old-friend.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'page.refer-old-friend.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% comment %} 新品预热页 {% endcomment %}
+{% if template == 'page.plus-series-event' %}
+  {{ 'page.plus-series-event.bundle.css' | asset_url | stylesheet_tag }}
+  <script defer src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/countryStaticDataList.js?v=1684893344"></script>
+  <script defer src="{{ 'page.plus-series-event.bundle.js' | asset_url }}"></script>
+{%- endif -%}
+
+{% comment %} 新品预售页 {% endcomment %}
+{% if template == 'page.product-presale-page' %}
+  {{ 'page.product-presale-page.bundle.css' | asset_url | stylesheet_tag }}
+  <script defer src="{{ 'page.product-presale-page.bundle.js' | asset_url }}"></script>
+{%- endif -%}
+
+{% comment %} 11周年 {% endcomment %}
+{%- if template == 'page.anniversary' -%}
+  {{- 'page.anniversary.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'page.anniversary.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% comment %} 日本防灾页 {% endcomment %}
+{%- if template == 'page.disaster-prevent-day' -%}
+  {{- 'page.disaster-prevent-day.bundle.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'page.disaster-prevent-day.bundle.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{%- if template == 'page.benefits-collection' -%}
+  <script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+{%- endif -%}
+
+{%- if template == 'page.earth-day' -%}
+  <script defer src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" data-cookieconsent="ignore"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js" data-cookieconsent="ignore"></script>
+{%- endif -%}
+
+{%- if template == 'page.oil-engine' -%}
+  <script src="{{ 'page.oil-engine.bundle.js' | asset_url }}" defer></script>
+  {{- 'page.oil-engine.bundle.css' | asset_url | stylesheet_tag -}}
+{%- endif -%}
+
+{%- if template == 'page.crossword' or template == 'page.crossword-new' -%}
+  <script
+    defer
+    crossorigin="anonymous"
+    src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v13.0&appId=855600322936840&autoLogAppEvents=1"
+    nonce="ywRETNx8"
+    data-cookieconsent="ignore"></script>
+{%- endif -%}
+
+{%- if template == 'page.crossword-puzzle' -%}
+  <script
+    defer
+    crossorigin="anonymous"
+    src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v13.0&appId=855600322936840&autoLogAppEvents=1"
+    nonce="ywRETNx8"
+    data-cookieconsent="ignore"></script>
+{%- endif -%}
+
+{%- if template == 'page.ces2024' -%}
+  {{ 'page.ces2024.bundle.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'page.ces2024.bundle.js' | asset_url }}" async></script>
+{%- endif -%}
+
+{% comment %} 概念机火星车页面 {% endcomment %}
+{%- if template == 'page.solar-mars-bot' -%}
+  <script src="{{ 'TextPlugin.min.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+{%- endif -%}
+
+{% comment %} 批量购买 {% endcomment %}
+{%- if template contains 'page.batch-purchase' or template == 'article.new' or template == 'article.new-for-jp' -%}
+  <script defer src="{{ 'swiper-element-bundle.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+{%- endif -%}
+
+{% comment %} 日站landing page页面 {% endcomment %}
+{%- if template contains 'page.jp-landing-page-' -%}
+  {{- 'page.landing-page-100plus.min.css' | asset_url | stylesheet_tag -}}
+  <script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+  <script src="{{ 'page.landing-page-100plus.min.js' | asset_url }}" defer></script>
+{%- endif -%}

@@ -1,0 +1,169 @@
+{% comment %} jackery-life 活动 share {% endcomment %}
+<section
+  class="w-full px-30 lg:j-px-0 lg:bg-#F6F5F5 xl:a-px-0 flex flex-col"
+  style="background-color: {{section.settings.section_bg}}"
+>
+  {% if section.settings.show_prizes %}
+    <div class="lg:j-w-1376 xl:a-w-1376 mx-auto flex-center flex-col py-64 lg:j-py-96 xl:a-py-96">
+      <h2 class="life-activity-title mb-60 lg:j-mb-40 xl:a-mb-40">{{ section.settings.title | newline_to_br }}</h2>
+      <ul class="flex flex-wrap gap-20 lg:j-gap-16 xl:a-gap-16">
+        {% for block in section.blocks limit: 4 %}
+          {% case block.type %}
+            {% when 'share_item' %}
+            {% assign index = forloop.index0 %}
+            <li
+              class="
+              w-335 h-560 rounded-20 px-20 pt-48 pb-24
+              lg:j-w-332 lg:j-h-520 lg:j-rounded-20 lg:j-px-40 lg:j-pt-60 lg:j-pb-20
+                                          xl:a-w-332 xl:a-h-520 xl:a-rounded-20 xl:a-px-40 xl:a-pt-60 xl:a-pb-20
+              {% if index == 1 or index == 3 %}
+                lg:j-mt-64 xl:a-mt-64
+              {% endif %}
+              "
+              style="background-color: {{ block.settings.share_item_bg_color }}">
+              <img
+                loading="lazy"
+                class="w-80 h-80 object-contain mb-32 lg:j-w-60 lg:j-h-60 lg:j-mb-50 xl:a-w-60 xl:a-h-60 xl:a-mb-50"
+                src="{{ block.settings.share_item_icon | image_url: width: 120}}"
+                alt="">
+              <h2 class="
+                                                  text-34 leading-44 h-88 mb-16 text-#222 font-600 line-clamp-2
+                                                  lg:j-text-30 lg:j-leading-40 lg:j-h-80 lg:j-mb-10
+                                                  xl:a-text-30 xl:a-leading-40 xl:a-h-80 xl:a-mb-10
+                                              ">
+                {{ block.settings.share_item_title | newline_to_br }}
+              </h2>
+              <p class="
+                                                  w-full h-auto text-24 leading-30 text-#222 font-medium line-clamp-9
+                                                  lg:j-text-16 lg:j-leading-22 lg:line-clamp-10
+                                                  xl:a-text-16 xl:a-leading-22 xl:line-clamp-10
+                                              ">
+                {{ block.settings.share_item_description | newline_to_br }}
+              </p>
+            </li>
+          {% endcase %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if section.settings.show_share_button %}
+    <div
+      class="lg:j-w-1376 xl:a-w-1376 flex-center"
+      style="margin: {{section.settings.share_button_margin_top | escape}}px auto {{section.settings.share_button_margin_bottom | escape}}px;"
+    >
+      <div
+        class="
+          inline-flex flex-center min-w-280 h-80 text-28 border-3 border-solid border-primary bg-primary
+          text-white rounded-full font-semibold cursor-pointer
+          lg:j-min-w-240 lg:j-h-56 lg:j-text-24 lg:j-border-2
+          xl:a-min-w-240 xl:a-h-56 xl:a-text-24 xl:a-border-2
+        "
+        data-link="{{ section.settings.share_btn_link | escape }}"
+        data-share-now
+      >
+        {{ section.settings.share_btn_text | escape }}
+      </div>
+      </div>
+  {% endif %}
+</section>
+
+{% schema %}
+  {
+    "name": "Life Activity Share",
+    "class": "section-life-activity section-life-activity-share",
+    "disabled_on": {
+      "templates": ["collection"]
+    },
+    "settings": [
+      {
+        "type": "select",
+        "id": "section_bg",
+        "label": "Section Background Color",
+        "options": [
+          {
+            "label": "浅灰色",
+            "value": "#F6F5F5"
+          },
+          {
+            "label": "白色",
+            "value": "#FFFFFF"
+          }
+        ],
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_prizes",
+        "label": "Show Prizes",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_share_button",
+        "label": "Show Share Button",
+        "default": true
+      },
+      {
+        "type": "number",
+        "id": "share_button_margin_top",
+        "label": "Share Button Margin Top",
+        "info": "上间距, 单位为px",
+        "default": 64
+      },
+      {
+        "type": "number",
+        "id": "share_button_margin_bottom",
+        "label": "Share Button Margin Bottom",
+        "info": "下间距, 单位为px",
+        "default": 64
+      },
+      {
+        "type": "textarea",
+        "id": "title",
+        "label": "Share Title",
+        "default": "Share your sustainable lifestyle and win big prizes"
+      }, {
+        "type": "text",
+        "id": "share_btn_text",
+        "label": "Share Button Text",
+        "default": "SHARE NOW"
+      }, {
+        "type": "url",
+        "id": "share_btn_link",
+        "label": "Share Button Link"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "share_item",
+        "name": "Share Item",
+        "settings": [
+          {
+            "type": "color",
+            "id": "share_item_bg_color",
+            "label": "Share Item Background Color",
+            "default": "#FFF19D"
+          }, {
+            "type": "image_picker",
+            "id": "share_item_icon",
+            "label": "Share Item Icon"
+          }, {
+            "type": "textarea",
+            "id": "share_item_title",
+            "label": "Share Item Title"
+          }, {
+            "type": "textarea",
+            "id": "share_item_description",
+            "label": "Share Item Description"
+          }
+        ]
+      }
+    ],
+    "presets": [
+        {
+            "name": "Life Activity Share section"
+        }
+    ]
+  }
+{% endschema %}

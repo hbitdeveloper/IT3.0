@@ -1,0 +1,541 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+{{ 'blocks-_tab-navigation.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  # 字重
+  assign default_font_weight = '600'
+  if settings.jky_theme_version == 'v4'
+    assign default_font_weight = '500'
+  endif
+  assign tab_font_weight = block.settings.tab_font_weight | default: default_font_weight
+  assign tab_active_font_weight = block.settings.tab_active_font_weight | default: '600'
+
+  assign tab_font_style = '--tab-font-weight:' | append: tab_font_weight | append: ';--tab-active-font-weight:' | append: tab_active_font_weight
+
+  # 背景颜色
+  assign tab_bg_color = block.settings.tab_bg_color | color_modify: 'alpha', 0
+  assign tab_bg_color_style = ';--tab-nav-light-bg:' | append: tab_bg_color | append: ';--tab-nav-bg:' | append: block.settings.tab_bg_color | append: ";background:var(--tab-nav-bg, '#FFFFFF');"
+
+  # Tab样式
+  assign tab_style = tab_font_style | append: tab_bg_color_style
+
+  # 文字颜色
+  assign tab_color_style = '--text-color:' | append: block.settings.tab_color | append: ';--tab-active-color:' | append: block.settings.tab_active_color | append: ';'
+
+  # 实心Tab背景颜色
+  assign tab_solid_bg_color_style = '--tab-solid-bg-color:' | append: block.settings.tab_solid_bg_color | append: ';--tab-active-solid-bg-color:' | append: block.settings.tab_active_solid_bg_color | append: ';'
+
+  # 字体字号
+  assign pc_name_size = block.settings.pc_name_size | divided_by: 16.0
+  assign mb_name_size = block.settings.mb_name_size | divided_by: 32.0
+  assign tab_size_style = '--pc-tab-size:' | append: pc_name_size | append: 'rem;--mb-tab-size:' | append: mb_name_size | append: 'rem;'
+
+  # Tab item样式
+  assign tab_item_style = tab_color_style | append: tab_size_style
+  if block.settings.tab_show_style == 'solid'
+    assign tab_item_style = tab_item_style | append: tab_solid_bg_color_style
+  endif
+
+  # 公共按钮样式
+  assign nav_btn_base = 'invisible opacity-0 shadow-[-2px_0_4px_0_rgba(0, 0, 0, 0.1)] z-[1] absolute w-6 h-[calc(100%-2px)] top-0 bottom-0 lg:w-[2.5rem] transition-all duration-300 cursor-pointer flex items-center justify-center'
+  assign nav_btn_prev_class = nav_btn_base | append: ' left-0 tab-nav-prev'
+  assign nav_btn_next_class = nav_btn_base | append: ' right-0 tab-nav-next'
+
+  # 选中的Tab下划线样式 粗线条/细线条
+  assign tab_active_line_type = block.settings.tab_active_line_type | default: 'active-line-bold'
+  if tab_active_line_type == 'active-line-bold'
+    assign tab_active_line_class = 'h-[0.1875rem] lg:h-[0.3125rem]'
+  else
+    assign tab_active_line_class = 'h-[2px]'
+  endif
+
+  # 移动端是否需要上边线
+  assign is_need_mb_top_line = block.settings.is_need_mb_top_line | default: true, allow_false: true
+  assign mb_top_line_style = ''
+  if is_need_mb_top_line and block.settings.tab_show_style == 'underline'
+    assign mb_top_line_style = 'border-t-[1px] lg:border-t-0'
+  endif
+
+  # Tab导航类名
+  assign tab_ul_wrap_class = ''
+  assign tab_nav_ul_class = ''
+
+  # Tab展示样式 下划线/空心框/实心框
+  assign tab_show_style = block.settings.tab_show_style | default: 'underline'
+  assign tab_item_pc_border_radius = block.settings.tab_item_pc_border_radius | default: 0 | divided_by: 16.0
+  assign tab_item_mb_border_radius = block.settings.tab_item_mb_border_radius | default: 0 | divided_by: 32.0
+  assign tab_item_btn_class = '[&_.navigation-item]:border [&_.navigation-item]:border-solid [&_.tab-nav-indicator]:hidden [&_.navigation-item]:rounded-[var(--tab-item-pc-border-radius,0)] lg:[&_.navigation-item]:rounded-[var(--tab-item-mb-border-radius,0)]'
+  assign tab_item_border_radius_class = '--tab-item-pc-border-radius:' | append: tab_item_pc_border_radius | append: 'rem;' | append: '--tab-item-mb-border-radius:' | append: tab_item_mb_border_radius | append: 'rem;'
+
+  if tab_show_style == 'underline'
+    # tab下划线宽度
+    assign tab_line_width = block.settings.tab_line_width | default: 'auto'
+
+    if tab_line_width == 'auto'
+      assign tab_ul_wrap_class = ''
+      assign tab_nav_ul_class = 'border-b-[1px]'
+    else
+      assign tab_ul_wrap_class = 'border-b-[1px]'
+      assign tab_nav_ul_class = ''
+    endif
+
+    assign tab_item_class = 'tab-underline '
+  elsif tab_show_style == 'hollow'
+    # 空心按钮
+    assign tab_item_class = 'tab-hollow ' | append: tab_item_btn_class | append: tab_item_border_radius_class
+
+  elsif tab_show_style == 'solid'
+    # 实心按钮
+    assign tab_item_class = 'tab-solid ' | append: tab_item_btn_class | append: tab_item_border_radius_class
+  endif
+
+  # Tab item左右间距
+  assign tab_item_pc_gap = block.settings.tab_item_pc_gap | default: 48 | divided_by: 16.0
+  assign tab_item_pc_gap_y = block.settings.tab_item_pc_gap_y | default: 48 | divided_by: 16.0
+  assign tab_item_mb_gap = block.settings.tab_item_mb_gap | default: 48 | divided_by: 32.0
+  assign tab_item_mb_gap_y = block.settings.tab_item_mb_gap_y | default: 48 | divided_by: 32.0
+  assign tab_item_style = tab_item_style | append: '--tab-item-pc-gap:' | append: tab_item_pc_gap | append: 'rem;--tab-item-mb-gap:' | append: tab_item_mb_gap | append: 'rem;--tab-item-pc-gap-y:' | append: tab_item_pc_gap_y | append: 'rem;--tab-item-mb-gap-y:' | append: tab_item_mb_gap_y | append: 'rem;'
+  assign tab_nav_ul_class = 'gap-x-[var(--tab-item-mb-gap)] gap-y-[var(--tab-item-mb-gap-y)] lg:gap-x-[var(--tab-item-pc-gap)] lg:gap-y-[var(--tab-item-pc-gap-y)] ' | append: tab_nav_ul_class
+
+  # 二级Tab需要上下间距
+  if block.settings.tab_level != '1'
+    assign tab_nav_ul_class = tab_nav_ul_class | append: ' section-padding'
+  endif
+-%}
+
+<jky-v-tabs-navigation
+  {{ block.shopify_attributes }}
+  class="blocks-tabs-navigation w-full {% if block.settings.is_need_sticky_header %} sticky {% endif %} z-10 flex flex-col"
+  style="{{ tab_style }}"
+  data-sticky-header="{{ block.settings.is_need_sticky_header }}"
+  data-level="{{ block.settings.tab_level | default: '1' }}"
+  {% if block.settings.tab_level == '1' and block.settings.anchor != blank %}
+    data-anchor="{{ block.settings.anchor | escape }}"
+  {% endif %}
+  {% if block.settings.tab_level != '1' and block.settings.bind_handle != blank %}
+    data-bind-handle="{{ block.settings.bind_handle | escape }}"
+  {% endif %}
+  {% if block.settings.ga_event_name != blank %}
+    data-ga-event-name="{{ block.settings.ga_event_name | escape }}"
+  {% endif %}
+>
+  <div
+    class="blocks-tabs-ul-wrap max-w-full {{ block.settings.page_width }} mx-auto relative border-0 border-solid {{ mb_top_line_style }} {{ tab_ul_wrap_class }}"
+    style="--tab-line-color:{{block.settings.tab_line_color}};border-color:var(--tab-line-color, '#00000026');"
+  >
+    <div
+      class="tabs-nav-ul invisible w-full lg:w-fit max-w-full flex items-center flex-nowrap overflow-x-auto border-0 border-solid {{ tab_nav_ul_class }} relative align-{{block.settings.alignment}} mb-align-{{block.settings.alignment_mb}} px-6 lg:px-0 {{ tab_item_class }}"
+      data-capsule-style="{{ block.settings.tab_show_style }}"
+      style="{{ tab_item_style }} {{ style }}"
+    >
+      {% content_for 'blocks' %}
+      <div class="tab-nav-indicator absolute left-0 bottom-0 w-0 {{ tab_active_line_class }}"></div>
+    </div>
+
+    <div
+      class="{{ nav_btn_prev_class }}"
+      style="background: linear-gradient(to left, var(--tab-nav-light-bg) 0%, var(--tab-nav-bg) 20%, var(--tab-nav-bg) 100%)"
+    >
+      {% render 'icon-arrow', class: 'w-4 h-4 rotate-180', color: block.settings.tab_color %}
+    </div>
+    <div
+      class="{{ nav_btn_next_class }}"
+      style="background: linear-gradient(to right, var(--tab-nav-light-bg) 0%, var(--tab-nav-bg) 20%, var(--tab-nav-bg) 100%)"
+    >
+      {% render 'icon-arrow', class: 'w-4 h-4', color: block.settings.tab_color %}
+    </div>
+  </div>
+</jky-v-tabs-navigation>
+<script src="{{ 'blocks-_tab-navigation.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V-Tab导航栏",
+  "tag": null,
+  "blocks": [{ "type": "_tab-nav-item" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "移动端数值配置说明："
+    },
+    {
+      "type": "paragraph",
+      "content": "1. 数值以750px稿即2倍图值为标准进行配置与换算。"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 举例如48px在750px稿上为48px，在375px稿上则为24px。"
+    },
+    {
+      "type": "header",
+      "content": "基础配置"
+    },
+    {
+      "type": "select",
+      "id": "tab_level",
+      "options": [
+        {
+          "value": "1",
+          "label": "一级导航"
+        },
+        {
+          "value": "2",
+          "label": "二级导航"
+        }
+      ],
+      "default": "1",
+      "label": "Tab级别",
+      "info": "一级导航：仅支持配置1个；二级导航：可配置多个。"
+    },
+    {
+      "type": "text",
+      "id": "bind_handle",
+      "label": "对应上一级别Tab的Handle",
+      "info": "与上一级对应Tab唯一绑定",
+      "visible_if": "{{ block.settings.tab_level != '1' }}"
+    },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)",
+      "visible_if": "{{ block.settings.tab_level == '1' }}"
+    },
+    { "type": "color", "id": "tab_bg_color", "label": "整体背景颜色", "default": "#FFFFFF" },
+    {
+      "type": "header",
+      "content": "功能配置"
+    },
+    {
+      "type": "text",
+      "id": "ga_event_name",
+      "label": "GA统计事件名称",
+      "info": "示例：vtab_user_click 或 5.0_products_collection_user_clicks"
+    },
+    {
+      "type": "header",
+      "content": "布局配置"
+    },
+    {
+      "type": "checkbox",
+      "id": "is_need_sticky_header",
+      "label": "是否需要吸顶Header导航栏",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "PC端对齐方式",
+      "default": "left"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment_mb",
+      "label": "移动端对齐方式",
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "tab_item_pc_gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "PC端页签X轴间距",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "tab_item_pc_gap_y",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "PC端页签Y轴间距",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "tab_item_mb_gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "MB端页签X轴间距",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "tab_item_mb_gap_y",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "MB端页签Y轴间距",
+      "default": 48
+    },
+    { "type": "header", "content": "Tab样式配置" },
+    {
+      "type": "select",
+      "id": "tab_show_style",
+      "options": [
+        {
+          "value": "underline",
+          "label": "下划线"
+        },
+        {
+          "value": "hollow",
+          "label": "空心按钮"
+        },
+        {
+          "value": "solid",
+          "label": "实心按钮"
+        }
+      ],
+      "default": "underline",
+      "label": "Tab展示样式"
+    },
+    { "type": "color", "id": "tab_color", "label": "Tab颜色", "default": "#00000066" },
+    {
+      "type": "color",
+      "id": "tab_active_color",
+      "label": "Tab选中颜色",
+      "default": "#fd5000"
+    },
+    {
+      "type": "color",
+      "id": "tab_solid_bg_color",
+      "label": "Tab实心按钮背景色",
+      "default": "#FFF",
+      "visible_if": "{{ block.settings.tab_show_style == 'solid' }}"
+    },
+    {
+      "type": "color",
+      "id": "tab_active_solid_bg_color",
+      "label": "选中Tab实心按钮背景色",
+      "default": "#fd5000",
+      "visible_if": "{{ block.settings.tab_show_style == 'solid' }}"
+    },
+    {
+      "type": "select",
+      "id": "tab_active_line_type",
+      "options": [
+        {
+          "value": "active-line-bold",
+          "label": "粗线条"
+        },
+        {
+          "value": "active-line-light",
+          "label": "细线条"
+        }
+      ],
+      "default": "active-line-bold",
+      "label": "选中Tab下划线粗细",
+      "visible_if": "{{ block.settings.tab_show_style == 'underline' }}"
+    },
+    {
+      "type": "select",
+      "id": "tab_line_width",
+      "options": [
+        {
+          "value": "auto",
+          "label": "自适应"
+        },
+        {
+          "value": "full",
+          "label": "铺满"
+        }
+      ],
+      "default": "auto",
+      "label": "整个Tab下划线宽度",
+      "visible_if": "{{ block.settings.tab_show_style == 'underline' }}"
+    },
+    {
+      "type": "color",
+      "id": "tab_line_color",
+      "label": "整个Tab下划线颜色",
+      "default": "#00000026",
+      "visible_if": "{{ block.settings.tab_show_style == 'underline' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "is_need_mb_top_line",
+      "label": "Tab移动端是否需要上边线",
+      "default": true,
+      "visible_if": "{{ block.settings.tab_show_style == 'underline' }}"
+    },
+    {
+      "type": "range",
+      "id": "tab_item_pc_border_radius",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "PC端页签圆角",
+      "default": 0,
+      "visible_if": "{{ block.settings.tab_show_style == 'hollow' or block.settings.tab_show_style == 'solid' }}"
+    },
+    {
+      "type": "range",
+      "id": "tab_item_mb_border_radius",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "MB端页签圆角",
+      "default": 0,
+      "visible_if": "{{ block.settings.tab_show_style == 'hollow' or block.settings.tab_show_style == 'solid' }}"
+    },
+    { "type": "header", "content": "文本样式配置" },
+    { "type": "range", "id": "pc_name_size", "min": 12, "max": 36, "step": 1, "label": "PC端标题字号", "default": 20 },
+    { "type": "range", "id": "mb_name_size", "min": 12, "max": 72, "step": 1, "label": "MB端标题字号", "default": 28 },
+    {
+      "type": "select",
+      "id": "tab_font_weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "400"
+        },
+        {
+          "value": "500",
+          "label": "500"
+        },
+        {
+          "value": "600",
+          "label": "600"
+        }
+      ],
+      "default": "500",
+      "label": "标题字重"
+    },
+    {
+      "type": "select",
+      "id": "tab_active_font_weight",
+      "options": [
+        {
+          "value": "500",
+          "label": "500"
+        },
+        {
+          "value": "600",
+          "label": "600"
+        }
+      ],
+      "default": "600",
+      "label": "标题选中字重"
+    },
+    { "type": "header", "content": "二级导航上下边距", "visible_if": "{{ block.settings.tab_level != '1' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ block.settings.tab_level != '1' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ block.settings.tab_level != '1' }}"
+    },
+    { "type": "header", "content": "二级导航MB边距", "visible_if": "{{ block.settings.tab_level != '1' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距",
+      "visible_if": "{{ block.settings.tab_level != '1' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ block.settings.tab_level != '1' and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ block.settings.tab_level != '1' and block.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-Tab导航栏",
+      "blocks": [
+        {
+          "type": "_tab-nav-item",
+          "settings": {
+            "tab_name": "<p>Section Group 1</p>",
+            "section_group": "section_group_1"
+          }
+        },
+        {
+          "type": "_tab-nav-item",
+          "settings": {
+            "tab_name": "<p>Section Group 2</p>",
+            "section_group": "section_group_2"
+          }
+        },
+        {
+          "type": "_tab-nav-item",
+          "settings": {
+            "tab_name": "<p>Section Group 3</p>",
+            "section_group": "section_group_3"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,351 @@
+{% comment %} 日本防灾日 产品页签组件 {% endcomment %}
+{% schema %}
+{
+  "name": "DP Product Tabs",
+  "tag": "section",
+  "class": "dp-product-tabs",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "titleImg",
+      "label": "Title Image"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "たとえ電力の供給が長時間途絶えても、ソーラーパネルがあれば太陽光発電でポータブル電源に充電できるので、バッテリーの残量を気にすることなく安心して生活を維持できます。"
+    },
+    {
+      "type": "text",
+      "id": "taxTxt",
+      "label": "Tax Text",
+      "default": "（税込）"
+    },
+    {
+      "type": "text",
+      "id": "learnMore",
+      "label": "Learn More",
+      "default": "製品詳細を見る"
+    },
+    {
+      "type": "text",
+      "id": "viewMoreBtnTxt",
+      "label": "View More Button Text",
+      "default": "セール会場はこちら"
+    },
+    {
+      "type": "url",
+      "id": "viewMoreBtnLink",
+      "label": "View More Button Link"
+    }
+  ],
+  "max_blocks": 4,
+  "blocks": [
+    {
+      "name": "Tab Item",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tabTitle",
+          "label": "Tab Title",
+          "default": "1人暮らし"
+        },
+        {
+          "type": "header",
+          "content": "First Product Settings"
+        },
+        {
+          "type": "product",
+          "id": "firstProduct",
+          "label": "First Product"
+        },
+        {
+          "type": "image_picker",
+          "id": "firstProductImg",
+          "label": "First Product Image(520*240)"
+        },
+        {
+          "type": "textarea",
+          "id": "firstProductFeatures",
+          "label": "Second Product Features",
+          "default": "容量:241.9Wh      定格出力:2000W"
+        },
+        {
+          "type": "header",
+          "content": "Second Product Settings"
+        },
+        {
+          "type": "product",
+          "id": "secondProduct",
+          "label": "Second Product"
+        },
+        {
+          "type": "image_picker",
+          "id": "secondProductImg",
+          "label": "Second Product Image(520*240)"
+        },
+        {
+          "type": "textarea",
+          "id": "secondProductFeatures",
+          "label": "Second Product Features",
+          "default": "容量:241.9Wh      定格出力:2000W"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<div class="dp-product-tabs-box">
+  <picture>
+    <source
+      media="(min-width:1024px)"
+      srcset="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/dp-product-tabs-bg-pc.png?v=1721377990"
+    >
+    <img
+      src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/dp-product-tabs-bg-mb.png?v=1721377989"
+      class="bg-img"
+      alt="" loading="lazy"
+    >
+  </picture>
+
+  {%- 
+    render 'responsive-image', 
+    image: section.settings.titleImg,
+    image_class: 'title-img dp-animation'
+  -%}
+  <div class="dp-animation">
+    <div class="tabs-desc box-shadow">
+      <p>{{ section.settings.description }}</p>
+    </div>
+  </div>
+  <div class="dp-animation">
+    <div class="tab-box box-shadow box-shadow-big card-container">
+      <div class="tab-list">
+        <ul class="title-list dp-animation">
+          {% for block in section.blocks %}
+            {% if forloop.index == 1 %}
+              {% assign activeClass = 'active' %}
+            {% else %}
+              {% assign activeClass = '' %}
+            {% endif %}
+            <li
+              data-ga-event="JP_bousai_user_clicks"
+              data-ga-action="click"
+              data-ga-params-module="{{ block.settings.tabTitle }}"
+              class="title-item {{ activeClass }}"
+              data-index="{{ forloop.index }}"
+            >
+              <span>{{ block.settings.tabTitle }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        {% for block in section.blocks %}
+          {% if forloop.index == 1 %}
+            {% assign activeClass = 'active' %}
+          {% else %}
+            {% assign activeClass = '' %}
+          {% endif %}
+          <div class="tab-content {{ activeClass }}" data-index="{{ forloop.index }}">
+            {% assign firstProduct = block.settings.firstProduct %}
+            {% if firstProduct != blank %}
+              <div class="product-item dp-animation">
+                <a
+                  data-ga-event="JP_bousai_user_clicks"
+                  data-ga-action="click"
+                  data-ga-params-module="{{ block.settings.tabTitle }}"
+                  data-ga-params-position="{{ firstProduct.title | escape }}"
+                  data-ga-params-button_name="{{ section.settings.learnMore }}"
+                  data-ga-params-link="{{ firstProduct.url }}"
+                  href="{{ firstProduct.url }}"
+                >
+                  {% assign productImg = firstProduct.featured_image %}
+                  {% if block.settings.firstProductImg != blank %}
+                    {% assign productImg = block.settings.firstProductImg %}
+                  {% endif %}
+                  {%- 
+                    render 'responsive-image', 
+                    image: productImg,
+                    width: 520,
+                    mwidth: 250,
+                    image_class: 'product-img'
+                  -%}
+                  <p class="product-title">{{ firstProduct.title | escape }}</p>
+                </a>
+                <p class="product-features">{{ block.settings.firstProductFeatures | replace: ' ', '&nbsp;' }}</p>
+                <div class="box-bottom">
+                  <p class="price-box">
+                    <span class="price">{{ firstProduct.price_min | money }}</span>
+                    <span class="tax-txt">{{ section.settings.taxTxt }}</span>
+                  </p>
+                  <a
+                    data-ga-event="JP_bousai_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="{{ block.settings.tabTitle }}"
+                    data-ga-params-position="{{ firstProduct.title | escape }}"
+                    data-ga-params-button_name="{{ section.settings.learnMore }}"
+                    data-ga-params-link="{{ firstProduct.url }}"
+                    class="btn-learn-more"
+                    href="{{ firstProduct.url }}"
+                  >
+                    {{- section.settings.learnMore -}}
+                  </a>
+                </div>
+              </div>
+            {% endif %}
+
+            {% assign secondProduct = block.settings.secondProduct %}
+            {% if secondProduct != blank %}
+              <div class="product-item dp-animation">
+                <a
+                data-ga-event="JP_bousai_user_clicks"
+                data-ga-action="click"
+                data-ga-params-module="{{ block.settings.tabTitle }}"
+                data-ga-params-position="{{ secondProduct.title | escape }}"
+                data-ga-params-button_name="{{ section.settings.learnMore }}"
+                data-ga-params-link="{{ secondProduct.url }}"
+                href="{{ secondProduct.url }}">
+                  {% assign productImg = secondProduct.featured_image %}
+                  {% if block.settings.secondProductImg != blank %}
+                    {% assign productImg = block.settings.secondProductImg %}
+                  {% endif %}
+                  {%- 
+                    render 'responsive-image', 
+                    image: productImg,
+                    width: 520,
+                    mwidth: 250,
+                    image_class: 'product-img'
+                  -%}
+                  <p class="product-title">{{ secondProduct.title | escape }}</p>
+                </a>
+                <p class="product-features">{{ block.settings.secondProductFeatures | replace: ' ', '&nbsp;' }}</p>
+                <div class="box-bottom">
+                  <p class="price-box">
+                    <span class="price">{{ secondProduct.price_min | money }}</span>
+                    <span class="tax-txt">{{ section.settings.taxTxt }}</span>
+                  </p>
+                  <a
+                    data-ga-event="JP_bousai_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="{{ block.settings.tabTitle }}"
+                    data-ga-params-position="{{ secondProduct.title | escape }}"
+                    data-ga-params-button_name="{{ section.settings.learnMore }}"
+                    data-ga-params-link="{{ secondProduct.url }}"
+                    class="btn-learn-more"
+                    href="{{ secondProduct.url }}"
+                  >
+                    {{- section.settings.learnMore -}}
+                  </a>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      {% if section.settings.viewMoreBtnTxt != blank %}
+        <div class="dp-animation dp-btn">
+          <div class="btn-view-more box-shadow">
+            <a
+              data-ga-event="JP_bousai_user_clicks"
+              data-ga-action="click"
+              data-ga-params-module="Product Display"
+              data-ga-params-button_name="{{ section.settings.viewMoreBtnTxt }}"
+              data-ga-params-link="{{ section.settings.viewMoreBtnLink }}"
+              href="{{ section.settings.viewMoreBtnLink }}"
+            >
+              {{ section.settings.viewMoreBtnTxt }}
+              <svg
+                class="right-arrow"
+                viewBox="0 0 1024 1024"
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                		d="M332.501333 183.168a42.666667 42.666667 0 0 1 57.621334-2.496l2.709333 2.496 298.666667 298.666667a42.666667 42.666667 0 0 1 2.496 57.621333l-2.496 2.709333-298.666667 298.666667a42.666667 42.666667 0 0 1-62.826667-57.621333l2.496-2.709334L600.96 512 332.501333 243.498667a42.666667 42.666667 0 0 1-2.496-57.621334l2.496-2.709333z"
+                		fill="rgba(0,0,0,1)"></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+      {% endif %}
+      <div class="box-arrow"></div>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    const initDpProductTabs = () => {
+      const heightSelectors = [
+        '.dp-product-tabs-box .product-title',
+        '.dp-product-tabs-box .product-features'
+      ];
+      let matchHeightTimer = null;
+      const matchHeight = (selector) => {
+        const elements = document.querySelectorAll(selector);
+        if (!elements.length) return;
+        let maxHeight = 0;
+
+        elements.forEach((element) => {
+          element.style.height = '';
+        });
+
+        // 找到最大高度
+        for (let i = 0; i < elements.length; i++) {
+          const elementHeight = elements[i].clientHeight;
+          maxHeight = Math.max(maxHeight, elementHeight);
+        }
+
+        // 设置所有元素的高度为最大高度
+        for (let j = 0; j < elements.length; j++) {
+          elements[j].style.height = `${maxHeight}px`;
+        }
+      };
+      const syncProductTabHeights = () => {
+        heightSelectors.forEach((selector) => {
+          document.querySelectorAll(selector).forEach((element) => {
+            element.style.height = '';
+          });
+        });
+        if (window.innerWidth <= 1023) return;
+        heightSelectors.forEach((selector) => matchHeight(selector));
+      };
+      const queueSyncProductTabHeights = () => {
+        window.clearTimeout(matchHeightTimer);
+        matchHeightTimer = window.setTimeout(() => {
+          window.requestAnimationFrame(() => {
+            syncProductTabHeights();
+          });
+        }, 0);
+      };
+
+      queueSyncProductTabHeights();
+      window.addEventListener('load', queueSyncProductTabHeights, { once: true });
+      window.addEventListener('resize', queueSyncProductTabHeights);
+
+      document.querySelectorAll('.dp-product-tabs-box .title-item').forEach((titleItem) => {
+        titleItem.addEventListener('click', function () {
+          const currIndex = this.getAttribute('data-index');
+
+          const titleSiblings = this.parentElement?.children || [];
+          Array.from(titleSiblings).forEach((item) => item.classList.remove('active'));
+          this.classList.add('active');
+
+          document.querySelectorAll(`.dp-product-tabs-box .tab-content[data-index="${currIndex}"]`).forEach((tabContent) => {
+            const contentSiblings = tabContent.parentElement?.children || [];
+            Array.from(contentSiblings).forEach((item) => item.classList.remove('active'));
+            tabContent.classList.add('active');
+          });
+          queueSyncProductTabHeights();
+        });
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initDpProductTabs, { once: true });
+    } else {
+      initDpProductTabs();
+    }
+  })();
+</script>

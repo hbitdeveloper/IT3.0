@@ -1,0 +1,396 @@
+{% comment %} 当前时间年份 {% endcomment %}
+{%- assign current_year = 'now' | date: '%Y' -%}
+
+{% comment %} 是否显示时间线 {% endcomment %}
+{% assign open_timeline = section.settings.open_timeline %}
+{%- assign timeline_year = current_year -%}
+
+{% comment %} 所有已置顶的 {% endcomment %}
+{% assign pin_top_upcoming_indices_str = '' %}
+{% assign pin_top_past_indices_str = '' %}
+
+{% comment %} 所有未置顶的 {% endcomment %}
+{%- assign upcoming_indices_str = '' -%}
+{%- assign past_indices_str = '' -%}
+
+{%- comment -%} 先遍历所有展会，记录它们的ID和索引 {%- endcomment -%}
+{%- for item in section.blocks -%}
+  {% comment %} 开始时间 和 结束时间 必填 {% endcomment %}
+  {%- if item.settings.begin_time != blank and item.settings.begin_time != '' and item.settings.end_time != blank and item.settings.end_time != '' -%}
+    {% comment %} 时间线以开始时间的年份为准 {% endcomment %}
+    {%- assign timeline_item = item.settings.begin_time | date: '%Y' -%}
+    {%- assign timeline_year = timeline_year | append: ',' | append: timeline_item -%}
+
+    {%- assign end_time_str = item.settings.end_time | date: '%s' -%}
+    {%- assign time_now = 'now' | date: '%s' -%}
+
+    {%- if item.settings.pin_to_top == true -%}
+      {%- if end_time_str < time_now -%}
+        {%- comment -%} 已结束的展会，存储ID {%- endcomment -%}
+        {%- assign pin_top_past_indices_str = pin_top_past_indices_str | append: item.id | append: ',' -%}
+      {%- else -%}
+        {%- comment -%} 未开始或进行中的展会，存储ID {%- endcomment -%}
+        {%- assign pin_top_upcoming_indices_str = pin_top_upcoming_indices_str | append: item.id | append: ',' -%}
+      {%- endif -%}
+    {%- else -%}
+      {%- if end_time_str < time_now -%}
+        {%- comment -%} 已结束的展会，存储ID {%- endcomment -%}
+        {%- assign past_indices_str = past_indices_str | append: item.id | append: ',' -%}
+      {%- else -%}
+        {%- comment -%} 未开始或进行中的展会，存储ID {%- endcomment -%}
+        {%- assign upcoming_indices_str = upcoming_indices_str | append: item.id | append: ',' -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+
+{% comment %} 时间线 {% endcomment %}
+{%- assign timeline_year = timeline_year | split: ',' | compact | uniq | sort | reverse -%}
+
+{%- comment -%} 将字符串转换为数组 {%- endcomment -%}
+{%- assign pin_top_upcoming_ids = pin_top_upcoming_indices_str | split: ',' -%}
+{%- assign pin_top_past_ids = pin_top_past_indices_str | split: ',' -%}
+{%- assign upcoming_ids = upcoming_indices_str | split: ',' -%}
+{%- assign past_ids = past_indices_str | split: ',' -%}
+
+{%- comment -%} 创建 已置顶 upcoming 排序用的临时数组 {%- endcomment -%}
+{%- assign pin_top_upcoming_sort_data_str = '' -%}
+{%- for id in pin_top_upcoming_ids -%}
+  {%- if id != '' -%}
+    {%- comment -%} 通过ID查找对应的展会项目 {%- endcomment -%}
+    {%- for block in section.blocks -%}
+      {%- if block.id == id -%}
+        {%- assign begin_time = block.settings.begin_time | date: '%s' -%}
+        {%- assign end_time = block.settings.end_time | date: '%s' -%}
+        {%- assign sort_key = begin_time | append: '_' | append: end_time | append: '_' | append: id -%}
+        {%- assign pin_top_upcoming_sort_data_str = pin_top_upcoming_sort_data_str | append: sort_key | append: ':' | append: id | append: ',' -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- comment -%} 将字符串转换为排序数组 {%- endcomment -%}
+{%- assign pin_top_upcoming_sort_data = pin_top_upcoming_sort_data_str | split: ',' -%}
+{%- comment -%} 对置顶的展会按开始时间正序排序，相同时按结束时间正序 {%- endcomment -%}
+{%- assign pin_top_upcoming_sort_data = pin_top_upcoming_sort_data | sort -%}
+{%- comment -%} 提取排序后的ID {%- endcomment -%}
+{%- assign sorted_pin_top_upcoming_ids_str = '' -%}
+{%- for item in pin_top_upcoming_sort_data -%}
+  {%- if item != '' -%}
+    {%- assign parts = item | split: ':' -%}
+    {%- if parts.size > 1 -%}
+      {%- assign sorted_pin_top_upcoming_ids_str = sorted_pin_top_upcoming_ids_str | append: parts[1] | append: ',' -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- assign sorted_pin_top_upcoming_ids = sorted_pin_top_upcoming_ids_str | split: ',' -%}
+
+
+{%- comment -%} 创建 已置顶 past 排序用的临时数组 {%- endcomment -%}
+{%- assign pin_top_past_sort_data_str = '' -%}
+{%- for id in pin_top_past_ids -%}
+  {%- if id != '' -%}
+    {%- comment -%} 通过ID查找对应的展会项目 {%- endcomment -%}
+    {%- for block in section.blocks -%}
+      {%- if block.id == id -%}
+        {%- assign end_time = block.settings.end_time | date: '%s' -%}
+        {%- assign sort_key = end_time | append: '_' | append: id -%}
+        {%- assign pin_top_past_sort_data_str = pin_top_past_sort_data_str | append: sort_key | append: ':' | append: id | append: ',' -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- comment -%} 将字符串转换为排序数组 {%- endcomment -%}
+{%- assign pin_top_past_sort_data = pin_top_past_sort_data_str | split: ',' -%}
+{%- comment -%} 对过期展会按结束时间倒序排序 {%- endcomment -%}
+{%- assign pin_top_past_sort_data = pin_top_past_sort_data | sort | reverse -%}
+{%- comment -%} 提取排序后的ID {%- endcomment -%}
+{%- assign sorted_pin_top_past_ids_str = '' -%}
+{%- for item in pin_top_past_sort_data -%}
+  {%- if item != '' -%}
+    {%- assign parts = item | split: ':' -%}
+    {%- if parts.size > 1 -%}
+      {%- assign sorted_pin_top_past_ids_str = sorted_pin_top_past_ids_str | append: parts[1] | append: ',' -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- assign sorted_pin_top_past_ids = sorted_pin_top_past_ids_str | split: ',' -%}
+
+
+
+{%- comment -%} 创建 未置顶 upcoming 排序用的临时数组 {%- endcomment -%}
+{%- assign upcoming_sort_data_str = '' -%}
+{%- for id in upcoming_ids -%}
+  {%- if id != '' -%}
+    {%- comment -%} 通过ID查找对应的展会项目 {%- endcomment -%}
+    {%- for block in section.blocks -%}
+      {%- if block.id == id -%}
+        {%- assign begin_time = block.settings.begin_time | date: '%s' -%}
+        {%- assign end_time = block.settings.end_time | date: '%s' -%}
+        {%- assign sort_key = begin_time | append: '_' | append: end_time | append: '_' | append: id -%}
+        {%- assign upcoming_sort_data_str = upcoming_sort_data_str | append: sort_key | append: ':' | append: id | append: ',' -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- comment -%} 将字符串转换为排序数组 {%- endcomment -%}
+{%- assign upcoming_sort_data = upcoming_sort_data_str | split: ',' -%}
+{%- comment -%} 对未开始&进行中的展会按开始时间正序排序，相同时按结束时间正序 {%- endcomment -%}
+{%- assign upcoming_sort_data = upcoming_sort_data | sort -%}
+{%- comment -%} 提取排序后的ID {%- endcomment -%}
+{%- assign sorted_upcoming_ids_str = '' -%}
+{%- for item in upcoming_sort_data -%}
+  {%- if item != '' -%}
+    {%- assign parts = item | split: ':' -%}
+    {%- if parts.size > 1 -%}
+      {%- assign sorted_upcoming_ids_str = sorted_upcoming_ids_str | append: parts[1] | append: ',' -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- assign sorted_upcoming_ids = sorted_upcoming_ids_str | split: ',' -%}
+
+
+
+{%- comment -%} 创建 未置顶 past 展会排序用的临时数组 {%- endcomment -%}
+{%- assign past_sort_data_str = '' -%}
+{%- for id in past_ids -%}
+  {%- if id != '' -%}
+    {%- comment -%} 通过ID查找对应的展会项目 {%- endcomment -%}
+    {%- for block in section.blocks -%}
+      {%- if block.id == id -%}
+        {%- assign end_time = block.settings.end_time | date: '%s' -%}
+        {%- assign sort_key = end_time | append: '_' | append: id -%}
+        {%- assign past_sort_data_str = past_sort_data_str | append: sort_key | append: ':' | append: id | append: ',' -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- comment -%} 将字符串转换为排序数组 {%- endcomment -%}
+{%- assign past_sort_data = past_sort_data_str | split: ',' -%}
+{%- comment -%} 对过期展会按结束时间倒序排序 {%- endcomment -%}
+{%- assign past_sort_data = past_sort_data | sort | reverse -%}
+{%- comment -%} 提取排序后的ID {%- endcomment -%}
+{%- assign sorted_past_ids_str = '' -%}
+{%- for item in past_sort_data -%}
+  {%- if item != '' -%}
+    {%- assign parts = item | split: ':' -%}
+    {%- if parts.size > 1 -%}
+      {%- assign sorted_past_ids_str = sorted_past_ids_str | append: parts[1] | append: ',' -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- assign sorted_past_ids = sorted_past_ids_str | split: ',' -%}
+
+{% comment %} upcoming + past {% endcomment %}
+{%- assign sorted_all_ids = sorted_pin_top_upcoming_ids | concat: sorted_pin_top_past_ids | concat: sorted_upcoming_ids | concat: sorted_past_ids -%}
+
+{% comment %} upcoming {% endcomment %}
+{%- assign sorted_all_upcoming_ids = sorted_pin_top_upcoming_ids | concat: sorted_upcoming_ids -%}
+{% comment %} past {% endcomment %}
+{%- assign sorted_all_past_ids = sorted_pin_top_past_ids | concat: sorted_past_ids -%}
+
+
+{% comment %} 当前年份的 upcoming 数量 {% endcomment %}
+{%- assign upcoming_count = 0 -%}
+{%- for id in sorted_all_upcoming_ids %}
+  {%- for block in section.blocks %}
+    {%- if block.id == id %}
+      {%- assign begin_time_year = block.settings.begin_time | date: '%Y' %}
+      {%- if begin_time_year == current_year %}
+        {%- assign upcoming_count = upcoming_count | plus: 1 %}
+      {%- endif %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+<div class="exhibition-list-section-wrap">
+    {% comment %} 锚点，Contact Us 配置了才显示 {% endcomment %}
+    {%- if section.settings.contact_us_title != blank or section.settings.contact_us_img != blank or section.settings.contact_us_text != blank -%}
+      <div class="exhibition-list-anchor-wrap cal_scroll_target">
+        <span class="anchor-item active" data-id="exhibition_event_anchor">{{ section.settings.anchor_event | escape }}</span>
+        <span class="anchor-item" data-id="exhibition_contact_us_anchor">{{ section.settings.anchor_contact_us | escape }}</span>
+      </div>
+    {%- endif -%}
+
+    <div class="section-container" data-anchor="exhibition_event_anchor">
+        {% comment %} 开启了时间线 {% endcomment %}
+        {%- if open_timeline == true and timeline_year.size > 0 -%}
+          <jky-exhibition-timeline>
+            <ul class="exhibition-list-timeline-wrap">
+              {% for year in timeline_year %}
+                  <li data-year="{{year}}" class="timeline-item {% if current_year == year %}active solid-after{% endif %} {% if year >= current_year %}dashed{% endif %}">
+                      <span></span>
+                      <span>{{ year }}</span>
+                  </li>
+              {% endfor %}
+            </ul>
+          </jky-exhibition-timeline>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+            <h2 class="exhibition--list_title">{{section.settings.heading}}</h2>
+        {%- endif -%}
+
+        {% comment %} Upcoming、Past Events分类 {% endcomment %}
+        <div class="relative exhibition--list-tabs-container">
+            <ul class="exhibition--list-tabs">
+                <li data-cate="upcoming" class="active">{{section.settings.active_tab_name}}</li>
+                <li data-cate="pastevents">{{section.settings.past_tab_name}}</li>
+            </ul>
+            <div class="exhibition--list-tabs_slider">
+                <div class="main-slider"></div>
+            </div>
+        </div>
+
+        {% comment %} 未开始&进行中 展会 {% endcomment %}
+        {%
+            render 'exhibition-list-content',
+            cate: 'upcoming',
+            blocks: section.blocks,
+            sorted_ids: sorted_all_upcoming_ids,
+            progress_text: section.settings.progress_text,
+            coming_text: section.settings.coming_text,
+            empty_img: section.settings.empty_img,
+            empty_text: section.settings.empty_text,
+            open_timeline: open_timeline and timeline_year.size > 0,
+        %}
+        
+        {% comment %}过期 展会 {% endcomment %}
+        {%
+            render 'exhibition-list-content',
+            class: 'hide',
+            cate: 'pastevents',
+            blocks: section.blocks,
+            sorted_ids: sorted_all_past_ids,
+            progress_text: section.settings.progress_text,
+            coming_text: section.settings.coming_text,
+            empty_img: section.settings.empty_img,
+            empty_text: section.settings.empty_text,
+            open_timeline: open_timeline and timeline_year.size > 0,
+        %}
+
+        {% comment %} 全部 展会，前置条件：开启了时间线 {% endcomment %}
+        {%- if open_timeline == true and timeline_year.size > 0 -%}
+          {%
+              render 'exhibition-list-content',
+              class: 'hide',
+              cate: 'all',
+              blocks: section.blocks,
+              sorted_ids: sorted_all_ids,
+              progress_text: section.settings.progress_text,
+              coming_text: section.settings.coming_text,
+              empty_img: section.settings.empty_img,
+              empty_text: section.settings.empty_text,
+              open_timeline: open_timeline and timeline_year.size > 0,
+          %}
+        {%- endif -%}
+    </div>
+
+    {% comment %} Contact Us {% endcomment %}
+    {%- if section.settings.contact_us_title != blank or section.settings.contact_us_img != blank or section.settings.contact_us_text != blank -%}
+        <div data-anchor="exhibition_contact_us_anchor" class="exhibition-contact-us-wrap">
+            <h2 class="exhibition-contact-us-title">{{ section.settings.contact_us_title | escape }}</h2>
+            <div class="exhibition-contact-us-content">
+                {% render 'responsive-image', image: section.settings.contact_us_img, width: 550, mwidth: 686, image_class: "exhibition-contact-us-pic" %}
+                {%- assign highlight_color = '<em style="color:' | append: section.settings.contact_us_highlight_color_text | append: '">' -%}
+                <div class="exhibition-contact-us-text rte">
+                    {{ section.settings.contact_us_text | newline_to_br | replace: '<em>', highlight_color }}
+                </div>
+            </div>
+        </div>
+    {%- endif -%}
+</div>
+
+<script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+<script type="module">
+  document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(() => {
+      if('{{upcoming_count}}' == '0') {
+        document.querySelector(".exhibition--list-tabs li[data-cate='pastevents']")?.click?.()
+      }
+    }, 1000)
+  })
+</script>
+{% schema %}
+    {
+        "name": "Exhibition List",
+        "class": "section section-exhibition--list",
+        "settings": [
+            {"type": "header", "content": "锚点二级导航配置（配置Contact Us才显示）"},
+            {"type": "text", "id": "anchor_event", "label": "Event锚点文案", "default": "Jackery Event"},
+            {"type": "text", "id": "anchor_contact_us", "label": "Contact Us锚点文案", "default": "Contact Us"},
+
+            {"type": "checkbox", "id": "open_timeline", "label": "是否显示时间线", "default": false},
+
+            {"type": "text", "id": "heading", "label": "Exhibition List Heading", "default": "Exhibition & Tradeshows"},
+            {"type": "text", "id": "active_tab_name", "label": "Active Exhibition Tab Name", "default": "Upcoming"},
+            {"type": "text", "id": "past_tab_name", "label": "Past Exhibition Tab Name", "default": "Past Events"},
+            {"type": "text", "id": "progress_text", "label": "进行中", "default": "In Progress"},
+            {"type": "text", "id": "coming_text", "label": "即将开始", "default": "Coming Soon"},
+            {"type": "image_picker", "id": "empty_img", "label": "Exhibition Empty Image", "info": "没有展会时显示"},
+            {"type": "text", "id": "empty_text", "label": "Exhibition Empty Text", "info": "没有展会时显示"},
+
+            {"type": "header", "content": "Contact Us配置", "info": "清空配置后，将不会显示"},
+            {"type": "text", "id": "contact_us_title", "label": "Contact Us Title"},
+            {"type": "image_picker", "id": "contact_us_img", "label": "Contact Us Image"},
+            {"type": "richtext", "id": "contact_us_text", "label": "Contact Us Text"},
+            {"type": "color", "id": "contact_us_highlight_color_text", "label": "高亮颜色", "default": "#fd5000"}
+        ],
+        "blocks": [
+            {
+                "type": "exhibition_item", "name": "Exhibition item",
+                "settings": [
+                    {"type": "checkbox", "id": "pin_to_top", "label": "置顶"},
+                    {"type": "image_picker", "id": "ex_pic", "label": "展会logo"},
+                    {"type": "text", "id": "time_lable", "label": "Label Time", "default": "Time:"},
+                    {
+                        "type": "text", "id": "begin_time", "label": "开始时间",
+                        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+                    },
+                    {
+                        "type": "text", "id": "end_time", "label": "结束时间",
+                        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+                    },
+                    {"type": "text", "id": "title", "label": "Exhibition title"},
+                    {"type": "text", "id": "subtitle", "label": "Exhibition subtitle"},
+                    {"type": "text", "id": "state_lable", "label": "State/Country label", "default": "State/Country:"},
+                    {"type": "text", "id": "state", "label": "State/Country", "default": "USA"},
+                    {"type": "text", "id": "location_lable", "label": "Location label", "default": "Location:"},
+                    {"type": "text", "id": "location", "label": "Location", "default": "Las Vegas, NV 89109"},
+                    {"type": "text", "id": "booth_lable", "label": "Booth No. label ", "default": "Booth No. :"},
+                    {"type": "text", "id": "booth", "label": "Booth No.", "default": "# H3.2-306"},
+                    {"type": "text", "id": "link_lable", "label": "Official Link label", "default": "Official Link:"},
+                    {"type": "richtext", "id": "link", "label": "Official Link" },
+                    {"type": "text", "id": "exhibition_btn", "label": "Button Text", "default": "Register Now"},
+                    {"type": "text", "id": "btn_text", "label": "按钮文案-过期展会", "default": "LEARN MORE"},
+                    {"type": "url", "id": "exhibition_link", "label": "展会有效期间链接"},
+                    {"type": "checkbox", "id": "exhibition_link_url", "label": "展会有效期间链接为锚点跳转？", "default": true},
+                    {"type": "url", "id": "exhibition_detail", "label": "展会过期后详情链接"},
+
+                    {"type": "image_picker", "id": "pic1", "label": "Exhibition Pic 1"},
+                    {"type": "image_picker", "id": "pic2", "label": "Exhibition Pic 2"},
+                    {"type": "image_picker", "id": "pic3", "label": "Exhibition Pic 3"},
+                    {"type": "image_picker", "id": "pic4", "label": "Exhibition Pic 4"},
+                    {"type": "image_picker", "id": "pic5", "label": "Exhibition Pic 5"},
+
+                    {"type": "header", "content": "日历配置"},
+                    {"type": "text", "id": "add_calendar_btn_text", "label": "添加日历按钮文案"},
+                    {"type": "text", "id": "calendar_title", "label": "日历标题"},
+                    {"type": "text", "id": "calendar_location", "label": "日历地点"},
+                    {"type": "textarea", "id": "calendar_description", "label": "日历描述"},
+                    {
+                        "type": "text", "id": "calendar_reminder_start_time", "label": "开始时间",
+                        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+                    },
+                    {
+                        "type": "text", "id": "calendar_reminder_end_time", "label": "结束时间",
+                        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

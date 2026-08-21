@@ -1,0 +1,71 @@
+{% comment %}
+  标题：3.0&4.0 商详页积分文案版块
+
+  片段接收参数：
+    block: 当前块配置项
+
+  示例：
+   {% render 'product-points-text', block: block %}
+{% endcomment %}
+{%- liquid
+  assign block_enable = false
+
+  # 传参了 enabled 参数，则优先使用该参数控制显示
+  if enabled == false
+    assign block_enable = false
+  elsif enabled == true
+    assign block_enable = true
+  else
+    if block.settings.points_icon != blank or block.settings.points_text != blank
+      assign block_enable = true
+    endif
+  endif
+-%}
+<div class="block-wrapper " {{ block.shopify_attributes }}>
+{% comment %} 控制是否显示积分文案 {% endcomment %}
+    {% if block_enable %}
+      <div
+        class="product-info_block section-padding block-product-points"
+        style="background: {{block.settings.points_bg | default: 'transparent'}};--section-padding-top: {{block.settings.block_padding}};--section-padding-bottom: {{block.settings.block_padding}};--section-padding-right: {{block.settings.block_padding}};--section-padding-left: {{block.settings.block_padding}};--link-color: {{block.settings.link_color}};--active-color: {{block.settings.active_color}};"
+      >
+        {{ 'block-product-points.css' | asset_url | stylesheet_tag }}
+        <div class="flex items-center product-points-wrapper">
+          {%- if block.settings.points_icon != blank -%}
+            {% render 'responsive-image',
+              image: block.settings.points_icon,
+              image_class: 'points-img',
+              mimage: block.settings.points_icon,
+              width: 20,
+              mwidth: 20
+            %}
+          {%- endif -%}
+
+          {%- assign target = product.selected_or_first_available_variant -%}
+          <div
+            class="product-points-content"
+            data-price="{{ target.price }}"
+            data-text="{{ block.settings.points_text | escape }}"
+            data-btn="{{ block.settings.btn_text | escape }}"
+            data-color="{{ block.settings.btn_color | default: 'var(--jds-color-primary)' }}"
+            data-bold="{{ block.settings.btn_bold }}"
+            data-spu="{{ product.selected_or_first_available_variant.title | escape }}"
+            data-id="{{ customer.id }}"
+            data-pop="{{ block.settings.pop }}"
+            data-scale="{{ shop.metafields.custom.point_scale }}"
+            data-klav="{{ block.settings.klva_id }}"
+            data-ga-event="{{ gaEventName | default: 'products_details_page_user_clicks' }}" 
+            data-ga-action="click"
+            data-ga-params-product_spu_name="{{ product.selected_or_first_available_variant.title | escape }}"
+            data-ga-params-module="PointLogin"
+            data-ga-params-position="hyperlink"
+            data-ga-params-button_name="{{ block.settings.points_text | strip_html }}"
+          >
+          </div>
+        </div>
+        <script src="{{ 'snippet-pdp-points-text.min.js' | asset_url }}" async></script>
+      </div>
+    {% else %}
+      {% comment %} 全局 商详积分文案版块，默认在价格下方 {% endcomment %}
+      {% render 'global-pdp-points-text', id: 'blockGlobalPdpPointsText', gaEventName: gaEventName %}
+    {% endif %}
+</div>

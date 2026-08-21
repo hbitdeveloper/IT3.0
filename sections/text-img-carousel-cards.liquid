@@ -1,0 +1,379 @@
+{% comment %}
+  说明：
+  1. 全局组件
+  2. 内嵌模式与 4.0商详页内容组件 - 轮播盒子 配合使用
+{% endcomment %}
+
+{% schema %}
+{
+  "name": "图文轮播-卡片切换",
+  "tag": "section",
+  "class": "text-img-carousel-cards w-full overflow-hidden",
+  "settings": [
+    {
+      "type": "select",
+      "id": "type",
+      "label": "类型",
+      "default": "embed",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle（当前页面唯一的handle）",
+      "default": "embed-component-01"
+    },
+    {
+      "type": "richtext",
+      "id": "title",
+      "label": "标题",
+      "info": "提示：选中文本设置斜体可标记品牌色。"
+    },
+    {
+      "type": "richtext",
+      "id": "subtitle",
+      "label": "副标题",
+      "info": "提示：选中文本设置斜体可标记品牌色。"
+    },
+    {
+      "type": "richtext",
+      "id": "note",
+      "label": "注释",
+      "info": "提示：选中文本设置斜体可标记品牌色。"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Image or Video",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "pcImg",
+          "label": "PC图片（640*600）"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbImg",
+          "label": "MB端图片（622*585）"
+        },
+        { "type": "url", "id": "videoSrc", "label": "PC视频源（支持格式: mp4、mov、m4v）" },
+        { "type": "image_picker", "id": "poster", "label": "PC视频封面图" },
+        { "type": "url", "id": "videoSrcMB", "label": "MB视频源（支持格式: mp4、mov、m4v）" },
+        { "type": "image_picker", "id": "posterMB", "label": "MB视频封面图" },
+        { "type": "checkbox", "id": "loop", "label": "视频循环播放？", "default": true },
+        { "type": "checkbox", "id": "controls", "label": "视频显示播放控件？", "default": true },
+        { "type": "checkbox", "id": "autoplay", "label": "视频自动播放", "default": false }
+      ]
+    },
+    {
+      "type": "light",
+      "name": "高亮版块",
+      "limit": 2,
+      "settings": [
+        { "type": "text", "id": "num", "label": "高亮文案" },
+        { "type": "text", "id": "text", "label": "描述文案" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "图文轮播-卡片切换"
+    }
+  ]
+}
+{% endschema %}
+
+{{ 'section-text-img-carousel-cards.min.css' | asset_url | stylesheet_tag }}
+
+{% assign type = section.settings.type %}
+<div
+  id="{{ section.id }}"
+  class="carousel-wrapper relative mx-auto {% if type == 'embed' %} embed-component {% else %} independent-carousel {% endif %}"
+  data-handle="{{ section.settings.handle }}"
+>
+  <div class="info-box text-left">
+    <div class="info-box-header">
+      {% assign brand_color = '<em style="color: var(--jds-color-primary)">' %}
+      {% if section.settings.title != blank %}
+        <h2 class="title info-text font-medium">
+          {{ section.settings.title | replace: '<em>', brand_color }}
+        </h2>
+      {% endif %}
+
+      {% if section.settings.subtitle != blank %}
+        <div class="subtitle info-text font-medium">
+          {{ section.settings.subtitle | replace: '<em>', brand_color }}
+        </div>
+      {% endif %}
+
+      {% if section.settings.note != blank %}
+        <div class="pc-block note info-text">
+          {{- section.settings.note | replace: '<em>', brand_color }}
+        </div>
+      {% endif %}
+    </div>
+
+    {% assign light_blocks = section.blocks | where: 'type', 'light' %}
+    {% if light_blocks.size > 0 %}
+        <div class="pc-block light-info">
+          {%- for light in light_blocks -%}
+            <div class="light-contain">
+              <div class="light-text">
+                <div class="light-animate">
+                  {{ light.settings.num }}
+                </div>
+              </div>
+              <div class="light-desc">{{ light.settings.text }}</div>
+            </div>
+
+          {%- endfor -%}
+        </div>
+    {% endif %}
+
+    {% if section.settings.note != blank %}
+      <div class="mobile-block note info-text">
+        {{- section.settings.note | replace: '<em>', brand_color }}
+      </div>
+    {% endif %}
+  </div>
+
+
+  {% assign slide_blocks = section.blocks | where: 'type', 'slide' %}
+  {% assign total = slide_blocks.size %}
+  <div>
+    <div class="carousel-box swiper {% if total > 1 %} more-banner {% else %} single-banner{% endif %}">
+      <div class="swiper-wrapper">
+        {% for block in slide_blocks %}
+          <div class="swiper-slide flex justify-center">
+
+            {% comment %} 视频展示 {% endcomment %}
+            {% if block.settings.videoSrc != blank %}
+              {%- render 'jky-video',
+                video_url: block.settings.videoSrc,
+                poster: block.settings.poster,
+                isHidePauseBtn: false,
+                class: 'carousel-video-box lg:block hidden',
+                autoplay: block.settings.autoplay,
+                controls: block.settings.controls,
+                loop: block.settings.loop,
+              -%}
+            {% else %}
+              <div class="lg:block hidden card-full h-full w-full">
+                <picture>
+                  <source
+                    media="(min-width: 1024px)"
+                    srcset="{{ block.settings.pcImg | image_url: width: 640 }}"
+                    alt="{{ block.settings.pcImg.alt | escape }}"
+                    width="{{ block.settings.pcImg.width  | default:640}}"
+                    height="{{ block.settings.pcImg.height  | default:600}}"
+                  >
+                  <img
+                    class="swiper-lazy object-fill max-h-full"
+                    src="{{ block.settings.mbImg | image_url: width: 622 }}"
+                    alt="{{ block.settings.mbImg.alt | escape }}"
+                    width="{{ block.settings.mbImg.width  | default:622}}"
+                    height="{{ block.settings.mbImg.height  | default:585}}"
+                    loading="lazy"
+                  >
+                </picture>
+              </div>
+            {% endif %}
+
+            {% if block.settings.videoSrcMB != blank %}
+              {%- render 'jky-video',
+                video_url: block.settings.videoSrcMB,
+                poster: block.settings.posterMB,
+                isHidePauseBtn: false,
+                class: 'carousel-video-box block lg:hidden',
+                autoplay: block.settings.autoplay,
+                controls: block.settings.controls,
+                loop: block.settings.loop,
+              -%}
+            {% else %}
+              <div class="block lg:hidden card-full h-full w-full">
+                <picture>
+                  <source
+                    media="(min-width: 1024px)"
+                    srcset="{{ block.settings.pcImg | image_url: width: 640 }}"
+                    alt="{{ block.settings.pcImg.alt | escape }}"
+                    width="{{ block.settings.pcImg.width  | default:640}}"
+                    height="{{ block.settings.pcImg.height  | default:600}}"
+                  >
+                  <img
+                    class="swiper-lazy object-fill max-h-full"
+                    src="{{ block.settings.mbImg | image_url: width: 622 }}"
+                    alt="{{ block.settings.mbImg.alt | escape }}"
+                    width="{{ block.settings.mbImg.width  | default:622}}"
+                    height="{{ block.settings.mbImg.height  | default:585}}"
+                    loading="lazy"
+                  >
+                </picture>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if total > 1 %}
+        <div class="arrow-box lg:block hidden">
+          {% render 'jky-icon-next',
+            class: 'swiper-arrow swiper-button-next rounded-full',
+            diameter: 36,
+            color: 'black',
+            bgColor: 'white'
+          %}
+          {% render 'jky-icon-prev',
+            class: 'swiper-arrow swiper-button-prev rounded-full',
+            diameter: 36,
+            color: 'black',
+            bgColor: 'white'
+          %}
+        </div>
+
+        <div class="arrow-box block lg:hidden">
+          {% render 'jky-icon-next', class: 'swiper-arrow swiper-button-next jky-icon-next rounded-full', diameter: 80 %}
+          {% render 'jky-icon-prev', class: 'swiper-arrow swiper-button-prev rounded-full	 jky-icon-prev', diameter: 80 %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+
+
+  {% assign light_blocks = section.blocks | where: 'type', 'light' %}
+    {% if light_blocks.size > 0 %}
+        <div class="mobile-block light-info">
+          {%- for light in light_blocks -%}
+            <div class="light-contain">
+              <div class="light-text">
+                <div class="light-animate">
+                  {{ light.settings.num }}
+                </div>
+              </div>
+              <div class="light-desc">{{ light.settings.text }}</div>
+            </div>
+
+          {%- endfor -%}
+        </div>
+    {% endif %}
+</div>
+
+
+  <script defer>
+  (function() {
+    const initTextImgCarouselCards = () => {
+      {% if total > 1 %}
+        const handleGaEvent = (gaParams) => {
+          window.dataLayer?.push({ "event_parameters": null });
+          window.dataLayer?.push({
+            event:"ga4Event",
+            event_name:"section_text_image_user_clicks",
+            event_parameters:{
+              current_page: window.location.href,
+              module: "Picture Display",
+              position:  '{{ section.settings.title | strip_html }}',
+              button_name: gaParams
+            }
+          });
+        }
+        new window.Swiper(`#{{ section.id }} .carousel-box`, {
+          effect: 'cards',
+          cardsEffect: {
+            slideShadows: true,
+          },
+          grabCursor: true,
+          loop: true,
+          navigation: {
+            nextEl: '#{{ section.id }} .swiper-button-next',
+            prevEl: '#{{ section.id }} .swiper-button-prev',
+          },
+          on: {
+            slideNextTransitionStart: function() {
+              handleGaEvent('right')
+            },
+            slidePrevTransitionStart: function() {
+              handleGaEvent('left')
+            }
+          }
+        });
+
+      {% endif %}
+      {% comment %} 计算实际可以展示多少行 {% endcomment %}
+      {% if section.settings.subtitle != blank %}
+        function calcActualLines() {
+          const subtitle = document.querySelector(`#{{ section.id }} .info-box .subtitle`)
+          const infoBoxHeader = document.querySelector(`#{{ section.id }} .info-box-header`)
+          const title = document.querySelector(`#{{ section.id }} .info-box .title`)
+          const note = document.querySelector(`#{{ section.id }} .info-box-header .note`)
+          if(!subtitle || !infoBoxHeader) return
+
+          const infoBoxHeaderHeight = infoBoxHeader.getBoundingClientRect().height || 0
+          const titleHeight = (title?.getBoundingClientRect().height || 0) + (title ? parseFloat(window.getComputedStyle(title).marginBottom) || 0 : 0)
+          const noteHeight = (note?.getBoundingClientRect().height || 0) + (note ? parseFloat(window.getComputedStyle(note).marginBottom) || 0 : 0)
+          const computedStyle = window.getComputedStyle(subtitle);
+          const lineHeight = parseFloat(computedStyle.lineHeight);
+          const subtitlerHeight = infoBoxHeaderHeight - titleHeight - noteHeight;
+
+          // 计算最大行数
+          const maxLines = Math.floor(subtitlerHeight / lineHeight);
+         // 计算实际行数
+         const textLines = Math.floor(subtitle.scrollHeight / lineHeight);
+         if(textLines > maxLines) {
+            subtitle.style.display = '-webkit-box'
+            subtitle.style.overflow = 'hidden'
+            subtitle.style.webkitBoxOrient = 'vertical'
+            subtitle.style.textOverflow = 'ellipsis'
+            subtitle.style.webkitLineClamp = `${maxLines}`
+          }
+        }
+
+        if (document.body.clientWidth >= 1024) {
+          calcActualLines()
+        }
+
+      {% endif %}
+
+      {%- if light_blocks.size > 0 -%}
+        // 渐变出现
+        const lightObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                const lightAnimateNodes = entry.target.querySelectorAll('.light-animate')
+                if (entry.isIntersecting) {
+                  lightAnimateNodes.forEach((node) => {
+                    node.classList.add('light-slideup')
+                  })
+                } else {
+                  lightAnimateNodes.forEach((node) => {
+                    node.classList.remove('light-slideup')
+                  })
+                }
+            });
+        });
+
+        // 开始观察目标元素
+        const lightups = document.querySelectorAll('.light-text')
+        if (lightups && lightups.length) {
+            lightups.forEach(item => {
+              lightObserver.observe(item);
+            })
+        }
+      {%- endif -%}
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTextImgCarouselCards, { once: true });
+    } else {
+      initTextImgCarouselCards();
+    }
+  })();
+  </script>

@@ -1,0 +1,265 @@
+{%- doc -%}
+  Diff End Image Snippet (v3.0 - Deep Optimized)
+
+  @description 区分PC和移动端图片，支持原生响应式加载（srcset）和高分屏适配，消除 CLS，增强 LCP 性能。
+  
+  @param {string} [picture_class] - 自定义Picture类名
+  @param {string} [class] - 自定义Img类名
+  @param {string} [style] - 自定义样式
+  @param {string} [anchor] - 锚点定位ID（确保唯一性，禁止空格和-符号）
+  @param {string} [pc_img] - PC端图片（支持Shopify图片对象或完整URL字符串）
+  @param {string} [mb_img] - 移动端图片（支持Shopify图片对象或完整URL字符串）
+  @param {number} [pc_img_width] - PC端图片宽度（默认1920，会自动生成响应式srcset）
+  @param {number} [mb_img_width] - 移动端图片宽度（默认750，会自动生成响应式srcset）
+  @param {string} [placeholder_name] - Shopify占位图名
+  @param {string} [placeholder_pc_font_size] - 占位图字号（仅 placeholder_name=jackery 生效）
+  @param {string} [alt] - 图片替代文本，支持自动降级读取图片自带alt
+  @param {string} [load_scene] - 业务场景（lcp/default/defer），控制加载优先级与渲染策略
+
+  @example
+  {%- comment -%} 使用Shopify图片对象 {%- endcomment -%} 
+    {% render 'diff-end-img',
+      picture_class:'',
+      class: 'credential-img h-[var(--ad-mb-height)] lg:h-[var(--ad-pc-height)]',
+      style: '--ad-pc-height: 10rem;--ad-mb-height: 5rem',
+      anchor: block.settings.anchor,
+      pc_img: block.settings.pc_img,
+      mb_img: block.settings.mb_img,
+      pc_img_width: 1920,
+      mb_img_width: 750,
+      placeholder_name: 'hero-apparel-1',
+      alt: 'image alt',
+      load_scene: block.settings.load_scene | default: 'default',
+    %}
+  @example
+  {%- comment -%} 使用完整URL字符串 {%- endcomment -%}
+    {% render 'diff-end-img',
+      picture_class:'',
+      class: 'credential-img h-[var(--ad-mb-height)] lg:h-[var(--ad-pc-height)]',
+      style: '--ad-pc-height: 10rem;--ad-mb-height: 5rem',
+      anchor: block.settings.anchor,
+      pc_img: 'https://cdn.shopify.com/some-image.jpg',
+      mb_img: 'https://cdn.shopify.com/some-mobile-image.jpg',
+      pc_img_width: 1920,
+      mb_img_width: 750,
+      placeholder_name: 'hero-apparel-1',
+      alt: 'image alt',
+      load_scene: block.settings.load_scene | default: 'default',
+    %}
+{%- enddoc -%}
+
+{%- liquid
+  # --- 1. 基础参数初始化 ---
+  assign picture_class = picture_class | default: 'w-full h-full'
+  assign img_class = class | default: ''
+  assign pc_class = img_class | append: ' hidden lg:block'
+  assign mb_class = img_class | append: ' lg:hidden'
+  assign placeholder_name = placeholder_name | default: 'hero-apparel-1'
+  assign placeholder_pc_font_size = placeholder_pc_font_size | default: '5rem'
+  assign picture_class_base = 'flex justify-center items-center ' | append: picture_class
+
+  # --- 2. 性能与加载策略配置 ---
+  assign scene_key = load_scene | default: 'default' | downcase
+  assign fetchpriority_value = ''
+  assign loading_value = ''
+
+  # 默认异步解码，防止阻塞主线程
+  assign decoding_value = 'async' 
+
+  if scene_key == 'lcp'
+    assign fetchpriority_value = 'high'
+    assign loading_value = 'eager'
+    # LCP 元素需要同步解码以最快上屏
+    assign decoding_value = 'sync' 
+  elsif scene_key == 'defer'
+    assign fetchpriority_value = 'low'
+    assign loading_value = 'lazy'
+  else
+    assign loading_value = 'lazy'
+  endif
+
+  # --- 3. 对象类型识别 ---
+  assign pc_is_obj = false
+  if pc_img != blank and pc_img.width != blank
+    assign pc_is_obj = true
+  endif
+
+  assign mb_is_obj = false
+  if mb_img != blank and mb_img.width != blank
+    assign mb_is_obj = true
+  endif
+
+  # --- 4. 可访问性与 SEO 兜底 (Alt) ---
+  assign img_alt = alt | default: ''
+  assign img_alt = img_alt | replace: ' ', ' '
+  assign img_alt = img_alt | escape
+  if img_alt == blank
+    if pc_is_obj and pc_img.alt != blank
+      assign img_alt = pc_img.alt | default: ''
+      assign img_alt = img_alt | replace: ' ', ' '
+      assign img_alt = img_alt | escape
+    elsif mb_is_obj and mb_img.alt != blank
+      assign img_alt = mb_img.alt | default: ''
+      assign img_alt = img_alt | replace: ' ', ' '
+      assign img_alt = img_alt | escape
+    else
+      assign img_alt = 'Image'
+    endif
+  endif
+
+  # --- 5. 尺寸配置 ---
+  assign pc_width = pc_img_width | default: 1920
+  assign mb_width = mb_img_width | default: 750
+
+  # --- 6. 属性拼接 (使用 append 替代多次 echo 提升性能) ---
+  assign anchor_attr = ''
+  if anchor != blank
+    assign anchor_attr = ' anchor-target="' | append: anchor | escape | append: '"'
+  endif
+
+  assign style_attr = ''
+  if style != blank
+    assign style_attr = ' style="' | append: style | append: '"'
+  endif
+
+  assign img_priority_attrs = ''
+  if fetchpriority_value != blank
+    assign img_priority_attrs = img_priority_attrs | append: ' fetchpriority="' | append: fetchpriority_value | append: '"'
+  endif
+  if loading_value != blank
+    assign img_priority_attrs = img_priority_attrs | append: ' loading="' | append: loading_value | append: '"'
+  endif
+  assign img_priority_attrs = img_priority_attrs | append: ' decoding="' | append: decoding_value | append: '"'
+-%}
+
+{%- comment -%} --- 7. 构建 Source 节点 (按需加载多分辨率) --- {%- endcomment -%}
+{%- assign w_pc = pc_width  | default: pc_img.width | default: 1920 -%}
+{%- assign w_pc_2x = pc_width | default: pc_img.width | default: 1920 | times: 2 -%}
+{%- assign w_pc_3x = pc_width | default: pc_img.width | default: 1920 | times: 3 -%}
+{%- capture pc_source -%}
+  {%- if pc_img != blank -%}
+    {%- if pc_is_obj -%}
+      {%- if pc_width == 1920 -%}
+        {% comment %} 全屏图片 {% endcomment %}
+        <source
+          media="(min-width: 1024px)" 
+          srcset="
+          {%- if pc_img.width >= 1100 -%}{{ pc_img | image_url: width: 1100 }} 1100w,{%- endif -%}
+          {%- if pc_img.width >= 1280 -%}{{ pc_img | image_url: width: 1280 }} 1280w,{%- endif -%}
+          {%- if pc_img.width >= 1600 -%}{{ pc_img | image_url: width: 1600 }} 1600w,{%- endif -%} 
+          {%- if pc_img.width >= 2200 -%}{{ pc_img | image_url: width: 2200 }} 2200w,{%- endif -%} 
+          {%- if pc_img.width >= 2600 -%}{{ pc_img | image_url: width: 2600 }} 2600w,{%- endif -%} 
+          {%- if pc_img.width >= 3000 -%}{{ pc_img | image_url: width: 3000 }} 3000w,{%- endif -%}
+          {%- if pc_img.width >= 3840 -%}{{ pc_img | image_url: width: 3840 }} 3840w,{%- endif -%}
+          {{ pc_img | image_url: width: pc_img.width }} {{ pc_img.width }}w
+          " 
+          sizes="(min-width: 1024px) 100vw, 100vw"
+          width="{{ pc_img.width }}" height="{{ pc_img.height }}"
+        >
+      {%- else -%}
+        <source media="(min-width:1024px)" srcset="{{pc_img | image_url: width: w_pc}}, {{pc_img | image_url: width: w_pc_2x}} 2x, {{pc_img | image_url: width: w_pc_3x}} 3x">
+      {%- endif -%}
+    {%- else -%}
+      <source media="(min-width: 1024px)" srcset="{{ pc_img }}">
+    {%- endif -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- assign w_mb = mb_width | default: mb_img.width | default: 750 -%}
+{%- assign w_mb_2x = mb_width | default: mb_img.width | default: 750 | times: 2 -%}
+{%- assign w_mb_3x = mb_width | default: mb_img.width | default: 750 | times: 3 -%}
+{%- assign w_pad = w_mb | times: 2 -%}
+{%- assign w_pad_2x = w_pad | times: 2 -%}
+{%- assign w_pad_3x = w_pad | times: 3 -%}
+{%- capture mb_source -%}
+  {%- if mb_img != blank -%}
+    {%- if mb_is_obj -%}
+      {%- if mb_width == 750 -%}
+        <source 
+          media="(max-width: 1023.98px)" 
+          srcset="
+          {%- if mb_img.width >= 375 -%}{{ mb_img | image_url: width: 375 }} 375w,{%- endif -%} 
+          {%- if mb_img.width >= 550 -%}{{ mb_img | image_url: width: 550 }} 550w,{%- endif -%} 
+          {%- if mb_img.width >= 750 -%}{{ mb_img | image_url: width: 750 }} 750w,{%- endif -%} 
+          {%- if mb_img.width >= 1024 -%}{{ mb_img | image_url: width: 1024 }} 1024w,{%- endif -%} 
+          {%- if mb_img.width >= 1600 -%}{{ mb_img | image_url: width: 1600 }} 1600w,{%- endif -%}
+          {{ mb_img | image_url: width: mb_img.width }} {{ mb_img.width }}w
+          " 
+          sizes="(max-width: 1023.98px) 100vw, 100vw"
+          width="{{ mb_img.width }}" height="{{ mb_img.height }}"
+        >
+      {%- else -%}
+        <source media="(max-width:749.98px)" srcset="{{mb_img | image_url: width: w_mb}}, {{mb_img | image_url: width: w_mb_2x}} 2x, {{mb_img | image_url: width: w_mb_3x}} 3x">
+        <source
+          media="(min-width:750px) and (max-width:1023.98px)"
+          srcset="{{ mb_img | image_url: width: w_pad }}, {{ mb_img | image_url: width: w_pad_2x }} 2x, {{ mb_img | image_url: width: w_pad_3x }} 3x">
+      {%- endif -%}
+    {%- else -%}
+      <source media="(max-width: 1023.98px)" srcset="{{ mb_img }}">
+    {%- endif -%}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- comment -%} --- 8. 构建 Img 节点 (包含防抖宽高) --- {%- endcomment -%}
+{%- capture pc_img_tag -%}
+  {%- if pc_is_obj -%}
+    <img class="{{ img_class }}" src="{{ pc_img | image_url: width: w_pc }}" width="{{ pc_img.width }}" height="{{ pc_img.height }}" alt="{{ img_alt }}"{{ img_priority_attrs }}>
+  {%- else -%}
+    <img class="{{ img_class }}" src="{{ pc_img }}" width="{{ pc_width }}" height="auto" alt="{{ img_alt }}"{{ img_priority_attrs }}>
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- capture mb_img_tag -%}
+  {%- if mb_is_obj -%}
+    <img class="{{ img_class }}" src="{{ mb_img | image_url: width: w_mb }}" width="{{ mb_img.width }}" height="{{ mb_img.height }}" alt="{{ img_alt }}"{{ img_priority_attrs }}>
+  {%- else -%}
+    <img class="{{ img_class }}" src="{{ mb_img }}" width="{{ mb_width }}" height="auto" alt="{{ img_alt }}"{{ img_priority_attrs }}>
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- comment -%} --- 9. 构建占位符 --- {%- endcomment -%}
+{%- capture pc_placeholder_markup -%}
+  {%- if placeholder_name == 'jackery' -%}
+    <div class="placeholder-jackery hidden lg:block" style="--jackery-pc-font-size: {{ placeholder_pc_font_size }};"></div>
+  {%- else -%}
+    {{ placeholder_name | placeholder_svg_tag: pc_class }}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- capture mb_placeholder_markup -%}
+  {%- if placeholder_name == 'jackery' -%}
+    <div class="placeholder-jackery lg:hidden"></div>
+  {%- else -%}
+    {{ placeholder_name | placeholder_svg_tag: mb_class }}
+  {%- endif -%}
+{%- endcapture -%}
+
+{%- comment -%} --- 10. 渲染最终 DOM 树 --- {%- endcomment -%}
+{%- if pc_img != blank and mb_img != blank -%}
+  <picture {{ anchor_attr }} class="{{ picture_class_base }}"{{ style_attr }}>
+    {{ mb_source }}
+    {{ pc_source }}
+    {{ pc_img_tag }}
+  </picture>
+{%- elsif pc_img != blank -%}
+  <picture {{ anchor_attr }} class="hidden lg:flex justify-center items-center {{ picture_class }}"{{ style_attr }}>
+    {{ pc_source }}
+    {{ pc_img_tag }}
+  </picture>
+  <div {{ anchor_attr }} class="{{ picture_class_base }} lg:hidden"{{ style_attr }}>
+    {{ mb_placeholder_markup }}
+  </div>
+{%- elsif mb_img != blank -%}
+  <picture {{ anchor_attr }} class="flex lg:hidden justify-center items-center {{ picture_class }}"{{ style_attr }}>
+    {{ mb_source }}
+    {{ mb_img_tag }}
+  </picture>
+  <div {{ anchor_attr }} class="hidden lg:flex justify-center items-center {{ picture_class }}"{{ style_attr }}>
+    {{ pc_placeholder_markup }}
+  </div>
+{%- else -%}
+  <div {{ anchor_attr }} class="{{ picture_class_base }}"{{ style_attr }}>
+    {{ pc_placeholder_markup }}
+    {{ mb_placeholder_markup }}
+  </div>
+{%- endif -%}

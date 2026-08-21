@@ -1,0 +1,1347 @@
+{% comment %} 活动页-产品组件 - for JP {% endcomment %}
+{%- if need_style == true -%}
+<style>
+  .ribbon {width: 96px;height: 96px;overflow: hidden;position: absolute;z-index: 3;}
+  .ribbon::before,.ribbon::after {position: absolute;z-index: -1;content: '';display: block;}
+  .ribbon span {font-weight: 600;position: absolute;display: block;width: 134px;padding: 12px 0;font-size: 16px;line-height: 1.1;background-color:var(--jds-color-primary);color: #fff;text-transform: uppercase;text-align: center; }
+  .ribbon-top-right {top: 0;right: 0;}
+  .ribbon-top-right::before,.ribbon-top-right::after {border-top-color: transparent;border-right-color: transparent;}
+  .ribbon-top-right::before {top: 0;left: 0;}
+  .ribbon-top-right::after {bottom: 0;right: 0;}
+  .ribbon-top-right span {left: -3px;top: 12px;transform: rotate(45deg);}
+  .landing-block--product-discount-tag--jp {right: 0;top: 0;background:var(--jds-color-primary);}
+  .coupon__time {font-weight: 400;font-size: 14px;line-height: 22px;margin-top: 14px;color: rgba(26, 26, 26, 1);}
+  .landing-block--product[data-style="JP"] .landing-block--product-pmain--bottom a {flex: 1;}
+  product-coupon {display: block;margin-top: 20px;text-align: left;}
+  product-coupon svg{max-width: 100%;}
+  product-coupon svg #coupon-bg--right-text,product-coupon svg #coupon-bg--right{cursor: pointer;}
+  .coupon__empty{height: 1px;background: rgba(0,0,0,0.09);margin: 38px 0 20px 0;}
+
+  {% comment %} PC - 一行两列 {% endcomment %}
+  @media screen and (min-width: 1280px) {
+      .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-content {height: 100%;padding: 0 0 0 18px;}
+      .landing-block--product[data-style="JP"] .landing-grid--2-col-desktop .landing-block--product-card {flex-direction: row;padding: 32px 32px 32px 24px;align-items: center;position: relative;}
+  }
+  @media screen and (min-width: 1024px) {
+      .landing-block--product[data-style="JP"] .landing-grid--2-col-desktop .landing-block--product-card {flex-direction: row;padding: 16px 16px 16px 12px;align-items: center;position: relative;}
+
+    .landing-block--product[data-style="JP"] .landing-grid--2-col-desktop .landing-block--product-psubtitle {font-style: normal;-webkit-line-clamp: 2;text-align: left;font-size: 14px;line-height: 22px;margin-top: 0;}
+    .landing-block--product[data-style="JP"] .landing-grid--2-col-desktop .landing-block--product-media {height: 250px;width: 250px;position: static;}
+    .landing-block--product[data-style="JP"] .cards-style-2--block {flex-direction: column;}
+    .landing-block--product[data-style="JP"] .landing-grid--2-col-desktop .landing-block--product-ptitle {-webkit-line-clamp: 2;max-width: 230px;margin-bottom: 8px;font-size: 20px;line-height: 28px;text-align: left;}
+    .landing-block--product[data-style="JP"] .landing-grid--2-col-desktop .landing-block--product-content--bottom {flex-direction: column;}
+    .landing-block--product[data-style="JP"] .landing-block--product-awards-img--2 {top: 0;}
+    .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-content {height: 100%;padding: 0 0 0 57px;}
+    .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-price {justify-content: flex-start;width: fit-content;margin-top: 20px;}
+    .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-pmain--bottom a {flex: auto;width: 100%;}
+    .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-pmain--bottom {flex-wrap: wrap;flex: unset;gap: 16px;}
+    .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop .coupon__empty {margin: 36px 0;}
+    .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-price .p-price {text-align: left;width: fit-content;}
+    .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop product-coupon {margin-bottom: 20px;}
+    .landing-block--product[data-style="JP"] .p-cards_style_2.landing-grid--2-col-desktop .coupon__time {margin-top: 14px;}
+    .landing-block--product[data-style="JP"] .landing-grid--2-col-desktop .landing-block--product-content--top {min-height: 108px;}
+  }
+  .landing-block--product[data-style="JP"] product-coupon[show--mb] {display: none;}
+  @media screen and (max-width: 1024px) {
+    .landing-block--product[data-style="JP"] .landing-block--product-pmain--bottom {flex-direction: row;}
+    .landing-block--product[data-style="JP"] .landing-block--product-pmain--bottom a {padding: 12px;}
+    .landing-block--product[data-style="JP"] .landing-grid--mb-2 .landing-block--product-pmain--bottom {flex-direction: column;flex: unset;}
+    .landing-block--product[data-style="JP"] .landing-grid--mb-2 product-coupon svg #coupon-bg--right-text {display: none;}
+    .landing-grid--mb-2 .ribbon span {font-size: 12px;}
+    .landing-block--product[data-style="JP"] jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-psubtitle {display: -webkit-box;}
+    .landing-block--product[data-style="JP"] jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-content--top {min-height: 82px;}
+    .landing-block--product[data-style="JP"] .coupon__time {margin-top: 8px;font-size: 12px;}
+    .landing-block--product[data-style="JP"] .product-coupon {margin-top: 15px;}
+    .landing-block--product[data-style="JP"] product-coupon[hide--mb] {display: none;}
+    .landing-block--product[data-style="JP"] product-coupon[show--mb] {display: block;}
+    .landing-block--product[data-style="JP"] .landing-grid--mb-2 .ribbon {
+        zoom: 0.82;
+    }
+    .landing-block--product[data-style="JP"] .coupon__empty:not(.landing-grid--mb-2 .coupon__empty) {
+        display: none;
+    }
+  }
+
+    .landing-block--product[data-style="JP"] .landing-block--product-pmain--bottom a[btn-solid] {color: #fff;}
+    .landing-block--product[data-style="JP"] .landing-block--product-pmain--bottom a[btn-solid] {background: var(--jds-color-primary);height: 40px;}
+    .landing-block--product[data-style="JP"] .landing-block--product-pmain--bottom a[btn-solid]:active {border: 2px solid #fd2f00;background-color: #fd2f00;}
+</style>
+<style>
+    a[disabled] {pointer-events: none;}
+    .landing-block--product {background: rgba(234, 234, 234, 1);padding-top: var(--padding-top);padding-bottom:var(--padding-bottom);}
+    .landing-block--product[has-pc-bg] {background-image:var(--pc-bg-img)!important;background-repeat: no-repeat!important;background-size: cover!important;}
+    .landing-block--product .section-container {width: 1440px;padding: 0 58px;}
+
+    {% comment %} cate tabs{% endcomment %}
+    .landing-block--product-tabs {display: flex;flex-wrap: wrap;gap: 16px;margin-bottom:25px;justify-content: center;}
+    body .landing-block--product .landing-block--product-tab {height: 40px;color: var(--color-text);border-radius: 40px;line-height: 40px!important;padding: 0 24px;font-size: 16px;background: var(--color-secondary-button-text);cursor: pointer;transition: all .24s ease;user-select: none;}
+    .landing-block--product-tab:hover {background: rgba(0,0,0,0.1);}
+    body .landing-block--product-tab:active,body .landing-block--product-tab.active {background: var(--color-button);color:var(--color-button-text);}
+
+    {% comment %} collection item {% endcomment %}
+    .landing-block--product-cate:not(.swiper_mode .landing-block--product-cate) {display: flex; margin-bottom: var(--columns-gap);}
+    jky-landing-product-jp {width: 25%;display: block;background: #ffffff;border-radius: 15px;overflow: hidden;}
+    .landing-grid--4-col-desktop {width: calc((100% - var(--columns-gap) * 3)/4);}
+    .landing-grid--3-col-desktop {width: calc((100% - var(--columns-gap) * 2)/3);}
+    .landing-grid--2-col-desktop {width: calc((100% - var(--columns-gap) * 1)/2);}
+    .landing-block--product-cate:not(.swiper_mode .landing-block--product-cate) {flex-wrap: wrap;gap: var(--columns-gap);}
+
+    {% comment %} product card {% endcomment %}
+    .landing-block--product-card {flex-direction: column;height: 100%;}
+    .landing-block--product-media {height: 244px;text-align: center;background: #ffffff; overflow: hidden;}
+    .landing-block--product-media:hover .landing-block--product-pimg{transform: scale(1.03);}
+    .landing-grid--2-col-desktop .landing-block--product-media {height: 300px;overflow: hidden;}
+    .landing-block--product-pimg {height: 100%;width: auto; transition: all .3s;}
+    .landing-block--product-content {padding: 20px 24px 24px 24px;width: 100%;flex-direction: column;flex: 1;}
+    .landing-grid--3-col-desktop .landing-block--product-content {padding: 20px 32px 32px 32px;}
+    .landing-block--product-content--top {padding-bottom: 20px;border-bottom: none;width: 100%;min-height: 129px;}
+    .landing-grid--2-col-desktop .landing-block--product-content--top {text-align: center;min-height: 60px;padding-bottom: 0px;border-bottom: none;}
+    .landing-block--product-ptitle {font-weight: 600;font-size: 20px;color: rgba(26, 26, 26, 1);line-height: 28px;}
+    .landing-grid--2-col-desktop .landing-block--product-ptitle {font-size: 24px;line-height: 32px;}
+    .landing-block--product-psubtitle {margin-top: 8px;font-weight: 400;font-size: 14px;line-height: 22px;color: rgba(0, 0, 0, 0.6);}
+    .landing-block--product-content--bottom {padding-top: 0px;flex:1;flex-direction: column;justify-content: space-between;gap: 24px;}
+    .landing-grid--2-col-desktop .landing-block--product-content--bottom {flex-direction: row;}
+    .landing-block--product-price {column-gap: 10px;align-items: baseline;width: max-content;max-width: 100%;}
+    .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-price {flex-wrap: wrap;width: 164px;justify-content: flex-end;column-gap: 8px;}
+    .landing-block--product-price .p-price {color: var(--jds-color-primary);font-size: 24px;font-weight: 600;}
+    .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-price .p-price {display: block;width: 100%;text-align: right;font-size: 28px;}
+    .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-price .p-discount, .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-price .p-origin-price {-webkit-box-orient: vertical;
+    display: -webkit-box;-webkit-line-clamp: 1;overflow: hidden;}
+    .landing-block--product-price .p-origin-price {color: rgba(0, 0, 0, 0.4);font-size: 14px;font-weight: 400;text-decoration: line-through;}
+    .landing-block--product-price .p-discount {color: color-mix(in srgb, var(--jds-color-primary), transparent 40%);font-size: 14px;font-weight: 400;}
+    .landing-block--product-affirm {color: rgba(0, 0, 0, 0.6);font-size: 12px;font-weight: 500;gap: 6px;margin-top: 16px;align-items: flex-end;line-height: 1;opacity: 0;}
+    .landing-block--product-affirm.active {opacity: 1;}
+    .landing-grid--2-col-desktop .landing-block--product-affirm {margin-top: 6px;}
+    .landing-block--product-affirm img {object-fit: contain;height: 20px;}
+    .landing-block--product-pmain--bottom a:nth-child(n+3) {display: none;}
+    .landing-block--product-pmain--bottom a.sold-out{padding: 0;}
+    .landing-grid--2-col-desktop .landing-block--product-pmain--bottom a {width: max-content;padding: 0 16px;}
+    .landing-block--product-pmain--bottom {flex-wrap: wrap;gap: 12px;}
+    .landing-grid--2-col-desktop .landing-block--product-pmain--bottom {flex-wrap: nowrap;flex: 1;justify-content: flex-end;align-items: center;gap: 8px;}
+    .landing-block--product-pmain--bottom a{position: relative;}
+    .landing-block--product-pmain--bottom a {width: 100%;height: 40px;border-radius: var(--theme-btn-border-radius, 30px);font-size: var(--btns-font-size);font-weight: 600;display: flex;justify-content: center;align-items: center;user-select: none;
+    color: var(--a-col);background-color: transparent;border: 2px solid var(--a-col);transition: .3s;}
+    .landing-block--product-pmain--bottom a .loading__spinner {display:none;}
+    .landing-block--product-pmain--bottom a.loading .loading__spinner {display:block;}
+    .landing-block--product-card .landing-block--product-pmain--bottom a.loading {background: color-mix(in srgb, var(--jds-color-primary), transparent 32%);color: transparent;pointer-events: none;border: solid 2px transparent;}
+    .landing-block--product-pmain--bottom a:hover {opacity: 0.8;}
+    .landing-block--product-pmain--bottom a:active {opacity: 1;color: #fd2f00;border: 2px solid #fd2f00;background-color: #fff;}
+    .landing-block--product-pmain--bottom a[btn-solid] {height: 40px;}
+    .landing-block--product-pmain--bottom a[btn-solid]:active {border: 2px solid #fd2f00;}
+    .landing-block--product-progress {opacity: 0;height: 0;overflow: hidden;margin-top: 0;}
+    .landing-block--product-progress.active {opacity: 1;height: auto;overflow: unset;margin-top: 20px;}
+    .landing-grid--2-col-desktop .landing-block--product-progress.active {width: 240px;}
+    .landing-block--product-progress input {width: 100%;height: 100%;margin: 0;position: absolute;top: 0;left: 0;z-index: 2;background: transparent;outline: 0;border: 0;opacity: 0;}
+    .landing-block--product-progress .jk-seekbar-progress {height: 6px;border-radius: 4px;background: color-mix(in srgb, var(--jds-color-primary), transparent 90%);}
+    .landing-block--product-progress .jk-seekbar-progress [role="progressbar"] {height: 100%;width: 31%;position: relative;background: var(--jds-color-primary);border-radius: 4px;}
+    .landing-block--product-progress .jk-seekbar-progress [role="progressbar"]:after {content: " ";display: block;width: 18px;height: 11px;position: absolute;top: 50%;right: 0;background-color: #ffffff;border-radius: 11px;box-shadow: 0px 2px 9px 0px color-mix(in srgb, var(--jds-color-primary), transparent 50%);transform: translate(50%, -50%);}
+    .landing-block--product-progress .jk-seekbar-progress [role="progressbar"]:before {content: " ";display: block;width: 13px;height: 6px;position: absolute;top: 50%;right: 0;background-color: var(--before-col);border-radius: 4px;transform: translate(50%, -50%);z-index: 2;}
+    .landing-block--product-progress--content {margin-top: 6px;justify-content: space-between;font-size: 14px;font-weight: 400;gap: 5px;}
+    .landing-block--product--sold {text-align: left;color: var(--jds-color-primary);flex:1;}
+    .landing-block--product--unsold {text-align: right;color: rgba(0, 0, 0, 0.6);flex:1;}
+    .landing-block--product-discount-tag--1 {width: 138px;font-weight: 600;font-size: 16px;text-align: center;overflow: hidden;color: #ffffff;display: none; z-index: 1;}
+    .landing-block--product-discount-tag--1 span {position: absolute;top:0;bottom:0;left:0;right:0;display: flex;align-items: center;justify-content: center;}
+    .landing-block--product-discount-tag--1.active {display: -webkit-box;}
+    .landing-block--product-awards-img--1 {left: 0;width: 120px;z-index: 1;}
+    .landing-block--product--ptag--1 {right: 21px;top:20px;color: var(--jds-color-primary);font-weight: 600;font-size: 14px;z-index: 1;}
+    .landing-block--product-awards-img--2 {left: 0;width: 120px;z-index: 1;}
+    .landing-block--product-pmain--titles {max-width: 400px;}
+    .landing-block--product-pmain--top {width: 100%;}
+    .cards-style-2--block {justify-content: space-between;}
+    .cards-style-2--block.cards-style-2--block-sec {justify-content: space-between;margin-top: 40px;}
+    jky-landing-collectionitem-jp {display: none;}
+    jky-landing-collectionitem-jp.active {display: block;padding-bottom:var(--columns-gap);}
+
+    .landing_product_card--pop.modal-container.modal .modal-content {border-radius: var(--theme-dialog-border-radius, 18px);width: 480px;overflow-y: auto;}
+    .landing_product_card--pop.modal-container.modal .modal-content .moadal-header {border-bottom: none;}
+    .landing_product_card--pop.modal-container.modal .modal-content .modal-content-body {padding: 0 40px 60px;}
+    .landing_product_card--pop.modal-container.modal .modal-content .title {font-size: 28px;font-weight: 600;line-height: 34px;margin-bottom: 4px;}
+    .landing_product_card--pop.modal-container.modal .modal-content .subtitle {color: #666;font-size: 16px;font-weight: 500;line-height: 25px;margin-bottom: 20px;}
+    .newbee-form_shortage .form_sub_btn {width: 100%;height: 45px;}
+
+    .landing-product--block-title {text-align:center;font-size:var(--block_title_size);padding-bottom:var(--block_title_bottom)!important;font-weight:600;}
+
+    .landing-product--block-sub-title {text-align:center;font-size:var(--block_sub_title_size);padding-bottom:var(--block_sub_title_bottom)!important;}
+
+    .landing-block--product .mb-show{
+        display: none;
+    }
+    @media screen and (max-width: 1024px) {
+        .landing-block--product .mb-show{
+            display: inline-block;
+        }
+        .landing-block--product .pc-show{
+            display: none;
+        }
+
+        .landing-block--product[has-pc-bg] {background: var(--color-background)!important;}
+        .landing-block--product[has-mb-bg] {background: var(--mb-bg-img)!important;background-repeat: no-repeat!important;background-size: cover!important;}
+        .landing-block--product-cate jky-landing-product-jp {width: 100%;}
+        .landing-block--product .section-container {padding: 0;width: 91.46vw;max-width: 91.46vw;}
+        .landing-block--product-media {height: 71.333vw;}
+        .landing-block--product-content {padding: 5.333vw 6.4vw 6.4vw 6.4vw;}
+        .landing-block--product-ptitle {font-size: 5.333vw;line-height: 6.4vw;}
+        .landing-block--product-psubtitle {font-size: 3.2vw;line-height: 4.8vw;margin-top: 6px;}
+        .landing-block--product-content--top {padding-bottom: 4.2vw;min-height: unset;}
+        .landing-block--product-content--bottom {padding-top: 0px;}
+        .landing-block--product-price .p-price {font-size: 7.46vw;}
+        .landing-block--product-price {column-gap: 2.666vw;}
+        .landing-block--product-price .p-origin-price, .landing-block--product-price .p-discount {font-size: 3.7333vw;font-weight: 500;}
+        .landing-block--product-affirm {margin-top: 3.2vw;font-size: 3.2vw;gap: 5px;}
+        .landing-block--product-affirm img {height: 15px;}
+        .landing-block--product-pmain--bottom {gap: 3.2vw!important;flex-direction:column;}
+        .landing-block--product-progress.active {margin-top: 4.266vw;}
+        .landing-block--product-tabs {gap: 3.2vw;justify-content: flex-start;}
+        html body .landing-block--product .landing-block--product-tab {font-size: 3.7333vw;padding: 0 4.5333vw;height: 10.666vw;line-height: 10.666vw!important;border-radius: 5.4vw;}
+
+        .landing_product_card--pop.modal-container.modal .modal-content {border-radius: var(--theme-dialog-border-radius, 12px);width: 94vw;}
+        .landing_product_card--pop.modal-container.modal .modal-content .modal-content-body {padding: 0 20px 30px;}
+        .landing_product_card--pop.modal-container.modal .modal-content .title {font-size: 5.333vw;line-height: 6.4vw;}
+        .landing_product_card--pop.modal-container.modal .modal-content .subtitle {font-size: 3.2vw;line-height: 4.8vw;}
+        .newbee-form_shortage .form_sub_btn {border-radius: 25px;}
+
+        jky-landing-product-jp.landing-grid--mb-2 {width: calc((100% - 12px) / 2);}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-price .p-discount, jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-affirm {display: none;}
+        .landing-col-grid--mb-2 .landing-block--product-cate {gap: 6px;margin-bottom: 6px;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-content--top {margin-bottom: 0px;border-bottom: none;padding-bottom: 0;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-media {height: 33.33vw;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-price .p-origin-price {font-size: 12px;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-price .p-price {font-size: 14px;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-ptitle {font-size: 15px;line-height:1.3;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-content--bottom {padding-top: 4px;}
+        {% comment %} jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-pmain--bottom a:nth-child(n+2) {display: none;} {% endcomment %}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-pmain--bottom a {zoom: 0.8;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-content--bottom {gap: 10px;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-content {padding: 3vw 4vw;}
+        .landing-grid--2-col-desktop .landing-block--product-media {height: 73.2vw;}
+
+        .landing-block--product-awards-img--1, .landing-block--product-discount-tag--1 {width: 32vw;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-awards-img--1,
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-discount-tag--1 {width: 22vw;font-size: 13px;}
+        .landing-block--product-awards-img--2 {width: 16vw;}
+        .landing-block--product-pmain--bottom a .loading__spinner {top: 50%;left: 50%;transform: translate(-50%, -50%);}
+
+        .landing-block--product-pmain--bottom a {width:100%!important;}
+        .cards-style-2--block,.landing-grid--2-col-desktop .landing-block--product-content--bottom {flex-direction: column;}
+        .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-price {width:max-content;justify-content: flex-start;margin-top:4.6vw;}
+        .p-cards_style_2.landing-grid--2-col-desktop .landing-block--product-price .p-price {display:inline-block;width:unset;margin-bottom:2vw;}
+        .cards-style-2--block.cards-style-2--block-sec {margin-top:0;}
+        .landing-grid--2-col-desktop .landing-block--product-affirm {margin-bottom: 0;}
+        .p-cards_style_2.landing-grid--2-col-desktop.landing-grid--mb-2 .landing-block--product-price .p-price {font-size:14px;}
+        .landing-grid--2-col-desktop .landing-block--product-progress.active {width:100%;margin-bottom: 4.2vw;}
+        .landing-grid--mb-2 .landing-block--product--ptag--1 {right: 10px;top:10px;}
+        jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-ptitle {text-align: left;}
+
+        .landing-col-grid--mb-2 .landing-block--product-cate:not(.swiper_mode .landing-block--product-cate) {gap: 12px!important;}
+        .landing-grid--2-col-desktop .landing-block--product-ptitle {-webkit-line-clamp:2;}
+         jky-landing-product-jp.landing-grid--mb-2 .landing-block--product-ptitle {-webkit-line-clamp:3;}
+        .landing-grid--2-col-desktop .landing-block--product-ptitle,.landing-grid--2-col-desktop .landing-block--product-psubtitle {text-align:left;}
+
+        .landing-block--product {padding-top: calc(var(--padding-top) / 2);padding-bottom:calc(var(--padding-bottom) / 2);}
+        .landing-product--block-title {font-size:calc(var(--block_title_size) / 2);padding-bottom:calc(var(--block_title_bottom) / 2)!important;}
+        .landing-product--block-sub-title {font-size:calc(var(--block_sub_title_size) / 2);padding-bottom:calc(var(--block_sub_title_bottom) / 2)!important;}
+    }
+</style>
+{%- endif -%}
+
+{%- assign p_cates = shop.metaobjects.landing_product_block[schema_settings.handle] -%}
+<div
+    data-style="JP"
+    class="landing-block--product color-{{ schema_settings.color_scheme }}"
+    {%if schema_settings.anchor_id != blank%}anchor={{schema_settings.anchor_id | escape}}{%endif%}
+    style="background:var(--color-background);--padding-bottom:{{schema_settings.padding_bottom}}px;--padding-top:{{schema_settings.padding_top}}px;--columns-gap:{{schema_settings.columns_gap}}px;--btns-font-size:{{schema_settings.btns_font_size}}px;--pc-bg-img:url('{{schema_settings.pc_bg_img | image_url: width: 1920 }}');--mb-bg-img:url('{{schema_settings.mb_bg_img | image_url: width: 750 }}');"
+    {% if schema_settings.pc_bg_img != blank%}has-pc-bg{%endif%}
+    {% if schema_settings.mb_bg_img != blank%}has-mb-bg{%endif%}
+>
+    {%- if schema_settings.block_title != blank -%}
+        <div class="section-container landing-product--block-title" style="color: {{schema_settings.block_title_color}};--block_title_size:{{schema_settings.block_title_size}}px;--block_title_bottom:{{schema_settings.block_title_bottom}}px;">{{schema_settings.block_title | newline_to_br}}</div>
+    {%- endif -%}
+
+    {%- if schema_settings.block_sub_title != blank -%}
+        <div class="section-container landing-product--block-sub-title" style="color: {{schema_settings.block_sub_title_color}};--block_sub_title_size:{{schema_settings.block_sub_title_size}}px;--block_sub_title_bottom:{{schema_settings.block_sub_title_bottom}}px;">{{schema_settings.block_sub_title | newline_to_br}}</div>
+    {%- endif -%}
+
+    {%- assign sb_types = 'Multiple_tags' -%}
+    {%- if schema_settings.show_tabs == false -%}
+        {%- assign sb_types = 'Single_tags' -%}
+    {%- endif -%}
+
+    <jky-landing-collections-jp>
+        <div class="landing-block--product-main section-container {%if schema_settings.mb_colums_2==true%} landing-col-grid--mb-2{%endif%}">
+            {%- if schema_settings.show_tabs == true -%}
+            <div class="landing-block--product-tabs color-{{ schema_settings.color_scheme_tab }}">
+                {%- if schema_settings.all_txt != blank -%}
+                    <div class="landing-block--product-tab active" data-handle="all" data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}">{{schema_settings.all_txt | escape}}</div>
+                {%- endif -%}
+                {%- for cate in p_cates.cate_list.value -%}
+                    <div class="landing-block--product-tab" data-handle="{{cate.title | handleize}}" data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}">{{cate.title | escape}}</div>
+                {%- endfor -%}
+            </div>
+            {%- endif -%}
+
+            {%- if schema_settings.all_txt != blank and schema_settings.show_tabs == true -%}
+                {%- assign all_items = '' -%}
+                {%- for cate in p_cates.cate_list.value -%}
+                    {%- for card in cate.list.value -%}
+                        {%- if card.variant.value.id != blank -%}
+                            {%- assign _id_handle = card.variant.value.id | handle -%}
+                            {%- if all_items contains _id_handle -%}{%- else -%}
+                                {%- assign all_items = all_items | append: _id_handle | append: ',' -%}
+                            {%- endif -%}
+                        {%- endif -%}
+                    {%- endfor -%}
+                {%- endfor -%}
+
+                <jky-landing-collectionitem-jp target-handle="all" class="active">
+                    <div class="landing-block--product-cate">
+                        {%- for cate in p_cates.cate_list.value -%}
+                            {%- for card in cate.list.value -%}
+                                {%- if card.variant.value.id != blank -%}
+                                    {%- if all_items contains card.variant.value.id -%}
+                                    {%- assign all_items = all_items | replace: card.variant.value.id, '' -%}
+                                    {% assign act_time_end = card.act_time_end.value | date: '%s' %}
+                                    {% assign act_time_start = card.act_time.value | date: '%s' %}
+                                    {%- assign time_now = 'now' | date: '%s' -%}
+                                    {%- assign product_card = card.variant.value -%}
+
+                                    {% comment %} 活动是否进行 {% endcomment %}
+                                    {%- assign has_act = false -%}
+                                    {% comment %} 是否有活动 {% endcomment %}
+                                    {%- assign has_act_active = false -%}
+                                    {%- if card.act_time.value != blank and card.act_time_end.value != blank -%}
+                                        {%- assign has_act_active = true -%}
+                                        {%- if act_time_start < time_now and act_time_end > time_now and act_time_start < act_time_end -%}
+                                            {% comment %} 活动进行中 {% endcomment %}
+                                            {%- assign has_act = true -%}
+                                        {%- endif -%}
+                                    {%- endif -%}
+
+                                    <jky-landing-product-jp card_style="cards_style_2" pid="{{product_card.id}}" has_act_active="{{has_act_active}}" has_act="{{has_act}}" {%if card.act_time.value != blank%}data-start="{{act_time_start}}" {%endif%} {%if card.act_time_end.value != blank%} data-end="{{act_time_end}}" {%endif%} data-actprice="{%if card.price.value != blank%}{{card.price.value | times: 100.00 | money | remove_last: '.00'}}{%else%}{{product_card.price | money | remove_last: '.00'}}{%endif%}" class="landing-grid--{{schema_settings.columns_desktop}}-col-desktop  p-cards_style_2 {%if schema_settings.mb_colums_2==true%} landing-grid--mb-2{%endif%}" data-price="{{product_card.price | money | remove_last: '.00'}}" style="border: {{ schema_settings.border }}px solid var(--primary-color);">
+                                        <div class="landing-block--product-card flex 5555">
+                                            <div class="landing-block--product-media relative">
+                                                {% comment %} 样式2折扣角标（US）- 左上 / 样式2折扣角标（US）- 右上 {% endcomment %}
+                                                {%- if card.awards_icon.value != blank -%}
+                                                    <img class="absolute landing-block--product-awards-img--2" src="{{card.awards_icon.value | image_url: width: 240}}" alt="{{card.awards_icon.value.alt | escape}}" loading="lazy" width="{{ card.awards_icon.value.width }}" height="{{ card.awards_icon.value.height }}" />
+                                                {%- endif -%}
+
+                                                {%- if card.card_right_tag_2.value != blank -%}
+                                                    <div class="absolute flex landing-block--product-discount-tag--jp">
+                                                        <div class="ribbon ribbon-top-right">
+                                                            <span class="text--primary">{{card.card_right_tag_2.value}}</span>
+                                                        </div>
+                                                    </div>
+                                                {%- endif -%}
+
+                                                {%- if card.product_img.value != blank -%}
+                                                    <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{card.product_img.value | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                        {%- 
+                                                            render 'responsive-image', 
+                                                            image: card.product_img.value,
+                                                            width: 640,
+                                                            mwidth: 400,
+                                                            image_class: 'landing-block--product-pimg pc-show'
+                                                        -%}
+                                                    </a>
+                                                {%- else -%}
+                                                    <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{product_card.featured_image | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                        {%- 
+                                                            render 'responsive-image', 
+                                                            image: product_card.featured_image,
+                                                            width: 640,
+                                                            mwidth: 400,
+                                                            image_class: 'landing-block--product-pimg p--link pc-show'
+                                                        -%}
+                                                    </a>
+                                                {%- endif -%}
+
+                                                {% comment %} pcmb区分图片 {% endcomment %}
+                                                {%- if card.product_mb_img.value != blank -%}
+                                                    <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{card.product_mb_img.value | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                        {%- 
+                                                            render 'responsive-image', 
+                                                            image: card.product_mb_img.value,
+                                                            width: 640,
+                                                            mwidth: 400,
+                                                            image_class: 'landing-block--product-pimg mb-show'
+                                                        -%}
+                                                    </a>
+                                                {%- elsif card.product_img.value != blank -%}
+                                                    <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{card.product_img.value | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                        {%- 
+                                                            render 'responsive-image', 
+                                                            image: card.product_img.value,
+                                                            width: 640,
+                                                            mwidth: 400,
+                                                            image_class: 'landing-block--product-pimg mb-show'
+                                                        -%}
+                                                    </a>
+                                                {%- else -%}
+                                                    <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{product_card.featured_image | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                        {%- 
+                                                            render 'responsive-image', 
+                                                            image: product_card.featured_image,
+                                                            width: 640,
+                                                            mwidth: 400,
+                                                            image_class: 'landing-block--product-pimg p--link mb-show'
+                                                        -%}
+                                                    </a>
+                                                {%- endif -%}
+                                            </div>
+                                            <div class="landing-block--product-content flex">
+                                                <div class="landing-block--product-content--top">
+                                                    <a href="{{product_card.url}}" class="landing-block--product-ptitle text-overflow-2" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-type="{{sb_types}}">
+                                                        {%- if card.title.value != blank -%}
+                                                            {{card.title.value | escape}}
+                                                        {%- else -%}
+                                                            {{product_card.title | escape | strip | replace: 'Jackery', ''}}
+                                                        {%- endif -%}
+                                                    </a>
+                                                    {%- if card.subtitle.value != blank -%}
+                                                        <div class="landing-block--product-psubtitle text-overflow-2">{{card.subtitle.value | escape | strip}}</div>
+                                                    {%- endif -%}
+                                                </div>
+
+                                                <div class="landing-block--product-content--bottom flex">
+                                                    <div class="landing-block--product-pmain--top">
+                                                        <div class="landing-block--product-price flex flex-wrap" >
+                                                            <span class="p-price">
+                                                                {%- if card.price.value == blank -%}
+                                                                    {{product_card.price | money | remove_last: '.00'}}
+                                                                {%- else -%}
+                                                                    {%- if has_act == true -%}
+                                                                        <span data-price="{{card.price.value | times: 100.00 | money | remove_last: '.00'}}">{{card.price.value | times: 100.00 | money | remove_last: '.00'}}</span>
+                                                                    {%- else -%}
+                                                                        {{product_card.price | money | remove_last: '.00'}}
+                                                                    {%- endif -%}
+                                                                {%- endif -%}
+                                                            </span>
+
+                                                            {%- assign act_price_times = card.price.value | times: 100.00 -%}
+                                                            {%- assign act_origin_price_times = card.origin_price.value | times: 100.00 -%}
+
+                                                            {%- if card.origin_price.value != blank and card.price.value != blank -%}
+                                                                {%- if card.origin_price.value > card.price.value and card.price.value != blank and card.origin_price.value != blank -%}
+                                                                    {%- assign _a = card.origin_price.value | minus: card.price.value | floor | times: 100.00 | money | remove_last: '.00' -%}
+                                                                    {%- assign display_act_discount_num = card.amount_discount.value | replace: '{amount}', _a -%}
+                                                                {%- else -%}
+                                                                    {%- assign display_act_discount_num = '' -%}
+                                                                {%- endif -%}
+                                                            {%- else -%}
+                                                                {%- if product_card.compare_at_price > act_price_times -%}
+                                                                    {%- assign _a = product_card.compare_at_price | divided_by: 100.00 | minus: card.price.value |floor | times: 100.00 | money | remove_last: '.00' -%}
+                                                                    {%- assign display_act_discount_num = card.amount_discount.value | replace: '{amount}', _a -%}
+                                                                {%- else -%}
+                                                                    {%- assign display_act_discount_num = '' -%}
+                                                                {%- endif -%}
+                                                            {%- endif -%}
+
+
+                                                            {%- if product_card.compare_at_price > product_card.price -%}
+                                                                {%- assign _a_act = product_card.compare_at_price | minus: product_card.price | divided_by: 100.00 | floor | times: 100 | money | remove_last: '.00' -%}
+                                                                {%- assign display_discount_num = card.amount_discount.value | replace: '{amount}', _a_act -%}
+                                                            {%- else -%}
+                                                                {%- assign _a_act = '' -%}
+                                                                {%- assign display_discount_num = '' -%}
+                                                            {%- endif -%}
+                                                            <script type="application/json">
+                                                                {
+                                                                    "has_act_active": {{has_act_active}},
+                                                                    "has_act": {{has_act_active}},
+                                                                    "display_discount_num": "{{display_discount_num}}",
+
+                                                                    {%- if card.origin_price.value != blank -%}
+                                                                    "display_origin_act": "{{card.origin_price.value | times: 100.00 | money | remove_last: '.00'}}",
+                                                                    {%- else -%}
+                                                                        {%- if product_card.price < product_card.compare_at_price -%}
+                                                                        "display_origin_act": "{{product_card.compare_at_price | money | remove_last: '.00'}}",
+                                                                        {%- endif -%}
+                                                                    {%- endif -%}
+
+                                                                    {%- if product_card.price < product_card.compare_at_price -%}
+                                                                    "display_origin": "{{product_card.compare_at_price | money | remove_last: '.00'}}",
+                                                                    {%- endif -%}
+
+                                                                    "display_act_discount_num": "{{display_act_discount_num}}",
+                                                                    "Installment_text": "{{card.Installment_text.value}}",
+                                                                    {%-if card.price.value-%}
+                                                                    "price_act_num": {{card.price}},
+                                                                    {%-endif-%}
+                                                                    {%- if card.init_num.value != blank -%}
+                                                                    "init_num": {{card.init_num.value}},
+                                                                    {%- endif -%}
+                                                                    {%- if card.act_time.value != blank -%}
+                                                                    "act_time": {{card.act_time.value | date: '%s' }},
+                                                                    {%- endif -%}
+                                                                    {%- if card.act_time_end.value != blank -%}
+                                                                    "act_time_end": {{card.act_time_end.value | date: '%s' }},
+                                                                    {%- endif -%}
+                                                                    {%- if card.unavailable_sold_txt.value != blank -%}
+                                                                    "unavailable_sold_txt": "{{card.unavailable_sold_txt.value }}",
+                                                                    {%- endif -%}
+                                                                    {%- if card.available_sold_txt.value != blank -%}
+                                                                    "available_sold_txt": "{{card.available_sold_txt.value }}",
+                                                                    {%- endif -%}
+                                                                    "price_num": {{product_card.price | divided_by: 100.00}},
+                                                                    "id": {{product_card.id}},
+                                                                    "full_gift_obj": {{product_card.metafields.custom.full_gift_list.value | json}}
+                                                                }
+                                                            </script>
+
+                                                                <span class="p-origin-price">
+                                                                </span>
+                                                                {%- if card.amount_discount.value != blank -%}
+                                                                    <span class="p-discount">
+                                                                    </span>
+                                                                {%- endif -%}
+                                                        </div>
+
+                                                        {%- if product_card.metafields.custom.discount_tag_time != blank -%}
+                                                            <div class="coupon__time">{{product_card.metafields.custom.discount_tag_time}}</div>
+                                                        {%- endif -%}
+                                                        {%- if schema_settings.progress_coupon == "coupon" -%}
+                                                            {%- if card.coupon_code.value != blank -%}
+                                                                <product-coupon {% if schema_settings.mb_colums_2 == true %} hide--mb {% endif %} data-success="{{schema_settings.copy_success_text}}" data-success-tip="{{schema_settings.copy_success_tip_text}}" data-code="{{card.coupon_code.value}}">
+                                                                    {% render 'icon-coupon-bg', color: 'var(--jds-color-primary)', text: card.coupon_code.value, copy: schema_settings.copy_text, coupon_text: schema_settings.coupon_before %}
+                                                                </product-coupon>
+
+                                                                {%- if schema_settings.mb_colums_2 == true -%}
+                                                                    <product-coupon show--mb data-success="{{schema_settings.copy_success_text}}" data-success-tip="{{schema_settings.copy_success_tip_text}}" data-code="{{card.coupon_code.value}}">
+                                                                        {% render 'icon-coupon-bg-mb', color: 'var(--jds-color-primary)', text: card.coupon_code.value, copy: schema_settings.copy_text, coupon_text: schema_settings.coupon_before %}
+                                                                    </product-coupon>
+                                                                {%- endif -%}
+                                                            {%- else -%}
+                                                                <div class="coupon__empty"></div>
+                                                            {%- endif -%}
+                                                        {%- endif -%}
+
+                                                        {%- if card.available_sold_txt.value != blank or card.unavailable_sold_txt.value != blank -%}
+                                                            {%- if schema_settings.progress_coupon == "progress" -%}
+                                                            <div class="landing-block--product-progress relative {%if has_act == true%} active{%endif%}">
+                                                                <input type="range" value="0" min="0.5" max="99.99">
+                                                                <div class="jk-seekbar-progress" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px);">
+                                                                    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width: 0%;background:var(--jds-color-primary);--before-col:var(--jds-color-primary);"></div>
+                                                                </div>
+                                                                <div class="landing-block--product-progress--content flex">
+                                                                    {%- assign un_sold = card.unavailable_sold_txt.value | replace: '{num}', card.init_num.value -%}
+                                                                    {%- assign _u = 100 | minus: card.init_num.value -%}
+                                                                    {%- assign a_sold = card.available_sold_txt.value | replace: '{num}', _u -%}
+                                                                    {%- if card.unavailable_sold_txt.value != blank -%}
+                                                                    <span class="landing-block--product--sold">{{un_sold}}</span>
+                                                                    {%- endif -%}
+
+                                                                    {%- if card.available_sold_txt.value != blank -%}
+                                                                    <span class="landing-block--product--unsold">{{a_sold}}</span>
+                                                                    {%- endif -%}
+                                                                </div>
+                                                            </div>
+                                                            {%- endif -%}
+                                                        {%- endif -%}
+
+                                                        {%- if card.Installment_text.value != blank -%}
+                                                        <div class="landing-block--product-affirm flex">
+                                                            <span>{{card.Installment_text.value | escape}}</span>
+                                                            {%- if card.Installment_icon.value != blank -%}
+                                                                <img src="{{card.Installment_icon.value | image_url: width: 72}}" alt="{{card.Installment_text.value | escape}}" loading="lazy" width="{{ card.Installment_icon.value.width }}" height="{{ card.Installment_icon.value.height }}" />
+                                                            {%- endif -%}
+                                                        </div>
+                                                        {%- endif -%}
+                                                    </div>
+                                                    <div class="landing-block--product-pmain--bottom flex" style="--a-col:var(--jds-color-primary);--a-bg:var(--jds-color-primary);--a-solid-bg:#ffffff;">
+                                                        {% comment %} 加入购物车 {% endcomment %}
+                                                        {%- if schema_settings.add_to_cart != blank -%}
+                                                            <a {%if product_card.available != true%}disabled{%endif%} btn-action="addtocart"
+                                                                date-loading data-ga-event="activity_page_user_clicks"
+                                                                data-ga-action="click" data-ga-params-module="Product Display"
+                                                                data-ga-params-content="{{schema_settings.all_txt | escape}}"
+                                                                data-ga-params-position="{{product_card.sku}}"
+                                                                data-ga-params-button_name="{{schema_settings.add_to_cart | escape}}"
+                                                                data-ga-params-link="" data-ga-params-type="{{sb_types}}"
+                                                                {% if schema_settings.add_cart_solid == true %}
+                                                                    btn-solid
+                                                                    class="{% if product_card.available != true %} sold-out {% endif %}"
+                                                                {% endif %}
+
+                                                            >
+                                                                {%- if product_card.available != true -%}
+                                                                    {{ 'products.product.sold_out' | t }}
+                                                                {%- else -%}
+                                                                    <span> {{schema_settings.add_to_cart | escape}}</span>
+                                                                {%- endif -%}
+                                                                <div class="loading__spinner loading__spinner__dark">
+                                                                    <svg aria-hidden="true" focusable="false" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                                                                        <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+                                                                    </svg>
+                                                                </div>
+                                                            </a>
+                                                        {%- endif -%}
+
+                                                        {% comment %} 商品详情 {% endcomment %}
+                                                        {%- if schema_settings.shop_now != blank -%}
+                                                            <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="{{schema_settings.shop_now | escape}}" data-ga-params-link="{{product_card.url}}" data-ga-params-type="{{sb_types}}"
+                                                                {% if schema_settings.shop_solid == true %} btn-solid
+                                                            {% endif %}
+                                                            >
+                                                                <span> {{schema_settings.shop_now | escape}}</span>
+                                                            </a>
+                                                        {%- endif -%}
+
+                                                        {% comment %} 立即购买 {% endcomment %}
+                                                        {%- if schema_settings.buy_now != blank -%}
+                                                            {% capture href %}
+                                                                /cart/{{product_card.id}}:1
+                                                            {% endcapture %}
+                                                            <a {%if product_card.available != true%}disabled{%endif%} btn-action="buyitnow" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display"  data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="{{schema_settings.buy_now | escape}}" data-ga-params-link="{{ href | strip | strip_newlines}}"  {% if schema_settings.buy_now_solid == true %} btn-solid{% endif %}>
+                                                                {%- if product_card.available != true -%}
+                                                                    {{ 'products.product.sold_out' | t }}
+                                                                {%- else -%}
+                                                                    {{schema_settings.buy_now | escape}}
+                                                                {%- endif -%}
+                                                            </a>
+                                                        {%- endif -%}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </jky-landing-product-jp>
+                                    {%- endif -%}
+                                {%- endif -%}
+                            {%- endfor -%}
+                        {%- endfor -%}
+                    </div>
+                </jky-landing-collectionitem-jp>
+            {%- endif -%}
+
+
+            {%- for cate in p_cates.cate_list.value -%}
+                {%- assign collectionitem_show = false -%}
+                {%- if schema_settings.show_tabs == true -%}
+                    {%- assign collectionitem_show = true -%}
+                {%- else -%}
+                    {%- if forloop.index == 1 -%}
+                        {%- assign collectionitem_show = true -%}
+                    {%- else -%}
+                        {%- assign collectionitem_show = false -%}
+                    {%- endif -%}
+                {%- endif -%}
+
+                {%- if collectionitem_show == true -%}
+                <jky-landing-collectionitem-jp target-handle="{{cate.title | handle}}" class="{%if schema_settings.show_tabs == false%}active {%endif%}">
+                    <div class="landing-block--product-cate">
+                        {%- for card in cate.list.value -%}
+                            {%- if card.variant.value.id != blank -%}
+                                {% assign act_time_end = card.act_time_end.value | date: '%s' %}
+                                {% assign act_time_start = card.act_time.value | date: '%s' %}
+                                {%- assign time_now = 'now' | date: '%s' -%}
+                                {%- assign product_card = card.variant.value -%}
+
+                                {% comment %} 活动是否进行 {% endcomment %}
+                                {%- assign has_act = false -%}
+                                {% comment %} 是否有活动 {% endcomment %}
+                                {%- assign has_act_active = false -%}
+                                {%- if card.act_time.value != blank and card.act_time_end.value != blank -%}
+                                    {%- assign has_act_active = true -%}
+                                    {%- if act_time_start < time_now and act_time_end > time_now and act_time_start < act_time_end -%}
+                                        {% comment %} 活动进行中 {% endcomment %}
+                                        {%- assign has_act = true -%}
+                                    {%- endif -%}
+                                {%- endif -%}
+
+                                <jky-landing-product-jp card_style="cards_style_2" pid="{{product_card.id}}" has_act_active="{{has_act_active}}" has_act="{{has_act}}" {%if card.act_time.value != blank%}data-start="{{act_time_start}}" {%endif%} {%if card.act_time_end.value != blank%} data-end="{{act_time_end}}" {%endif%} data-actprice="{%if card.price.value != blank%}{{card.price.value | times: 100.00 | money | remove_last: '.00'}}{%else%}{{product_card.price | money | remove_last: '.00'}}{%endif%}" class="landing-grid--{{schema_settings.columns_desktop}}-col-desktop  p-cards_style_2 {%if schema_settings.mb_colums_2==true%} landing-grid--mb-2{%endif%}" data-price="{{product_card.price | money | remove_last: '.00'}}" style="border: {{ schema_settings.border }}px solid var(--primary-color);">
+                                    <div class="landing-block--product-card flex 6666">
+                                        <div class="landing-block--product-media relative">
+                                            {% comment %} 样式2折扣角标（US）- 左上 / 样式2折扣角标（US）- 右上 {% endcomment %}
+                                            {%- if card.awards_icon.value != blank -%}
+                                                <img class="absolute landing-block--product-awards-img--2" src="{{card.awards_icon.value | image_url: width: 240}}" alt="{{card.awards_icon.value.alt | escape}}" loading="lazy" width="{{ card.awards_icon.value.width }}" height="{{ card.awards_icon.value.height }}" />
+                                            {%- endif -%}
+
+                                            {%- if card.card_right_tag_2.value != blank -%}
+                                                <div class="absolute flex landing-block--product-discount-tag--jp">
+                                                    <div class="ribbon ribbon-top-right">
+                                                        <span class="text--primary">{{card.card_right_tag_2.value}}</span>
+                                                    </div>
+                                                </div>
+                                            {%- endif -%}
+
+                                            {%- if card.product_img.value != blank -%}
+                                                <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{card.product_img.value | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                    {%- 
+                                                        render 'responsive-image', 
+                                                        image: card.product_img.value,
+                                                        width: 640,
+                                                        mwidth: 400,
+                                                        image_class: 'landing-block--product-pimg pc-show'
+                                                    -%}
+                                                </a>
+                                            {%- else -%}
+                                                <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{product_card.featured_image | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                    {%- 
+                                                        render 'responsive-image', 
+                                                        image: product_card.featured_image,
+                                                        width: 640,
+                                                        mwidth: 400,
+                                                        image_class: 'landing-block--product-pimg p--link pc-show'
+                                                    -%}
+                                                </a>
+                                            {%- endif -%}
+
+                                            {% comment %} 区分pc和mb图片 {% endcomment %}
+                                            {%- if card.product_mb_img.value != blank -%}
+                                                <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{card.product_mb_img.value | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                    {%- 
+                                                        render 'responsive-image', 
+                                                        image: card.product_mb_img.value,
+                                                        width: 640,
+                                                        mwidth: 400,
+                                                        image_class: 'landing-block--product-pimg mb-show'
+                                                    -%}
+                                                </a>
+                                            {%- elsif card.product_img.value != blank -%}
+                                                <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{schema_settings.all_txt | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{card.product_img.value | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                    {%- 
+                                                        render 'responsive-image', 
+                                                        image: card.product_img.value,
+                                                        width: 640,
+                                                        mwidth: 400,
+                                                        image_class: 'landing-block--product-pimg mb-show'
+                                                    -%}
+                                                </a>
+                                            {%- else -%}
+                                                <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-url="{{product_card.featured_image | image_url: width: 640}}" data-ga-params-type="{{sb_types}}">
+                                                    {%- 
+                                                        render 'responsive-image', 
+                                                        image: product_card.featured_image,
+                                                        width: 640,
+                                                        mwidth: 400,
+                                                        image_class: 'landing-block--product-pimg p--link mb-show'
+                                                    -%}
+                                                </a>
+                                            {%- endif -%}
+                                        </div>
+                                        <div class="landing-block--product-content flex">
+                                            <div class="landing-block--product-content--top">
+                                                <a href="{{product_card.url}}" class="landing-block--product-ptitle text-overflow-2" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="picture" data-ga-params-link="{{product_card.url}}" data-ga-params-type="{{sb_types}}">
+                                                    {%- if card.title.value != blank -%}
+                                                        {{card.title.value | escape}}
+                                                    {%- else -%}
+                                                        {{product_card.title | escape | strip | replace: 'Jackery', ''}}
+                                                    {%- endif -%}
+                                                </a>
+                                                {%- if card.subtitle.value != blank -%}
+                                                    <div class="landing-block--product-psubtitle text-overflow-2">{{card.subtitle.value | escape | strip}}</div>
+                                                {%- endif -%}
+                                            </div>
+
+                                            <div class="landing-block--product-content--bottom flex">
+                                                <div class="landing-block--product-pmain--top">
+
+                                                    <div class="landing-block--product-price flex flex-wrap">
+                                                        <span class="p-price">
+                                                            {%- if card.price.value == blank -%}
+                                                                {{product_card.price | money | remove_last: '.00'}}
+                                                            {%- else -%}
+                                                                {%- if has_act == true -%}
+                                                                    <span data-price="{{card.price.value | times: 100.00 | money | remove_last: '.00'}}">{{card.price.value | times: 100.00 | money | remove_last: '.00'}}</span>
+                                                                {%- else -%}
+                                                                    {{product_card.price | money | remove_last: '.00'}}
+                                                                {%- endif -%}
+                                                            {%- endif -%}
+                                                        </span>
+
+                                                        {%- assign act_price_times = card.price.value | times: 100.00 -%}
+                                                        {%- assign act_origin_price_times = card.origin_price.value | times: 100.00 -%}
+
+                                                        {%- if card.origin_price.value != blank and card.price.value != blank -%}
+                                                            {%- if card.origin_price.value > card.price.value and card.price.value != blank and card.origin_price.value != blank -%}
+                                                                {%- assign _a = card.origin_price.value | minus: card.price.value | floor | times: 100.00 | money | remove_last: '.00' -%}
+                                                                {%- assign display_act_discount_num = card.amount_discount.value | replace: '{amount}', _a -%}
+                                                            {%- else -%}
+                                                                {%- assign display_act_discount_num = '' -%}
+                                                            {%- endif -%}
+                                                        {%- else -%}
+                                                            {%- if product_card.compare_at_price > act_price_times -%}
+                                                                {%- assign _a = product_card.compare_at_price | divided_by: 100.00 | minus: card.price.value | floor | times: 100.00 | money | remove_last: '.00' -%}
+                                                                {%- assign display_act_discount_num = card.amount_discount.value | replace: '{amount}', _a -%}
+                                                            {%- else -%}
+                                                                {%- assign display_act_discount_num = '' -%}
+                                                            {%- endif -%}
+                                                        {%- endif -%}
+
+                                                        {%- if product_card.compare_at_price > product_card.price -%}
+                                                            {%- assign _a_act = product_card.compare_at_price | minus: product_card.price | divided_by: 100.00 | floor | times: 100 | money | remove_last: '.00' -%}
+                                                            {%- assign display_discount_num = card.amount_discount.value | replace: '{amount}', _a_act -%}
+                                                        {%- else -%}
+                                                            {%- assign _a_act = '' -%}
+                                                            {%- assign display_discount_num = '' -%}
+                                                        {%- endif -%}
+                                                        <script type="application/json">
+                                                            {
+                                                                "has_act_active": {{has_act_active}},
+                                                                "has_act": {{has_act_active}},
+                                                                "display_discount_num": "{{display_discount_num}}",
+
+                                                                {%- if card.origin_price.value != blank -%}
+                                                                "display_origin_act": "{{card.origin_price.value | times: 100.00 | money | remove_last: '.00'}}",
+                                                                {%- else -%}
+                                                                    {%- if product_card.price < product_card.compare_at_price -%}
+                                                                    "display_origin_act": "{{product_card.compare_at_price | money | remove_last: '.00'}}",
+                                                                    {%- endif -%}
+                                                                {%- endif -%}
+
+                                                                {%- if product_card.price < product_card.compare_at_price -%}
+                                                                "display_origin": "{{product_card.compare_at_price | money | remove_last: '.00'}}",
+                                                                {%- endif -%}
+
+                                                                "display_act_discount_num": "{{display_act_discount_num}}",
+                                                                "Installment_text": "{{card.Installment_text.value}}",
+                                                                {%-if card.price.value-%}
+                                                                "price_act_num": {{card.price}},
+                                                                {%-endif-%}
+                                                                {%- if card.init_num.value != blank -%}
+                                                                "init_num": {{card.init_num.value}},
+                                                                {%- endif -%}
+                                                                {%- if card.act_time.value != blank -%}
+                                                                "act_time": {{card.act_time.value | date: '%s' }},
+                                                                {%- endif -%}
+                                                                {%- if card.act_time_end.value != blank -%}
+                                                                "act_time_end": {{card.act_time_end.value | date: '%s' }},
+                                                                {%- endif -%}
+                                                                {%- if card.unavailable_sold_txt.value != blank -%}
+                                                                "unavailable_sold_txt": "{{card.unavailable_sold_txt.value }}",
+                                                                {%- endif -%}
+                                                                {%- if card.available_sold_txt.value != blank -%}
+                                                                "available_sold_txt": "{{card.available_sold_txt.value }}",
+                                                                {%- endif -%}
+                                                                "price_num": {{product_card.price | divided_by: 100.00}},
+                                                                "id": {{product_card.id}},
+                                                                "full_gift_obj": {{product_card.metafields.custom.full_gift_list.value | json}}
+                                                            }
+                                                        </script>
+                                                            <span class="p-origin-price">
+                                                            </span>
+                                                            {%- if card.amount_discount.value != blank -%}
+                                                                <span class="p-discount">
+                                                                </span>
+                                                            {%- endif -%}
+                                                    </div>
+
+                                                    {%- if product_card.metafields.custom.discount_tag_time != blank -%}
+                                                        <div class="coupon__time">{{product_card.metafields.custom.discount_tag_time}}</div>
+                                                    {%- endif -%}
+                                                    {%- if schema_settings.progress_coupon == "coupon" -%}
+                                                        {%- if card.coupon_code.value != blank -%}
+                                                            <product-coupon {% if schema_settings.mb_colums_2 == true %} hide--mb {% endif %} data-success="{{schema_settings.copy_success_text}}" data-success-tip="{{schema_settings.copy_success_tip_text}}" data-code="{{card.coupon_code.value}}">
+                                                                {% render 'icon-coupon-bg', color: 'var(--jds-color-primary)', text: card.coupon_code.value, copy: schema_settings.copy_text, coupon_text: schema_settings.coupon_before %}
+                                                            </product-coupon>
+
+                                                            {%- if schema_settings.mb_colums_2 == true -%}
+                                                                <product-coupon show--mb data-success="{{schema_settings.copy_success_text}}" data-success-tip="{{schema_settings.copy_success_tip_text}}" data-code="{{card.coupon_code.value}}">
+                                                                    {% render 'icon-coupon-bg-mb', color: 'var(--jds-color-primary)', text: card.coupon_code.value, copy: schema_settings.copy_text, coupon_text: schema_settings.coupon_before %}
+                                                                </product-coupon>
+                                                            {%- endif -%}
+                                                        {%- else -%}
+                                                            <div class="coupon__empty"></div>
+                                                        {%- endif -%}
+                                                    {%- endif -%}
+
+                                                    {%- if card.available_sold_txt.value != blank or card.unavailable_sold_txt.value != blank -%}
+                                                        {%- if schema_settings.progress_coupon == "progress" -%}
+                                                        <div class="landing-block--product-progress relative {%if has_act == true%} active{%endif%}">
+                                                            <input type="range" value="0" min="0.5" max="99.99">
+                                                            <div class="jk-seekbar-progress" style="translate: none; rotate: none; scale: none; transform: translate(0px, 0px);">
+                                                                <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width: 0%;background:var(--jds-color-primary);--before-col:var(--jds-color-primary);"></div>
+                                                            </div>
+                                                            <div class="landing-block--product-progress--content flex">
+                                                                {%- assign un_sold = card.unavailable_sold_txt.value | replace: '{num}', card.init_num.value -%}
+                                                                {%- assign _u = 100 | minus: card.init_num.value -%}
+                                                                {%- assign a_sold = card.available_sold_txt.value | replace: '{num}', _u -%}
+                                                                {%- if card.unavailable_sold_txt.value != blank -%}
+                                                                <span class="landing-block--product--sold">{{un_sold}}</span>
+                                                                {%- endif -%}
+
+                                                                {%- if card.available_sold_txt.value != blank -%}
+                                                                <span class="landing-block--product--unsold">{{a_sold}}</span>
+                                                                {%- endif -%}
+                                                            </div>
+                                                        </div>
+                                                        {%- endif -%}
+                                                    {%- endif -%}
+
+                                                    {%- if card.Installment_text.value != blank -%}
+                                                    <div class="landing-block--product-affirm flex">
+                                                        <span>{{card.Installment_text.value | escape}}</span>
+                                                        {%- if card.Installment_icon.value != blank -%}
+                                                            <img src="{{card.Installment_icon.value | image_url: width: 72}}" alt="{{card.Installment_text.value | escape}}" loading="lazy" width="{{ card.Installment_icon.value.width }}" height="{{ card.Installment_icon.value.height }}" />
+                                                        {%- endif -%}
+                                                    </div>
+                                                    {%- endif -%}
+                                                </div>
+
+                                                <div class="landing-block--product-pmain--bottom flex" style="--a-col:var(--jds-color-primary);--a-bg:var(--jds-color-primary);--a-solid-bg:var(--jds-color-primary)">
+                                                    {% comment %} 加入购物车 {% endcomment %}
+                                                    {%- if schema_settings.add_to_cart != blank -%}
+                                                        <a {%if product_card.available != true%}disabled{%endif%} btn-action="addtocart" date-loading data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="{{schema_settings.add_to_cart | escape}}" data-ga-params-link="" data-ga-params-type="{{sb_types}}"
+                                                            {% if schema_settings.add_cart_solid == true %}
+                                                                btn-solid
+                                                                class="{% if product_card.available != true %} sold-out {% endif %}"
+                                                            {% endif %}
+                                                        >
+                                                            {%- if product_card.available != true -%}
+                                                                {{ 'products.product.sold_out' | t }}
+                                                            {%- else -%}
+                                                                <span> {{schema_settings.add_to_cart | escape}}</span>
+                                                            {%- endif -%}
+                                                            <div class="loading__spinner loading__spinner__dark">
+                                                                <svg aria-hidden="true" focusable="false" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                                                                    <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+                                                                </svg>
+                                                            </div>
+                                                        </a>
+                                                    {%- endif -%}
+
+                                                    {% comment %} 商品详情 {% endcomment %}
+                                                    {%- if schema_settings.shop_now != blank -%}
+                                                        <a href="{{product_card.url}}" {%if schema_settings.link_blank == true%} target="_blank"{%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="{{schema_settings.shop_now | escape}}" data-ga-params-link="{{product_card.url}}" data-ga-params-type="{{sb_types}}"
+                                                            {% if schema_settings.shop_solid == true %} btn-solid
+                                                        {% endif %}
+                                                        >
+                                                            <span> {{schema_settings.shop_now | escape}}</span>
+                                                        </a>
+                                                    {%- endif -%}
+
+                                                    {% comment %} 立即购买 {% endcomment %}
+                                                    {%- if schema_settings.buy_now != blank -%}
+                                                        {% capture href %}
+                                                            /cart/{{product_card.id}}:1
+                                                        {% endcapture %}
+                                                        <a {% if product_card.available != true %} disabled {%endif%} btn-action="buyitnow" {% if schema_settings.link_blank == true %} target="_blank" {%endif%} data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display"  data-ga-params-position="{{product_card.sku}}" data-ga-params-button_name="{{schema_settings.buy_now | escape}}" data-ga-params-link="{{ href | strip | strip_newlines }}" {% if schema_settings.buy_now_solid == true %} btn-solid{% endif %}>
+                                                            {%- if product_card.available != true -%}
+                                                                {{ 'products.product.sold_out' | t }}
+                                                            {%- else -%}
+                                                                {{schema_settings.buy_now | escape}}
+                                                            {%- endif -%}
+                                                        </a>
+                                                    {%- endif -%}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </jky-landing-product-jp>
+                            {%- endif -%}
+                        {%- endfor -%}
+                    </div>
+                </jky-landing-collectionitem-jp>
+                {%- endif -%}
+            {%- endfor -%}
+        </div>
+    </jky-landing-collections-jp>
+</div>
+
+{%- if need_style == true -%}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!customElements.get('jky-landing-collections-jp')) {
+            customElements.define('jky-landing-collections-jp', class JkyLandingCollections extends HTMLElement {
+                constructor() {
+                    super()
+                    this.getServerTime()
+                    this.init()
+                }
+                getServerTime() {
+                    if (window.JKY_getServerTime) {
+                        window.JKY_getServerTime().then(res => {
+                            const ts = Number(res?.data?.time);
+                            this.server_time = ts;
+                            document.querySelectorAll("jky-landing-product-jp").forEach(item => {
+                                item.server_time = ts;
+                                item.startServertime(ts);
+                                item.setAttribute("servertime", ts);
+                            });
+                        });
+                    } else {
+                        const url = `${window?.pageInfo?.api}/osconsumerapi/v1/com/get-server-time?shopify_shop_id=${window?.pageInfo?.shopId}&cr=${window?.pageInfo?.cr}`
+                        fetch(url).then((response) => response.json()).then(res => {
+                            if(res.code === 200 && res?.data?.time) {
+                                const ts = res.data.time
+                                this.server_time = ts
+                                document.querySelectorAll("jky-landing-product-jp").forEach(item => {
+                                    item.server_time = ts
+                                    item.startServertime(ts)
+                                    item.setAttribute("servertime", ts)
+                                })
+                            }
+                        })
+                    }
+                }
+
+                init() {
+                    const that = this
+
+                    this.querySelectorAll(".landing-block--product-tab").forEach(tab => {
+                        tab.addEventListener("click", function () {
+                            const handle = this.getAttribute("data-handle");
+                            that.querySelectorAll(".landing-block--product-tab").forEach(el => el.classList.remove("active"));
+                            that.querySelectorAll("jky-landing-collectionitem-jp").forEach(el => el.classList.remove("active"));
+                            this.classList.add("active");
+                            const activeItems = that.querySelectorAll(`jky-landing-collectionitem-jp[target-handle="${handle}"]`);
+                            activeItems.forEach(el => el.classList.add("active"));
+                            activeItems.forEach(parent => {
+                                parent.querySelectorAll("jky-landing-product-jp").forEach((item, index) => {
+                                    item.handlePriceLoog();
+                                });
+                            });
+                        })
+                    })
+                }
+            })
+        }
+
+        if (!customElements.get('jky-landing-collectionitem-jp')) {
+            customElements.define('jky-landing-collectionitem-jp', class JkyLandingCollectionitem extends HTMLElement {
+                constructor() {
+                    super()
+                }
+            })
+        }
+
+        if (!customElements.get('jky-landing-product-jp')) {
+            customElements.define('jky-landing-product-jp', class JkyLandingProduct extends HTMLElement {
+                constructor() {
+                    super()
+                    this.act_start = this.getAttribute("data-start")
+                    this.init()
+                }
+                init() {
+                    this.handleActionTrigger()
+
+                    // 商品售价商品活动售价
+                    this.price = this.getAttribute("data-price")
+                    // 促销活动开始时间
+                    if(this.getAttribute("data-start")) {
+                        this.act_start = Number(this.getAttribute("data-start")) * 1000
+                    }
+                    // 促销活动结束时间
+                    if(this.getAttribute("data-end")) {
+                        this.act_end = Number(this.getAttribute("data-end")) * 1000
+                    }
+                    // 商品售价
+                    if(this.getAttribute("data-actprice")) {
+                        this.act_price = this.getAttribute("data-actprice") || ''
+                    }
+
+                    // 折扣活动进行中
+                    this.has_act = this.getAttribute("has_act") === "true"
+                    // 是否有折扣活动（包含生效和过期和未开始）
+                    this.has_act_active = this.getAttribute("has_act_active") === "true"
+
+                    // 获取折扣显示信息
+                    if(this.querySelector('.landing-block--product-price [type="application/json"]')) {
+                        try {
+                            this.discount_config = JSON.parse(this.querySelector('.landing-block--product-price [type="application/json"]').textContent)
+                        } catch(e) {
+                            this.discount_config = null
+                        }
+
+                        try {
+                            this.day_num = Math.ceil((this.discount_config.act_time_end - this.discount_config.act_time) / 60 / 60 / 24)
+                        } catch(e) {
+                            console.info(e)
+                        }
+                    }
+                    this.discount_dom_price = this.querySelector(".p-discount")
+
+                    // 分期
+                    this.affirm_dom = this.querySelector(".landing-block--product-affirm")
+
+                    // 进度条
+                    this.available_progress = this.querySelector(".landing-block--product-progress")
+
+                    // 卡片显示样式（US or JP）
+                    this.style_us = this.getAttribute("card_style") === "cards_style_1"
+
+                    setTimeout(() => {
+                        this.handlePriceLoog()
+                    }, 200)
+                    this.handleAffirmDisplay(false)
+                    this.handleAmountDiscount(false)
+                }
+
+                activeACT() { // 活动开启
+                    if(!this.has_act_active) return
+                    this.intervalId = setInterval(() => { this.updateACTTime() }, 1000);
+                }
+
+                updateACTTime() { // 活动时间轮询
+                    this.timenow += 1000
+
+                    if(this.timenow > this.act_start && this.timenow < this.act_end) { // 活动进行中
+                        this.querySelector(".p-price").innerHTML = this.act_price || ''
+                        this.handleAmountDiscount(true)
+                        this.updateProgress(true)
+                    }
+
+                    if(this.timenow > this.act_end) { // 活动结束
+                        this.intervalId && clearInterval(this.intervalId); // 停止更新倒计时
+                        this.querySelector(".p-price").innerHTML = this.price || this.act_price || ''
+                        this.handleAmountDiscount(false)
+                        this.updateProgress(false)
+                    }
+
+                    this.handlePriceLoog()
+                }
+
+                getRankDay(now, start, end) { // 计算活动进度（第几天）
+                    if(now < start || now > end) return
+                    return Math.ceil((now - start) / (1000 * 60 * 60 * 24))
+                }
+
+                // 设置价格折扣显示 & 分期付款显示信息调整
+                handleAmountDiscount(active = false) { // true 活动中，false: 非活动时间
+                    if(!this.discount_config) return
+
+                    if(active) {
+                        this.querySelector(".p-origin-price").innerHTML = this.discount_config?.display_origin_act || ''
+                    } else {
+                        this.querySelector(".p-origin-price").innerHTML = this.discount_config?.display_origin || ''
+                    }
+
+
+
+                    if(active && this.discount_config?.display_act_discount_num) {
+                        this.discount_dom_price && (this.discount_dom_price.innerHTML = this.discount_config?.display_act_discount_num || '')
+                    } else {
+                        this.discount_dom_price && (this.discount_dom_price.innerHTML = this.discount_config?.display_discount_num || '')
+                    }
+                    this.handleAffirmDisplay(active)
+                    this.updateUSStyle(active)
+                }
+
+                // 分期信息处理
+                handleAffirmDisplay(active = false) { // true 活动中，false: 非活动时间
+                    if(!this.affirm_dom) return
+                    if(active) {
+                        if(this.discount_config && this.discount_config.Installment_text && this.discount_config.price_act_num) {
+                            this.affirm_dom.querySelector("span").innerHTML = this.discount_config.Installment_text.replace("{Installment_per}", this.calcPerAffirm(this.discount_config.price_act_num))
+                            this.affirm_dom.classList.add("active")
+                            return
+                        }
+                        this.affirm_dom.classList.remove("active")
+                        return
+                    }
+
+                    if(this.discount_config && this.discount_config.Installment_text && this.discount_config.price_num) {
+                        this.affirm_dom.querySelector("span").innerHTML = this.discount_config.Installment_text.replace("{Installment_per}", this.calcPerAffirm(this.discount_config.price_num))
+                        this.affirm_dom.classList.add("active")
+                        return
+                    }
+                    this.affirm_dom.classList.remove("active")
+                }
+
+                calcPerAffirm(amount) { // 计算分期金额
+                    if(amount < 200) {
+                        return Math.ceil(amount / 4)
+                    } else {
+                        return Math.ceil(amount * 1.1229 / 18)
+                    }
+                }
+
+                handlePriceLoog() {
+                    const bottom = this.querySelector(".landing-block--product-content--bottom");
+                    if (!bottom || !bottom.offsetWidth) return;
+                    const price = this.querySelector(".landing-block--product-price");
+                    if (bottom.offsetWidth <= (price?.offsetWidth || 0) + 4) {
+                        this.querySelectorAll(".p-discount").forEach(el => {
+                            el.style.display = "none";
+                        });
+                    }
+                }
+
+                handleActionTrigger() { // 卡片按钮事件处理
+                    this.querySelectorAll("[btn-action]").forEach(btn => {
+                        btn.addEventListener("click", (event) => {
+                            event.preventDefault();
+
+                            if(!this.discount_config) return
+                            const actionType = btn.getAttribute("btn-action")
+                            switch (actionType) {
+                            case "addtocart":
+                                this.handleAddToCart(this.discount_config.id, 1, btn)
+                                break;
+                            case 'buyitnow':
+                                this.handleBuyItNow(this.discount_config.id, 1, btn)
+                                break;
+                            default:
+                                break;
+                            }
+                        })
+                    })
+                }
+
+                handleAddToCart(id, quantity = 1, dom) { // 卡片按钮事件-加购
+                    dom.classList.add("loading");
+                    if (typeof id !== 'number' || isNaN(id)) {
+                        throw new TypeError('Theme Cart: Variant ID must be a number');
+                    }
+                    const cart = document.querySelector('cart-notification') || document.querySelector('cart-drawer');
+                    const fetchJSON = (url, config) => {
+                        return fetch(url, config).then(function(response) {
+                            if (!response.ok) {
+                            throw response;
+                            }
+                            return response.json();
+                        });
+                    }
+                    const config = {
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json;'
+                        },
+                        method: 'POST',
+                        body: JSON.stringify({
+                            items: [
+                                {
+                                    id: id,
+                                    quantity: quantity
+                                }
+                            ]
+                        })
+                    }
+
+                    fetchJSON('/cart/add.js', config).then(response => {
+                        if(cart && cart.renderContents) {
+                            cart.renderContents(response);
+                        } else {
+                            window.location.href = '/cart';
+                        }
+                        setTimeout(() => dom.classList.remove("loading"), 1000)
+                        if (cart && cart.classList.contains('is-empty')) {
+                            cart.classList.remove('is-empty');
+                        }
+                    })
+                    .catch((e) => {
+                        setTimeout(() => dom.classList.remove("loading"), 1000)
+                        if (cart && cart.classList.contains('is-empty')) {
+                            cart.classList.remove('is-empty');
+                        }
+                        e.json().then(errorData => {
+                            const message = errorData.message
+                            message && pushErrorMessage(message)
+                        })
+                    })
+                }
+
+                async handleBuyItNow(id, quantity = 1, dom) { // 卡片事件 - 立即购买
+                    dom.classList.add("btn--loading");
+                    if (typeof id !== 'number' || isNaN(id)) {
+                        throw new TypeError('Theme Cart: Variant ID must be a number');
+                    }
+                    const params = [{ id, quantity, properties: {} }]
+                    try {
+                        const checkoutUrl = await createCartAndCheckout(params)
+                        if (checkoutUrl) {
+                            window.location.href = checkoutUrl
+                        }
+                    } catch (error) {
+                        let str =  `/cart/${id}:${quantity}`
+                        window.location.href = str
+                    } finally{
+                        dom.classList.remove('btn--loading')
+                    }
+                }
+
+                updateProgress(active = false) { // 售卖进度更新
+                    if(!this.available_progress) return
+                    if(!active) {
+                        this.querySelector(".landing-block--product-progress").classList.remove("active")
+                    }
+                    if(!active || !this.discount_config?.has_act) return
+                    if(!this.day_num || !this.timenow || !this.discount_config.init_num) return
+                    const rank_day = this.getRankDay(this.timenow, this.discount_config.act_time * 1000, this.discount_config.act_time_end * 1000)
+                    if(!rank_day || rank_day === this.rank_day) return
+
+                    let res = this.rank_day ? (100 - this.discount_config.init_num) / this.day_num * rank_day + this.discount_config.init_num + (Math.floor(Math.random() * 7 - 3)) : (100 - this.discount_config.init_num) / this.day_num * rank_day + this.discount_config.init_num
+                    res = res >= 99 ? 99 : res
+                    this.rank_day = rank_day
+                    if(this.discount_config.unavailable_sold_txt) {
+                        this.querySelector(".landing-block--product--sold").innerHTML = this.discount_config.unavailable_sold_txt.replace("{num}", Math.floor(res))
+                    }
+                    if(this.discount_config.available_sold_txt) {
+                        this.querySelector(".landing-block--product--unsold").innerHTML = this.discount_config.available_sold_txt.replace("{num}", Math.ceil(100 - res))
+                    }
+                    this.querySelector(".landing-block--product-progress .jk-seekbar-progress [role='progressbar']").style.width = `${res}%`
+                }
+
+                startServertime(time) { // 同步后端服务器时间
+                    if(!this.has_act_active) return
+                    if(this.act_start >= this.act_end) {
+                        console.error(`配置错误：活动开始时间不能晚于结束时间`)
+                        return
+                    }
+                    this.timenow = Number(time)
+                    this.timenow && this.activeACT()
+                }
+
+                updateUSStyle(active) { // 美站样式角标更新
+                    if(!this.querySelector(".p-discount")) return
+                    const discount_tag = this.querySelector(".landing-block--product-discount-tag--1")
+                    const discount_tag_span = this.querySelector(".landing-block--product-discount-tag--1 span")
+                }
+            })
+        }
+
+        if (!customElements.get('product-coupon')) {
+            customElements.define('product-coupon', class ProductCoupon extends HTMLElement {
+                constructor() {
+                    super()
+                    this.inited = false
+                    this.init()
+                }
+                init() {
+                    this.svg = this.querySelector("svg");
+                    if(!this.svg) return;
+                    this.svgLeft = this.svg.querySelector("#coupon-bg--left");
+                    if(!this.svgLeft) return;
+                    this.svgRight = this.svg.querySelector("#coupon-bg--right");
+                    if(!this.svgRight) return;
+                    this.svgLeftText = this.svg.querySelector("#coupon-bg--left-text");
+                    if(!this.svgLeftText) return;
+                    this.svgRightText = this.svg.querySelector("#coupon-bg--right-text");
+                    if(!this.svgRightText) return;
+
+                    this.initProperties();
+                    !this.inited && this.initEvents();
+                    this.inited = true
+                }
+
+                initProperties() {
+                    let rate = 1
+                    const act_w = this.querySelector("svg").getBoundingClientRect().width
+                    const origin_w = this.querySelector("svg").getAttribute("width").replace("px", "") || act_w
+                    rate = act_w / origin_w
+                    if(!rate) return
+
+                    this.svgRightText.setAttribute("x", `${Math.floor(this.svgLeft.getBoundingClientRect().width + this.svgRight.getBoundingClientRect().width / 2 - this.svgRightText.getBoundingClientRect().width / 2) /  rate}`)
+
+                    this.svgLeftText.setAttribute("x", `${Math.floor(this.svgLeft.getBoundingClientRect().width / 2 - this.svgLeftText.getBoundingClientRect().width / 2) / rate}`)
+                }
+
+                initEvents() {
+                    this.svgRight.addEventListener("click", () => {
+                        copyString(this.getAttribute("data-code"));
+                        this.svgRightText.textContent = this.getAttribute("data-success");
+                        this.initProperties()
+                        pushSuccessMessage(this.getAttribute("data-success-tip"))
+                    })
+
+                    this.svgRightText.addEventListener("click", () => {
+                        copyString(this.getAttribute("data-code"));
+                        this.svgRightText.textContent = this.getAttribute("data-success");
+                        this.initProperties()
+                        pushSuccessMessage(this.getAttribute("data-success-tip"))
+                    })
+                }
+            })
+        }
+    })
+</script>
+{%- endif -%}

@@ -1,0 +1,54 @@
+{%- comment -%}
+  为 Shopify 博客文章详情页输出 Article 结构化数据。
+
+  参数：
+  - organization_id：共享的 Organization 实体 ID
+  - include_organization_reference：是否允许 publisher 引用 Organization
+{%- endcomment -%}
+{%- liquid
+  assign article_schema_id = canonical_url | append: '#article'
+  assign article_description = article.excerpt | default: page_description | default: article.content | strip_html | strip
+  assign article_body = article.content | strip_html | strip
+  assign article_keywords = article.tags | join: ', '
+
+  if article.image != blank
+    assign article_image_url = article.image | image_url: width: article.image.width
+    assign article_image_url_prefix = article_image_url | slice: 0, 2
+    if article_image_url_prefix == '//'
+      assign article_image_url = article_image_url | prepend: 'https:'
+    endif
+  endif
+-%}
+
+<script id="article-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": {{ article_schema_id | json | replace: '\/', '/' }},
+    "headline": {{ article.title | strip | json }},
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": {{ canonical_url | json | replace: '\/', '/' }}
+    },
+    "url": {{ canonical_url | json | replace: '\/', '/' }},
+    "dateCreated": {{ article.created_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+    "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+    "dateModified": {{ article.updated_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }}{% if article_description != blank %},
+    "description": {{ article_description | json }}{% endif %}{% if article_body != blank %},
+    "articleBody": {{ article_body | json }}{% endif %}{% if article_keywords != blank %},
+    "keywords": {{ article_keywords | json }}{% endif %}{% if article.image != blank and article_image_url != blank %},
+    "image": {
+      "@type": "ImageObject",
+      "url": {{ article_image_url | json | replace: '\/', '/' }}{% if article.image.width != blank and article.image.height != blank %},
+      "width": {{ article.image.width | json }},
+      "height": {{ article.image.height | json }}{% endif %}
+    }{% endif %}{% if article.author != blank %},
+    "author": {
+      "@type": "Person",
+      "name": {{ article.author | strip | json }}
+    }{% endif %}{% if include_organization_reference %},
+    "publisher": {
+      "@id": {{ organization_id | json | replace: '\/', '/' }}
+    }{% endif %}
+  }
+</script>

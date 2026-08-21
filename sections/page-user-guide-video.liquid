@@ -1,0 +1,120 @@
+<script src="{{ 'gsap.js' | asset_url }}" defer></script>
+
+{% assign VIDEO_SG = section.blocks | where: 'type', "VIDEO_SG" %}
+{% assign VIDEO_PPS = section.blocks | where: 'type', "VIDEO_PPS" %}
+{% assign VIDEO_SP = section.blocks | where: 'type', "VIDEO_SP" %}
+{% assign VIDEO_ACC = section.blocks | where: 'type', "VIDEO_ACC" %}
+{% assign DEFAULT_TYPE = '' %}
+{% assign DEFAULT_BLOCKS = blank %}
+{% if VIDEO_SG.size > 0 %}
+  {% assign DEFAULT_TYPE = 'sg' %}
+  {% assign DEFAULT_BLOCKS = VIDEO_SG %}
+{% elsif VIDEO_PPS.size > 0 %}
+  {% assign DEFAULT_TYPE = 'pps' %}
+  {% assign DEFAULT_BLOCKS = VIDEO_PPS %}
+{% elsif VIDEO_SP.size > 0 %}
+  {% assign DEFAULT_TYPE = 'sp' %}
+  {% assign DEFAULT_BLOCKS = VIDEO_SP %}
+{% elsif VIDEO_ACC.size > 0 %}
+  {% assign DEFAULT_TYPE = 'acc' %}
+  {% assign DEFAULT_BLOCKS = VIDEO_ACC %}
+{% endif %}
+
+<div class="layer-container">
+  <h2 class="jky-text-2xl">{{ section.settings.title }}</h2>
+  <div class="tab-container">
+    <ul class="tab">
+      {% if VIDEO_SG.size > 0 %}<li class="jky-text-lg {% if DEFAULT_TYPE == 'sg' %}active {% endif %}underlines-btn" data-type="sg">{{ 'collection.solar_generator' | t }}</li>{% endif %}
+      {% if VIDEO_PPS.size > 0 %}<li class="jky-text-lg {% if DEFAULT_TYPE == 'pps' %}active {% endif %}underlines-btn" data-type="pps">{{ 'collection.portable_power_station' | t }}</li>{% endif %}
+      {% if VIDEO_SP.size > 0 %}<li class="jky-text-lg {% if DEFAULT_TYPE == 'sp' %}active {% endif %}underlines-btn" data-type="sp">{{ 'collection.solar_panel' | t }}</li>{% endif %}
+      {% if VIDEO_ACC.size > 0 %}<li class="jky-text-lg {% if DEFAULT_TYPE == 'acc' %}active {% endif %}underlines-btn" data-type="acc">{{ 'collection.accessories' | t }}</li>{% endif %}
+    </ul>
+  </div>
+
+  <div class="search-box">
+    <input type="text" placeholder="{{ section.settings.placeholder }}" />
+    <button type="button">{{ section.settings.button }}</button>
+  </div>
+</div>
+
+{% render 'video-swiper', blocks: DEFAULT_BLOCKS %}
+
+<script defer>
+  window.userGuideString = {
+    noresults: `{{ 'templates.search.noresults' | t }}`
+  }
+</script>
+
+<script type="application/ld+json" id="user-guide-video">
+{
+  "sg": [
+    {% for block in VIDEO_SG %}
+      {"id": "{{ block.id }}", "title": "{{ block.settings.title }}", "link": "{{ block.settings.link }}", "link_text": "{{ block.settings.link_text }}", "video_url": "{{ block.settings.video_url }}", "video_pic": "{{ block.settings.video_pic | image_url: width: 750 }}"}{% if forloop.last != true %},{% endif %}
+    {% endfor %}
+  ],
+  "pps": [
+    {% for block in VIDEO_PPS %}
+      {"id": "{{ block.id }}", "title": "{{ block.settings.title }}", "link": "{{ block.settings.link }}", "link_text": "{{ block.settings.link_text }}", "video_url": "{{ block.settings.video_url }}", "video_pic": "{{ block.settings.video_pic | image_url: width: 750 }}"}{% if forloop.last != true %},{% endif %}
+    {% endfor %}
+  ],
+  "sp": [
+    {% for block in VIDEO_SP %}
+      {"id": "{{ block.id }}", "title": "{{ block.settings.title }}", "link": "{{ block.settings.link }}", "link_text": "{{ block.settings.link_text }}", "video_url": "{{ block.settings.video_url }}", "video_pic": "{{ block.settings.video_pic | image_url: width: 750 }}"}{% if forloop.last != true %},{% endif %}
+    {% endfor %}
+  ],
+  "acc": [
+    {% for block in VIDEO_ACC %}
+      {"id": "{{ block.id }}", "title": "{{ block.settings.title }}", "link": "{{ block.settings.link }}", "link_text": "{{ block.settings.link_text }}", "video_url": "{{ block.settings.video_url }}", "video_pic": "{{ block.settings.video_pic | image_url: width: 750 }}"}{% if forloop.last != true %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+{% schema %}
+{
+  "name": "user guide video", "class": "layer manuals video", "tag": "div",
+  "settings": [
+    {"type": "text", "id": "title", "label": "title", "default": "User Guide Video"},
+    {"type": "text", "id": "placeholder", "label": "search placeholder", "default": "Search Video"},
+    {"type": "text", "id": "button", "label": "search button text", "default": "Search"}
+  ],
+  "blocks": [
+    {
+      "type": "VIDEO_SG", "name": "Solar Generator Video", "settings": [
+        {"type": "text", "id": "title", "label": "Heading", "default": "Two line slide title - 1."},
+        {"type": "url", "id": "link", "label": "Slide link"},
+        {"type": "text", "id": "link_text", "label": "Slide link text", "default": "VIEW MORE"},
+        {"type": "url", "id": "video_url", "label": "Video url"},
+        {"type": "image_picker", "id": "video_pic", "label": "Poster Image"}
+      ]
+    },
+    {
+      "type": "VIDEO_PPS", "name": "Power Station Video", "settings": [
+        {"type": "text", "id": "title", "label": "Heading", "default": "Two line slide title - 1."},
+        {"type": "url", "id": "link", "label": "Slide link"},
+        {"type": "text", "id": "link_text", "label": "Slide link text", "default": "VIEW MORE"},
+        {"type": "url", "id": "video_url", "label": "Video url"},
+        {"type": "image_picker", "id": "video_pic", "label": "Poster Image"}
+      ]
+    },
+    {
+      "type": "VIDEO_SP", "name": "Solar Panel Video", "settings": [
+        {"type": "text", "id": "title", "label": "Heading", "default": "Two line slide title - 1."},
+        {"type": "url", "id": "link", "label": "Slide link"},
+        {"type": "text", "id": "link_text", "label": "Slide link text", "default": "VIEW MORE"},
+        {"type": "url", "id": "video_url", "label": "Video url"},
+        {"type": "image_picker", "id": "video_pic", "label": "Poster Image"}
+      ]
+    },
+    {
+      "type": "VIDEO_ACC", "name": "Accessories Video", "settings": [
+        {"type": "text", "id": "title", "label": "Heading", "default": "Two line slide title - 1."},
+        {"type": "url", "id": "link", "label": "Slide link"},
+        {"type": "text", "id": "link_text", "label": "Slide link text", "default": "VIEW MORE"},
+        {"type": "url", "id": "video_url", "label": "Video url"},
+        {"type": "image_picker", "id": "video_pic", "label": "Poster Image"}
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,357 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+  {% render 'size-radius', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  # 是否显示自定义宽度
+  assign show_custom_width = false
+  if block.settings.content_width != 'content_full'
+    assign show_custom_width = true
+  endif
+
+  # PC端文本内容区域宽度类
+  assign pc_width_class = ''
+
+  # PC端文本内容区域对齐类
+  assign pc_content_align_class = ''
+  assign mb_width_class = ''
+  assign show_mb_custom_width = false
+
+  if show_custom_width
+    assign pc_content_align_class = 'lg:flex ' | append: block.settings.content_alignment
+    assign pc_width_class = 'lg:w-[37.5rem]'
+    if block.settings.content_width == 'content_small'
+      assign pc_width_class = 'lg:w-[50rem]'
+    elsif block.settings.content_width == 'content_middle'
+      assign pc_width_class = 'lg:w-[60rem]'
+    elsif block.settings.content_width == 'custom'
+      assign custom_content_width = block.settings.custom_content_width | times: 1.0 | divided_by: 16
+      if custom_content_width > 0
+        assign pc_width_class = 'lg:w-[var(--v-heading-width)]'
+        assign custom_style = '--v-heading-width: ' | append: custom_content_width | append: 'rem;'
+      endif
+    endif
+  endif
+
+  if block.settings.mb_content_width == 'custom'
+    assign custom_content_width_mb = block.settings.custom_content_width_mb | times: 1.0 | divided_by: 32
+    if custom_content_width_mb > 0
+      assign show_mb_custom_width = true
+      assign mb_width_class = 'w-[var(--v-heading-width-mb)] mx-auto'
+      assign custom_style = custom_style | append: '--v-heading-width-mb: ' | append: custom_content_width_mb | append: 'rem;'
+    endif
+  endif
+-%}
+
+<div
+  class="blocks-heading-content section-padding max-w-full blocks-radius {{block.settings.page_width}} {{ pc_content_align_class }}"
+  {{ block.shopify_attributes }}
+  {% if block.settings.anchor != blank %}
+    anchor-target="{{block.settings.anchor | escape}}"
+  {% endif %}
+  style="background: {{block.settings.bg_color | default: 'transparent' }};{{ style }}"
+>
+  {%- if show_custom_width or show_mb_custom_width -%}
+    <div class="{{ pc_width_class }} {{ mb_width_class }}" style="{{ custom_style }}">
+  {%- endif -%}
+
+  {% content_for 'blocks' %}
+
+  {%- if show_custom_width or show_mb_custom_width -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "V-文本组",
+  "tag": null,
+  "blocks": [
+    { "type": "_v-heading-content-heading" },
+    { "type": "_v-heading-content-subheading" },
+    { "type": "_v-heading-content-des" },
+    { "type": "block-container" }
+  ],
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "color_background", "id": "bg_color", "label": "背景颜色" },
+    {
+      "type": "select",
+      "id": "page_width",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度",
+      "info": "MB端组件宽度固定和设计稿一致，不可修改"
+    },
+
+    {
+      "type": "header",
+      "content": "PC端文本区域布局配置",
+    },
+    {
+      "type": "select",
+      "id": "content_width",
+      "options": [
+        {
+          "value": "content_full",
+          "label": "铺满"
+        },
+        {
+          "value": "content_middle",
+          "label": "960px"
+        },
+        {
+          "value": "content_small",
+          "label": "800px"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "content_full",
+      "label": "文本区域宽度"
+    },
+    {
+      "type": "number",
+      "id": "custom_content_width",
+      "visible_if": "{{ block.settings.content_width == 'custom' }}",
+      "label": "自定义宽度值",
+      "default": 500
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "options": [
+        {
+          "value": "lg:justify-start",
+          "label": "左对齐"
+        },
+        {
+          "value": "lg:justify-center",
+          "label": "居中"
+        },
+        {
+          "value": "lg:justify-end",
+          "label": "右对齐"
+        }
+      ],
+      "default": "lg:justify-center",
+      "label": "文本区域位置",
+      "info": "非铺满模式下，内容区域位置",
+      "visible_if": "{{ block.settings.content_width != 'content_full' }}"
+    },
+
+    {
+      "type": "header",
+      "content": "MB端文本区域布局配置"
+    },
+    {
+      "type": "select",
+      "id": "mb_content_width",
+      "options": [
+        {
+          "value": "content_full",
+          "label": "铺满"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "content_full",
+      "label": "文本区域宽度"
+    },
+    {
+      "type": "number",
+      "id": "custom_content_width_mb",
+      "visible_if": "{{ block.settings.mb_content_width == 'custom' }}",
+      "label": "自定义宽度值",
+      "default": 686
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "PC边距"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "下边距",
+      "default": 36
+    },
+    {
+      "type": "number",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "右边距",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "上边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "下边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_left_mb",
+      "label": "左边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right_mb",
+      "label": "右边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "圆角"
+    },
+    {
+      "type": "range",
+      "id": "radius_1",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_2",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_3",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 30,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_4",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 30,
+      "info": "移动端默认为设置的数值×0.75"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-文本组",
+      "category": "Basic",
+      "blocks": [
+        {
+          "type": "_v-heading-content-heading",
+          "settings": {
+            "heading": "<p>PC 默认标题内容</p>",
+            "mb_heading": "<p>MB 默认标题内容</p>",
+            "padding_top": 0,
+            "padding_bottom": 16,
+            "heading_size": "heading_2"
+          }
+        },
+        {
+          "type": "_v-heading-content-subheading",
+          "settings": {
+            "heading": "<p>PC 默认副标题内容</p>",
+            "mb_heading": "<p>MB 默认副标题内容</p>",
+            "padding_top": 0,
+            "padding_bottom": 40
+          }
+        },
+        {
+          "type": "_v-heading-content-des",
+          "settings": {
+            "heading": "<p>PC 默认描述文案内容</p>",
+            "mb_heading": "<p>PC 默认描述文案内容</p>",
+            "padding_top": 0,
+            "padding_bottom": 0
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

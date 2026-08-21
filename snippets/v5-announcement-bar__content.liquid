@@ -1,0 +1,62 @@
+{% doc %}
+    @description 仅为顶部通知栏使用
+    @param {object} blocks 通知栏内容块
+    @param {number} speed 滚动速度
+    @param {string} days 显示天数文本
+    @param {string} hrs 显示小时文本
+    @param {string} mins 显示分钟文本
+    @param {string} secs 显示秒数文本
+    @param {string} ends_in 截至文案
+    @param {boolean} show_count_down 是否显示倒计时 全局开关
+
+    @example {% render 'v5-announcement-bar__content', 
+                blocks: announce_blocks,
+                speed: section.settings.speed,
+                ends_in: section.settings.ends_in,
+                days: section.settings.days,
+                hrs: section.settings.hours,
+                mins: section.settings.mins,
+                secs: section.settings.secs,
+                show_count_down: show_count_down
+             %}
+{% enddoc %}
+
+<jky-v5-announment-bar
+    class="flex-auto"
+    data-speed="{{ speed | escape }}"
+    data-ends-in="{{ ends_in | escape }}"
+    data-days="{{ days | escape }}"
+    data-hrs="{{ hrs | escape }}"
+    data-mins="{{ mins | escape }}"
+    data-secs="{{ secs | escape }}"
+    data-show-count-down="{{ show_count_down | json }}"
+>
+    <script type="application/json">
+        [
+            {% for block in blocks %}
+            {
+                "begin_time": "{{ block.settings.begin_time | escape }}",
+                "end_time": "{{ block.settings.end_time | escape }}",
+                "show_count_down": {{ block.settings.show_count_down | json }},
+                "link": "{{ block.settings.link }}",
+                "text": "{{ block.settings.text | escape }}",
+                "text_mb": "{{ block.settings.text_mb | escape }}",
+                "text_color": "{{ block.settings.text_color }}"
+            }{% if forloop.last != true %},{% endif %}
+            {% endfor %}
+        ]
+    </script>
+    <div class="flex items-center justify-center">
+        <div class="swiper mySwiper v5-announce-bar-swiper w-full overflow-hidden swiper-no-swiping">
+            <div class="swiper-wrapper swiper-wrapper-container w-full items-center">
+            </div>
+        </div>
+    </div>
+    {% comment %} 关闭按钮 {% endcomment %}
+    <div class="lg:hidden">
+        <button type="button" aria-label="close" class="v5-announcement-bar__close cursor-pointer absolute right-2 top-1/2 z-10 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+            {% render 'icon-close', class: 'w-3 h-3', width: 22, height: 22, color: '#fff' %}
+        </button>
+    </div>
+</jky-v5-announment-bar>
+<script src="{{ 'snippets-v5-announcement-bar__content.js' | asset_url }}" defer></script>

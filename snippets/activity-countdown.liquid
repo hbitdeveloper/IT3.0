@@ -1,0 +1,87 @@
+{% comment %} 倒计时 {% endcomment %}
+<style>
+
+    .count-down-banner{background-color: {{ settings.bgColor }};}
+    .count-down-banner .count-down-container{
+        display: block;
+        background-image: url({{ settings.pc_image | image_url }});
+    }
+    @media screen and (max-width: 1024px) {
+        .count-down-banner .count-down-container{
+            background-image: url({{ settings.mb_image | image_url }});
+        }
+    }
+</style>
+
+{% capture count_down %}
+    <div class="count-down">
+        <div class="time-content">
+            <div class="_days" style="background: {{ settings.bg_color }}; color: {{ settings.number_color }}"></div>
+            <span class="units" style="color: {{ settings.text_color }}">{{ settings.days }}</span>
+        </div>
+        <div class="colon" style="color: {{ settings.number_color }}">:</div>
+        <div class="time-content">
+            <div class="_hours" style="background: {{ settings.bg_color }}; color: {{ settings.number_color }}"></div>
+            <span class="units" style="color: {{ settings.text_color }}">{{ settings.hours }}</span>
+        </div>
+        <div class="colon" style="color: {{ settings.number_color }}">:</div>
+        <div class="time-content">
+            <div class="_mins" style="background: {{ settings.bg_color }}; color: {{ settings.number_color }}"></div>
+            <span class="units" style="color: {{ settings.text_color }}">{{ settings.mins }}</span>
+        </div>
+        <div class="colon" style="color: {{ settings.number_color }}">:</div>
+        <div class="time-content">
+            <div class="_secs" style="background: {{ settings.bg_color }}; color: {{ settings.number_color }}"></div>
+            <span class="units" style="color: {{ settings.text_color }}">{{ settings.secs }}</span>
+        </div>
+    </div>
+{%endcapture%}
+
+<div class="count-down-banner banner-{{ settings.pc_position }} mb-{{ settings.mb_position }}" data-time="{{ settings.time | escape }}" {%if settings.anchor_id != blank%}anchor={{settings.anchor_id | escape}}{%endif%}>
+    <a class="count-down-container"
+       style="{% if settings.full_height %}height:auto;{% endif %}"
+       data-ga-event="home_page_banner4.0"
+       data-ga-action="click"
+       data-ga-params-module="{{ settings.title_main | strip_html }}"
+       data-ga-params-button_name="{{ settings.button_text }}"
+       data-ga-params-link="{{ settings.link }}"
+       data-ga-params-type="countdown_ban"
+       href="{% if settings.link != blank %}{{ settings.link }}{% else %}javascript:void(0);{% endif %}"
+       onclick="if (!'{{ settings.link | escape }}') return false;">
+        <div class="banner-container" style="--padding-pc:{{ settings.padding_pc | default: 72 }}px;--padding-mb:calc(({{ settings.padding_mb | default: 72 }}/750)*100vw);" >
+            <div class="content">
+                {% assign titleColor = '<em style="color: ' | append: settings.title_main_color | append: '">' %}
+                <div class="title">{{ settings.title_main | replace: '<em>', titleColor }}</div>
+                {% if settings.sub_title_position == 'left' %}
+                    <div class="sub-title-position">
+                        {% assign subTitleColor = '<em style="color: ' | append: settings.sub_title_main_color | append: '">' %}
+                        <div class="sub-title" style="--subtitle-size-pc: {{ settings.subtitle_size_pc }}px; --subtitle-size-mb: calc(({{ settings.subtitle_size_mb }}/750)*100vw);">{{ settings.sub_title | replace: '<em>', subTitleColor }}</div>
+                        {{ count_down }}
+                    </div>
+                {% else %}
+                    {% assign subTitleColor = '<em style="color: ' | append: settings.sub_title_main_color | append: '">' %}
+                    <div class="sub-title" style="--subtitle-size-pc: {{ settings.subtitle_size_pc }}px; --subtitle-size-mb: calc(({{ settings.subtitle_size_mb }}/750)*100vw);">{{ settings.sub_title | replace: '<em>', subTitleColor }}</div>
+                    {{ count_down }}
+                {% endif %}
+
+                {%- if settings.button_text != blank -%}
+                    <button class="index-button" style="background: {{ settings.button_color }}">
+                        <span>{{ settings.button_text | escape}}</span>
+                        <div class="arrow">
+                            <svg class="line" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                        <g transform="translate(672.000000, 286.000000)">
+                                            <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                        </g>
+                                    </g>
+                                </g>
+                            </svg>
+                        </div>
+                    </button>
+                {%- endif -%}
+            </div>
+
+        </div>
+    </a>
+</div>

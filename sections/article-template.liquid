@@ -1,0 +1,196 @@
+{{ 'sections-article-template.css' | asset_url | stylesheet_tag }}
+{% if blog.comments_enabled? %}
+  <link rel="stylesheet" href="{{ 'sections-article-template-comments.css' | asset_url }}" media="print" onload="this.media='all'">
+{% endif %}
+
+{%- assign number_of_comments = article.comments_count -%}
+{%- if comment and comment.created_at -%}
+  {%- assign number_of_comments = article.comments_count | plus: 1 -%}
+{%- endif -%}
+
+<div class="page-width page-content" data-article-template>
+
+  <div class="grid">
+    <article class="grid__item medium-up--two-thirds medium-up--push-one-sixth article"{% unless settings.enable_article_schema %} itemscope itemtype="https://schema.org/Article"{% endunless %}>
+          <nav class="breadcrumb jky-text-xs" aria-label="breadcrumbs">
+        <a href="{{ routes.root_url }}" title="Home">{{ 'general.breadcrumbs.home' | t }}</a>
+        <span class="divider" aria-hidden="true">/</span>
+        {{ blog.title | link_to: blog.url }}
+        <span class="divider" aria-hidden="true">/</span>
+        <span>{{ article.title | escape }}</span>
+      </nav>
+
+      <header class="section-header">
+        {% assign show_meta = false %}
+        {% if section.settings.blog_show_date %}
+          {% assign show_meta = true %}
+        {% elsif section.settings.blog_show_tags and article.tags.size > 0 %}
+          {% assign show_meta = true %}
+        {% elsif section.settings.blog_show_comments and article.comments_count > 0 %}
+          {% assign show_meta = true %}
+        {% endif %}
+
+        {% if show_meta %}
+          <div class="article__date jky-text-xs">
+            {% assign has_meta = false %}
+            {% if section.settings.blog_show_tags and article.tags.size > 0 %}
+              {% for tag in article.tags %}
+                {% if has_meta %} &middot; {% endif %}
+                <a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag | escape }}</a>
+                {% assign has_meta = true %}
+              {% endfor %}
+            {% endif %}
+            {% if section.settings.blog_show_comments and article.comments_count > 0 %}
+              {% if has_meta %} &middot; {% endif %}
+              <a href="#comments">{{ article.comments_count }} {{ article.comments_count | pluralize: 'comment', 'comments' }}</a>
+              {% assign has_meta = true %}
+            {% endif %}
+            {% if section.settings.blog_show_date %}
+              {% if has_meta %} &middot; {% endif %}
+              {{ article.published_at | time_tag: format: 'date' }}
+            {% endif %}
+          </div>
+        {% endif %}
+        <h1 class="section-header__title jky-text-2xl">{{ article.title }}</h1>
+        {% if section.settings.blog_show_author %}
+          <div class="article__author">by {{ article.author }}</div>
+        {% endif %}
+      </header>
+
+      <div class="article__body rte rte--indented-images"{% unless settings.enable_article_schema %} itemprop="articleBody"{% endunless %}>
+        {% assign content = article.content %}
+        {% assign content = content | replace: '<img ', '<img loading="lazy" decoding="async" ' %}
+        {% assign content = content | replace_first: '<img loading="lazy" decoding="async" ', '<img loading="eager" fetchpriority="high" decoding="async" ' %}
+        {{ content }}
+      </div>
+      {%- if settings.article_tip != blank -%}
+        <div class="article-tip">
+          {{ settings.article_tip }}
+        </div>
+      {%- endif -%}
+
+
+      {% if blog.comments_enabled? %}
+        {% if number_of_comments > 0 %}
+          <hr class="hr--large">
+          <h2 class="text-spacing jky-text-2xl font-bold comment__title">{{ 'blogs.comments.with_count' | t: count: number_of_comments }}</h2>
+        {% endif %}
+
+        {%- paginate article.comments by 5 -%}
+          <div id="comments">
+            {% if comment and comment.errors == blank %}
+              <hr class="hr--clear">
+              <p class="note note--success">
+                {% if blog.moderated? %}
+                  {{ 'blogs.comments.success_moderated' | t }}
+                {% else %}
+                  {{ 'blogs.comments.success' | t }}
+                {% endif %}
+              </p>
+            {% endif %}
+
+            {% if number_of_comments > 0 %}
+              <ul class="no-bullets">
+                {%- if comment.status == 'pending' -%}
+                  <li id="Comment-{{ comment.id }}" class="article__comment">
+                    {%- render 'comment', comment: comment -%}
+                  </li>
+                {%- endif -%}
+
+                {%- for comment in article.comments -%}
+                  <li id="Comment-{{ comment.id }}" class="article__comment">
+                    {%- render 'comment', comment: comment -%}
+                  </li>
+
+                  {% unless forloop.last %}
+                    <li><hr class="hr--clear"></li>
+                  {% endunless %}
+                {%- endfor -%}
+              </ul>
+
+              {%- if paginate.pages > 1 -%}
+                {%- render 'pagination', paginate: paginate, anchor: '#comments' -%}
+              {% endif %}
+
+            {% endif %}
+
+            <hr class="hr--large">
+
+            <h2 class="text-spacing jky-text-2xl font-bold comments__title">{{ 'blogs.comments.title' | t }}</h2>
+
+            <div class="form-vertical">
+              {% form 'new_comment', article %}
+                {{ form.errors | default_errors }}
+                <div class="grid grid--small">
+                  <div class="grid__item medium-up--one-half">
+                    <label for="CommentAuthor">{{ 'blogs.comments.name' | t }}</label>
+                    <input class="input-full{% if form.errors contains 'author' %} error{% endif %}" type="text" name="comment[author]" id="CommentAuthor" value="{{ form.author }}" autocapitalize="words">
+                  </div>
+                  <div class="grid__item medium-up--one-half">
+                    <label for="CommentEmail">{{ 'blogs.comments.email' | t }}</label>
+                    <input class="input-full{% if form.errors contains 'email' %} error{% endif %}" type="email" name="comment[email]" id="CommentEmail" value="{{ form.email }}" autocorrect="off" autocapitalize="off">
+                  </div>
+                </div>
+
+                <label for="CommentBody">{{ 'blogs.comments.message' | t }}</label>
+                <textarea class="input-full{% if form.errors contains 'body' %} error{% endif %}" name="comment[body]" id="CommentBody">{{ form.body }}</textarea>
+                {% if blog.moderated? %}
+                  <p><small>{{ 'blogs.comments.moderated' | t }}</small></p>
+                {% endif %}
+                <input type="submit" class="btn" value="{{ 'blogs.comments.post' | t }}">
+              {% endform %}
+            </div>
+          </div>
+        {%- endpaginate -%}
+      {% endif %}
+
+      <hr class="hr--large">
+
+      <div class="text-center jky-text-sm">
+        <a href="{{ blog.url }}" class="return-link">
+          <svg aria-hidden="true" focusable="false" role="presentation" class="icon icon--wide icon-arrow-left" viewBox="0 0 50 15">
+            <path d="M50 5.38v4.25H15V15L0 7.5 15 0v5.38z"/>
+          </svg>
+          {{ 'blogs.article.back_to_blog' | t: title: blog.title }}
+        </a>
+      </div>
+    </article>
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Article pages",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "blog_show_tags",
+        "label": "Show tags",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "blog_show_date",
+        "label": "Show date",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "blog_show_comments",
+        "label": "Show comment count",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "blog_show_author",
+        "label": "Show author"
+      },
+      {
+        "type": "checkbox",
+        "id": "social_sharing_blog",
+        "label": "Show social sharing buttons",
+        "default": true
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,286 @@
+{% assign capacity = product.metafields.my_fields.wattage %}
+{%- if capacity -%}
+  {% comment %} 产品最大功率，单位：W（瓦特） {% endcomment %}
+  {% assign max_power = product.metafields.custom.max_power %}
+
+  {% assign efficiency = 0.8 %}
+  {% assign ac_consumption = 0 %}
+  {%- if capacity >= 100 and capacity < 1000 -%}
+    {% assign efficiency = 0.82 %}
+    {% assign ac_consumption = 10 %}
+  {%- elsif capacity>= 1000 and capacity < 1200 -%}
+    {% assign efficiency = 0.82 %}
+    {% assign ac_consumption = 15 %}
+  {%- elsif capacity>= 1200 and capacity < 2100 -%}
+    {% assign efficiency = 0.82 %}
+    {% assign ac_consumption = 18 %}
+  {%- elsif capacity>= 2100 and capacity < 3050 -%}
+    {% assign efficiency = 0.85 %}
+    {% assign ac_consumption = 25 %}
+  {%- elsif capacity>= 3050 and capacity < 5000 -%}
+    {% assign efficiency = 0.85 %}
+    {% assign ac_consumption = 22 %}
+  {%- elsif capacity>= 5000 -%}
+    {% assign efficiency = 0.85 %}
+    {% assign ac_consumption = 50 %}
+  {%- endif  -%}
+
+  {% if product.metafields.custom.efficiency != blank %}
+    {% assign efficiency = product.metafields.custom.efficiency %}
+  {% endif %}
+
+  {% if product.metafields.custom.ac_consumption != blank %}
+    {% assign ac_consumption = product.metafields.custom.ac_consumption %}
+  {% endif %}
+
+  <style>
+    .time-simulator-wrapper .section-container {
+      padding: 70px 20px;
+      text-align: center;
+      background: var(--normal-color);
+      border-radius: var(--g-radius);
+    }
+    .time-simulator-wrapper .running-title {
+      color: var(--text-black);
+    }
+    .time-simulator-wrapper .running-desc {
+      margin-top: var(--gap);
+    }
+    .time-simulator-wrapper .running-wrap {
+      margin-top: var(--content-distance);
+    }
+    .time-simulator-wrapper .running-wrap input,
+    .time-simulator-wrapper .running-wrap .unit {
+      font-size: 36px;
+      font-weight: 500;
+      color: var(--text-black);
+    }
+    .time-simulator-wrapper .running-wrap input {
+      width: var(--running-length);
+      height: var(--running-input);
+      line-height: var(--running-input);
+      text-align: center;
+      background: var(--normal-color);
+      border-radius: var(--running-radius);
+      border: var(--border-color-link);
+      margin: 0 var(--gap);
+    }
+    .time-simulator-wrapper .time-result {
+      margin-top: 20px;
+    }
+    .time-simulator-wrapper .running-time .time-result .number {
+      color: var(--primary-color);
+    }
+    .time-simulator-wrapper .running-tip {
+      color: var(--text-main-color);
+      margin-top: 40px;
+    }
+    .time-simulator-wrapper .time-result .number {
+      color: var(--primary-color);
+    }
+    .time-simulator-wrapper .running-error {
+      display: none;
+      font-weight: 500;
+      color: var(--primary-color);
+      margin-top: 15px;
+      transition: all 0.3s ease;
+    }
+    @media screen and (max-width: 768px) {
+      .time-simulator-wrapper .time-result img {
+        width: 32px;
+        margin-right: 5px;
+      }
+      .time-simulator-wrapper .running-tip {
+        margin-top: 12px;
+      }
+      .time-simulator-wrapper .section-container {
+        padding: 9.3333vw 2.6667vw 2.6667vw;
+        border-radius: 0;
+        margin-top: 0;
+      }
+
+      .time-simulator-wrapper .running-wrap input,
+    .time-simulator-wrapper .running-wrap .unit {font-size: 18px;}
+    }
+  </style>
+
+  <div
+    {% if section.settings.anchor != blank %}
+      data-anchor="{{section.settings.anchor}}"
+    {% endif %}
+    class="time-simulator-wrapper product-b J-running-time {% if section.settings.section_type %} product-p-t{% endif %}"
+  >
+    <div style="background:#fff;" class="section-container text-center">
+      <p class="running-title jky-text-xl font-bold">{{ section.settings.running_title }}</p>
+
+      <p class="running-desc jky-text-lg">
+        {{ section.settings.running_product }}
+        {{ 'products.product.running_capacity' | t: capacity: capacity }}
+        <br>
+        {{ section.settings.running_tip }}
+        {{ 'products.product.running_not_exceeding' | t: exceeding: max_power }}
+      </p>
+
+      <div class="running-wrap flex justify-center items-center">
+        <img
+          src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/icon_62deaa2a-2d30-4fd8-bbd3-3f5f7067c615.svg?v=1678865782"
+          alt=""
+          loading="lazy"
+        >
+        <input
+          aria-label="Input power"
+          type="number"
+          min="0"
+          data-maxpower="{{max_power}}"
+          data-capacity="{{ capacity }}"
+          data-efficiency="{{ efficiency }}"
+          data-ac_consumption="{{ ac_consumption }}"
+          class="time-input"
+          onkeyup="value=value.replace(/[^\d]/g,'')"
+          onblur="value=value.replace(/[^\d]/g,'')"
+        >
+        <span class="unit">W</span>
+      </div>
+
+      <div class="running-error jky-text-base">
+        {{ 'products.product.running_error1' | t }}
+        <span></span> {{ 'products.product.running_error2' | t }}
+      </div>
+
+      <div class="time-result">
+        <div class="result jky-text-sm flex justify-center items-center font-500">
+          <img
+            src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/icon_Expected_uptime.svg?v=1678864200"
+            alt=""
+            loading="lazy"
+          >
+          <span>
+            <b class="number jky-text-2xl">0</b>
+            <i class="unit">{{ section.settings.hour_desc | escape }}</i>
+          </span>
+        </div>
+        <div class="jky-text-sm font-500">{{ section.settings.running_expected }}</div>
+      </div>
+
+      <div class="running-tip jky-text-base">{{ 'products.product.running_notes' | t }}</div>
+    </div>
+  </div>
+
+  <script defer>
+    (function () {
+      const runningTimeEl = document.querySelector('.J-running-time');
+      if (!runningTimeEl) return;
+
+      const timeInp = runningTimeEl.querySelector('.time-input');
+      const errorEl = runningTimeEl.querySelector('.running-error');
+      const errorTextEl = errorEl ? errorEl.querySelector('span') : null;
+      const numberEl = runningTimeEl.querySelector('.number');
+      if (!timeInp || !errorEl || !errorTextEl || !numberEl) return;
+
+      timeInp.addEventListener('change', function () {
+        const capacity = timeInp.getAttribute('data-capacity');
+        const maxPower = timeInp.getAttribute('data-maxpower');
+        const efficiency = timeInp.getAttribute('data-efficiency');
+        const acConsumption = timeInp.getAttribute('data-ac_consumption');
+
+        const value = timeInp.value;
+        if (capacity && value) {
+          if (maxPower && Number(value) > Number(maxPower)) {
+            const text = `${maxPower}W`;
+            errorTextEl.textContent = text;
+            errorEl.style.display = 'block';
+          } else {
+            const result = window.Jackery.Utils.getRunningTime(Number(value), Number(capacity), Number(efficiency), Number(acConsumption));
+            numberEl.textContent = Number(result)?.toLocaleString(window.Shopify.locale);
+            errorTextEl.textContent = '';
+            errorEl.style.display = 'none';
+          }
+        } else {
+          numberEl.textContent = '0';
+          errorTextEl.textContent = '';
+          errorEl.style.display = 'none';
+        }
+      });
+    })();
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "product time simulator",
+  "class": "product-time-simulator product-section-block",
+  "tag": "div",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "section_type",
+      "default": false,
+      "label": "是否为大版块？",
+      "info": "大版块与上一个模块之间间距大，小版块与上一模块间距较小"
+    },
+    {
+      "type": "select",
+      "id": "anchor",
+      "label": "锚点设置",
+      "info": "非锚点section请清空此项",
+      "options": [
+        {
+          "value": "",
+          "label": "非锚点section"
+        },
+        {
+          "value": "anchor__1",
+          "label": "第一个section锚点"
+        },
+        {
+          "value": "anchor__2",
+          "label": "第二个section锚点"
+        },
+        {
+          "value": "anchor__3",
+          "label": "第三个section锚点"
+        },
+        {
+          "value": "anchor__4",
+          "label": "第四个section锚点"
+        }
+      ],
+      "default": ""
+    },
+    {
+      "type": "text",
+      "id": "running_title",
+      "label": "Running Title",
+      "default": "Running Time Simulator"
+    },
+    {
+      "type": "text",
+      "id": "running_product",
+      "label": "Running Product",
+      "default": "To power with Explorer 1000 Pro"
+    },
+    {
+      "type": "text",
+      "id": "running_tip",
+      "label": "Running Tip",
+      "default": "Please enter the wattage of the appliance"
+    },
+    {
+      "type": "text",
+      "id": "running_expected",
+      "label": "Running Expected",
+      "default": "Expected Running Time"
+    },
+    { "type": "text", "id": "hour_desc", "label": "Hour Description", "default": "Hrs" }
+  ],
+  "blocks": [],
+  "presets": [
+    {
+      "name": "product time simulator"
+    }
+  ]
+}
+{% endschema %}

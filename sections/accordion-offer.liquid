@@ -1,0 +1,113 @@
+{{ 'snippet-jp-offer-form.min.css' | asset_url | stylesheet_tag }}
+
+<div class="accordion-offer">
+    {% for block in section.blocks %}
+        <div class="accordion-item">
+            <div class="accordion-header">
+                <span class="accordion-icon"><svg width="16" height="16" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path opacity=".3" d="M16 0v16H0V0z"/><path d="M12.385 8.003a.619.619 0 01-.219.463l-5.988 5.347a.692.692 0 01-.483.187.754.754 0 01-.355-.083.642.642 0 01-.25-.224.612.612 0 01.106-.77L11.11 7.63v.74L5.196 3.078A.597.597 0 015 2.628c0-.12.03-.226.09-.32a.642.642 0 01.25-.225A.754.754 0 015.695 2a.705.705 0 01.49.187l5.98 5.347a.632.632 0 01.22.47z" fill="#333" fill-rule="nonzero"/></g></svg></span></span>
+                {{ block.settings.offer_title }}
+            </div>
+            {% assign titleDesColor = '<em style="color: ' | append: block.settings.offer_des_color | append: '">' %}
+            <div class="accordion-content">
+                {{ block.settings.offer_des| replace: '<em>', titleDesColor }}
+                <div class="btn-box">
+                    <jds-button 
+                      data-ga-event="accordion_user_clicks"
+                      data-ga-action="click"
+                      data-ga-params-module="{{ block.settings.offer_title }}"
+                      data-ga-params-button_name="{{ section.settings.offer_btn }}"
+                      kind="custom" style="--jds-btn-custom-color: var(--jds-color-primary)">{{ section.settings.offer_btn }}</jds-button>
+                </div>
+            </div>
+                
+        </div>
+    {% endfor %}
+</div>
+
+<jds-dialog class="offer-dialog" caption="{{ section.settings.modal_title }}" critical size="large" style="--jds-dialog-title-align: center;--jds-dialog-index: 100000;" data-hcname="">
+    {% render 'jp-offer-form' section: section.settings %}
+</jds-dialog>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".accordion-header").forEach(header => {
+        header.addEventListener("click", () => {
+            const activeHeader = document.querySelector(".accordion-header.active");
+            if (activeHeader && activeHeader !== header) {
+                // 关闭其他展开项
+                activeHeader.classList.remove("active");
+                activeHeader.nextElementSibling.style.maxHeight = null;
+                activeHeader.nextElementSibling.classList.remove("open");
+            }
+
+            header.classList.toggle("active");
+            const content = header.nextElementSibling;
+            gaPushDataLayer('accordion_user_clicks', {
+                "module": header?.textContent.trim() || '', // 问题文本内容text
+                "button_name": header.classList.contains("active") ? "open" : "fold" // 折叠fold，展开open。
+            })
+
+            if (header.classList.contains("active")) {
+                content.classList.add("open");
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else {
+                content.style.maxHeight = null;
+                content.classList.remove("open");
+            }
+        });
+    });
+
+    // ✅ 新增：按钮点击逻辑
+    document.querySelectorAll(".accordion-content jds-button").forEach((btn, index) => {
+        btn.addEventListener("click", (event) => {
+          event.stopPropagation(); // 防止触发父级折叠
+          const jobTitle = btn.closest(".accordion-item")?.querySelector(".accordion-header")?.innerText?.trim() || "未知岗位";
+          const offerDialog = document.querySelector('.offer-dialog')
+          offerDialog.querySelector('.hc-name')?.setAttribute('value', jobTitle);
+          offerDialog.setAttribute('data-hcname', jobTitle);
+          offerDialog?.setAttribute('open', true)
+          if(window.screen.width < 1024){
+            offerDialog.setAttribute('caption', '{{ section.settings.modal_title_mb }}')
+          }
+        });
+    });
+
+});
+</script>
+
+{% schema %}
+{
+  "name": "岗位列表",
+  "class": "jp-accordion-offer",
+  "settings": [
+    {"type": "text", "id": "offer_btn", "label": "投递按钮文案"},
+    {"type": "text", "id": "modal_title", "label": "PC弹窗标题"},
+    {"type": "text", "id": "modal_title_mb", "label": "MB弹窗标题"},
+    {"type": "richtext", "id": "modal_tips", "label": "弹窗说明文案"},
+    {"type": "color", "id": "modal_tips_color", "label": "弹窗说明文案强调颜色", "default": "#fd5000", "info": "如果需要使用强调颜色标记，请在富文本中使用斜体标记" },
+    {"type": "text", "id": "modal_require", "label": "必填提示语"},
+    {"type": "text", "id": "modal_input_email", "label": "邮箱输入框提示文案"},
+    {"type": "text", "id": "email_error", "label": "邮箱格式无效文案"},
+    { "type": "text", "id": "upload_text", "label": "上传文件按钮文案"},
+    { "type": "text", "id": "upload_exceed_error", "label": "文件超出10M限制提示语"},
+    { "type": "text", "id": "upload_format_error", "label": "文件格式错误提示语"},
+    {"type": "text", "id": "modal_success", "label": "投递成功提示文案"},
+  ],
+  "blocks": [
+    {
+      "type": "offer_item",
+      "name": "Offer Item",
+      "settings": [
+        {"type": "text", "id": "offer_title", "label": "岗位标题"},
+        {"type": "richtext", "id": "offer_des", "label": "岗位描述", "info": "斜体可标记高亮色"},
+        { "type": "color", "id": "offer_des_color", "label": "岗位描述文案强调颜色", "default": "#fd5000" }
+      ]
+    }
+  ],
+    "presets": [
+    {
+      "name": "岗位列表"
+    }
+  ]
+}
+{% endschema %}

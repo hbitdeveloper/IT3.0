@@ -1,0 +1,368 @@
+{%- style -%}
+  .v5-accordion-guides .guides-rich a{
+    text-decoration: underline;
+  }
+{%- endstyle -%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="section-padding section-container-lg v5-accordion-guides lg:w-[82.5rem] w-[21.4375rem] mx-auto flex flex-col gap-[1rem]"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  style="{{style}}"
+>
+  {% for block in section.blocks %}
+    {% case block.type %}
+      {% when 'item' %}
+        <details class="group bg-[#f6f6f3] border-b border-white">
+          <summary class="flex items-center justify-between px-2 lg:px-4 lg:py-[1.5rem] py-[1rem] cursor-pointer select-none">
+            <div class="flex items-center gap-3">
+              {% comment %}左侧文档图标 {% endcomment %}
+              <span class="inline-flex items-center justify-center lg:w-[2.5rem] lg:h-[2.5rem] w-6 h-6 text-white">
+                {% assign img_alt = block.settings.title | strip_html | default: block.settings.icon.alt | default: 'image alt' %}
+                {%- render 'diff-end-img',
+                  pc_img: block.settings.icon,
+                  mb_img: block.settings.icon,
+                  class: 'lg:w-[2.5rem] lg:h-[2.5rem] w-6 h-6',
+                  pc_img_width: 40,
+                  mb_img_width: 24,
+                  alt: img_alt,
+                -%}
+                
+              </span>
+              <span class="lg:text-[1.5rem] text-[0.875rem] font-semibold text-[#242F20]">
+                {{ block.settings.title }}
+              </span>
+            </div>
+
+            {% comment %}右侧箭头：收起/展开状态切换 {% endcomment %}
+            <span class="ml-4 text-gray-600">
+              <svg
+                class="w-4 h-4 md:w-5 md:h-5 group-open:hidden"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <svg
+                class="w-4 h-4 md:w-5 md:h-5 hidden group-open:block"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M5 12.5L10 7.5L15 12.5" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+          </summary>
+           {% assign richColor = '<em style="color: ' | append: block.settings.rich_color | append: '">' %}
+          <div class="need-filter px-4 pb-6 lg:text-[1rem] text-[0.875rem] text-[rgba(36,47,32,0.9)] space-y-6 guides-rich">
+            {{ block.settings.content | replace: '<em>', richColor }}
+          </div>
+        </details>
+      {% when 'item_pdf' %}
+        <details class="group bg-[#f6f6f3] border-b border-white">
+          <summary class="flex items-center justify-between px-2 lg:px-4 py-[1.5rem] cursor-pointer select-none">
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center justify-center lg:w-[2.5rem] lg:h-[2.5rem] w-6 h-6 text-white">
+                {% assign img_alt = block.settings.title | strip_html | default: block.settings.icon.alt | default: 'image alt' %}
+                {%- render 'diff-end-img',
+                  pc_img: block.settings.icon,
+                  mb_img: block.settings.icon,
+                  class: 'lg:w-[2.5rem] lg:h-[2.5rem] w-6 h-6',
+                  pc_img_width: 40,
+                  mb_img_width: 24,
+                  alt: img_alt
+                -%}
+              </span>
+              <span class="lg:text-[1.5rem] text-[0.875rem] font-semibold text-[#242F20]">
+                {{ block.settings.title }}
+              </span>
+            </div>
+
+            <span class="ml-4 text-gray-600">
+              <svg
+                class="w-4 h-4 md:w-5 md:h-5 group-open:hidden"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <svg
+                class="w-4 h-4 md:w-5 md:h-5 hidden group-open:block"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M5 12.5L10 7.5L15 12.5" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+          </summary>
+
+          <div class="lg:px-4 px-2 pb-4 md:pb-6 text-xs md:text-sm text-[#1f3325] space-y-6">
+            {%- for i in (0..4) -%}
+              {% assign pdf_index = 'pdf_' | append: forloop.index %}
+              {% assign link_index = 'link_' | append: forloop.index %}
+              {%- if block.settings[pdf_index] != blank -%}
+                <a href="{{ block.settings[link_index] }}" class="flex items-center gap-2 underline">
+                  <span
+                    class="inline-flex items-center justify-center w-6 h-6 text-white text-[10px]"
+                  >
+                    <svg
+                      width="24"
+                      height="24"
+                      fill="none"
+                    >
+                      <path fill="url(#prefix__pattern0_7364_35135)" d="M0 0h24v24H0z" />
+                      <defs>
+                          <pattern id="prefix__pattern0_7364_35135" patternContentUnits="objectBoundingBox"
+                              width="1" height="1">
+                              <use xlink:href="#prefix__image0_7364_35135" transform="scale(.01111)" />
+                          </pattern>
+                          <image id="prefix__image0_7364_35135" width="90" height="90"
+                              preserveAspectRatio="none"
+                              xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAYAAAA4qEECAAAACXBIWXMAAAsTAAALEwEAmpwYAAACuklEQVR4nO2aS24TQRCGZwU7ECteyVSNuwzI4C4iS7kCYsFNgB2xOUlEuA+IBYQDwAZxAWDBY9NRx0YyZjJ2HPd0T/v/pJIstcdT9elXW552UQAAAAAAAAAAAACAWnqj3tW+8guj/MEofRdl16Uy057f+xlkX64UKWJ0975R/hxblmxMOn+Sh+WgSC3JovQlthzZtGzLX8thea1IBaN8GFuKhEv2YZECvVGvNEq/YwuRYKmmP3dsWcX2XIilo9gyJHRZepVumi0dFR1DlF4nmeqz0hy9sTXhPaaG4MRJdW5pTjbVuaU5yVTnmubkUp1rmpNKde5pTibVuac5mVR7obmneZVUF6GJ/itN0yiIVoh2ORVEK0S7nAqiFaJdTgXRCtEup8pWtFH6JcoHd/d2b/kS5XHMs8psRYvyQU0vY4jecN0blTcXe6EB3YDolgaTxPqBaIVoB9EdGEwS6weiFaIdRHdgMEmsH4hWiHYQ3YHBJLF+IFoh2kF0BwaTxPqBaIVoB9EtDWamJyVj/3x59ox5PDtROZfo2TWLnxPkFKaTokV5vHif3pAez8te1o9/r7/mv3VLE4jWafn01d3LWH4kyj+XiT5Nra2e1K1XD6rrEK3Noudln7neINkzO8iFaPFladJ0z7otYZU1j7H0EqK1eX+9KIv7/NaLliX77DrM7+8QrWFkh5bcedGyAdltSM5CtFxAdluSsxEta8huU3JWouUcstuWnJ1oWUF2DMlZipYG2bEkZyta/j6ZszTx/yr15V+H+jGy1aIlsYJohWiXUwUXbZR+xB5SIpex9C28aEvvYg8qsUUrvw0uum/5eexBJbro6mlw0SJy2Vj6uLWSLR8PBoNLwUWfyh7KzjbKNpaP+7pzuxXJ/yabn/n9KucvSONns/zGbxetJRkAAAAAAAAAAACgSJsTuT/CQIp6LIYAAAAASUVORK5CYII=" />
+                      </defs>
+                    </svg>
+                  </span>
+
+                  <span>{{ block.settings[pdf_index] }}</span>
+                </a>
+              {%- endif -%}
+            {% endfor %}
+          </div>
+        </details>
+    {% endcase %}
+  {% endfor %}
+</div>
+
+<script>
+  (function () {
+    var contents = document.querySelectorAll('.v5-accordion-guides details.group .need-filter');
+    contents.forEach(function (ct) {
+      var html = ct.innerHTML || '';
+      html = html.replace(/!\[ImageMB\]\((.*?)\)/gi, function (_, url) {
+        var cleanUrl = url.replace(/<[^>]+>/g, '').trim();
+        return `<img src="${cleanUrl}" class="block lg:hidden w-[19.4375rem] h-[14.5625rem] object-cover" loading="lazy"/>`;
+      });
+
+      // PC 专用
+      html = html.replace(/!\[Image\]\((.*?)\)/gi, function (_, url) {
+        var cleanUrl = url.replace(/<[^>]+>/g, '').trim();
+        return `<img src="${cleanUrl}" class="hidden lg:block w-[80.5rem] h-[19.3125rem] object-cover" loading="lazy"/>`;
+      });
+
+      ct.innerHTML = html;
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "V5-通用说明规则",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 40,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 80,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Accordion Item",
+      "settings": [
+        { "type": "text", "id": "title", "label": "标题", "default": "General Rules" },
+        { "type": "image_picker", "id": "icon", "label": "图标", "info":"推荐图片尺寸: 40x40" },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "内容",
+          "default": "<p>Content goes here.</p>",
+          "info": "插入图片，需遵循![Image]()和![ImageMB]()格式，英文括号内插入图片链接即可，PC图片尺寸1288*309,MB图片尺寸311*233"
+        },
+        { "type": "color", "id": "rich_color", "label": "斜体可标记高亮色","default": "#fd5000"},
+      ]
+    },
+    {
+      "type": "item_pdf",
+      "name": "Accordion Item PDF",
+      "settings": [
+        { "type": "text", "id": "title", "label": "标题", "default": "General Rules" },
+        { "type": "image_picker", "id": "icon", "label": "图标", "info":"推荐图片尺寸: 40x40" },
+        {
+          "type": "header",
+          "content": "FDF1"
+        },
+        { "type": "text", "id": "pdf_1", "label": "PDF文案" },
+        { "type": "url", "id": "link_1", "label": "PDF链接" },
+        {
+          "type": "header",
+          "content": "FDF2"
+        },
+        { "type": "text", "id": "pdf_2", "label": "PDF文案" },
+        { "type": "url", "id": "link_2", "label": "PDF链接" },
+        {
+          "type": "header",
+          "content": "FDF3"
+        },
+        { "type": "text", "id": "pdf_3", "label": "PDF文案" },
+        { "type": "url", "id": "link_3", "label": "PDF链接" },
+        {
+          "type": "header",
+          "content": "FDF4"
+        },
+        { "type": "text", "id": "pdf_4", "label": "PDF文案" },
+        { "type": "url", "id": "link_4", "label": "PDF链接" },
+        {
+          "type": "header",
+          "content": "FDF5"
+        },
+        { "type": "text", "id": "pdf_5", "label": "PDF文案" },
+        { "type": "url", "id": "link_5", "label": "PDF链接" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-通用说明规则",
+      "category": "V5.0",
+      "blocks": [
+        { "type": "item", "settings": { "title": "General Rules" } },
+        { "type": "item", "settings": { "title": "Related User Guides" } },
+        { "type": "item", "settings": { "title": "Important Notes" } },
+        { "type": "item", "settings": { "title": "Installation Terms" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

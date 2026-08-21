@@ -1,0 +1,62 @@
+{% comment %} 当前页面的全路径 {% endcomment %}
+{%- assign full_page_url = request.origin | append: request.path -%}
+
+{% comment %} 在哪些页面显示 {% endcomment %}
+{%- assign all_include_page_url = settings.pif_float_button_include_page_url | split: ',' -%}
+
+{% comment %} 默认不包含 {% endcomment %}
+{%- assign should_include = false -%}
+
+{% comment %} 检查是否应该包含该 block {% endcomment %}
+{%- if all_include_page_url.size > 0 -%}
+  {%- for include_url in all_include_page_url -%}
+    {%- assign include_url_trim = include_url | strip -%}
+
+    {%- if include_url_trim == '/' and request.path == '/' -%}
+      {%- assign should_include = true -%}
+      {%- break -%}
+    {%- elsif full_page_url contains include_url_trim and include_url_trim != '/' -%}
+      {%- assign should_include = true -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- else -%}
+  {%- comment %} 如果没有配置，则默认包含 {% endcomment %}
+  {%- assign should_include = true -%}
+{%- endif -%}
+
+{%- if should_include -%}
+  <div>
+    <style>
+      .jackery-pif-float-button {
+        width: 20.2666666666667vw;
+        height: 20.2666666666667vw;
+        position: fixed;
+        bottom: 100px;
+        left: 20px;
+        z-index: 19999;
+        cursor: pointer;
+      }
+      @media screen and (min-width: 1024px) {
+        .jackery-pif-float-button {
+          width: 6.80555555555556vw;
+          height: 6.80555555555556vw;
+        }
+      }
+      @media screen and (min-width: 1440px) {
+        .jackery-pif-float-button {
+          width: 98px;
+          height: 98px;
+        }
+      }
+    </style>
+
+    {% assign bottom_position = settings.pif_float_button_position_bottom | escape %}
+    <div
+      style="{%- if bottom_position != blank -%}bottom:{{bottom_position}}px;top:unset;{%- endif -%}background-image:url({{ settings.pif_float_button_pic | image_url: width: 200, height: 200, crop: 'center', format: 'webp' }});background-size:cover;background-position:center center;background-repeat:no-repeat;"
+      class="jackery-pif-float-button"
+    ></div>
+
+    <script defer src="{{ 'snippet-purchase-intention-button.min.js' | asset_url }}"></script>
+  </div>
+{%- endif -%}

@@ -1,0 +1,414 @@
+{% comment %}
+  名称：水平拖拽进度展示产品组件
+  说明：https://alidocs.dingtalk.com/i/nodes/NZQYprEoWoeAawzwfp97n0MGJ1waOeDk
+{% endcomment %}
+{% schema %}
+{
+  "name": "Horizontal Drag Display",
+  "tag": "section",
+  "class": "horizontal-drag-display",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content Settings"
+    },
+    {
+      "type": "select",
+      "id": "contentAlign",
+      "label": "Content Align",
+      "default": "align-left",
+      "options": [
+        {
+          "value": "align-left",
+          "label": "Left"
+        },
+        {
+          "value": "align-center",
+          "label": "Center"
+        }
+      ]
+    },
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "Title",
+      "default": "Innovative Foldable Solar Panel"
+    },
+    {
+      "type": "textarea",
+      "id": "mb_title",
+      "label": "  MB Title"
+    },
+    {
+      "type": "textarea",
+      "id": "desc",
+      "label": "Description",
+      "default": "The robot boasts modular, folding solar panels on its top. When folded, it's compact for versatility, and unfolded, six solar panels expand the light-receiving area, generating up to 600W of power. This design offers both aesthetics and efficient energy conversion."
+    },
+    {
+      "type": "header",
+      "content": "Background Image Settings"
+    },
+    {
+      "type": "image_picker",
+      "id": "defaultPCBgImg",
+      "label": "Default PC Background Image"
+    },
+    {
+      "type": "number",
+      "id": "defaultPCBgImgIndex",
+      "label": "Default PC Background Image Index",
+      "default": 0
+    },
+    {
+      "type": "text",
+      "id": "pcBgImgNamePrefix",
+      "label": "PC Background Image Naming Prefix",
+      "default": "solar-mars-bot-kv-pc-"
+    },
+    {
+      "type": "number",
+      "id": "pcBgImgTotal",
+      "label": "PC Background Image Total",
+      "default": 34
+    },
+    {
+      "type": "text",
+      "id": "pcBgImgFormat",
+      "label": "PC Background Image Format",
+      "default": ".png"
+    },
+    {
+      "type": "image_picker",
+      "id": "defaultMBBgImg",
+      "label": "Default Mobile Background Image"
+    },
+    {
+      "type": "number",
+      "id": "defaultMBBgImgIndex",
+      "label": "Default Mobile Background Image Index",
+      "default": 0
+    },
+    {
+      "type": "text",
+      "id": "mbBgImgNamePrefix",
+      "label": "Mobile Background Image Naming Prefix",
+      "default": "solar-mars-bot-kv-mb-"
+    },
+    {
+      "type": "number",
+      "id": "mbBgImgTotal",
+      "label": "Mobile Background Image Total",
+      "default": 34
+    },
+    {
+      "type": "text",
+      "id": "mbBgImgFormat",
+      "label": "Mobile Background Image Format",
+      "default": ".png"
+    },
+    {
+      "type": "header",
+      "content": "Progress Bar Settings"
+    },
+    {
+      "type": "color_background",
+      "id": "pcProgressBgColor",
+      "label": "PC Background Color",
+      "default": "#CACAD0"
+    },
+    {
+      "type": "color_background",
+      "id": "mbProgressBgColor",
+      "label": "Mobile Background Color",
+      "default": "rgba(255,255,255,0.4)"
+    }
+  ]
+}
+{% endschema %}
+<style>
+  @media screen and (max-width: 1024px) {
+    .hide-mb {
+      display: none;
+    }
+    .hide-pc {
+      display: initial!important;
+    }
+  }
+  .hide-pc {
+    display: none;
+  }
+</style>
+<div class="horizontal-drag-display-box"
+     data-default-pc-bg="{{ section.settings.defaultPCBgImg | img_url: 'master' }}"
+     data-default-pc-bg-index="{{ section.settings.defaultPCBgImgIndex }}"
+     data-pc-bg-name-prefix="{{ section.settings.pcBgImgNamePrefix }}"
+     data-pc-bg-total="{{ section.settings.pcBgImgTotal }}"
+     data-pc-bg-format="{{ section.settings.pcBgImgFormat }}"
+     data-default-mb-bg="{{ section.settings.defaultMBBgImg | img_url: 'master' }}"
+     data-default-mb-bg-index="{{ section.settings.defaultMBBgImgIndex }}"
+     data-mb-bg-name-prefix="{{ section.settings.mbBgImgNamePrefix }}"
+     data-mb-bg-total="{{ section.settings.mbBgImgTotal }}"
+     data-mb-bg-format="{{ section.settings.mbBgImgFormat }}"
+     data-content-align="{{ section.settings.contentAlign }}">
+  <div class="info-box {{ section.settings.contentAlign }}">
+    <h2 class="title">{%- liquid
+        assign mb_title = section.settings.title
+        if section.settings.mb_title != blank
+          assign mb_title = section.settings.mb_title
+        endif
+      -%}
+      <span class="hide-mb">{{ section.settings.title | newline_to_br}}</span>
+      <span class="hide-pc">{{ mb_title | newline_to_br}}</span></h2>
+    <p class="desc">{{ section.settings.desc }}</p>
+  </div>
+  <div class="img-box">
+    {%- 
+      render 'responsive-image', 
+      image: section.settings.defaultPCBgImg, 
+      image_class: 'bg-img hide', 
+      mimage: section.settings.defaultMBBgImg, 
+    -%}
+    <canvas class="sp-img-sequence pc-img-sequence pc-show" width="1918" height="980"></canvas>
+    <canvas class="sp-img-sequence mb-img-sequence mb-show" width="750" height="1200"></canvas>
+  </div>
+
+  {% comment %} 横向进度条 {% endcomment %}
+  {% render 'jky-progress-bar',
+      pcScaleNum: section.settings.pcBgImgTotal,
+      mbScaleNum: section.settings.mbBgImgTotal,
+      pcDefaultVal: section.settings.defaultPCBgImgIndex,
+      mbDefaultVal: section.settings.defaultMBBgImgIndex,
+      pcBgColor: section.settings.pcProgressBgColor,
+      mbBgColor: section.settings.pcProgressBgColor %}
+</div>
+<script>
+  (function () {
+    $(function () {
+      const $foldableSPBox = $(`#shopify-section-{{ section.id }} .horizontal-drag-display-box`);
+
+      // 获取背景图路径相关数据
+      let defaultBg = $foldableSPBox.data('default-pc-bg');
+      let namePrefix = $foldableSPBox.data('pc-bg-name-prefix') || 'solar-mars-bot-kv-pc-';
+      let bgUrl = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/';
+      let bgTotal = $foldableSPBox.data('pc-bg-total') || 34;
+      let bgFormat = $foldableSPBox.data('pc-bg-format') || '.png';
+      let defaultBgImg = $foldableSPBox.data('default-pc-bg-index') || 0;
+      let urlParam = 'v=1718590034';
+      let canvasDOM = `#shopify-section-{{ section.id }} .pc-img-sequence`;
+
+      if (window.innerWidth < 1024) {
+        defaultBg = $foldableSPBox.data('default-mb-bg');
+        namePrefix = $foldableSPBox.data('mb-bg-name-prefix') || 'solar-mars-bot-kv-mb-';
+        bgTotal = $foldableSPBox.data('mb-bg-total') || 34;
+        bgFormat = $foldableSPBox.data('mb-bg-format') || '.png';
+        defaultBgImg = $foldableSPBox.data('default-mb-bg-index') || 0;
+        urlParam = 'v=1718590129';
+        canvasDOM = `#shopify-section-{{ section.id }} .mb-img-sequence`;
+      }
+      if (defaultBg && defaultBg.indexOf('/shopify/assets/no-image-') === -1) {
+        bgUrl = defaultBg.split(namePrefix)[0];
+        urlParam = defaultBg.split('?')[1];
+      }
+
+      // 所有配图路径
+      let urls;
+
+      /*
+			辅助函数，用于通过一系列图像进行擦洗，并将适当的图像绘制到提供的画布上。
+			配置对象属性：
+			- urls [数组]：图像 URL 的数组
+			- defaultIndex [数值]： 默认展示图片的下标
+			- canvas [画布]：用于绘制的 <canvas> 对象
+			- clear [布尔值]：如果为 true，在绘制每一帧之前会清除画布（如果您的图像包含透明度，这很有用）
+			- onUpdate [函数]：Tween 更新时的可选回调（可能不常用）。它将传递两个参数：1）图像的索引（基于零），2）绘制到画布上的图像
+			*/
+      function imageSequence(config) {
+        const {urls: currUrls, defaultIndex, clear, onUpdate: currOnUpdate, canvas: currCanvas} = config;
+        let playHead = { frame: defaultIndex };
+        let canvas = window.gsap.utils.toArray(currCanvas)[0] || console.warn("canvas not defined");
+        let ctx = canvas.getContext("2d");
+        let curFrame = -1;
+        let onUpdate = currOnUpdate;
+        let images;
+        let updateImage = function () {
+          let frame = Math.round(playHead.frame);
+          if (frame !== curFrame) {
+            // 仅在必要时绘制
+            clear && ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(images[Math.round(playHead.frame)], 0, 0);
+            curFrame = frame;
+            onUpdate && onUpdate.call(this, frame, images[frame]);
+          }
+        };
+        images = currUrls.map((url, i) => {
+          let img = new Image();
+          img.src = url;
+          return img;
+        });
+
+        // 默认图渲染
+        const bgImg = $foldableSPBox.find('.bg-img')[0];
+        bgImg.addEventListener('load', function() {
+          updateImage();
+        })
+
+        // 进度条监听，更新对应图片
+        let progressRange = $foldableSPBox.find('.progress-range')[0];
+        progressRange.addEventListener('input', function () {
+          playHead.frame = this.value;
+          updateImage();
+        })
+      }
+
+      window.gsap.registerPlugin(window.ScrollTrigger);
+      window.gsap.to(`#shopify-section-{{ section.id }} .horizontal-drag-display-box`, {
+        scrollTrigger: {
+          trigger: `#shopify-section-{{ section.id }} .horizontal-drag-display-box`,
+          pin: true,
+          start: 'top top',
+          end: '+=300'
+        }
+      })
+
+      // 加载默认图片
+      function loadDefaultImg(){
+        const $bgImg = $foldableSPBox.find('.bg-img');
+        const $bgImgSource = $bgImg.siblings('source');
+        const mbImg = $bgImg.data('src');
+        const pcImg = $bgImgSource.data('srcset');
+        $bgImg.attr('src',mbImg);
+        $bgImgSource.attr('srcset',pcImg);
+
+        // 初始化Canvas宽高
+        const bgImg = $foldableSPBox.find('.bg-img')[0];
+        bgImg.addEventListener('load', function() {
+          const pcSequence = $foldableSPBox.find('.pc-img-sequence')[0];
+          const mbSequence = $foldableSPBox.find('.mb-img-sequence')[0];
+          if(window.innerWidth < 1024){
+            mbSequence.width = bgImg.naturalWidth;
+            mbSequence.height = bgImg.naturalHeight;
+          }else{
+            pcSequence.width = bgImg.naturalWidth;
+            pcSequence.height = bgImg.naturalHeight;
+          }
+        });
+      }
+
+      // 获取Section中所有配图
+      function loadSectionImg() {
+        urls = new Array(bgTotal).fill()
+            .map((o, i) => {
+              let num = i + 1;
+              let numStr = num.toString();
+              if (num < 10) {
+                numStr = `0${num}`
+              }
+              return `${bgUrl}${namePrefix}${numStr}${bgFormat}?${urlParam}`
+            });
+      }
+
+      // Y轴位移距离 换算
+      let moveYStr;
+
+      let contentAlign = $foldableSPBox.data('content-align');
+      if( contentAlign === 'align-left'){
+        moveYStr = '-50%';
+      } else {
+        let moveY;
+        let windowW = window.innerWidth;
+        if(windowW < 1440 && windowW > 1023){
+          moveY = -340 / 1920 * 100;
+          moveYStr = `${moveY}vw`;
+        }else if (windowW < 1024) {
+          moveY = -340 / 750 * 100;
+          moveYStr = `${moveY}vw`;
+        }else {
+          moveYStr = '-340px';
+        }
+      }
+
+      // 监听是否在视窗内
+      if (window.Jackery.Utils.isElementInViewport($foldableSPBox[0])) {
+        // 文本动效
+        window.gsap.to(`#shopify-section-{{ section.id }} .horizontal-drag-display-box .info-box`, {
+          y: moveYStr,
+          opacity: 1,
+          ease: "none",
+          duration: 1.5
+        })
+        $foldableSPBox.attr('data-show-txt', true);
+
+        // 没有配图，就不渲染
+        if (bgTotal === 0) {
+          return
+        }
+
+        // 加载图片
+        loadDefaultImg();
+        loadSectionImg();
+        imageSequence({
+          urls, // 图片 URL 数组
+          canvas: canvasDOM, // 要绘制图像的 <canvas> 对象
+          clear: true, // 仅在您的图像包含透明度时才有必要
+          defaultIndex: defaultBgImg - 1, // 默认显示图片数组下标
+        });
+      }
+
+      // 处理文本动效
+      function handleTxtAnimation() {
+        let isShowTxt = $foldableSPBox.attr('data-show-txt');
+        if (isShowTxt === 'false' || isShowTxt === 'undefined') {
+          if (window.Jackery.Utils.isElementInViewport($foldableSPBox[0])) {
+            window.gsap.to(`#shopify-section-{{ section.id }} .horizontal-drag-display-box .info-box`, {
+              y: moveYStr,
+              opacity: 1,
+              ease: "none",
+              duration: 1.5
+            })
+            $foldableSPBox.attr('data-show-txt', true);
+          }
+        } else {
+          if (window.Jackery.Utils.isElementOutOfViewport($foldableSPBox[0])) {
+            window.gsap.to(`#shopify-section-{{ section.id }} .horizontal-drag-display-box .info-box`, {
+              y: 0,
+              opacity: 0,
+              ease: "none",
+              duration: 1.5
+            })
+            $foldableSPBox.attr('data-show-txt', false);
+          }
+        }
+      }
+
+      // 滚动监听
+      window.addEventListener('scroll', function () {
+        // 文本动效
+        handleTxtAnimation();
+
+        // 没有配图，就不渲染
+        if (bgTotal === 0) {
+          return
+        }
+
+        // 有配图，并已初始化请求时，不重复渲染
+        if (urls && urls.length > 0) {
+          return
+        }
+
+        if (window.Jackery.Utils.isElementInViewport($foldableSPBox[0],400)) {
+          // 加载图片
+          loadDefaultImg();
+          loadSectionImg();
+
+          imageSequence({
+            urls, // 图片 URL 数组
+            canvas: canvasDOM, // 要绘制图像的 <canvas> 对象
+            clear: true, // 仅在您的图像包含透明度时才有必要
+            defaultIndex: defaultBgImg - 1, // 默认显示图片数组下标
+          });
+        }
+      })
+    })
+  })();
+</script>

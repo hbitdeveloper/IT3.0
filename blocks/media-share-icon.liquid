@@ -1,0 +1,201 @@
+{%- capture padding-style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- comment -%} 定义图标名称变量 {%- endcomment -%}
+{%- assign iconName = '' -%}
+{%- assign iconHoverName = '' -%}
+
+{%- case block.settings.type -%}
+  {%- when 'facebook' -%}
+    {%- assign iconName = 'facebook-fill' -%}
+    {%- assign iconHoverName = 'facebook-color-fill' -%}
+  {%- when 'twitter' -%}
+    {%- assign iconName = 'twitter-fill' -%}
+    {%- assign iconHoverName = 'twitter-color-fill' -%}
+  {%- when 'instagram' -%}
+    {%- assign iconName = 'instagram-fill' -%}
+    {%- assign iconHoverName = 'instagram-color-fill' -%}
+  {%- when 'whatsapp' -%}
+    {%- assign iconName = 'whatsapp-fill' -%}
+    {%- assign iconHoverName = 'whatsapp-color-fill' -%}
+  {%- when 'line' -%}
+    {%- assign iconName = 'line-fill' -%}
+    {%- assign iconHoverName = 'line-color-fill' -%}
+  {%- when 'copy-link' -%}
+    {%- assign iconName = 'link-fill' -%}
+    {%- assign iconHoverName = 'link-color-fill' -%}
+  {%- when 'refer-a-friend' -%}
+    {%- assign iconName = 'refer-a-friend-fill' -%}
+    {%- assign iconHoverName = 'refer-a-friend-color-fill' -%}
+  {%- else -%}
+    {%- assign iconName = block.settings.type -%}
+    {%- assign iconHoverName = block.settings.type -%}
+{%- endcase -%}
+
+<jky-social-share-icon class="block"
+  style="{{ padding-style }}"
+  data-ins-success-txt="{{ block.settings.insShareSuccessText }}"
+  data-copy-success-txt="{{ block.settings.copySuccessText }}"
+  data-type="{{ block.settings.type }}"
+  data-link="{{ block.settings.link }}"
+  data-icon-url="{{ block.settings.icon | image_url: width: 64 }}"
+  data-bg-color="{{ block.settings.bg_color }}"
+  data-style-type="{{ block.settings.style_type }}"
+  title="{{ block.settings.type }}">
+  <div class="social-sharing social-share-item lg:w-[4rem] lg:h-[4rem] w-[2.5rem] h-[2.5rem] lg:rounded-full rounded-full overflow-hidden cursor-pointer"
+    {% if block.settings.style_type == 'custom' and block.settings.bg_color != blank %}style="background-color: {{ block.settings.bg_color }};"{% endif %}>
+    {%  if block.settings.use_custom %}
+      {%  if block.settings.icon_img %}
+        <img
+          src="{{ block.settings.icon_img | image_url: width: 64 }}"
+          alt="{{ block.settings.type }}"
+          class="social-sharing-image w-full h-full lg:rounded-full rounded-full"
+          width="64"
+          height="64"
+          loading="lazy"
+          >
+      {% endif %}
+    {% else %}
+      <jds-icon class="text-[2.5rem] lg:text-[4rem]" name="{{ iconName }}" hover-name="{{ iconHoverName }}"></jds-icon>
+    {% endif %}
+  </div>
+</jky-social-share-icon>
+<script src="{{ 'blocks-media-share-icon.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Icon Social",
+  "settings": [
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "基础配置"
+        },
+        {
+          "value": "custom",
+          "label": "开发者配置"
+        }
+      ],
+      "default": "default",
+      "label": "配置类型"
+    },
+    { "type": "color", "id": "bg_color", "label": "背景颜色", "visible_if": "{{ block.settings.style_type == 'custom' }}"},
+    {
+      "type": "header",
+      "visible_if": "{{ block.settings.style_type == 'custom' }}",
+      "content": "文本内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ block.settings.style_type == 'custom' }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ block.settings.style_type == 'custom' }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ block.settings.style_type == 'custom' }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ block.settings.style_type == 'custom' }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "类型",
+      "default": "facebook",
+      "options": [
+        {
+          "label": "Facebook",
+          "value": "facebook"
+        },
+        {
+          "label": "Twitter",
+          "value": "twitter"
+        },
+        {
+          "label": "Instagram",
+          "value": "instagram"
+        },
+        {
+          "label": "WhatsApp",
+          "value": "whatsapp"
+        },
+        {
+          "label": "Line",
+          "value": "line"
+        },
+        {
+          "label": "Copy Link",
+          "value": "copy-link"
+        },
+        {
+          "label": "Refer A Friend",
+          "value": "refer-a-friend"
+        }
+      ]
+    },
+    { "type": "checkbox", "id": "use_custom", "label": "是否使用上传icon", "default": false  },
+    { "type": "image_picker", "id": "icon_img", "label": "图片（64 x 64 单位px）", "visible_if": "{{ block.settings.use_custom == true }}"  },
+    {
+      "type": "text",
+      "id": "insShareSuccessText",
+      "label": "Ins分享成功提示语",
+      "default": "Copy successfully,open Instagram to post!",
+       "visible_if": "{{ block.settings.type == 'instagram' }}"
+    },
+    {
+      "type": "text",
+      "id": "copySuccessText",
+      "label": "复制链接成功提示语",
+      "default": "Copy successfully!",
+       "visible_if": "{{ block.settings.type == 'copy-link' }}"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "'Refer A Friend' 超链接",
+       "visible_if": "{{ block.settings.type == 'refer-a-friend' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Share Icon"
+    }
+  ]
+}
+{% endschema %}

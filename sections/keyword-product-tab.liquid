@@ -1,0 +1,521 @@
+<style>
+  .keyword-product-tab {
+    padding-top: calc(var(--pc-padding-top) * 1px);
+    padding-bottom: calc(var(--pc-padding-bottom) * 1px);
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+    .keyword-product-tab {
+      padding-top: calc(var(--pc-padding-top) * 100vw / 1440);
+      padding-bottom: calc(var(--pc-padding-bottom) * 100vw / 1440);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .keyword-product-tab {
+      padding-top: calc(var(--mb-padding-top) * 100vw / 750);
+      padding-bottom: calc(var(--mb-padding-bottom) * 100vw / 750);
+    }
+  }
+</style>
+
+<div class="keyword-product-tab education" anchor="{{ section.settings.anchor | escape }}"
+style="
+  background: {{ section.settings.bg_color }};
+  --pc-padding-bottom:{{ section.settings.pc_padding_bottom }};--mb-padding-bottom:{{ section.settings.mb_padding_bottom }};
+  --pc-padding-top:{{ section.settings.pc_padding_top }};--mb-padding-top:{{ section.settings.mb_padding_top }};
+  "
+>
+  <div class="keyword-product-tab-container education--container">
+    <div class="title">
+      {{ section.settings.title }}
+    </div>
+
+    <div class="keyword-sub">
+      {{ section.settings.sub }}
+    </div>
+
+    <div class="education--nav">
+      <div class="nav-list-wrapper">
+        <div class="nav-list">
+          {% for block in section.blocks %}
+            <div
+              class="nav-item {% if forloop.first %}active-item{% endif %}"
+              data-tab="{{ block.settings.tab | handleize}}"
+            >
+              {{ block.settings.tab | escape }}
+            </div>
+          {% endfor %}
+        </div>
+        {% comment %} pc显示箭头 {% endcomment %}
+        {%- if section.blocks.size > 4 -%}
+          <div class="pc-block">
+            <span class="nav-arrow nav-arrow--left">&lt;</span>
+            <span class="nav-arrow nav-arrow--right">&gt;</span>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panes">
+    {% for block in section.blocks %}
+      <div class="education-swiper {% if forloop.first %}active-swiper{% endif %}">
+        <div class="swiper-wrapper product-list">
+          {% for i in (0..2) %}
+            {% assign product-index = 'product-' | append: forloop.index %}
+            {% assign sku-index = 'sku-' | append: forloop.index %}
+            {% assign title-index = 'title-' | append: forloop.index %}
+            {% assign sell-point-index = 'sell-point-' | append: forloop.index %}
+            {% assign des-index = 'des-' | append: forloop.index %}
+            {% assign pc-img-index = 'pc-img-' | append: forloop.index %}
+            {% assign mb-img-index = 'mb-img-' | append: forloop.index %}
+            {% assign btn-index = 'btn-' | append: forloop.index %}
+
+            {%- if block.settings[product-index] != blank -%}
+              {%- assign product = block.settings[product-index] -%}
+              {% if product.available == true %}
+                {% assign variant = product.variants
+                  | where: 'available', true
+                  | where: 'sku', block.settings[sku-index]
+                  | first
+                %}
+                {% if variant == blank %}
+                  {% assign variant = product.selected_or_first_available_variant %}
+                {% endif %}
+
+                <div class="swiper-slide">
+                  <div class="product-box-item">
+                    <div class="product">
+                      {%- assign info = blank -%}
+                      {%- if variant != blank -%}
+                        {% assign variant_promotion = variant.metafields.custom.promotion %}
+                        {% if variant_promotion != blank and variant_promotion contains '__label_text:' %}
+                          {% assign info = variant_promotion | replace_first: '__label_text:' %}
+                        {% else %}
+                          {% for tag in product.tags %}
+                            {%- if tag contains '__label_text:' -%}
+                              {%- assign info = tag | replace_first: '__label_text:' -%}
+                              {% break %}
+                            {%- endif -%}
+                          {% endfor %}
+                        {%- endif -%}
+                      {% else %}
+                        {%- assign first_variant = product.variants | first -%}
+                        {%- assign variant_promotion = first_variant.metafields.custom.promotion -%}
+                        {% if variant_promotion != blank and variant_promotion contains '__label_text:' %}
+                          {% assign info = variant_promotion | replace_first: '__label_text:' %}
+                        {% else %}
+                          {% for tag in product.tags %}
+                            {%- if tag contains '__label_text:' -%}
+                              {%- assign info = tag | replace_first: '__label_text:' -%}
+                              {% break %}
+                            {%- endif -%}
+                          {% endfor %}
+                        {% endif %}
+                      {%- endif -%}
+
+                      {% comment %} 如果 info 为空，则走兜底的自动计算折扣价逻辑 {% endcomment %}
+                      {%- if info == blank and settings.open_auto_discount_price -%}
+                        {% comment %} 折扣角标展示形式 {% endcomment %}
+                        {%- assign discount_tag_display_style = settings.discount_tag_display_style -%}
+                        {%- assign discount_amount = settings.discount_amount_display_style -%}
+                        {%- assign discount_percent = settings.discount_percent_display_style -%}
+
+                        {% comment %} 优惠金额 {% endcomment %}
+                        {%- if discount_tag_display_style == 'amount' -%}
+                          {%- if discount_amount != blank -%}
+                            {%- if variant != blank -%}
+                              {%- assign discount_amount_value = variant.metafields.custom.auto_discount_amount
+                                | times: 1
+                              -%}
+                              {%- if discount_amount_value > 0 -%}
+                                {%- assign money_string = discount_amount_value
+                                  | divided_by: 100
+                                  | floor
+                                  | times: 100
+                                  | money_without_trailing_zeros
+                                -%}
+                                {%- assign info = discount_amount | replace: '()', money_string -%}
+                              {%- endif -%}
+                            {%- else -%}
+                              {%- assign first_variant = product.variants | first -%}
+                              {%- assign discount_amount_value = first_variant.metafields.custom.auto_discount_amount
+                                | times: 1
+                              -%}
+                              {%- if discount_amount_value > 0 -%}
+                                {%- assign money_string = discount_amount_value
+                                  | divided_by: 100
+                                  | floor
+                                  | times: 100
+                                  | money_without_trailing_zeros
+                                -%}
+                                {%- assign info = discount_amount | replace: '()', money_string -%}
+                              {%- endif -%}
+                            {%- endif -%}
+                          {%- endif -%}
+                        {%- else -%}
+                          {% comment %} 折扣百分比 {% endcomment %}
+                          {%- if discount_percent != blank -%}
+                            {%- if variant != blank -%}
+                              {%- assign discount_percentage_value = variant.metafields.custom.auto_discount_percentage
+                                | times: 1
+                              -%}
+                              {%- if discount_percentage_value > 0 -%}
+                                {%- assign info = discount_percent | replace: '()', discount_percentage_value -%}
+                              {%- endif -%}
+                            {%- else -%}
+                              {%- assign first_variant = product.variants | first -%}
+                              {%- assign discount_percentage_value = first_variant.metafields.custom.auto_discount_percentage
+                                | times: 1
+                              -%}
+                              {%- if discount_percentage_value > 0 -%}
+                                {%- assign info = discount_percent | replace: '()', discount_percentage_value -%}
+                              {%- endif -%}
+                            {%- endif -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endif -%}
+
+                      {%- if info != blank -%}
+                        <div class="off-box">
+                          <div class="off-text-box">
+                            <div class="off-text">{{ info }}</div>
+                          </div>
+                        </div>
+                      {%- endif -%}
+
+                      <div class="product-img">
+                        <a href="{{ variant.url }}">
+                          {%- assign image = variant.featured_image | default: product.featured_image -%}
+                          {% render 'responsive-image', image: image %}
+                        </a>
+                      </div>
+
+                      <div class="title text-overflow-2">
+                          <a href="{{ variant.url }}">
+                            {% if block.settings[title-index] != blank %}
+                              {{ block.settings[title-index] }}
+                            {%- elsif variant.title != 'Default Title' -%}
+                              {{ variant.title }}
+                            {%- else -%}
+                              {{ product.title }}
+                            {% endif %}
+                          </a>
+                      </div>
+
+                      <div class="sell-point text-overflow-2">
+                        {% if block.settings[sell-point-index] != blank %}
+                          {{ block.settings[sell-point-index] }}
+                        {%- else -%}
+                          {{ product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                        {% endif %}
+                      </div>
+
+                      <div class="pc-block">
+                        <div class="price-box">
+                          {% comment %} 如果开启了全局的 自动计算折扣价 {% endcomment %}
+                          {%- if settings.open_auto_discount_price -%}
+                            {% comment %} 自动计算 - 折后价格 {% endcomment %}
+                            {%- assign auto_discount_price = variant.metafields.custom.auto_discount_price
+                              | times: 1
+                            -%}
+                            {% comment %} 自动计算 - 折扣金额 {% endcomment %}
+                            {%- assign auto_discount_amount = variant.metafields.custom.auto_discount_amount
+                              | times: 1
+                            -%}
+
+                            {%- if auto_discount_price > 0 and auto_discount_amount > 0 -%}
+                              {% comment %} 当前价格 {% endcomment %}
+                              {%- assign current_price = variant.price -%}
+                              {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+                              {%- if auto_discount_price < current_price -%}
+                                {%- assign current_price = auto_discount_price -%}
+                              {%- endif -%}
+
+                              <span class="price">{{ current_price | money }}</span>
+                              {%- if variant.compare_at_price > current_price -%}
+                                <span class="line-price origin-price">{{ variant.compare_at_price | money }}</span>
+                              {%- else -%}
+                                {%- if variant.price > auto_discount_price -%}
+                                  <span class="line-price origin-price">{{ variant.price | money }}</span>
+                                {%- endif -%}
+                              {%- endif -%}
+                            {%- else -%}
+                              <span class="price">{{ variant.price | money }}</span>
+                              {%- if variant.compare_at_price > variant.price -%}
+                                <span class="line-price origin-price">{{ variant.compare_at_price | money }}</span>
+                              {%- endif -%}
+                            {% endif %}
+                          {%- else -%}
+                            <span class="price">{{ variant.price | money }}</span>
+                            {%- if variant.compare_at_price > variant.price -%}
+                              <span class="line-price origin-price">{{ variant.compare_at_price | money }}</span>
+                            {%- endif -%}
+                          {%- endif -%}
+                        </div>
+                        {% if block.settings[btn-index] != blank %}
+                          <a href="{{ variant.url }}">
+                            <div class="btn">
+                              {{ block.settings[btn-index] }}
+                            </div>
+                          </a>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    {% comment %} 右边部分 {% endcomment %}
+                    <div class="right-part">
+                      <div class="description {% if block.settings[pc-img-index] == blank -%} des-full-pc {% endif %}">
+                        {% if block.settings[des-index] != blank %}
+                          {{ block.settings[des-index] }}
+                        {%- else -%}
+                          {{ product.description }}
+                        {% endif %}
+                      </div>
+
+                      <div class="right-img">
+                        {%- if block.settings[pc-img-index] != blank -%}
+                          <img class="pc-block" src="{{ block.settings[pc-img-index] | image_url: width: 700 }}" alt="{{ block.settings[pc-img-index].alt }}" loading="lazy">
+                        {%- endif -%}
+                        {%- if block.settings[mb-img-index] != blank -%}
+                          <img class="mobile-block" src="{{ block.settings[mb-img-index] | image_url: width: 622 }}" alt="{{ block.settings[mb-img-index].alt }}" loading="lazy">
+                        {%- endif -%}
+                      </div>
+
+                      <div class="price-box-mb mobile-block">
+                        <div class="price-box">
+                          {% comment %} 如果开启了全局的 自动计算折扣价 {% endcomment %}
+                          {%- if settings.open_auto_discount_price -%}
+                            {% comment %} 自动计算 - 折后价格 {% endcomment %}
+                            {%- assign auto_discount_price = variant.metafields.custom.auto_discount_price
+                              | times: 1
+                            -%}
+                            {% comment %} 自动计算 - 折扣金额 {% endcomment %}
+                            {%- assign auto_discount_amount = variant.metafields.custom.auto_discount_amount
+                              | times: 1
+                            -%}
+
+                            {%- if auto_discount_price > 0 and auto_discount_amount > 0 -%}
+                              {% comment %} 当前价格 {% endcomment %}
+                              {%- assign current_price = variant.price -%}
+                              {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+                              {%- if auto_discount_price < current_price -%}
+                                {%- assign current_price = auto_discount_price -%}
+                              {%- endif -%}
+
+                              <span class="price">{{ current_price | money }}</span>
+                              {%- if variant.compare_at_price > current_price -%}
+                                <span class="line-price origin-price">{{ variant.compare_at_price | money }}</span>
+                              {%- else -%}
+                                {%- if variant.price > auto_discount_price -%}
+                                  <span class="line-price origin-price">{{ variant.price | money }}</span>
+                                {%- endif -%}
+                              {%- endif -%}
+                            {%- else -%}
+                              <span class="price">{{ variant.price | money }}</span>
+                              {%- if variant.compare_at_price > variant.price -%}
+                                <span class="line-price origin-price">{{ variant.compare_at_price | money }}</span>
+                              {%- endif -%}
+                            {% endif %}
+                          {%- else -%}
+                            <span class="price">{{ variant.price | money }}</span>
+                            {%- if variant.compare_at_price > variant.price -%}
+                              <span class="line-price origin-price">{{ variant.compare_at_price | money }}</span>
+                            {%- endif -%}
+                          {%- endif -%}
+                        </div>
+
+                        {% if block.settings[btn-index] != blank %}
+                          <a href="{{ variant.url }}">
+                            <div class="btn">{{ block.settings[btn-index] }}</div>
+                          </a>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            {%- endif -%}
+          {% endfor %}
+        </div>
+        <div class="active-swiper-pagination"></div>
+        <div class="swiper-navigation">
+          <div class="swiper-button-prev swiper-activity-button-prev swiper-tab-vs-pc-button"></div>
+          <div class="swiper-button-next swiper-activity-button-next swiper-tab-vs-pc-button"></div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "keyword product tab",
+  "tag": "section",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位文案" },
+    { "type": "richtext", "id": "title", "label": "组件标题" },
+    { "type": "richtext", "id": "sub", "label": "组件副标题" },
+    { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#F5F5F5"},
+    { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+    { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC", "default": 40 },
+    { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+    { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB", "default": 48 }
+
+  ],
+  "blocks": [
+    {
+      "type": "swiper",
+      "name": "Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab",
+          "label": "tab文案"
+        },
+        { "type": "header", "content": "Header配置1" },
+        {
+          "type": "product",
+          "id": "product-1",
+          "label": "产品1"
+        },
+        {
+          "type": "text",
+          "id": "sku-1",
+          "label": "产品sku1"
+        },
+        {
+          "type": "richtext",
+          "id": "title-1",
+          "label": "产品标题1",
+          "info":"富文本里面不能配置超链接"
+        },
+        {
+          "type": "richtext",
+          "id": "sell-point-1",
+          "label": "产品卖点1"
+        },
+        {
+          "type": "richtext",
+          "id": "des-1",
+          "label": "产品描述1"
+        },
+        {
+          "type": "image_picker",
+          "id": "pc-img-1",
+          "label": "产品大图(pc)1",
+          "info": "700*250"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb-img-1",
+          "label": "产品大图(mb)1",
+          "info": "622*300"
+        },
+        {
+          "type": "richtext",
+          "id": "btn-1",
+          "label": "按钮文案1"
+        },
+        { "type": "header", "content": "Header配置2" },
+        {
+          "type": "product",
+          "id": "product-2",
+          "label": "产品2"
+        },
+        {
+          "type": "text",
+          "id": "sku-2",
+          "label": "产品sku2"
+        },
+        {
+          "type": "richtext",
+          "id": "title-2",
+          "label": "产品标题2",
+           "info":"富文本里面不能配置超链接"
+        },
+        {
+          "type": "richtext",
+          "id": "sell-point-2",
+          "label": "产品卖点2"
+        },
+        {
+          "type": "richtext",
+          "id": "des-2",
+          "label": "产品描述2"
+        },
+        {
+          "type": "image_picker",
+          "id": "pc-img-2",
+          "label": "产品大图(pc)2",
+          "info": "700*250"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb-img-2",
+          "label": "产品大图(mb)2",
+          "info": "622*300"
+        },
+        {
+          "type": "richtext",
+          "id": "btn-2",
+          "label": "按钮文案2"
+        },
+
+        { "type": "header", "content": "Header配置3" },
+        {
+          "type": "product",
+          "id": "product-3",
+          "label": "产品3"
+        },
+        {
+          "type": "text",
+          "id": "sku-3",
+          "label": "产品sku3"
+        },
+        {
+          "type": "richtext",
+          "id": "title-3",
+          "label": "产品标题3",
+          "info":"富文本里面不能配置超链接"
+        },
+        {
+          "type": "richtext",
+          "id": "sell-point-3",
+          "label": "产品卖点3"
+        },
+        {
+          "type": "richtext",
+          "id": "des-3",
+          "label": "产品描述3"
+        },
+        {
+          "type": "image_picker",
+          "id": "pc-img-3",
+          "label": "产品大图(pc)3",
+          "info": "700*350"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb-img-3",
+          "label": "产品大图(mb)3",
+          "info": "622*300"
+        },
+        {
+          "type": "richtext",
+          "id": "btn-3",
+          "label": "按钮文案3"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Keyword Product Tab",
+      "category": "Keyword"
+    }
+  ]
+}
+{% endschema %}

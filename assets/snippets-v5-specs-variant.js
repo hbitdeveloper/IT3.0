@@ -1,0 +1,1 @@
+document.addEventListener("variantChangeEvent",(t=>{if(t?.detail?.variant?.id){const e=document.querySelectorAll(".pdp-specs-v5-specs-variant"),a=t.detail.variant.id;if(!document.querySelector(`.pdp-specs-v5-specs-variant[variant_id="${a}"]`))return;e.forEach((t=>{const e=t.getAttribute("variant_id")===a.toString();t.classList.toggle("hidden",!e)}))}}));

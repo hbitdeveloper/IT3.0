@@ -1,0 +1,529 @@
+<link rel="stylesheet" href="{{ 'header-v5.css' | asset_url }}" />
+
+{%- style -%}
+    {% if section.settings.background_image != blank %}
+        .jky-v5-header--top {
+            background-image: url({{ section.settings.background_image | image_url }});
+        }
+    {% else %}
+        .jky-v5-header--top {
+            background-color: {{ section.settings.background_color | default: 'transparent' }}; 
+        }
+    {% endif %}
+
+    .jky-v5-header-text, jky-v5-header .v5-header-actions--global span {
+        color: {{ section.settings.text_color | default: '#FFFFFF' }};
+    }
+
+    @media screen and (max-width: 1024px) {
+        {% if section.settings.background_image_mobile != blank %}
+            .jky-v5-header--top {
+                background-image: url({{ section.settings.background_image_mobile | image_url }});
+            }
+        {% else %}
+            .jky-v5-header--top {
+                background-color: {{ section.settings.background_color | default: 'transparent' }}; 
+            }
+        {% endif %}
+    }
+{%- endstyle -%}
+{%-liquid
+    assign navigation_block = section.blocks | where: 'type', "navigation" | first
+    assign area_block = section.blocks | where: 'type', "global" | first
+    assign shop_cr = settings.shop_cr | default: localization.country.iso_code | default: 'US'
+
+    assign account_url = "https://account.jackery.com"
+    if shop.id == 55005249633 or shop.id == 56124375224 or shop.id == 64525172955 or shop.id == 75730714917
+        assign account_url = "https://demo-account.jackery.com"
+    elsif shop.id == 79611232554 or theme.role == "unpublished"
+        assign account_url = "https://account-uat.jackery.com"
+    endif
+
+    # 顶部通知栏
+    # 判断当前所有block中的开始事件是否大于服务器时间
+    # 如果开始时间小于等于服务器时间并且结束时间大于等于服务器时间，则展示该通知栏
+    # 需要判断出来是否要展示倒计时 根据block中show_count_down判断,如果为true,则展示
+    assign announce_blocks = section.blocks | where: 'type', 'announcement_bar'
+    assign show_announcement_bar = false
+    assign show_count_down = false
+    assign now_ts = 'now' | date: '%s' | minus: 0
+    for block in announce_blocks
+        if block.settings.begin_time != blank and block.settings.end_time != blank
+            assign begin_ts = block.settings.begin_time | date: '%s' | minus: 0
+            assign end_ts = block.settings.end_time | date: '%s' | minus: 0
+            if begin_ts <= now_ts and end_ts >= now_ts
+                assign show_announcement_bar = true
+                if block.settings.show_count_down == true
+                    assign show_count_down = true
+                endif
+                if show_count_down == true
+                    break
+                endif
+            endif
+        endif
+    endfor
+-%}
+
+<jky-v5-header style="--v5-top-menu-text: {{ section.settings.text_color | default: '#FFFFFF' }};">
+    <div 
+        class="
+            v5-header-announce section-container-lg lg:h-12 items-center lg:gap-x-8 bg-cover bg-no-repeat bg-center text-white hidden lg:grid
+            {% if show_count_down == true and announce_blocks.size > 0 %} h-14 {% else %} h-8 {% endif %}    
+        ">
+        <div class="v5-header-navigation h-full lg:flex hidden items-center"> 
+            {%- if navigation_block != blank -%}
+                {%- if navigation_block.settings.menu_list != blank -%}
+                    <ul {{ navigation_block.shopify_attributes }} class="flex items-center h-full">
+                        {%- for link in navigation_block.settings.menu_list.links -%}
+                            {%- unless forloop.first -%}
+                                <div style="background: {{ section.settings.text_color | default: '#FFFFFF' }};" class="w-px h-2.5"></div>
+                            {%- endunless -%}
+  
+                            <li class="underline-animate v5-header-navigation-item text-white font-normal text-sm h-full flex items-center relative" data-links="{{ link.links | size }}">
+                                {%- capture menu_li -%}
+                                  {%- if link.url != '#' -%}
+                                    <a class="jky-v5-header-text break-keep whitespace-nowrap" href="{{ link.url }}">
+                                    {%- else -%}
+                                    <div class="break-keep whitespace-nowrap">
+                                    {%- endif -%}
+                                        {{ link.title }}
+                                    {%- if link.url != '#' -%}
+                                    </a>
+                                    {%- else -%}
+                                    </div>
+                                    {%- endif -%}
+                                {%- endcapture -%}
+                                {%- assign menu_li_childs = link.links | size -%}
+                                {%- if menu_li_childs > 0 -%}
+                                    <menu-down class="jky-v5-header-text relative select-none px-5">
+                                        <div 
+                                            trigger="" 
+                                            class="lg:h-12 flex items-center list-none cursor-pointer relative"
+                                            data-ga-event="5.0_top_nav_user_clicks"
+                                            data-ga-action="mouseenter"
+                                            data-ga-params-module="Top Text Menu"
+                                            data-ga-params-position="{{ link.title | escape }}"
+                                        >
+                                            <div class="trigger--summery">
+                                                {{ menu_li }}
+                                            </div>
+                                        </div>
+
+                                        <div trigger-content class="menu-down--detail absolute z-[2] w-max text-base font-normal opacity-0">
+                                            <div class="trigger--detail p-5 bg-white">
+                                                {%- for child in link.links -%}
+                                                    {%- unless forloop.first -%}
+                                                        <div style="height: 1px;background: #C6C7C8;" class="w-full my-5"></div>
+                                                    {%- endunless -%}
+                                                  <div class="text-black" data-url="{{ child.url }}" data-links="{{ child.links }}">
+                                                    <div class="menu-down--menu">
+                                                        {%- if child.url != '#' -%}
+                                                            <a class="color-text-weak mb-5 text-sm" href="{{ child.url }}">{{ child.title }}</a>
+                                                        {%- else -%}
+                                                            <div class="color-text-weak mb-5 text-sm">{{ child.title }}</div>
+                                                        {%- endif -%}
+
+                                                        {%- if child.links.size > 0 -%}
+                                                            <div class="menu-down--menu-list flex flex-col gap-y-5 text-base">
+                                                                {%- for childlink in child.links -%}
+                                                                    <a 
+                                                                        class="transition-medium-ease v5-menu-top-menu-child color-text-main-secondery" 
+                                                                        href="{{ childlink.url }}"
+                                                                        data-ga-event="5.0_top_nav_user_clicks"
+                                                                        data-ga-action="click"
+                                                                        data-ga-params-module="Top Text Menu"
+                                                                        data-ga-params-position="{{ childlink.title | strip | escape }}"
+                                                                        data-ga-params-button_name="{{ child.title | strip | escape }}"
+                                                                        data-ga-params-link="{{ childlink.url | escape }}"
+                                                                    >{{ childlink.title }}</a>
+                                                                {%- endfor -%}
+                                                            </div>
+                                                        {%- endif -%}
+                                                    </div>
+                                                  </div>
+                                                {%- endfor -%}
+                                            </div>
+                                        </div>
+                                    </menu-down>
+                                {%- else -%}
+                                    <div class="px-5 break-keep whitespace-nowrap">{{ menu_li }}</div>
+                                {%- endif -%}
+                            </li>
+                        {%- endfor -%}
+                    </ul>
+                {%- endif -%}
+            {%- endif -%}
+        </div>
+
+        {% if show_announcement_bar == true and announce_blocks.size > 0 %}
+            {% render 'v5-announcement-bar__content',
+                blocks: announce_blocks,
+                speed: section.settings.speed,
+                ends_in: section.settings.ends_in,
+                days: section.settings.days,
+                hrs: section.settings.hours,
+                mins: section.settings.mins,
+                secs: section.settings.secs,
+                show_count_down: show_count_down
+            %}
+        {% endif %}
+
+        <div class="v5-header-actions lg:flex hidden justify-self-end gap-x-10 h-full">
+            <div class="header-icon-actions flex justify-self-end h-full">
+                {%- for block in section.blocks -%}
+                    {%- case block.type -%}
+                        {%- when 'search' -%}
+                            {% comment %} search {% endcomment %}
+                            <div 
+                                {{ block.shopify_attributes }} 
+                                class="h-full flex items-center px-3"
+                                data-ga-event="5.0_top_nav_user_clicks"
+                                data-ga-action="click"
+                                data-ga-params-module="Function Menu"
+                                data-ga-params-position="search"
+                                data-ga-params-button_name="NULL"
+                                data-ga-params-link="NULL"
+                            >
+                                {%- render 'icon-search', class: 'header__section_search w-6 h-6 cursor-pointer', width: 24, height: 24, color: 'var(--v5-top-menu-text)' -%}
+                            </div>
+                        {%- when 'user' -%}
+                            <div {{ block.shopify_attributes }} class="h-full flex items-center">
+                                <menu-down class="text-white relative px-3 select-none">
+                                    <div 
+                                        trigger 
+                                        class="lg:h-12 flex items-center list-none cursor-pointer relative"
+                                        data-ga-event="5.0_top_nav_user_clicks"
+                                        data-ga-action="mouseenter"
+                                        data-ga-params-module="Function Menu"
+                                        data-ga-params-position="account"
+                                        data-ga-params-button_name="NULL"
+                                        data-ga-params-link="NULL"
+                                    >
+                                        <div class="trigger--summery h-full flex items-center">
+                                            {%- render 'icon-user', class: 'icon-user', width: 24, height: 24, color: 'var(--v5-top-menu-text)' -%}
+                                        </div>
+                                    </div>
+
+                                    <div trigger-content class="menu-down--detail absolute z-[2] w-max text-base font-normal menu-down--header-user opacity-0">
+                                        <div class="trigger--detail lg:px-4 lg:py-6 bg-white">
+                                            {%- if block.settings.user_menu_title != blank -%}
+                                                <h3 class="color-text-main font-semibold text-sm mb-2">{{ block.settings.user_menu_title | escape }}</h3>
+                                            {%- endif -%}
+
+                                            {%- for i in (0..4) -%}
+                                                {%- assign user_info_index = 'user_menu_info_' | append: forloop.index -%}
+                                                {%- if block.settings[user_info_index] != blank -%}
+                                                    <li style="list-style: inside;" class="color-text-weak list-inside text-sm font-medium">{{block.settings[user_info_index] | escape}}</li>
+                                                {%- endif -%}
+                                            {%- endfor -%}
+
+                                            <div class="menu-down--header-user_actions mt-6 flex flex-col gap-y-2">
+                                                {%- if customer == blank -%}
+                                                    {% comment %} 快捷登录 {% endcomment %}
+                                                    {%- if settings.quick_login == true -%}
+                                                        <a role="button" aria-label="{{'sections.header.free_password_login' | t}}" href="javascript:void(0);" class="header-v5-btn v5-btn--password-free text-sm w-full rounded h-9 flex justify-center items-center {%if block.settings.primary_button == 'password-free-login'%}bg-primary text-white font-semibold {% else %}header-v5-btn--secondery color-text-weak{% endif %}">{{'sections.header.free_password_login' | t}}</a>
+                                                    {%- endif -%}
+
+                                                    {% comment %} 跳转account登录 {% endcomment %}
+                                                     <a role="link" aria-label="{{ 'customer.log_in' | t }}" href='{{ account_url | append: "/login?cr=" | append: shop_cr | append: "&redirect_url=" | append: account_url | append: "/account/overview" }}' class="header-v5-btn text-sm w-full rounded h-9 flex justify-center items-center {%if block.settings.primary_button == 'account-login'%}bg-primary text-white font-semibold {% else %}header-v5-btn--secondery color-text-weak{% endif %}">{{ 'customer.log_in' | t }}</a>
+
+                                                     {% comment %} 跳转account注册 {% endcomment %}
+                                                      <a role="link" aria-label="{{ 'customer.register.title' | t }}" href='{{ account_url | append: "/register?cr=" | append: shop_cr }}' class="header-v5-btn text-sm w-full  rounded h-9 flex justify-center items-center {%if block.settings.primary_button == 'account-sign'%}bg-primary text-white font-semibold {% else %}header-v5-btn--secondery color-text-weak{% endif %}">{{ 'customer.register.title' | t }}</a>
+                                                {%- else -%}
+                                                    {% comment %} 跳转用户中心 {% endcomment %}
+                                                     <a role="link" aria-label="{{ 'customer.account.title' | t | escape}}" href="{{account_url | append: "?cr=" | append: shop_cr}}" class="header-v5-btn text-sm w-full rounded h-9 flex justify-center items-center color-text-weak header-v5-btn--secondery">{{ 'customer.account.title' | t }}</a>
+
+                                                    {% comment %} 退出登录 {% endcomment %}
+                                                    <a role="link" aria-label="{{ 'customer.log_out' | t }}" href="{{ routes.account_logout_url }}?return_url={{request.path}}" class="header-v5__logout header-v5-btn text-sm w-full rounded h-9 flex justify-center items-center color-text-weak header-v5-btn--secondery">{{ 'customer.log_out' | t }}</a>
+                                                {%- endif -%}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </menu-down>
+                            </div>
+                    {%- endcase -%}
+                {%- endfor -%}
+
+                {%- unless settings.hide_cart_icon -%}
+                    <div class="h-full flex items-center">
+                        {% if settings.cart_type == 'page' %}
+                            <a 
+                                href="{{ routes.cart_url }}" 
+                                class="v5-header-actions--cart header-actions-item header-actions--cart__top relative px-3" id="cart-icon-v5-menu-top"
+                                data-ga-event="5.0_top_nav_user_clicks"
+                                data-ga-action="click"
+                                data-ga-params-module="Function Menu"
+                                data-ga-params-position="cart"
+                                data-ga-params-button_name="NULL"
+                                data-ga-params-link="{{ routes.cart_url }}"
+                            >
+                        {% else %}
+                            <div 
+                                class="v5-header-actions--cart header-actions-item header-actions--cart__top relative px-3" id="cart-icon-v5-menu-top"
+                                data-ga-event="5.0_top_nav_user_clicks"
+                                data-ga-action="click"
+                                data-ga-params-module="Function Menu"
+                                data-ga-params-position="cart"
+                                data-ga-params-button_name="NULL" 
+                                data-ga-params-link="NULL" 
+                            >
+                        {% endif %}
+                            {%- render 'icon-cart', width: 29, height: 22, color: 'var(--v5-top-menu-text)' -%}
+                            {%- if cart != empty -%}
+                                <div style="left: unset;" class="cart-count-bubble absolute rounded-lg flex text-xs h-4 min-w-4 bg-black justify-center items-center right-2 -top-1">
+                                    {%- if cart.item_count < 100 -%}
+                                        <span aria-hidden="true">{{ cart.item_count }}</span>
+                                    {%- else -%}
+                                        <span aria-hidden="true">99+</span>
+                                    {%- endif -%}
+                                    <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+                                </div>
+                            {%- endif -%}
+                        {% if settings.cart_type == 'page' %}
+                            </a>
+                        {% else %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {%- endunless -%}
+            </div>
+
+            {%- if area_block != blank -%}
+                <div 
+                    class="v5-header-actions--global h-full lg:flex hidden items-center cursor-pointer gap-x-1"
+                    data-ga-event="5.0_top_nav_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="Function Menu"
+                    data-ga-params-position="region"
+                    data-ga-params-button_name="NULL"
+                    data-ga-params-link="NULL" 
+                >
+                    {%- render 'icon-global', width: 22, height: 22, color: 'var(--v5-top-menu-text)' -%}
+                    {%- if area_block.settings.show_area_name == true -%}
+                        {%- render 'iso-code', class: 'text-base font-semibold' -%}
+                    {%- endif -%}
+                </div>
+            {%- endif -%}
+        </div>
+    </div>
+</jky-v5-header>
+
+{% comment %} 全局推荐搜索词列表 {% endcomment %}
+{% if settings.predictive_search_enable_recommend %}
+    {% assign search_group_list = section.blocks | where: 'type', "search" %}
+    {% assign search_block = search_group_list.first %}
+    {% if search_block != blank %}
+        <script type="application/json" id="v5-recommend-search-data">
+            {
+                "list": [
+                    {
+                        "title": {{ search_block.settings.search_group_1_name | json }},
+                        "list": [
+                            {% assign first_word = true %}
+                            {% for i in (1..6) %}
+                                {% assign recommend_word = 'search_group_1_' | append: i | append: '_word' %}
+                                {% assign word = search_block.settings[recommend_word] %}
+                                {% if word != blank %}
+                                    {% unless first_word %},{% endunless %}
+                                    { "title": {{ word | strip | json }} }
+                                    {% assign first_word = false %}
+                                {% endif %}
+                            {% endfor %}
+                        ]
+                    },
+                    {
+                        "title": {{ search_block.settings.search_group_2_name | json }},
+                        "list": [
+                            {% assign first_word = true %}
+                            {% for i in (1..6) %}
+                                {% assign recommend_word = 'search_group_2_' | append: i | append: '_word' %}
+                                {% assign word = search_block.settings[recommend_word] %}
+                                {% if word != blank %}
+                                    {% unless first_word %},{% endunless %}
+                                    { "title": {{ word | strip | json }} }
+                                    {% assign first_word = false %}
+                                {% endif %}
+                            {% endfor %}
+                        ]
+                    },
+                    {
+                        "title": {{ search_block.settings.search_group_3_name | json }},
+                        "list": [
+                            {% assign first_word = true %}
+                            {% for i in (1..6) %}
+                                {% assign recommend_word = 'search_group_3_' | append: i | append: '_word' %}
+                                {% assign word = search_block.settings[recommend_word] %}
+                                {% if word != blank %}
+                                    {% unless first_word %},{% endunless %}
+                                    { "title": {{ word | strip | json }} }
+                                    {% assign first_word = false %}
+                                {% endif %}
+                            {% endfor %}
+                        ]
+                    }
+                ],
+                "search_history_title": {{ search_block.settings.search_history_title | json }},
+                "stories_title": {{ "templates.search.stories" | t | json }}
+            }
+        </script>
+    {% endif %}
+{% endif %}
+
+{% schema %}
+{
+    "name": "V5导航-TOP", "class": "jky-v5-header--top relative z-20", "tag": "div",
+    "enabled_on": {
+        "groups": ["header"]
+    },
+    "settings": [
+        {
+            "type": "header", "content": "背景"
+        },
+        { 
+            "type": "color_background", "id": "background_color","label": "背景色", "default": "#242F20" 
+        },
+        { 
+            "type": "color", "id": "text_color","label": "文本色", "default": "#FFFFFF" 
+        },
+        {
+            "type": "image_picker",
+            "id": "background_image",
+            "label": "背景图片",
+            "info": "可以使用该配置替换背景色显示【建议尺寸：1920 * 48多倍图】"
+        },
+        {
+            "type": "image_picker",
+            "id": "background_image_mobile",
+            "label": "移动端背景图片",
+            "info": "可以使用该配置替换背景色显示【建议尺寸：单行 - 750 * 66 / 双行 - 750 * 112 或 多倍图】"
+        },
+        {
+            "type": "header", "content": "通知栏"
+        },
+        { "type": "header", "content": "顶部通知栏信息配置"},
+        { "type": "text", "id": "ends_in", "label": "Ends in", "default": "Ends in", "info": "截至展示文案" },
+        { "type": "text", "id": "days", "label": "天", "default": "Days", "info": "天的展示文案" },
+        { "type": "text", "id": "hours", "label": "时", "default": "Hrs", "info": "小时的展示文案" },
+        { "type": "text", "id": "mins", "label": "分", "default": "Mins", "info": "分的展示文案" },
+        { "type": "text", "id": "secs", "label": "秒", "default": "Secs", "info": "秒的展示文案" },
+        { "type": "range", "id": "speed", "min": 0, "max": 20, "step": 1, "unit": "秒", "label": "Swiper切换速度", "default": 5}
+    ],
+    "blocks": [
+        {
+            "type": "navigation",
+            "name": "菜单",
+            "limit": 1,
+            "settings": [
+                {"type": "link_list", "id": "menu_list", "label": "Menu", "info": "空白菜单项的链接请配置'#'占位"}
+            ]
+        },
+        {
+            "type": "search",
+            "name": "搜索",
+            "limit": 1,
+            "settings": [
+                { "type": "text", "id": "search_history_title", "label": "搜索历史标题", "default": "SEARCH HISTORY" },
+                { "type": "header", "content": "热门搜索词配置" },
+                { "type": "header", "content": "分类一" },
+                { "type": "text", "id": "search_group_1_name", "label": "分类标题", "default": "POPULAR PRODUCTS" },
+                { "type": "inline_richtext", "id": "search_group_1_1_word", "label": "热门搜索词一", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_1_2_word", "label": "热门搜索词二", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_1_3_word", "label": "热门搜索词三", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_1_4_word", "label": "热门搜索词四", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_1_5_word", "label": "热门搜索词五", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_1_6_word", "label": "热门搜索词六", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "header", "content": "分类二" },
+                { "type": "text", "id": "search_group_2_name", "label": "分类标题", "default": "POPULAR SCENARIOS" },
+                { "type": "inline_richtext", "id": "search_group_2_1_word", "label": "热门搜索词一", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_2_2_word", "label": "热门搜索词二", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_2_3_word", "label": "热门搜索词三", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_2_4_word", "label": "热门搜索词四", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_2_5_word", "label": "热门搜索词五", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_2_6_word", "label": "热门搜索词六", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "header", "content": "分类三" },
+                { "type": "text", "id": "search_group_3_name", "label": "标题", "default": "HELPFUL LINKS" },
+                { "type": "inline_richtext", "id": "search_group_3_1_word", "label": "词条一名称", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_3_2_word", "label": "词条二名称", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_3_3_word", "label": "词条三名称", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_3_4_word", "label": "词条四名称", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_3_5_word", "label": "词条五名称", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"},
+                { "type": "inline_richtext", "id": "search_group_3_6_word", "label": "词条六名称", "info": "角标请用:::分隔,示例：Keyword:::New。链接不要包含角标内容"}
+            ]
+        },
+        {
+            "type": "user",
+            "name": "用户",
+            "limit": 1,
+            "settings": [
+                { "type": "checkbox", "id": "pop_login_main", "label": "免密登录高亮显示", "default": true },
+                {
+                    "type": "select",
+                    "id": "primary_button",
+                    "options": [
+                        {
+                            "value": "password-free-login",
+                            "label": "免密登录"
+                        },
+                        {
+                            "value": "account-login",
+                            "label": "会员登录"
+                        },
+                        {
+                            "value": "account-sign",
+                            "label": "会员注册"
+                        }
+                    ],
+                    "default": "password-free-login",
+                    "label": "高亮显示按钮(已登录状态)"
+                },
+
+                { "type": "text", "id": "user_menu_title", "label": "用户菜单标题", "default": "Join Jackery Membership for Multiple Benifits" },
+                {
+                    "type": "header",
+                    "content": "用户菜单副标题"
+                },
+                { "type": "text", "id": "user_menu_info_1", "label": "用户菜单信息列表-1", "default": "Get $200 off coupon for first registration" },
+                { "type": "text", "id": "user_menu_info_2", "label": "用户菜单信息列表-2", "default": "Memership Price (Up to $XXX off)" },
+                { "type": "text", "id": "user_menu_info_3", "label": "用户菜单信息列表-3" },
+                { "type": "text", "id": "user_menu_info_4", "label": "用户菜单信息列表-4" },
+                { "type": "text", "id": "user_menu_info_5", "label": "用户菜单信息列表-5" }
+            ]
+        },
+        {
+            "type": "global",
+            "name": "国家地区",
+            "limit": 1,
+            "settings": [
+                {
+                    "type": "checkbox",
+                    "id": "show_area_name",
+                    "default": true,
+                    "label": "是否显示国家/地区名称"
+                },
+            ]
+        },
+        {
+            "type": "announcement_bar",
+            "name": "通知栏内容",
+            "limit": 5,
+            "settings": [
+                { "type": "text", "id": "begin_time", "label": "开始时间(必填)",  "info": "规则: YYYY/MM/DD hh:mm:ss, 例如: 2025/12/08 00:00:00" },
+                { "type": "text", "id": "end_time", "label": "结束时间(必填)",  "info": "规则:YYYY/MM/DD hh:mm:ss, 例如: 2025/12/09 00:00:00" },
+                { "type": "checkbox", "id": "show_count_down", "label": "是否展示倒计时", "default": false },
+                { "type": "url", "id": "link",  "label": "通知栏跳转地址" },
+                { "type": "text", "id": "text", "label": "PC通知栏文本信息" },
+                { "type": "text", "id": "text_mb", "label": "MB通知栏文本信息" },
+                { "type": "color", "id": "text_color", "label": "通知栏文本颜色", "default": "#FFFFFF" }
+            ]
+        }
+    ],
+    "presets": [
+        {
+            "name": "V5导航-TOP",
+            "blocks": [
+
+            ]
+        }
+    ]
+}
+{% endschema %}

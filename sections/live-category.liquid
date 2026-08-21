@@ -1,0 +1,92 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+<div
+  {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %}
+  class="section-padding" style="{{style}}"
+>
+  <div class="section-container-lg max-w-full lg:gap-[2rem] gap-[0.75rem] flex justify-center flex-wrap">
+    {% content_for 'blocks' %}
+  </div>
+</div>
+{% schema %}
+{
+  "name": "Live Shop Category",
+  "class": "live-shop-category",
+  "settings": [
+    { "type": "header", "content": "建议添加上限4个" },
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "基础配置"
+        },
+        {
+          "value": "custom",
+          "label": "开发者配置"
+        }
+      ],
+      "default": "default",
+      "label": "配置类型"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}",
+      "content": "文本内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    }
+  ],
+  "blocks":[{"type": "_shop-category-item"}],
+  "presets": [
+    {
+      "name": "Live Shop Category"
+    }
+  ]
+}
+{% endschema %}

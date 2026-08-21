@@ -1,0 +1,128 @@
+<style>
+  .faq {
+    --faq-gap: 40px;
+    margin-top: var(--content-distance); background: var(--gray-color); padding: var(--content-distance) var(--faq-gap);
+  }
+  .faq .faq-image {width: 100%; border-radius: var(--g-radius);}
+  .faq .faq-box h2 {text-align: center; margin: var(--content-distance) auto;}
+  .faq .accordion {max-width: 800px; margin: 0 auto;}
+  .faq button {margin: 0 auto;}
+
+  .accordion {width: 100%;}
+  .accordion .jackery-icon-arrowdown {transition: all 0.3s;}
+  .accordion ul li {display: flex; flex-flow: column; margin-bottom: var(--content-distance);}
+  .accordion ul li:not(:last-child) {border-bottom: var(--border-grey);}
+  .accordion ul li h4 {font-weight: 500; display: flex; align-items: center; justify-content: space-between;}
+  .accordion ul li input {opacity: 0; display: none;}
+  .accordion label {margin-bottom: var(--gap); cursor: pointer;}
+  .accordion .a_content {max-height: 0; padding-bottom: 0; overflow-y: hidden; transition: all 0.3s;}
+  .accordion .a_content p {font-size: 18px;}
+
+  .faq-box.minimum ul li {display: none;}
+  .faq-box.minimum .accordion ul li:nth-child(1),
+  .faq-box.minimum .accordion ul li:nth-child(2),
+  .faq-box.minimum .accordion ul li:nth-child(3) {display: flex;}
+
+  .faq-box.minimum .z-button-fill-middle span::before {content: "{{ 'general.action_text.view_more' | t }}"}
+  
+  .faq-box .z-button-fill-middle span::before {content: "{{ 'general.action_text.view_less' | t }}";}
+  .faq-box:not(.minimum) .z-button-fill-middle .jackery-icon-arrowdown {transform: rotate(180deg);}
+  
+  
+  .accordion ul li input:checked ~ label .jackery-icon-arrowdown {transform: rotate(180deg);}
+  .accordion ul li input:checked ~ .a_content {max-height: 1000px; padding-bottom: var(--content-distance);}
+  @media only screen and (max-width: 768px) {
+    .faq.layer-container {width: 100%; padding: var(--content-distance) 0;}
+    .faq .faq-image {border-radius: 0;}
+    .faq .faq-box {
+      width: calc(100% - 20px); margin: -50px auto 0; padding: 20px; background: var(--normal-color); border-radius: var(--g-radius);
+      position: relative; z-index: 1;
+    }
+    .accordion .a_content p {font-size: 14px;}
+  }
+</style>
+
+
+{% render 'responsive-image', image: section.settings.faq_scens, image_class: 'faq-image' %}
+
+<div {% if section.settings.anchor != blank %} data-anchor="{{section.settings.anchor}}" {% endif %} class="faq-box minimum" id="faq">
+  <h2 class="jky-text-2xl">{{ section.settings.title }}</h2>
+  
+  {% assign FAQ = section.blocks | where: 'type', "FAQ" %}
+  {% if FAQ.size > 0 %}
+  <div class="accordion">
+    <ul>
+      {% for block in FAQ %}
+        <li>
+          <input type="checkbox" id="{{ block.type }}_{{ forloop.index0 }}" {% if forloop.index0 == 0 %}checked{% endif %}>
+          <label for="{{ block.type }}_{{ forloop.index0 }}">
+            <h3 style="display: flex;justify-content: space-between;" class="jky-text-lg">{{ block.settings.title | newline_to_br}}
+              {% comment %} <i class="iconfont jackery-icon-arrowdown"></i> {% endcomment %}
+              <jds-icon name="arrow-down" class="jackery-icon-arrowdown"></jds-icon></h3>
+          </label>
+          <div class="a_content">{{ block.settings.content | newline_to_br}}</div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if FAQ.size > 3 %}
+  <button name="more" class="z-button-fill-middle"><span></span>&nbsp;
+  {% comment %} <i class="iconfont jackery-icon-arrowdown"></i> {% endcomment %}
+  <jds-icon name="arrow-down" class="jackery-icon-arrowdown"></jds-icon></button>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "product details faq", "class": "faq layer-container", "tag": "section",
+  "enabled_on": {
+      "templates": ["product"]
+  },
+  "settings": [
+    {
+            "type": "select",
+            "id": "anchor",
+            "label": "锚点设置",
+            "info": "非锚点section请清空此项",
+            "options": [
+                {
+                "value": "",
+                "label": "非锚点section"
+                },
+                {
+                "value": "anchor__1",
+                "label": "第一个section锚点"
+                },
+                {
+                "value": "anchor__2",
+                "label": "第二个section锚点"
+                },
+                {
+                "value": "anchor__3",
+                "label": "第三个section锚点"
+                },
+                {
+                "value": "anchor__4",
+                "label": "第四个section锚点"
+                }
+            ],
+            "default": ""
+    },
+    {"type": "text", "id": "title", "label": "FAQ Title", "default": "FAQ"},
+    {"type": "image_picker", "id": "faq_scens", "label": "FAQ Background"}
+  ],
+  "blocks": [
+    {
+      "type": "FAQ", "name": "Page FAQ", "settings": [
+        {"type": "text", "id": "title", "label": "FAQ title", "default": "title"},
+        {"type": "richtext", "id": "content", "label": "FAQ content", "default": "<p>content</p>"}
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "product details faq"
+    }]
+}
+{% endschema %}

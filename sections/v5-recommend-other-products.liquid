@@ -1,0 +1,394 @@
+{%- style -%}
+  .v5-recommend-other-products .swiper-button-disabled {
+    opacity: 0.35;
+    cursor: auto;
+    pointer-events: none;
+  }
+
+  @media screen and (min-width: 1024px) {
+    .v5-recommend-other-products jds-button::part(button) {
+      padding-top: 0.625rem;
+      padding-bottom: 0.625rem;
+    }
+  }
+  @media screen and (max-width: 1024px) {
+    .v5-recommend-other-products .text-overflow-4 {
+      -webkit-box-orient: vertical;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      overflow: hidden;
+    }
+  }
+{%- endstyle -%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="v5-recommend-other-products section-padding lg:w-[82.5rem] mx-auto pl-[1rem] lg:pl-0 lg:pr-0 {% if section.blocks.size < 2 %}pr-[1rem] lg:w-[75.25rem]{% endif %}"
+  {{ section.shopify_attributes }}
+  style="{{style}}"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+>
+  {% comment %} Section Header {% endcomment %}
+  <h2 class="lg:text-[3rem] text-[1.75rem] font-semibold mb-[2.5rem] lg:mb-[4rem] text-[#242F20] text-center pr-[1rem] lg:pr-0">
+    {{ section.settings.title }}
+  </h2>
+
+  <div class="swiper recommendSwiper">
+    <div class="swiper-wrapper items-stretch {% if section.blocks.size < 2 %}justify-center{% endif %}">
+      {% comment %} Slide 1 {% endcomment %}
+      {% for block in section.blocks %}
+        {%- if block.settings.product != blank -%}
+          {% assign product = block.settings.product %}
+          {% assign variant_id = block.settings.variant_id %}
+          {% assign variant = product.variants | where: 'id', variant_id | first %}
+          {% if variant == blank %}
+            {% assign variant = product.selected_or_first_available_variant %}
+          {% endif %}
+          <div class="swiper-slide flex h-auto{% if section.blocks.size < 2 %}w-[20.625rem] lg:w-[75.25rem]{% endif %}">
+            {% comment %} Unified Card Structure {% endcomment %}
+            <div class="bg-[#F5F5F3] p-4 lg:p-[2.5rem] pt-[1.5rem] h-full flex flex-col lg:flex-row lg:gap-[3.75rem] relative group w-full">
+              {% comment %} Image Section {% endcomment %}
+              {% comment %} Mobile: Order 2 (Bottom) | Desktop: Order 1 (Left) {% endcomment %}
+              <div class="order-2 lg:order-1 lg:w-[22.5rem] flex flex-col mt-auto lg:mt-0 shrink-0">
+                <div class="bg-white rounded h-full flex flex-col items-center justify-center relative">
+                  {%- assign image = variant.featured_image | default: product.featured_image -%}
+                  {% render 'diff-end-img', pc_img: image, mb_img:image, class: 'lg:w-[22.5rem] w-[18.625rem] h-[18.625rem] lg:h-[22.5rem] object-contain mb-4',pc_img_width: 360,mb_img_width: 298 %}
+
+                  <div class="text-left w-full px-[1rem]">
+                    {% assign default_title = variant.title | escape | strip | replace: 'Jackery', '' %}
+                    {% assign title = variant.metafields.custom.shortname | default: default_title %}
+                    {% if title == 'Default Title' %}
+                      {% assign title = product.title | escape | strip | replace: 'Jackery', '' %}
+                    {% endif %}
+                    <h4 class="font-semibold lg:text-[1.25rem] text-[0.875rem] mb-[1.5rem] text-[rgba(0,0,0,0.9)] leading-tight text-overflow-2 lg:h-[3.125rem] h-[2.25rem]">
+                      {{ title | escape }}
+                    </h4>
+
+                    {% comment %} 价格 {% endcomment %}
+                    {% if settings.open_auto_discount_price %}
+                      {% assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1 %}
+                      {% if auto_discount_price > 0 %}
+                        {% assign current_price = variant.price %}
+                        {% if auto_discount_price < variant.price %}
+                          {% assign current_price = auto_discount_price %}
+                        {% endif %}
+                      {% else %}
+                        {% assign current_price = variant.price %}
+                      {% endif %}
+                    {% else %}
+                      {% assign current_price = variant.price %}
+                    {% endif %}
+
+                    {% comment %} 划线价 {% endcomment %}
+
+                    {% if variant.compare_at_price > current_price %}
+                      {% assign compare_at_price = variant.compare_at_price %}
+                    {% else %}
+                      {% if variant.price > current_price %}
+                        {% assign compare_at_price = variant.price %}
+                      {% else %}
+                        {% assign compare_at_price = blank %}
+                      {% endif %}
+                    {% endif %}
+
+                    <div class="flex flex-wrap items-baseline gap-[0.25rem] mb-[1rem]">
+                      <span class="font-semibold lg:text-[1.25rem] text-[1rem] text-[#242F20]">{{ current_price | money }}</span>
+                      {% if compare_at_price != blank %}
+                        <span class="lg:text-[0.875rem] text-[0.75rem] text-[rgba(0,0,0,0.65)] line-through">
+                          {{- compare_at_price | money -}}
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="order-1 lg:order-2 w-full lg:w-2/3 flex flex-col">
+                <h3 class="font-bold lg:text-[2rem] text-[1rem] lg:leading-[1.1] mb-[1.5rem] text-[#242F20] lg:mt-[1.75rem] lg:mb-[3.75rem] text-overflow-3 text-overflow-4">
+                  {{ block.settings.title }}
+                </h3>
+
+                {% comment %} Metric 1 {% endcomment %}
+                {% if block.settings.big != blank %}
+                  <div class="mb-4">
+                    <div class="w-full bg-white lg:h-[0.75rem] h-[0.5rem] mb-[0.75rem]">
+                      <div
+                        class="bg-[#242F20] lg:h-[0.75rem] h-2"
+                        style="width: {{ block.settings.nubmer }}%"
+                      ></div>
+                    </div>
+                    <div class="flex items-end gap-2">
+                      <span class="lg:text-[3rem] text-[1.75rem] font-semibold text-[#242F20] shrink-0">
+                        {{- block.settings.big -}}
+                      </span>
+                      <span class="lg:text-[1rem] text-[0.75rem] text-[rgba(36,47,32,0.9)] text-overflow-2 lg:mb-[0.5rem] mb-[0.25rem]">
+                        {{- block.settings.des -}}
+                      </span>
+                    </div>
+                  </div>
+                {% endif %}
+
+                {% comment %} Metric 2 {% endcomment %}
+                {% if block.settings.big_2 != blank %}
+                  <div>
+                    <div class="w-full bg-white lg:h-[0.75rem] h-[0.5rem] mb-[0.75rem]">
+                      <div
+                        class="bg-[var(--jds-color-primary)] lg:h-[0.75rem] h-2"
+                        style="width: {{ block.settings.nubmer_2}}%"
+                      ></div>
+                    </div>
+                    <div class="flex items-end gap-2">
+                      <span class="lg:text-[3rem] text-[1.75rem] font-semibold text-[var(--jds-color-primary)] shrink-0">
+                        {{- block.settings.big_2 -}}
+                      </span>
+                      <span class="lg:text-[1rem] text-[0.75rem] text-[rgba(36,47,32,0.9)] text-overflow-2 lg:mb-[0.5rem] mb-[0.25rem]">
+                        {{- block.settings.des_2 -}}
+                      </span>
+                    </div>
+                  </div>
+                {% endif %}
+
+                {% if section.settings.btn != blank %}
+                  <div class="lg:mt-[3.75rem] mt-[1.125rem] mb-[1rem] lg:mb-0">
+                    <a href="{{ variant.url }}">
+                      <jds-button variant="secondary">{{ section.settings.btn }}</jds-button>
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% comment %} {% endif %} {% endcomment %}
+        {%- endif -%}
+      {% endfor %}
+    </div>
+    {% comment %} Navigation {% endcomment %}
+    {% if section.blocks.size > 1 %}
+      <div class="hidden lg:flex justify-center gap-[2.5rem] lg:mt-[1.5rem]">
+        <button
+          class="recommend-prev w-10 h-10 flex items-center justify-center transition bg-[rgba(245,245,243,0.5)]"
+        >
+          {% render 'v5-icon-arrow-left' %}
+        </button>
+        <button
+          class="recommend-next w-10 h-10 flex items-center justify-center transition bg-[rgba(245,245,243,0.5)]"
+        >
+          {% render 'v5-icon-arrow-right' %}
+        </button>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+<script type="module">
+  (function () {
+    function init() {
+      var el = document.querySelector('.v5-recommend-other-products .recommendSwiper');
+      if (!el) return;
+      const slides = el.querySelectorAll('.swiper-slide');
+      const total = slides.length;
+      if (total < 2) return;
+
+      new Swiper(el, {
+        slidesPerView: 1.085,
+        spaceBetween: 16,
+        centeredSlides: false,
+        navigation: {
+          nextEl: '.recommend-next',
+          prevEl: '.recommend-prev',
+        },
+        breakpoints: {
+          1024: {
+            slidesPerView: 1.095,
+            spaceBetween: 24,
+          },
+        },
+      });
+    }
+    init();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "V5-推荐其他产品",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "checkbox", "id": "open_in_new_tab", "label": "是否新开标签页", "default": false },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 40,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 80,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    { "type": "text", "id": "title", "label": "模块标题文案" },
+    { "type": "text", "id": "btn", "label": "按钮文案" }
+  ],
+  "blocks": [
+    {
+      "type": "recommend",
+      "name": "其他产品",
+      "settings": [
+        { "type": "product", "id": "product", "label": "选择产品" },
+        { "type": "number", "id": "variant_id", "label": "变体ID" },
+        { "type": "text", "id": "title", "label": "标题文案" },
+        { "type": "header", "content": "进度条一" },
+        { "type": "text", "id": "big", "label": "大字说明" },
+        { "type": "text", "id": "des", "label": "描述文案" },
+        {
+          "type": "range",
+          "id": "nubmer",
+          "label": "进度条比例",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "default": 40
+        },
+        { "type": "header", "content": "进度条二" },
+        { "type": "text", "id": "big_2", "label": "大字说明" },
+        { "type": "text", "id": "des_2", "label": "描述文案" },
+        {
+          "type": "range",
+          "id": "nubmer_2",
+          "label": "进度条比例",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "default": 70
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-推荐其他产品",
+      "category": "V5.0"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,394 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- assign benefit_items = section.blocks | where: 'type', 'benefit_item' -%}
+{%- assign benefit_items_size = benefit_items.size -%}
+
+{%- liquid
+  assign is_login = false
+  if customer.id
+    assign is_login = true
+  endif
+-%}
+
+
+{% style %}
+  v5-membership-get-benefit .v5-benefit-desc-slot {
+    display: inline-block;
+    width: 2rem;
+    height: 1rem;
+    vertical-align: middle;
+    margin-top: -0.125rem;
+  }
+  v5-membership-get-benefit .v5-benefit-desc-slot.loaded {
+    width: fit-content;
+    height: unset;
+    margin-top: 0;
+    vertical-align: unset;
+  }
+  v5-membership-get-benefit .benefit-items-list li.benefit-item-hidden {
+    display: none !important;
+  }
+  v5-membership-get-benefit .benefit-items-list.benefit-item-expanded li.benefit-item-hidden {
+    display: flex !important;
+  }
+{% endstyle %}
+
+<div>
+  <v5-membership-get-benefit
+    class="block w-full section-padding"
+    {% if section.settings.anchor != blank %}
+      anchor-target="{{ section.settings.anchor | escape}}"
+    {% endif %}
+    style="background-color:{{ section.settings.bg_color | default: '#FFFFFF' }};{{ style }}"
+  >
+    {% comment %} 权益说明 {% endcomment %}
+    {%- assign benefit_desc = section.blocks | where: 'type', 'benefit_desc' | first -%}
+    {%- if benefit_desc != blank -%}
+      <div class="section-container-lg relative overflow-hidden">
+        {% if benefit_desc.settings.pc_bg_img != blank or benefit_desc.settings.mb_bg_img != blank %}
+          {% assign img_alt = benefit_desc.settings.title | strip_html | default: benefit_desc.settings.pc_bg_img.alt | default: 'image alt' %}
+          {%- render 'diff-end-img',
+            class: 'w-full h-full object-cover absolute inset-0',
+            pc_img: benefit_desc.settings.pc_bg_img,
+            mb_img: benefit_desc.settings.mb_bg_img,
+            pc_img_width: 1320,
+            mb_img_width: 343,
+            alt: img_alt
+          -%}
+        {%- else -%}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full object-cover absolute inset-0' }}
+        {%- endif -%}
+        <div class="w-full h-full flex flex-col items-center justify-center px-4 py-28 lg:px-[8.75rem] lg:py-16 relative flex flex-col gap-y-6 lg:gap-y-10">
+          {%- if benefit_desc.settings.subtitle != blank -%}
+            <p class="w-full text-center font-semibold text-base lg:text-[1.75rem] lg:leading-[2.125rem]" style="color:{{ benefit_desc.settings.subtitle_color }}">{{ benefit_desc.settings.subtitle | newline_to_br }}</p>
+          {%- endif -%}
+          {%- if benefit_desc.settings.title != blank -%}
+            <h2 class="w-full text-center v5-font-oxm text-4xl lg:text-7xl" style="color:{{ benefit_desc.settings.title_color }}">{{ benefit_desc.settings.title | newline_to_br }}</h2>
+          {%- endif -%}
+          {%- if benefit_desc.settings.shop_now != blank -%}
+            <div class="w-full flex items-center justify-center h-[2.125rem] lg:h-12">
+              <jds-button class="w-fit h-full" href="{{ benefit_desc.settings.shop_now_link }}" kind="custom" style="--jds-btn-custom-color:#242F20">{{ benefit_desc.settings.shop_now }}</jds-button>
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {% comment %} 权益板块 {% endcomment %}
+    
+    {%- if benefit_items_size > 0 -%}
+      <div class="section-container-lg">
+        {%- if section.settings.benefit_title != blank -%}
+          <h3 class="w-full font-semibold text-[#242F20] text-base lg:text-[1.75rem] lg:leading-[2.125rem] mt-10 mb-5 lg:my-16">{{ section.settings.benefit_title | newline_to_br }}</h3>
+        {%- endif -%}
+        <ul class="w-full grid grid-cols-2 lg:grid-cols-3 grid-flow-row benefit-items-list" {% if benefit_items_size > 6 %}data-has-more{% endif %}>
+          {%- for item in benefit_items -%}
+            <li
+              class="
+                w-full flex flex-col items-center justify-center py-4 lg:py-6 border-0 border-solid border-[#A9AAAC] border-t-[1px]
+                [&:nth-child(-n+2)]:border-t-0 [&:nth-child(-n+2)]:pt-0 lg:[&:nth-child(-n+3)]:border-t-0
+                lg:[&:nth-child(-n+3)]:pt-0 [&:nth-last-child(-n+2)]:pb-0 lg:[&:nth-last-child(-n+3)]:pb-0
+                [&>div]:border-0 [&>div]:border-solid [&>div]:border-[#C3C3BE] [&>div]:border-r-[1px]
+                [&:nth-child(2n)>div]:border-r-0 lg:[&:nth-child(2n)>div]:border-r-[1px] lg:[&:nth-child(3n)>div]:border-r-0{% if benefit_items_size >= 8 and forloop.index == 7 %} lg:pb-0{% endif %}
+                {% if forloop.index > 6 %}benefit-item-hidden{% endif %}
+              "
+              data-type="{{ item.settings.type }}"
+              data-complete-text="{{ section.settings.completed_btn_text |escape }}"
+            >
+              <div class="w-full h-full flex flex-col items-center justify-between gap-y-4 lg:gap-y-10 px-3 lg:px-6">
+                <div class="w-full flex items-center justify-center">
+                  {% if item.settings.icon != blank %}
+                    {% assign img_alt = item.settings.title | strip_html | default: item.settings.icon.alt | default: 'image alt' %}
+                    {%- render 'diff-end-img',
+                      class: 'w-16 h-16 object-contain',
+                      pc_img: item.settings.icon,
+                      mb_img: item.settings.icon,
+                      pc_img_width: 64,
+                      mb_img_width: 64,
+                      alt: img_alt
+                    -%}
+                  {%- else -%}
+                    {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-16 h-16 object-contain' }}
+                  {%- endif -%}
+                </div>
+                <div class="flex-1 flex flex-col items-center justify-between gap-y-4 lg:gap-y-6">
+                  <div class="flex flex-col items-center justify-start gap-y-4 lg:gap-y-6">
+                    {%- if item.settings.title != blank -%}
+                      <h4 class="membership-get-benefit-tit w-full text-center font-semibold text-[#242F20] text-base lg:text-[1.75rem] lg:leading-[2.125rem]">{{ item.settings.title | escape }}</h4>
+                      {%- style -%}
+                        html:is([lang="de"], [lang="fr"], [lang="nl"]) .membership-get-benefit-tit {
+                          -webkit-hyphens: auto; 
+                          -ms-hyphens: auto; 
+                          hyphens: auto;
+                        }
+                      {%- endstyle -%}
+                    {%- endif -%}
+                    {%- if item.settings.desc != blank -%}
+                      {%- liquid
+                        assign benefit_desc_html = item.settings.desc
+                        assign benefit_desc_html = benefit_desc_html | replace: '{0}', '<span class="v5-benefit-desc-slot skeleton" data-index="0"></span>'
+                        assign benefit_desc_html = benefit_desc_html | replace: '{1}', '<span class="v5-benefit-desc-slot skeleton" data-index="1"></span>'
+                        assign benefit_desc_html = benefit_desc_html | replace: '{2}', '<span class="v5-benefit-desc-slot skeleton" data-index="2"></span>'
+                        assign benefit_desc_html = benefit_desc_html | replace: '{3}', '<span class="v5-benefit-desc-slot skeleton" data-index="3"></span>'
+                      -%}
+                      <p class="w-full text-center font-normal text-[#242F20] text-sm lg:text-base">{{ benefit_desc_html | newline_to_br }}</p>
+                    {%- endif -%}
+                  </div>
+                  {%- if customer.id -%}
+                    <div class="w-fit h-[1.875rem] lg:h-8" data-logged-btn-text="{{ item.settings.logged_btn_text | escape }}" data-logged-btn>
+                      {%- if item.settings.type == 'warranty' or item.settings.type == 'shop_and_earn' or item.settings.type == 'product_review' -%}
+                        {%- if item.settings.logged_btn_link != blank -%}
+                          <jds-button
+                            variant="text"
+                            size="medium"
+                            href="{{ item.settings.logged_btn_link }}"
+                            icon="arrow-right-long"
+                            style="--jds-btn-medium-padding-horizontal:0px;"
+                            {% if is_login == false %}
+                            onClick="window.Jackery.Utils.showLoginPopup('MEM-Register')"
+                            {% endif %}
+                          >
+                            {{- item.settings.logged_btn_text | escape -}}
+                          </jds-button>
+                        {%- endif -%}
+                      {%- else -%}
+                        <div class="w-[4.5rem] lg:w-24 h-full skeleton"></div>
+                        {%- if item.settings.logged_btn_link != blank -%}
+                          <jds-button
+                            class="hidden"
+                            variant="text"
+                            size="medium"
+                            href="{{ item.settings.logged_btn_link }}"
+                            icon="arrow-right-long"
+                            style="--jds-btn-medium-padding-horizontal:0px;"
+                            {% if is_login == false %}
+                            onClick="window.Jackery.Utils.showLoginPopup('MEM-Register')"
+                            {% endif %}
+                          >
+                            {{- item.settings.logged_btn_text | escape -}}
+                          </jds-button>
+                        {%- endif -%}
+                      {%- endif -%}
+                    </div>
+                  {%- else -%}
+                    <div class="w-fit h-[1.875rem] lg:h-8">
+                      <jds-button
+                        variant="text"
+                        size="medium"
+                        icon="arrow-right-long"
+                        style="--jds-btn-medium-padding-horizontal:0px;"
+                        {% if is_login == false %}
+                        onClick="window.Jackery.Utils.showLoginPopup('MEM-Register')"
+                        {% endif %}
+                      >
+                        {{- section.settings.benefit_no_login_btn_text | escape -}}
+                      </jds-button>
+                    </div>
+                  {%- endif -%}
+                </div>
+              </div>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {%- if benefit_items_size > 6 -%}
+          <div class="w-full flex items-center justify-center py-6">
+            <div class="benefit-view-more-btn flex items-center gap-x-1 text-[#242F20] font-semibold text-sm lg:text-base underline cursor-pointer transition-opacity" onclick="toggleBenefitItems(this)">
+              <span>{{ section.settings.view_more_text | default: 'View More' }}</span>
+              <svg class="w-4 h-4 lg:w-5 lg:h-5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </v5-membership-get-benefit>
+
+<script>
+  function toggleBenefitItems(btn) {
+    const list = btn.closest('.section-container-lg').querySelector('.benefit-items-list');
+    const btnText = btn.querySelector('span');
+    const btnIcon = btn.querySelector('svg');
+    
+    if (list && btn) {
+      const isExpanded = list.classList.contains('benefit-item-expanded');
+      
+      if (isExpanded) {
+        list.classList.remove('benefit-item-expanded');
+        btnText.textContent = 'View More';
+        btnIcon.style.transform = 'rotate(0deg)';
+      } else {
+        list.classList.add('benefit-item-expanded');
+        btnText.textContent = 'View Less';
+        btnIcon.style.transform = 'rotate(180deg)';
+      }
+    }
+  }
+</script>
+<script src="{{ 'section-v5-membership-get-benefit.min.js' | asset_url }}" defer></script>
+</div>
+
+{% schema %}
+{
+  "name": "V5-会员-兑换途径",
+  "limit": 1,
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 96 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 96 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#FFFFFF" },
+
+    { "type": "header", "content": "权益板块配置" },
+    { "type": "textarea", "id": "benefit_title", "label": "标题", "default": "Earn Points When You Complete Activities" },
+    { "type": "text", "id": "benefit_no_login_btn_text", "label": "登录前按钮文案", "default": "Login" },
+    { "type": "text", "id": "completed_btn_text", "label": "完成状态的按钮文案", "default": "Completed" },
+    { "type": "text", "id": "view_more_text", "label": "View More按钮文案", "default": "View More" }
+  ],
+  "blocks": [
+    {
+      "type": "benefit_desc",
+      "name": "权益说明",
+      "limit": 1,
+      "settings": [
+          { "type": "inline_richtext", "id": "title", "label": "标题", "default": "$1 = 1 Jackery Points" },
+          { "type": "color", "id": "title_color", "label": "标题颜色", "default": "#242F20" },
+          { "type": "inline_richtext", "id": "subtitle", "label": "副标题", "default": "Earn Jackery Points Every Purchase" },
+          { "type": "color", "id": "subtitle_color", "label": "副标题颜色", "default": "#242F20" },
+          { "type": "image_picker", "id": "pc_bg_img", "label": "PC端背景图片" },
+          { "type": "image_picker", "id": "mb_bg_img", "label": "MB端背景图片" },
+          { "type": "text", "id": "shop_now", "label": "按钮文案", "default": "Shop Now" },
+          { "type": "url", "id": "shop_now_link", "label": "按钮跳转链接" }
+      ]
+    },
+    {
+      "type": "benefit_item",
+      "name": "权益板块",
+      "settings": [
+        {
+          "type": "select",
+          "id": "type",
+          "label": "类型（唯一）",
+          "options": [
+            { "value": "registration", "label": "会员注册" },
+            { "value": "email_subscription", "label": "邮箱订阅" },
+            { "value": "sms_subscription", "label": "短信订阅" },
+            { "value": "birthday", "label": "填写生日" },
+            { "value": "warranty", "label": "延长保修" },
+            { "value": "shop_and_earn", "label": "购物奖励" },
+            { "value": "product_review", "label": "商品评论" }
+          ]
+        },
+        { "type": "image_picker", "id": "icon", "label": "图标" },
+        { "type": "text", "id": "title", "label": "标题" },
+        { "type": "textarea", "id": "desc", "label": "描述", "info": "一个变量用{0}，多个变量用{0}、{1}、{2}..." },
+        { "type": "text", "id": "logged_btn_text", "label": "登录后按钮文案", "default": "Join Now" },
+        { "type": "url", "id": "logged_btn_link", "label": "登录后按钮跳转链接" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-会员-兑换途径",
+      "blocks": [
+        {
+          "type": "benefit_desc"
+        },
+        {
+          "type": "benefit_item",
+          "settings": {
+            "type": "registration",
+            "title": "Membership Registration",
+            "desc": "Get {0} Jackery points when you join."
+          }
+        },
+        {
+          "type": "benefit_item",
+          "settings": {
+            "type": "email_subscription",
+            "title": "Email Subscription",
+            "desc": "Get {0} Jackery points by subscribing to Jackery by Email."
+          }
+        },
+        {
+          "type": "benefit_item",
+          "settings": {
+            "type": "sms_subscription",
+            "title": "SMS Subscription",
+            "desc": "Get {0} Jackery points by subscribing to Jackery by SMS."
+          }
+        },
+        {
+          "type": "benefit_item",
+          "settings": {
+            "type": "birthday",
+            "title": "Fill in Your Birthday",
+            "desc": "Get {0} Points by Filling in your birthday.\nEarn {1} points on each birthday and Get shopping points double."
+          }
+        },
+        {
+          "type": "benefit_item",
+          "settings": {
+            "type": "warranty",
+            "title": "Extend Your Warranty",
+            "desc": "Get {0} Points by registering products on Jackery's official website per time.\n(For customers purchased from third-party channels.)"
+          }
+        },
+        {
+          "type": "benefit_item",
+          "settings": {
+            "type": "shop_and_earn",
+            "title": "Shop and Earn",
+            "desc": "Go shopping,1 dollar spent = 1 point earned\n{0} points earned for the {1} orders\n{2} points for orders totaling over {3}"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

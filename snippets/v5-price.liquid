@@ -1,0 +1,58 @@
+{%- liquid
+  # 默认获取选中的
+  assign target = product.selected_or_first_available_variant
+
+  # 如果传参指定了变体，则取指定的
+  if variant != blank
+    assign target = variant
+  endif
+  
+  assign price = target.price | default: 1999
+  assign compare_at_price = target.compare_at_price | default: price
+
+  # 是否需要自动折扣兜底
+  assign need_auto = true
+
+  # 会员价
+  if show_membership_price
+    assign mem_price = target.metafields.custom.member_price | times: 1
+    if mem_price > 0
+      assign need_auto = false
+      assign price = mem_price
+    endif
+  endif
+  
+  # 开启了自动折扣
+  if need_auto and settings.open_auto_discount_price
+    assign auto_discount_price = target.metafields.custom.auto_discount_price | times: 1
+    if auto_discount_price > 0 and auto_discount_price < target.price
+      assign price = auto_discount_price
+    else
+      assign price = target.price
+    endif
+  endif
+
+  # 划线价
+  if compare_at_price < target.price
+    assign compare_at_price = target.price
+  endif
+
+  assign money_price = price | money
+
+  if target == product and product.price_varies
+    assign money_price = 'products.product.price.from_price_html' | t: price: money_price
+  endif
+
+  # 价格 字体大小
+  assign w_class = wrapper_class | default: 'items-baseline'
+  assign p_class = price_class | default: 'text-sm lg:text-xl'
+  assign op_class = origin_price_class | default: 'text-xs lg:text-sm'
+-%}
+
+<div {{ block.shopify_attributes }} class="flex gap-x-1 {{ w_class }}">
+  <span class="font-semibold text-[#242F20] {{ p_class }}">{{ money_price }}</span>
+
+  {%- if compare_at_price > price -%}
+    <span class="text-black/65 line-through {{ op_class }}">{{ compare_at_price | money }}</span>
+  {%- endif -%}
+</div>

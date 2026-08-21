@@ -1,0 +1,294 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+{%- assign size = section.blocks | size -%}
+
+{{ 'section-v5-pdp-scroll-pic-text.min.css' | asset_url | stylesheet_tag }}
+
+{% assign page_type = 'page' %}
+{%- if template contains 'product.' -%}
+    {% assign page_type = 'product' %}
+{%- endif -%}
+
+<div
+    {{ section.shopify_attributes }}
+    {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %}
+    class="section-padding v5-pdp-scroll-pic-text"
+    style="background: {{section.settings.bg_color}};{{style}}"
+>
+    {% comment %} 头部 {% endcomment %}
+    <div class="w-full lg:w-[82.5rem] mx-auto text-center">
+        <div class="font-semibold text-[#242F20] mb-4 lg:mb-6 {{ section.settings.sub_heading_size }}">{{ section.settings.little_title | escape}}</div>
+        <div class="v5-font-oxm font-extrabold mb-6 {{ section.settings.heading_size }}">{{ section.settings.title | escape}}</div>
+    </div>
+    {% comment %} 内容 {% endcomment %}
+    <v5-pdp-scroll-pic-text data-size="{{ size }}" data-id="{{ section.id }}" data-type="{{ page_type }}">
+        {% comment %} PC {% endcomment %}
+        <div id="{{ section.id }}" class="hidden lg:block relative z-10">
+            <div class="w-[82.5rem] mx-auto">
+                <div class="tab-contents relative">
+                    {% if section.settings.layout == '1' %}
+                        {% assign flex_direction = 'row' %}
+                        {% assign position = 'before:left-[-1.625rem]' %}
+                        {% assign line_class = 'divider-left' %}
+                    {% else %}
+                        {% assign flex_direction = 'row-reverse' %}
+                        {% assign position = 'before:right-[-1.625rem]' %}
+                        {% assign line_class = 'divider-right' %}
+                    {% endif %}
+                    <div class="tab-content tab-content-pc active">
+                        <div class="flex gap-[3.125rem] items-stretch w-full justify-between" style="flex-direction: {{ flex_direction }};">
+                            {% assign rem_height = section.settings.pc_image_h | divided_by: 16 %}
+                            <div class="w-[39.6875rem] relative" style="height: {{ rem_height }}rem">
+                                {% for block in section.blocks %}
+                                    {% liquid
+                                        assign text_color = block.settings.text_color | default: '#242F20'
+                                        assign highlight_color = block.settings.highlight_color | default: 'var(--jds-color-primary)'
+                                        assign highlight_style = '<em style="color:' | append: highlight_color | append: '">'
+                                        assign video_pc = block.settings.video_uploaded_pc
+                                        if block.settings.video_source == 'Youtube'
+                                            assign video_pc = block.settings.video_youtube_pc
+                                        endif
+                                    %}
+                                    {%- if block.settings.title != blank -%}
+                                        {%- assign source_img = block.settings.pc_image -%}
+                                        <img
+                                            class="absolute inset-0 w-full h-full object-cover top-0 left-0 pointer-events-none scence-image z-[1] {% if forloop.first %} opacity-100 {% else %} opacity-0 {% endif %}"
+                                            data-index="{{ block.id }}"
+                                            width="635"
+                                            height="{{ section.settings.pc_image_h }}"
+                                            style="height: {{rem_height}}rem; aspect-ratio: 635/{{section.settings.pc_image_h}};"
+                                            src="{{ source_img | image_url: width: 635 }}"
+                                            loading="lazy"
+                                            srcset="
+                                                {{ source_img | image_url: width: 635 }} 635w,
+                                                {{ source_img | image_url: width: 952 }} 952w,
+                                                {{ source_img | image_url: width: 1270 }} 1270w,
+                                                {{ source_img | image_url: width: 1905 }} 1905w
+                                                {{ source_img | image_url: width: 2400 }} 2400w
+                                            "
+                                        >
+                                        {% if block.settings.media_type == '2' and video_pc != blank %}
+                                            <div class="absolute bottom-4 w-full items-center justify-center z-10 pointer-events-auto pc-play-video {% if forloop.first %} active {% endif %}" data-play-video data-index="{{ block.id }}">
+                                                <div
+                                                    class="bg-white h-12 flex items-center cursor-pointer py-2 px-4 video"
+                                                    data-video_id="{{ video_pc.id }}"
+                                                    data-ga-event="5.0_products_details_page_user_clicks"
+                                                    data-ga-action="click"
+                                                    data-ga-params-position="{{ block.settings.title | strip_html | escape }}"
+                                                    data-ga-params-product_spu_name="{{ product.title | escape }}"
+                                                    data-ga-params-module="{{ section.settings.title | escape }}"
+                                                    data-ga-params-button_name="Video"
+                                                >
+                                                    <div class="hidden video-{{ video_pc.id }}">
+                                                        {% if block.settings.video_source == 'uploaded' %}
+                                                            {{ video_pc | video_tag: controls: true, autoplay: false, loop: false, muted: false, class: 'w-full object-contain h-full' }}
+                                                        {% else %}
+                                                            <iframe
+                                                                class="w-[75rem] min-h-[25rem] max-h-[80vh]"
+                                                                width="100%"
+                                                                height="100%"
+                                                                src="https://www.youtube.com/embed/{{ video_pc.id }}"
+                                                                frameborder="0"
+                                                                allow="autoplay; encrypted-media"
+                                                                allowfullscreen>
+                                                            </iframe>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% render 'icon-v5-pause', width: 24, height: 24, color: '#242F20' %}
+                                                    {% if section.settings.video_btn_text != blank %}
+                                                        <span class="pl-4 font-semibold text-[1.25rem] text-[#242F20] z-[2]">{{ section.settings.video_btn_text | escape }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {%- endif -%}
+                                {% endfor %}
+                            </div>
+                            <div class="relative w-[39.6875rem] tab-content-text {{ line_class }}">
+                                {% for block in section.blocks %}
+                                    {% liquid
+                                        assign text_color = block.settings.text_color | default: '#242F20'
+                                        assign highlight_color = block.settings.highlight_color | default: 'var(--jds-color-primary)'
+                                        assign highlight_style = '<em style="color:' | append: highlight_color | append: '">'
+                                    %}
+                                    {%- if block.settings.title != blank -%}
+                                        <div class="relative mb-10 text-block {{ position }} {% if forloop.first %} active {% endif %}" data-item-index="{{ forloop.index }}">
+                                            <div class="text-[1.75rem] font-semibold title cursor-pointer opacity-65" data-index="{{ block.id }}" style="color: {{ text_color }};">{{ block.settings.title | replace: '<em>', highlight_style }}</div>
+                                            <div class="overflow-hidden font-normal text-[1.125rem] leading-[1.5rem] -tracking-tighter sub-title max-h-0 opacity-0 mt-10" style="color: {{ text_color }};">{{ block.settings.desc | replace: '<em>', highlight_style }}</div>
+                                        </div>
+                                    {%- endif -%}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% comment %} MB {% endcomment %}
+        <div class="lg:hidden w-[21.4375rem] mx-auto">
+            <div class="tab-contents relative">
+                <div class="tab-content tab-content-mb active relative pb-6 border-solid border-[#C3C3BE] border-l-2">
+                    {% for block in section.blocks %}
+                        {% liquid
+                            assign text_color = block.settings.text_color | default: '#242F20'
+                            assign highlight_color = block.settings.highlight_color | default: 'var(--jds-color-primary)'
+                            assign highlight_style = '<em style="color:' | append: highlight_color | append: '">'
+                            assign video_mb = block.settings.video_uploaded_mb
+                            if block.settings.video_source == 'Youtube'
+                                assign video_mb = block.settings.video_youtube_mb
+                            endif
+                        %}
+                        {%- if block.settings.title != blank -%}
+                            {% assign rem_mb_height = section.settings.mb_image_h | divided_by: 16 %}
+                            <div class="mb-6 pl-4 mb-card {% if forloop.first %} active {% endif %}" data-index="{{ block.id }}">
+                                <div class="relative text-info pointer-events-none">
+                                    <div
+                                        class="text-[1.25rem] leading-6 font-semibold text-[rgba(0,0,0,1)] opacity-60 pointer-events-auto mb-card-title"
+                                        style="color: {{ text_color }};" data-index="{{ block.id }}"
+                                        data-ga-event="5.0_products_details_page_user_clicks"
+                                        data-ga-action="click"
+                                        data-ga-params-position="{{ block.settings.title | strip_html | escape }}"
+                                        data-ga-params-product_spu_name="{{ product.title | escape }}"
+                                        data-ga-params-module="{{ section.settings.title | escape }}"
+                                        data-ga-params-button_name="{{ block.settings.title | strip_html | escape }}"
+                                    >{{ block.settings.title | replace: '<em>', highlight_style }}</div>
+                                    <div class="overflow-hidden font-normal text-[1rem] leading-[1.5rem] h-0 opacity-0 text-[rgba(0,0,0,1)] transition-[height,opacity] duration-500 ease-out mb-card-sub-title" style="color: {{ text_color }};">{{ block.settings.desc | replace: '<em>', highlight_style }}</div>
+                                </div>
+                                <div class="w-full overflow-hidden h-0 opacity-0 transition-[height,opacity] mb-card-image relative">
+                                    <img
+                                        class="w-full h-full object-cover"
+                                        width="650"
+                                        height="{{ section.settings.mb_image_h }}"
+                                        style="height: {{rem_mb_height}}rem; aspect-ratio: 325/{{section.settings.mb_image_h}};"
+                                        src="{{ block.settings.mb_image | image_url: width:650 }}"
+                                        loading="lazy"
+                                    >
+                                    {% if block.settings.media_type == '2' and video_mb != blank %}
+                                        <div class="absolute bottom-4 w-full flex items-center justify-center z-[50] pointer-events-auto" data-play-video data-index="{{ block.id }}">
+                                            <div
+                                                class="bg-white h-10 flex items-center cursor-pointer py-2 px-4 video"
+                                                data-video_id="{{ video_mb.id }}"
+                                                data-ga-event="5.0_products_details_page_user_clicks"
+                                                data-ga-action="click"
+                                                data-ga-params-position="{{ block.settings.title | strip_html | escape }}"
+                                                data-ga-params-product_spu_name="{{ product.title | escape }}"
+                                                data-ga-params-module="{{ section.settings.title | escape }}"
+                                                data-ga-params-button_name="Video"
+                                            >
+                                                <div class="hidden video-{{ video_mb.id }}">
+                                                    {% if block.settings.video_source == 'uploaded' %}
+                                                        {{ video_mb | video_tag: controls: true, autoplay: false, loop: false, muted: false, class: 'w-full h-full object-contain' }}
+                                                    {% else %}
+                                                        <iframe
+                                                            class="w-full h-full min-h-[60vh]"
+                                                            width="100%"
+                                                            height="100%"
+                                                            src="https://www.youtube.com/embed/{{ video_mb.id }}"
+                                                            frameborder="0"
+                                                            allow="autoplay; encrypted-media"
+                                                            allowfullscreen>
+                                                        </iframe>
+                                                    {% endif %}
+                                                </div>
+                                                {% render 'icon-v5-pause', width: 24, height: 24, color: '#242F20' %}
+                                                {% if section.settings.video_btn_text != blank %}
+                                                    <span class="pl-4 font-semibold text-[1rem] text-[#242F20] z-[2]">{{ section.settings.video_btn_text | escape }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {%- endif -%}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </v5-pdp-scroll-pic-text>
+</div>
+
+<script src="{{ 'section-v5-pdp-scroll-pic-text.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "V5 - 图文滚动切换（JP）",
+        "settings": [
+            { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+            { "type": "color", "id": "bg_color", "label": "背景颜色", "default": "#F5F5F3" },
+            { "type": "header", "content": "PC边距" },
+            { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 96},
+            { "type": "range", "id": "padding_bottom", "min": 0, "max":  100, "step": 1, "unit": "px", "label": "下边距", "default": 96},
+            { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0},
+            { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0},
+            { "type": "header", "content": "MB边距" },
+            { "type": "select", "id": "mb_padding_type","label": "MB边距", "options": [ { "value": "default", "label": "与PC一致" }, { "value": "custom", "label": "单独配置" } ], "default": "custom"},
+            { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 0, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "text", "id": "little_title", "label": "小标题", "default": "Powerful in Both Ways" },
+            {
+              "type": "select",
+              "id": "sub_heading_size",
+              "options": [
+                { "value": "jds-h1", "label": "一级标题" },
+                { "value": "jds-h2", "label": "二级标题" },
+                { "value": "jds-h3", "label": "三级标题" },
+                { "value": "jds-h4", "label": "四级标题" },
+                { "value": "jds-h5", "label": "五级标题" },
+                { "value": "jds-h6", "label": "六级标题" }
+              ],
+              "default": "jds-h4",
+              "label": "小标题字号"
+            },
+            { "type": "text", "id": "title", "label": "标题", "default": "PEACE OF MIND" },
+            {
+              "type": "select",
+              "id": "heading_size",
+              "options": [
+                { "value": "jds-display-1", "label": "特大标题" },
+                { "value": "jds-h1", "label": "一级标题" },
+                { "value": "jds-h2", "label": "二级标题" },
+                { "value": "jds-h3", "label": "三级标题" },
+                { "value": "jds-h4", "label": "四级标题" },
+                { "value": "jds-h5", "label": "五级标题" },
+                { "value": "jds-h6", "label": "六级标题" }
+              ],
+              "default": "jds-display-1",
+              "label": "标题字号"
+            },
+            { "type": "header", "content": "布局设置" },
+            { "type": "select", "id": "layout", "label": "布局方向", "options": [ { "value": "1", "label": "左图右文" }, { "value": "2", "label": "左文右图" } ], "default": "1"},
+            { "type": "number", "id": "pc_image_h", "label": "PC图片高度", "default": 357 },
+            { "type": "number", "id": "mb_image_h", "label": "MB图片高度", "default": 210 },
+            { "type": "text", "id": "video_btn_text", "label": "视频按钮文案" }
+        ],
+        "blocks": [
+            {
+                "name": "图文项",
+                "type": "scroll-item",
+                "settings": [
+                    { "type": "richtext", "id": "title", "label": "标题", "info": "不配置则该板块不展示" },
+                    { "type": "richtext", "id": "desc", "label": "描述" },
+                    { "type": "color", "id": "text_color", "label": "文字颜色", "default": "#000" },
+                    { "type": "color", "id": "highlight_color", "label": "高亮颜色", "default": "#fd5000" },
+                    { "type": "select", "id": "media_type", "label": "类型", "options": [ { "value": "1", "label": "图片"}, { "value": "2", "label": "视频"} ], "default": "1"},
+                    { "type": "image_picker", "id": "pc_image", "label": "PC图片(635*357)" },
+                    { "type": "image_picker", "id": "mb_image", "label": "MB图片(325 *210)" },
+                    { "type": "select", "id": "video_source", "label": "视频类型", "options": [ { "value": "uploaded", "label": "本地视频"}, { "value": "Youtube", "label": "Youtube视频"} ], "default": "uploaded", "visible_if": "{{ block.settings.media_type == '2' }}"},
+                    { "type": "video", "id": "video_uploaded_pc", "label": "PC视频", "info": "建议10M以内，支持 MP4、WEBM、MOV 格式", "visible_if": "{{ block.settings.media_type == '2' and block.settings.video_source == 'uploaded' }}" },
+                    { "type": "video", "id": "video_uploaded_mb", "label": "MB视频", "info": "建议10M以内，支持 MP4、WEBM、MOV 格式", "visible_if": "{{ block.settings.media_type == '2' and block.settings.video_source == 'uploaded' }}" },
+                    { "type": "video_url", "id": "video_youtube_pc", "label": "PC Youtube视频链接","accept": ["youtube"], "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id", "visible_if": "{{ block.settings.media_type == '2' and block.settings.video_source == 'Youtube' }}" },
+                    { "type": "video_url", "id": "video_youtube_mb", "label": "MB Youtube视频链接","accept": ["youtube"], "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id", "visible_if": "{{ block.settings.media_type == '2' and block.settings.video_source == 'Youtube' }}" }
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "V5 - 图文滚动切换（JP）",
+                "category": "V5.0"
+            }
+        ]
+    }
+{% endschema %}

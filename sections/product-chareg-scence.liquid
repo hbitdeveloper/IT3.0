@@ -1,0 +1,217 @@
+<style>
+    .product-charge-title em, .product-charge-title b,.product-charge-title strong{color:var(--primary-color);}
+    .product-charge-wrapper .img-box {width: 50vw; object-fit: cover;height: 100%;}
+    .product-charge-wrapper .charg-box {padding: 40px 50px; background: var(--normal-color);width: 50vw;}
+    .product-charge-wrapper .table-box {margin-top: var(--content-distance);}
+    .product-charge-wrapper .table-head .left {flex: 1.04;}
+    .product-charge-wrapper .table-head .right {flex: 0.96;}
+    .product-charge-wrapper .table-item:not(:last-child) {margin-bottom: 10px;}
+    .product-charge-wrapper .table-item {align-items: center;cursor:pointer;}
+    .product-charge-wrapper .table-item .img-box {height: auto; display: flex; flex-direction: column; align-items: center; flex: 1.04;}
+    .product-charge-wrapper .table-item .img-box img {width: 160px;}
+    .product-charge-wrapper .table-item .img-box span {font-weight: 500; color: var(--text-main-color); margin-top: 4px;}
+    .product-charge-wrapper .table-item.active span{color:var(--primary-color);}
+    .product-charge-wrapper .table-item .time {text-align: center; font-weight: 500; color: var(--primary-color); flex: 0.96;}
+    .product-charge-wrapper .table-box:after {content: ""; display: inline-block; width: 100%; height: 1px; background: var(--text-disable-color); margin: 32px 0 12px;}
+    @media screen and (max-width: 768px) {
+        .product-charge-title{margin-bottom: var(--content-distance);}
+        .product-charge-wrapper{flex-direction:column;}
+        .product-charge-wrapper .img-box {width: 100%; height: 75vw;}
+        .product-charge-wrapper .charg-box {width: 100%;background: transparent;padding: var(--gap) 30px;}
+        .product-charge-wrapper .table-head {margin-bottom: var(--gap);}
+        .product-charge-wrapper .table-box {margin-top: 0;}
+        .product-charge-wrapper .table-box:after {margin: 16px 0 0;}
+        .product-charge-wrapper .solar-wrap-tips {margin-top:5px;}
+    }
+</style>
+
+<figure {% if section.settings.anchor != blank %} data-anchor="{{section.settings.anchor}}" {% endif %} class="product-charge-wrapper J-charge-quickly flex product-b {% if section.settings.section_type %} product-p-t{% endif %}">
+    {{ section.settings.charge_title | replace: '<p>', '<p class="product-charge-title jky-text-2xl font-bold mobile-block text-center">' }}
+
+    {% for block in section.blocks %}
+        {%- if forloop.first == true -%}
+            {% render 'responsive-image', image: block.settings.charge_bg, image_class: 'img-box' %}
+        {%- endif -%}
+    {% endfor %}
+
+    <div class="charg-box">
+      <h3>
+        {{ section.settings.charge_title | replace: '<p>', '<p class="title jky-text-2xl font-bold pc-block text-center">'}}
+      </h3>
+
+      <div class="table-box">
+        <div class="table-head jky-text-lg flex text-center font-bold">
+          <span class="left">{{ section.settings.bundels }}</span>
+          <span class="right">{{ section.settings.rechargin | replace: '|', '<br />' }}</span>
+        </div>
+
+        {% for block in section.blocks %}
+            {%- assign active_class = '' -%}
+            {%- if forloop.first == true -%}
+                {%- assign active_class = 'active' -%}
+            {%- endif -%}
+
+            <div class="table-item flex {{ active_class }}" data-bg-img="{{ block.settings.charge_bg | image_url: width: 2000 }}">
+                <div class="img-box">
+                    {% render 'responsive-image', image: block.settings.product_image %}
+                    <span class="jky-text-xs">{{ block.settings.product_name }}</span>
+                </div>
+                <div class="time jky-text-lg">{{ block.settings.duration }}</div>
+            </div>
+        {% endfor %}
+      </div>
+      <div class="solar-wrap-tips jky-text-base">{{ section.settings.charge_tips }}</div>
+    </div>
+</figure>
+
+<script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chargeQuickly = document.querySelector('.J-charge-quickly');
+        if (!chargeQuickly) return;
+        const tableItems = chargeQuickly.querySelectorAll('.table-item');
+        const imgBox = chargeQuickly.querySelector('.img-box');
+        const picEl = chargeQuickly.querySelector('picture');
+        const mobTabs = chargeQuickly.querySelectorAll('.mob-tabs li');
+        const mobItems = chargeQuickly.querySelectorAll('.mob-items .table-item');
+
+        // 移除兄弟元素的 active 类
+        const removeSiblingsActive = function(el) {
+            const parent = el.parentElement;
+            const siblings = parent.children;
+            for (let i = 0; i < siblings.length; i++) {
+                if (siblings[i] !== el) {
+                    siblings[i].classList.remove('active');
+                }
+            }
+        };
+
+        // 获取元素索引
+        const getIndex = function(el) {
+            const siblings = el.parentElement.children;
+            for (let i = 0; i < siblings.length; i++) {
+                if (siblings[i] === el) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+
+        // 桌面端点击事件
+        tableItems.forEach(function(item) {
+            item.addEventListener('click', function() {
+                this.classList.add('active');
+                removeSiblingsActive(this);
+                
+                const src = this.dataset.bgImg;
+                const index = getIndex(this);
+                
+                if (imgBox && src) {
+                    imgBox.setAttribute('src', src);
+                    try {
+                     picEl.querySelectorAll('source').forEach(source => {
+                        source.srcset = '';
+                    });
+                    } catch (error) {
+                        console.error('图片加载失败:', error);
+                    }
+                }
+                
+                if (mobTabs[index]) {
+                    mobTabs[index].classList.add('active');
+                    removeSiblingsActive(mobTabs[index]);
+                }
+            });
+        });
+
+        // 移动端点击事件
+        mobTabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                this.classList.add('active');
+                removeSiblingsActive(this);
+                
+                const index = getIndex(this);
+                const mobItem = mobItems[index];
+                
+                if (mobItem) {
+                    const src = mobItem.dataset.bgImg;
+                    if (imgBox && src) {
+                        imgBox.setAttribute('src', src);
+                    }
+                    mobItem.classList.add('active');
+                    removeSiblingsActive(mobItem);
+                }
+            });
+        });
+    })
+</script>
+
+{% schema %}
+{
+    "name": "product charge scene", "class": "product-charge-scene product-section-block", "tag": "div",
+    "enabled_on": {
+      "templates": ["product"]
+    },
+    "settings": [
+        {
+          "type": "checkbox",
+          "id": "section_type",
+          "default": false,
+          "label": "是否为大版块？",
+          "info": "大版块与上一个模块之间间距大，小版块与上一模块间距较小"
+        },
+        {
+            "type": "select",
+            "id": "anchor",
+            "label": "锚点设置",
+            "info": "非锚点section请清空此项",
+            "options": [
+                {
+                "value": "",
+                "label": "非锚点section"
+                },
+                {
+                "value": "anchor__1",
+                "label": "第一个section锚点"
+                },
+                {
+                "value": "anchor__2",
+                "label": "第二个section锚点"
+                },
+                {
+                "value": "anchor__3",
+                "label": "第三个section锚点"
+                },
+                {
+                "value": "anchor__4",
+                "label": "第四个section锚点"
+                }
+            ],
+            "default": ""
+        },
+        {
+            "type": "richtext", "id": "charge_title", "label": "Charge Title",
+            "default": "<p>3 simple ways to <em>charge quickly</em></p>"
+        },
+        {
+        "type": "text", "id": "charge_tips", "label": "Charge Tips",
+        "default": "The MPPT technology ensures 99% solar charging efficiency and to charge power station to full charge in 1.8 hours. Bonus: full wall charge in 1.6 hours, also support the car charging. Never worry about power outages anymore."
+        },
+        {"type": "text", "id": "bundels", "label": "Current Bundles", "default": "Current Bundles"},
+        {"type": "text", "id": "rechargin", "label": "Recharging Time", "default": "Recharging Time|(0-100%)", "info": "换行用 | 分隔"}
+    ],
+    "blocks": [
+        {
+            "type": "product_charge", "name": "Product charge",
+            "settings": [
+                {"type": "text", "id": "product_name", "label": "Product Name", "default": "Explorer 1000 Pro + 4 x SolarSaga 200W"},
+                {"type": "text", "id": "duration", "label": "Usage Duration", "default": "1.8 H"},
+                {"type": "image_picker", "id": "product_image", "label": "Product Image"},
+                {"type": "image_picker", "id": "charge_bg", "label": "Charge Scene", "info": "建议尺寸960*960"}
+            ]
+        }
+    ],
+    "presets": [{
+        "name": "product charge scene"
+    }]
+}
+{% endschema %}

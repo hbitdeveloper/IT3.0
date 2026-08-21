@@ -1,0 +1,44 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% capture special_notice_root_id %}special-notice-{{ block.id }}{% endcapture %}
+{% assign special_notice_root_selector = '#' | append: special_notice_root_id %}
+
+<div
+  id="{{ special_notice_root_id }}"
+  {{ block.shopify_attributes }}
+  class="w-full section-padding"
+  data-notice-root
+  style="color:{{ block.settings.notice_color }};{{ style }}"
+>
+  <div class="w-full flex items-center gap-x-3 border-0 {% if block.settings.notice_bottom_line %}pb-2 border-b border-solid border-[#E8E8E5]{% endif %}">
+    <svg
+      class="inline-flex w-6 h-6 shrink-0"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M12.9847 3.45147L7.44965 6.74259V17.2143L12.9847 20.5054C14.0318 21.1038 14.9294 20.655 14.9294 19.4582V4.49865C14.9294 3.30189 14.0319 2.7035 12.9847 3.45147ZM1.46582 8.98652V14.9703C1.46582 16.1671 2.51299 17.2143 3.70976 17.2143H5.95369V6.74259H3.70976C2.51299 6.74259 1.46582 7.78975 1.46582 8.98652ZM21.6612 11.2305H18.6693C18.2205 11.2305 17.9214 11.5296 17.9214 11.9784C17.9214 12.4272 18.2205 12.7264 18.6693 12.7264H21.6612C22.11 12.7264 22.4092 12.4272 22.4092 11.9784C22.4092 11.5296 22.11 11.2305 21.6612 11.2305ZM21.2125 18.8598L18.6693 17.3639C18.3701 17.2143 17.9214 17.2143 17.6222 17.6631C17.4725 17.9623 17.4725 18.411 17.9214 18.7102L20.4645 20.2062C20.7637 20.3558 21.2125 20.3558 21.5116 19.907C21.6612 19.6078 21.5116 19.0094 21.2125 18.8598ZM18.5197 6.59298L21.0629 5.09703C21.362 4.94744 21.5116 4.49864 21.362 4.04986C21.2125 3.75068 20.7637 3.60107 20.4645 3.75067L17.9214 5.24663C17.6222 5.39621 17.4725 5.84501 17.6222 6.2938C17.7717 6.59298 18.2205 6.74259 18.5197 6.59298Z" fill="currentColor"/>
+    </svg>
+
+    <div class="flex-1 overflow-hidden">
+      <div class="flex w-max" data-notice-marquee style="transform:translate3d(0,0,0);backface-visibility:hidden;contain:layout paint;">
+        <span class="inline-block shrink-0 pr-6 whitespace-nowrap text-sm font-medium lg:text-base" data-notice-text>
+          {{ block.settings.notice_text | escape }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% render 'lazy-load-asset-group',
+  script: 'snippet-v5-app-pdp-special-notice.js',
+  strategy: 'idle',
+  delay: 1800,
+  root_selector: special_notice_root_selector
+%}

@@ -1,0 +1,75 @@
+{% comment %} 11周年 Exclusive Benefits 组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Exclusive Benefits",
+  "tag": "section",
+  "class": "exclusive-benefits-component",
+  "max_blocks": 4,
+  "blocks": [
+    {
+      "name": "Items",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "select",
+          "id": "itemStyle",
+          "label": "Item Style",
+          "default": "light",
+          "options": [
+            {
+              "value": "light",
+              "label": "Light"
+            },
+            {
+              "value": "dark",
+              "label": "Dark"
+            }
+          ]
+        },
+        {
+          "type": "image_picker",
+          "id": "itemIcon",
+          "label": "Item Icon"
+        },
+        {
+          "type": "text",
+          "id": "itemTitle",
+          "label": "Item Title"
+        },
+        {
+          "type": "text",
+          "id": "itemDesc",
+          "label": "Item Description"
+        },
+        {
+          "type": "url",
+          "id": "itemLink",
+          "label": "Item Link"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+{% assign total = section.blocks | size %}
+<div class="exclusive-benefits-carousel section-container" data-total="{{ total }}">
+	<div class="swiper {% if total > 1 %} more-slide {% else %} single-slide{% endif %}">
+		<div class="swiper-wrapper">
+			{% for block in section.blocks %}
+				<div class="swiper-slide {{ block.settings.itemStyle }} {% if block.settings.itemLink != blank %}has-link{% else %}no-link{% endif %}">
+					<a {% if block.settings.itemLink != blank %}href="{{ block.settings.itemLink }}"{% else %}href="javascript:void(0);"{% endif %}>
+						{% render 'responsive-image',
+								image: block.settings.itemIcon,
+								image_class: 'item-icon'
+						%}
+						<p class="item-title line-clamp-2">{{ block.settings.itemTitle }}</p>
+						<p class="item-desc line-clamp-2">{{ block.settings.itemDesc }}</p>
+					</a>
+				</div>
+			{% endfor %}
+		</div>
+		{% if total > 1 %}
+			<div class="swiper-pagination slideshow-pagination"></div>
+		{% endif %}
+	</div>
+</div>

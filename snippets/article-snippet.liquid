@@ -1,0 +1,94 @@
+{% doc %} 
+    @description 
+        博客文章片段 Item
+    @param { article } article 文章对象
+    @param { string } [title] 标题
+    @example
+        {% render 'article-snippet', article: article %}
+{% enddoc %}
+
+{% style %}
+    html[lang="ja"] .article-snippet .title{ line-height: 1.0625rem !important; }
+    html[lang="ja"] .article-snippet .update-at{ line-height: .625rem !important; }
+    html[lang="ja"] .article-snippet .update-at *{ line-height: .625rem !important; }
+    html[lang="ja"] .article-snippet .tag{ line-height: 0.625rem !important; }
+    @media (min-width: 1024px) {
+        html[lang="ja"] .article-snippet .title{ line-height: 1.5rem !important; }
+        html[lang="ja"] .article-snippet .update-at{ line-height: 1rem !important; }
+        html[lang="ja"] .article-snippet .update-at *{ line-height: 1rem !important; }
+        html[lang="ja"] .article-snippet .tag{ line-height: 0.75rem !important; }
+    }
+    @media (min-width: 1440px) {
+        html[lang="ja"] .article-snippet .title{ line-height: 24px !important; }
+        html[lang="ja"] .article-snippet .update-at{ line-height: 16px !important; }
+        html[lang="ja"] .article-snippet .update-at *{ line-height: 16px !important; }
+        html[lang="ja"] .article-snippet .tag{ line-height: 12px !important; }
+    }
+{% endstyle %}
+
+<div class="w-full flex  py-3 first:pt-0 border-solid border-0 border-b-[1px] border-[rgba(0,0,0,0.07)] article-snippet">
+    <div class="rounded-[.25rem] overflow-hidden w-[8.75rem] h-[5.84375rem] min-w-[8.75rem] min-h-[5.84375rem] lg:w-[11.25rem] lg:h-[7.5rem] lg:min-w-[11.25rem] lg:min-h-[7.5rem] mr-3 lg:mr-4 flex items-center justify-center">
+        <a href="{{ article.url }}" 
+            {% if settings.article_new_blank %}target="_blank"{% endif %} 
+            class="w-full h-full block"
+            aria-label="{{ article.title | escape }}"
+            data-ga-event="blogs_collection_user_clicks" 
+            data-ga-action="click" 
+            data-ga-params-module="{{ title }}"
+            data-ga-params-position="{{  article.title | escape }}"
+            data-ga-params-button_name="ImageLink"
+            data-ga-params-link="{{ request.origin | append: article.url }}"
+        >
+            {% if article.image %}
+                {{ article.image | image_url: width: 280 | image_tag: loading: 'lazy',  class: 'object-cover w-full h-full' }}
+            {% else %}
+                {{ 'hero-apparel-1' | placeholder_svg_tag: 'object-cover w-[8.75rem] h-full w-full bg-gray-100' }}
+            {% endif %}
+        </a>
+    </div>
+    <div class="flex-1 {% if article.tags.size == 0 %} flex {% endif %} lg:flex justify-between lg:justify-around flex-col w-full max-w-[11.78125rem] lg:max-w-[31.25rem]">
+        <div class="line-clamp-3 lg:line-clamp-2 font-medium text-[#1A1A1A] text-[.8125rem] leading-[1.0625rem] h-[3.1875rem] lg:h-auto mb-1 lg:mb-0 lg:text-[1rem] lg:leading-[1.5rem]">
+            <a 
+                href="{{ article.url }}" 
+                {% if settings.article_new_blank %}target="_blank"{% endif %} 
+                class="w-full h-full block title"
+                aria-label="{{ article.title | escape }}"
+                data-ga-event="blogs_collection_user_clicks" 
+                data-ga-action="click" 
+                data-ga-params-module="{{ title }}" 
+                data-ga-params-position="{{  article.title | escape }}"
+                data-ga-params-button_name="TitleLink"
+                data-ga-params-link="{{ request.origin | append: article.url }}"
+            >
+                {{ article.title | escape}}  
+            </a>
+        </div>
+        <div class="lg:flex items-center lg:justify-between max-w-full">
+            <div class=" text-[#A3A3A3] text-[0.625rem] leading-[.625rem] lg:text-[0.75rem] lg:leading-[1rem] lg:mr-4 update-at"> {{ article.updated_at | time_tag: format: 'date' }}</div>
+            <div class="overflow-hidden flex-1 flex lg:flex-row-reverse flex-wrap gap-1 lg:h-[1.75rem] mt-[0.375rem] lg:mt-0 tags">
+                {%- if article.tags.size > 0 -%}
+                    {%- assign handles = article.handle | split: '/' -%}
+                    {%- assign blog_handle = handles[0] -%}
+                    {%- for tag in article.tags -%}
+                            {%- assign tag_handle = tag | handle -%}
+                            {%- assign tag_url = routes.root_url | append: 'blogs/' | append: blog_handle | append: '/tagged/' | append: tag_handle -%}
+                            <a 
+                                class="inline-block lg:min-w-0 truncate px-[0.375rem] py-1 lg:px-2 lg:py-1.5 font-normal text-[#666666] text-[0.625rem] !leading-[0.625rem] lg:text-[0.75rem] lg:!leading-[0.75rem] border-solid border border-[#EAEAEA] rounded-[0.25rem] hover:border-[var(--jds-color-primary)] hover:text-[var(--jds-color-primary)] lg:max-w-[24rem] tag" 
+                                href="{{ tag_url }}" 
+                                {% if settings.article_new_blank %}target="_blank"{% endif %}
+                                aria-label="{{ tag | escape }}"
+                                data-ga-event="blogs_collection_user_clicks" 
+                                data-ga-action="click" 
+                                data-ga-params-module="{{ title }}" 
+                                data-ga-params-position="{{  article.title | escape }}"
+                                data-ga-params-button_name="{{ tag }}"
+                                data-ga-params-link="{{ request.origin | append: tag_url }}"
+                            > 
+                                {{ tag }}
+                            </a>
+                    {%- endfor -%}
+                 {%- endif -%}
+            </div>
+        </div>
+    </div>
+</div>

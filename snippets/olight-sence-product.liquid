@@ -1,0 +1,97 @@
+{% comment %} 
+    @params: product_list:产品列表
+{% endcomment %}
+<div class="jky-up scene-products">
+    {% for block in product_list %}
+        {%- assign product = block.settings.product -%}
+        {%- assign config_image = block.settings.image -%}
+        {%- assign config_title = block.settings.title | escape -%}
+        {%- assign config_desc = block.settings.desc  | escape -%}
+        {%- assign config_price = block.settings.price  | escape -%}
+        {%- assign config_origin_price = block.settings.origin_price  | escape -%}
+        {%- assign config_link = block.settings.link -%}
+        <div class="product-item">
+            {%- assign first_variant = product.first_available_variant -%}
+            {% if config_image != blank %}
+                {% render 'responsive-image', image_class: 'product-img', image: config_image %}
+            {% else %}
+                {%- if first_variant.featured_image != blank -%}
+                    {%- assign p_img = first_variant.featured_image -%}
+                {%- else -%}
+                    {%- assign p_img = product.featured_image -%}
+                {%- endif -%}
+                {% render 'responsive-image', image_class: 'product-img', image: p_img %}
+            {% endif %}
+            
+            <div class="product-msg">
+                <div class="title">
+                    {%- assign title = '' -%}
+                    {%- if config_title != blank -%}
+                        {%- assign title = config_title -%}
+                    {%- elsif product.metafields.custom.shortname != blank -%}
+                        {%- assign title = product.metafields.custom.shortname -%}
+                    {%- elsif first_variant.title != 'Default Title' -%}
+                        {%- assign title = first_variant.title | escape | strip | replace: 'Jackery', '' -%} 
+                    {%- else -%}
+                        {%- assign title = product.title | escape | strip | replace: 'Jackery', '' -%} 
+                    {%- endif -%}
+                    {{title}}
+                </div>
+                <div class="sub-title">
+                    {%- if config_desc != blank -%}
+                        {{ config_desc  }}
+                    {%- elsif product.metafields.custom.product_features_info != blank -%}
+                        {{product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                    {%- endif -%}
+                </div>
+                <div class="price-bottom">
+                    <div>
+                        {% if config_price != blank %}
+                            <span class="price">{{ config_price }}</span>
+                        {% else %}
+                            <span class="price">{{ first_variant.price | money }}</span>
+                        {% endif %}
+
+                        {% if config_origin_price != blank %}
+                            <span class="origin-price">{{ config_origin_price }}</span>
+                        {% else %}
+                            {%- if first_variant.compare_at_price > first_variant.price -%}
+                                <span class="origin-price">{{ first_variant.compare_at_price | money }}</span>
+                            {%- endif -%}
+                        {% endif %}
+                    </div>
+
+                    {% assign link = '' %}
+
+                    {% if config_link != blank %}
+                        {% assign link = config_link %}
+                    {% else %}
+                        {% assign link = product.url | append: '?variant=' | append: first_variant.id %}
+                    {% endif %}
+                    <a 
+                         target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" 
+                         href="{{ link }}"
+                         data-ga-event="section_scene_product_user_clicks"
+                         data-ga-action="click"
+                         data-ga-params-module="{{ module_title }}"
+                         data-ga-params-position="{{title}}"
+                         data-ga-params-button_name="Circle Button"
+                         data-ga-params-link="{{link}}"
+                    >
+                        <div class="link">
+                            <svg class="line" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                    <g transform="translate(672.000000, 286.000000)">
+                                        <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                    </g>
+                                </g>
+                            </g>
+                            </svg>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

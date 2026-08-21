@@ -1,0 +1,361 @@
+{% comment %} 用户手册（specs-v5 命名避免冲突） {% endcomment %}
+<div class="specs-v5-accordion w-full specs-v5-manual {% if settings.part_4_heading == blank %} hidden{% endif %}" style="{% if settings.part_4_heading == blank %}display: none;{% endif %}">
+  <div class="specs-v5-content specs-v5-content--with-pdf">
+    <div class="specs-v5-manual-item">
+      <dl class="specs-v5-manual-list" data-page-type="{{ settings.page_type }}" data-section-title="{{ settings.part_4_heading | escape }}" aria-label="{{ settings.part_4_heading | escape }}">
+        <dt class="visually-hidden">{{ settings.part_4_heading }}</dt>
+      </dl>
+    </div>
+  </div>
+</div>
+<style>
+    .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf {
+        flex-direction: column
+    }
+
+    .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf {
+        flex-direction: column;
+        padding: 0 24px;
+    }
+
+    .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item .specs-v5-manual-list {
+        padding-bottom: 0;
+        margin-bottom: 0
+    }
+
+    .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd {
+        border-bottom: 1px solid #ddd;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 24px;
+        padding-bottom: 24px;
+    }
+
+    .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd p {
+        display: flex;
+        align-items: center;
+    }
+
+    .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd svg {
+        width: 64px;
+        height: 64px;
+        min-width: 64px;
+        padding: 11px;
+        margin-right: 13px;
+    }
+
+    .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd .z-button-fill-middle {
+        min-width: 150px;
+        height: 40px;
+    }
+
+    @media screen and (max-width:1023px) {
+        .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf {
+            padding: 0;
+        }
+
+        .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item .specs-v5-manual-list {
+            margin-bottom: 0;
+            padding-bottom: 0
+        }
+
+        .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding-top: 6.4vw;
+            padding-bottom: 4.26666666666667vw;
+        }
+
+        .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd p {
+            width: 100%;
+            margin-bottom: 1.06666666666667vw;
+        }
+
+        .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd svg {
+            width: 15.7333333333333vw;
+            height: 15.7333333333333vw;
+            padding: 2.66666666666667vw;
+            margin-right: 2.66666666666667vw;
+        }
+
+        .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd p span {
+            flex: 1;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            font-size: 4.26666666666667vw;
+            font-weight: 600;
+            color: #1A1A1A;
+            line-height: 5.86666666666667vw;
+        }
+
+        .specs-v5-accordion .specs-v5-content.specs-v5-content--with-pdf .specs-v5-manual-item dd .z-button-fill-middle {
+            min-width: 32vw;
+            height: 8.53333333333333vw;
+            border-radius: var(--theme-btn-border-radius,5.33333333333333vw);
+            padding: 4vw;
+        }
+    }
+</style>
+
+<script>
+  (function() {
+    const manualRoot = document.querySelector('.specs-v5-manual')
+    const manualList = manualRoot?.querySelector('.specs-v5-manual-list')
+    if (!manualRoot || !manualList) return
+
+    // 工具函数：埋点
+    function trackDownload({ productTitle, sectionTitle, buttonTitle }) {
+      try {
+        if (window.dataLayer) {
+          const contentTitle = document.querySelector('.pdp-specs-v5_heading')?.textContent?.trim() || ''
+          window.dataLayer?.push({
+              event: "ga4Event",
+              event_name: "5.0_products_details_page_user_clicks",
+              event_parameters: {
+                  "module": 'Parameter',
+                  'product_spu_name': productTitle || '',
+                  'content': contentTitle || '',
+                  'position': sectionTitle || '',
+                  'button_name': buttonTitle || '',
+                  type: 'PDF Download'
+              }
+          });
+        }
+      } catch (e) {
+        console.warn('GA track error: product manual', e)
+      }
+    }
+
+    // 当前 SKU 与变体 ID/sku 获取
+    function getFormContexts() {
+      const productForm = document.querySelector('v5-product-form')
+      const variantFields = document.querySelector('variant-fields')
+      const idInput = productForm?.querySelector('[name=id]')
+      const currentVariantId = idInput?.value || variantFields?.currentVariant?.id || productForm?.getAttribute('data-id')
+      const currentSku = idInput?.getAttribute('data-sku') || variantFields?.currentVariant?.sku || productForm?.getAttribute('data-sku')
+      return { productForm, variantFields, idInput, currentVariantId, currentSku }
+    }
+
+    function ensureVisibleIfHasContent() {
+      const hasDD = manualList.querySelectorAll('dd').length > 0
+      if (hasDD) {
+        manualRoot.classList.remove('hidden')
+        const prev = manualRoot.previousElementSibling
+        if (prev) prev.classList.remove('!mb-0')
+      } else {
+        manualRoot.classList.add('hidden')
+        const prev = manualRoot.previousElementSibling
+        if (prev) prev.classList.add('!mb-0')
+      }
+    }
+
+    function prependHTML(html) {
+      const temp = document.createElement('div')
+      temp.innerHTML = html
+      const children = Array.from(temp.children)
+      const firstDD = manualList.querySelector('dd')
+      children.forEach((child) => {
+        if (firstDD) {
+          manualList.insertBefore(child, firstDD)
+        } else {
+          manualList.appendChild(child)
+        }
+      })
+    }
+
+    function bindDownloadButtons() {
+      manualList.querySelectorAll('.z-button-fill-middle').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const href = btn.getAttribute('data-href')
+          const title = btn.getAttribute('data-title')
+          const sectionTitle = manualList.getAttribute('data-section-title')
+          const productTitle = document.querySelector('[data-product-title]')?.getAttribute('data-product-title')
+          trackDownload({ productTitle, sectionTitle, buttonTitle: title })
+          if (href) window.open(href, '_blank')
+          e.preventDefault()
+        })
+      })
+    }
+
+    // 变体元字段 batteryInfos 优先（与 v5-pdp-tech 一致）
+    function tryRenderVariantBatteryInfos() {
+      try {
+        const { currentVariantId } = getFormContexts()
+        const variantsMap = window.product?.productVariants || {}
+        const batteryInfos = variantsMap?.[currentVariantId]?.batteryInfos || []
+        if (Array.isArray(batteryInfos) && batteryInfos.length > 0) {
+          let dd = ''
+          batteryInfos.forEach(item => {
+            dd += `
+              <dd>
+                <p class="jky-text-sm font-500">
+                  <svg width="42" height="42" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                          <g transform="translate(-155.000000, -4087.000000)" stroke="#333333" stroke-width="2">
+                            <g transform="translate(120.000000, 3988.000000)">
+                              <g transform="translate(24.000000, 88.000000)">
+                                <g transform="translate(12.000000, 12.000000)">
+                                  <path d="M35.1219512,33.1707317 L35.1219512,37.671137 C35.1219512,38.9572127 34.1185581,40 32.8810674,40 L6.63112772,40 C5.39363706,40 4.3902439,38.9572127 4.3902439,37.671137 L4.3902439,33.2640066" id="Stroke-1"></path>
+                                  <path d="M4.3902439,16.51676 L4.3902439,2.28040889 C4.3902439,1.02109117 5.39363706,0 6.63112772,0 L32.8810674,0 C34.1185581,0 35.1219512,1.02109117 35.1219512,2.28040889 L35.1219512,16.5853659" id="Stroke-3"></path>
+                                  <path d="M38.3476085,33.1707317 L1.65239148,33.1707317 C0.739610262,33.1707317 0,32.4236961 0,31.5017509 L0,18.2543467 C0,17.3324015 0.739610262,16.5853659 1.65239148,16.5853659 L38.3476085,16.5853659 C39.2603897,16.5853659 40,17.3324015 40,18.2543467 L40,31.5017509 C40,32.4236961 39.2603897,33.1707317 38.3476085,33.1707317 Z" id="Stroke-5"></path>
+                                  <line x1="10.2439024" y1="5.6097561" x2="29.2682927" y2="5.6097561" id="Stroke-7"></line>
+                                  <line x1="10.2439024" y1="10.9756098" x2="29.2682927" y2="10.9756098" id="Stroke-9"></line>
+                                  <line x1="10.4878049" y1="29.2682927" x2="10.4878049" y2="21.4634146" id="Stroke-11"></line>
+                                  <polyline id="Stroke-13" points="24.8780488 29.2682927 24.8780488 21.4634146 28.7804878 21.4634146"></polyline>
+                                  <path d="M10.7317073,21.4634146 L13.385397,21.4634146 C14.3441607,21.4634146 15.1219512,22.2282453 15.1219512,23.1709435 C15.1219512,24.1140652 14.3441607,24.8780488 13.385397,24.8780488 L10.7317073,24.8780488" id="Stroke-15"></path>
+                                  <path d="M18.612952,29.2682927 L17.0731707,29.2682927 L17.0731707,21.4634146 L18.612952,21.4634146 C20.7263935,21.4634146 22.4390244,23.2106546 22.4390244,25.3658537 C22.4390244,27.5210527 20.7263935,29.2682927 18.612952,29.2682927 Z" id="Stroke-17"></path>
+                                  <line x1="28.7804878" y1="25.1219512" x2="24.8780488" y2="25.1219512" id="Stroke-19"></line>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </svg>
+                  <span>${item.title}</span>
+                </p>
+                <span data-href="${item.url}" data-title="${item.title}" class="z-button-fill-middle font-500">
+                  <jds-icon name="download"></jds-icon>&nbsp;<span>${window.pageInfo?.strings?.product?.download || 'Download'}</span>
+                </span>
+              </dd>
+            `
+          })
+          prependHTML(dd)
+          bindDownloadButtons()
+          ensureVisibleIfHasContent()
+          return true
+        }
+      } catch (e) {
+        console.warn('Variant batteryInfos render error', e)
+      }
+      return false
+    }
+
+    // API 回退逻辑（套装 or 单品）
+    async function fetchManualByAPI() {
+      const { currentSku } = getFormContexts()
+      if (!currentSku) return
+      const type = manualList.getAttribute('data-page-type')
+      try {
+        if (type === 'sg_gather') {
+          const url = `${pageInfo.api}/osconsumerapi/v1/goods/packaged-info?shopify_shop_id=${pageInfo.shopId}&sku=${currentSku}`
+          const res = await fetch(url).then(r => r.json())
+          let dd = ''
+          Array.isArray(res?.data) && res.data.filter(item => !!item.introduceBookUrlDesc).forEach(item => {
+            dd += `
+              <dd>
+                <p class="jky-text-sm font-500">
+                  <svg width="42" height="42" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                          <g transform="translate(-155.000000, -4087.000000)" stroke="#333333" stroke-width="2">
+                            <g transform="translate(120.000000, 3988.000000)">
+                              <g transform="translate(24.000000, 88.000000)">
+                                <g transform="translate(12.000000, 12.000000)">
+                                  <path d="M35.1219512,33.1707317 L35.1219512,37.671137 C35.1219512,38.9572127 34.1185581,40 32.8810674,40 L6.63112772,40 C5.39363706,40 4.3902439,38.9572127 4.3902439,37.671137 L4.3902439,33.2640066" id="Stroke-1"></path>
+                                  <path d="M4.3902439,16.51676 L4.3902439,2.28040889 C4.3902439,1.02109117 5.39363706,0 6.63112772,0 L32.8810674,0 C34.1185581,0 35.1219512,1.02109117 35.1219512,2.28040889 L35.1219512,16.5853659" id="Stroke-3"></path>
+                                  <path d="M38.3476085,33.1707317 L1.65239148,33.1707317 C0.739610262,33.1707317 0,32.4236961 0,31.5017509 L0,18.2543467 C0,17.3324015 0.739610262,16.5853659 1.65239148,16.5853659 L38.3476085,16.5853659 C39.2603897,16.5853659 40,17.3324015 40,18.2543467 L40,31.5017509 C40,32.4236961 39.2603897,33.1707317 38.3476085,33.1707317 Z" id="Stroke-5"></path>
+                                  <line x1="10.2439024" y1="5.6097561" x2="29.2682927" y2="5.6097561" id="Stroke-7"></line>
+                                  <line x1="10.2439024" y1="10.9756098" x2="29.2682927" y2="10.9756098" id="Stroke-9"></line>
+                                  <line x1="10.4878049" y1="29.2682927" x2="10.4878049" y2="21.4634146" id="Stroke-11"></line>
+                                  <polyline id="Stroke-13" points="24.8780488 29.2682927 24.8780488 21.4634146 28.7804878 21.4634146"></polyline>
+                                  <path d="M10.7317073,21.4634146 L13.385397,21.4634146 C14.3441607,21.4634146 15.1219512,22.2282453 15.1219512,23.1709435 C15.1219512,24.1140652 14.3441607,24.8780488 13.385397,24.8780488 L10.7317073,24.8780488" id="Stroke-15"></path>
+                                  <path d="M18.612952,29.2682927 L17.0731707,29.2682927 L17.0731707,21.4634146 L18.612952,21.4634146 C20.7263935,21.4634146 22.4390244,23.2106546 22.4390244,25.3658537 C22.4390244,27.5210527 20.7263935,29.2682927 18.612952,29.2682927 Z" id="Stroke-17"></path>
+                                  <line x1="28.7804878" y1="25.1219512" x2="24.8780488" y2="25.1219512" id="Stroke-19"></line>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </svg>
+                  <span>${item.title}</span>
+                </p>
+                <span data-href="${item.introduceBookUrlDesc}" data-title="${item.title}" class="z-button-fill-middle font-500">
+                  <jds-icon name="download"></jds-icon>&nbsp;<span>${window.pageInfo?.strings?.product?.download || 'Download'}</span>
+                </span>
+              </dd>
+            `
+          })
+          if (dd) {
+            prependHTML(dd)
+            bindDownloadButtons()
+            ensureVisibleIfHasContent()
+          }
+        } else {
+          const url = `${pageInfo.api}/osconsumerapi/v1/goods/info?shopify_shop_id=${pageInfo.shopId}&sku=${currentSku}`
+          const r = await fetch(url).then(r => r.json())
+          if (r?.data?.introduceBookUrlDesc) {
+            const html = `
+              <dd>
+                <p class="jky-text-sm font-500">
+                  <svg width="42" height="42" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                          <g transform="translate(-155.000000, -4087.000000)" stroke="#333333" stroke-width="2">
+                            <g transform="translate(120.000000, 3988.000000)">
+                              <g transform="translate(24.000000, 88.000000)">
+                                <g transform="translate(12.000000, 12.000000)">
+                                  <path d="M35.1219512,33.1707317 L35.1219512,37.671137 C35.1219512,38.9572127 34.1185581,40 32.8810674,40 L6.63112772,40 C5.39363706,40 4.3902439,38.9572127 4.3902439,37.671137 L4.3902439,33.2640066" id="Stroke-1"></path>
+                                  <path d="M4.3902439,16.51676 L4.3902439,2.28040889 C4.3902439,1.02109117 5.39363706,0 6.63112772,0 L32.8810674,0 C34.1185581,0 35.1219512,1.02109117 35.1219512,2.28040889 L35.1219512,16.5853659" id="Stroke-3"></path>
+                                  <path d="M38.3476085,33.1707317 L1.65239148,33.1707317 C0.739610262,33.1707317 0,32.4236961 0,31.5017509 L0,18.2543467 C0,17.3324015 0.739610262,16.5853659 1.65239148,16.5853659 L38.3476085,16.5853659 C39.2603897,16.5853659 40,17.3324015 40,18.2543467 L40,31.5017509 C40,32.4236961 39.2603897,33.1707317 38.3476085,33.1707317 Z" id="Stroke-5"></path>
+                                  <line x1="10.2439024" y1="5.6097561" x2="29.2682927" y2="5.6097561" id="Stroke-7"></line>
+                                  <line x1="10.2439024" y1="10.9756098" x2="29.2682927" y2="10.9756098" id="Stroke-9"></line>
+                                  <line x1="10.4878049" y1="29.2682927" x2="10.4878049" y2="21.4634146" id="Stroke-11"></line>
+                                  <polyline id="Stroke-13" points="24.8780488 29.2682927 24.8780488 21.4634146 28.7804878 21.4634146"></polyline>
+                                  <path d="M10.7317073,21.4634146 L13.385397,21.4634146 C14.3441607,21.4634146 15.1219512,22.2282453 15.1219512,23.1709435 C15.1219512,24.1140652 14.3441607,24.8780488 13.385397,24.8780488 L10.7317073,24.8780488" id="Stroke-15"></path>
+                                  <path d="M18.612952,29.2682927 L17.0731707,29.2682927 L17.0731707,21.4634146 L18.612952,21.4634146 C20.7263935,21.4634146 22.4390244,23.2106546 22.4390244,25.3658537 C22.4390244,27.5210527 20.7263935,29.2682927 18.612952,29.2682927 Z" id="Stroke-17"></path>
+                                  <line x1="28.7804878" y1="25.1219512" x2="24.8780488" y2="25.1219512" id="Stroke-19"></line>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </svg>
+                  <span>${r.data.title}</span>
+                </p>
+                <span data-href="${r.data.introduceBookUrlDesc}" data-title="${r.data.title}" class="z-button-fill-middle font-500">
+                  <jds-icon name="download"></jds-icon>&nbsp;<span>${window.pageInfo?.strings?.product?.download || 'Download'}</span>
+                </span>
+              </dd>
+            `
+            prependHTML(html)
+            bindDownloadButtons()
+            ensureVisibleIfHasContent()
+          }
+        }
+      } catch (e) {
+        console.error('Fetch error: getUserManual', e)
+      }
+    }
+
+    // 初始化：优先变体元字段，否则调用接口
+    (async function initManual() {
+      // 清空现有 dd
+      manualList.querySelectorAll('dd').forEach(dd => dd.remove())
+      const rendered = tryRenderVariantBatteryInfos()
+      if (!rendered) {
+        await fetchManualByAPI()
+      }
+      ensureVisibleIfHasContent()
+    })()
+
+    // 监听变体切换
+    document.addEventListener('variantChangeEvent', async(v) => {
+      if(v?.detail?.variant?.id) {
+        // 清空现有 dd
+        manualList.querySelectorAll('dd').forEach(dd => dd.remove())
+        const rendered = tryRenderVariantBatteryInfos()
+        if (!rendered) {
+          await fetchManualByAPI()
+        }
+        ensureVisibleIfHasContent()
+      }
+    })
+  })()
+</script>

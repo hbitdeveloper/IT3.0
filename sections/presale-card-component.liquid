@@ -1,0 +1,149 @@
+{% comment %} 预售产品卡组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Presale Card Component",
+  "tag": "section",
+  "class": "presale-card-component layer-container section-container",
+  "settings": [
+    {
+      "type": "text",
+      "id": "sectionTitle",
+      "label": "Section Title",
+      "default": "BEST VALUE, BEST PERFORMANCE"
+    },
+    {
+      "type": "text",
+      "id": "sectionSubtitle",
+      "label": "Section Subtitle",
+      "default": "Provides 48 hours of power for daily family use"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Product List",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "select",
+          "id": "cardType",
+          "label": "Card Type",
+          "default": "type-vertical",
+          "options": [
+            {
+              "value": "type-horizontal",
+              "label": "Horizontal"
+            },
+            {
+              "value": "type-vertical",
+              "label": "Vertical"
+            }
+          ]
+        },
+        {
+          "type": "image_picker",
+          "id": "pcCardImg",
+          "label": "PC Card Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbCardImg",
+          "label": "Mobile Card Image"
+        },
+        {
+          "type": "text",
+          "id": "itemTag",
+          "label": "Item Tag"
+        },
+        {
+          "type": "html",
+          "id": "productName",
+          "label": "Product Name"
+        },
+        {
+          "type": "html",
+          "id": "productInfo",
+          "label": "productInfo"
+        },
+        {
+          "type": "text",
+          "id": "salePrice",
+          "label": "Sale Price"
+        },
+        {
+          "type": "text",
+          "id": "crossedPrice",
+          "label": "Crossed Price"
+        },
+        {
+          "type": "text",
+          "id": "btnText",
+          "label": "Button Text"
+        },
+        {
+          "type": "url",
+          "id": "btnLink",
+          "label": "Button Link"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+{{ 'presale-card-component.css' | asset_url | stylesheet_tag }}
+
+<h2 class="section-title">{{ section.settings.sectionTitle }}</h2>
+<p class="section-subtitle">{{ section.settings.sectionSubtitle }}</p>
+<div class="product-list">
+  {% for block in section.blocks %}
+    {%- liquid
+      assign pc_img_width = 590
+      if block.settings.cardType == 'type-horizontal'
+        assign pc_img_width = 1200
+      endif
+    %}
+    <div class="item-card {{ block.settings.cardType }}">
+      <div class="card-img">
+        <img
+          src="{{block.settings.pcCardImg | image_url: width: pc_img_width }}"
+          alt="{{block.settings.pcCardImg.alt | escape}}"
+          class="pc-img"
+          loading="lazy"
+        >
+        <img
+          src="{{block.settings.mbCardImg | image_url: width: 686 }}"
+          alt="{{block.settings.mbCardImg.alt | escape}}"
+          class="mb-img"
+          loading="lazy"
+        >
+      </div>
+      <div class="card-info">
+        {% if block.settings.itemTag != blank %}
+          <p class="item-tag">{{ block.settings.itemTag }}</p>
+        {% endif %}
+        {% if block.settings.productName != blank %}
+          <div class="product-name">
+            {{ block.settings.productName }}
+          </div>
+        {% endif %}
+        {% if block.settings.productInfo != blank %}
+          <div class="product-info">
+            {{ block.settings.productInfo }}
+          </div>
+        {% endif %}
+        <div class="product-price">
+          {% if block.settings.salePrice != blank %}
+            <span class="sale-price">{{ block.settings.salePrice }}</span>
+          {%- endif -%}
+          {%- if block.settings.crossedPrice != blank %}
+            <span class="crossed-price">{{ block.settings.crossedPrice }}</span>
+          {%- endif %}
+        </div>
+        {% if block.settings.btnText != blank %}
+          <a href="{{ block.settings.btnLink }}" class="btn-buy-now">
+            {{- block.settings.btnText -}}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>

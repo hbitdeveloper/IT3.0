@@ -1,0 +1,451 @@
+<style>
+  .product-media__box jky-video .jky-video_media {
+    object-fit: contain;
+    background-color: #000000;
+  }
+</style>
+
+{%- liquid
+  assign image_media = product.media | where: 'media_type', 'image'
+  assign modal_meta = false
+  assign modal_meta_num = 0
+  if product.metafields.custom.modals_list.value != blank
+    assign model_3d = product.metafields.custom.modals_list.value
+    assign modal_meta = true
+  endif
+
+  assign warranty_has_items = false
+  if warranty_list.size > 0
+    assign warranty_has_items = true
+  elsif first_icon_list.warranty_list.value != blank and warranty_enable
+    assign warranty_has_items = true
+  endif
+
+  assign warranty_no_items = false
+  if warranty_list.size == 0 and warranty_enable == false
+    assign warranty_no_items = true
+  endif
+
+  assign link_exists = false
+  if first_icon_list.link_list != blank and pay_enable
+    assign link_exists = true
+  endif
+
+  assign only_pay = false
+  if warranty_no_items and link_exists and position == 'left'
+    assign only_pay = true
+  endif
+
+  assign media_count =  first_icon_list.link_list.value.count
+
+  assign current_variant = product.selected_or_first_available_variant
+  assign requested_variant_id = request.params.variant | default: 0 | plus: 0
+  if requested_variant_id > 0
+    assign requested_variant = product.variants | where: 'id', requested_variant_id | first
+    if requested_variant != blank
+      assign current_variant = requested_variant
+    endif
+  endif
+
+  assign lcp_media_id = blank
+  if current_variant.featured_media and current_variant.featured_media.media_type == 'image'
+    assign lcp_media_id = current_variant.featured_media.id
+  elsif product.featured_media and product.featured_media.media_type == 'image'
+    assign lcp_media_id = product.featured_media.id
+  elsif image_media.size > 0
+    assign lcp_media_id = image_media.first.id
+  endif
+-%}
+{% comment %} {{- 'photoswipe.css' | asset_url | stylesheet_tag -}} {% endcomment %}
+<product-gllerry
+  {% if modal_meta %}
+    data-modelSize = '{{ modal_meta_num }}'
+  {% else %}
+    data-modelSize = '{{ model_3d.size }}'
+  {% endif %} 
+  data-product-title="{{ product.title | escape }}"
+>
+
+  <div class="product-media-container__inner lg:sticky relative {% if only_pay and media_count > 16 %}pay-only-three-container{% endif %} {% if only_pay %}pay-only-two-container{% endif %} {% if warranty_has_items and link_exists and position == 'left' %}pay-warranty-container{% endif %} {% if warranty_has_items and link_exists and position == 'left' and media_count > 16 %}pay-warranty-container-three{% endif %} {% if position == 'right' or warranty_no_items %} product-media-container__inner--nopt{% endif %}">
+    {% comment %} 面包屑 {% endcomment %}
+    {%- render 'pdp-breadcrumbs', class: 'text-sm max-w-[21.4375rem] mx-auto my-4 lg:max-w-max lg:my-0 lg:absolute left-0 lg:-top-10 z-[2]' -%}
+
+    <div class="product-media__box relative h-full select-none bg-white mb-0">
+      <div class="swiper product_gallery-imagebox h-full" style=" --swiper-theme-color: #ff6600;--swiper-preloader-color: #00ff33;">
+        <div class="swiper-wrapper">
+          {%- for media in image_media -%}
+            {% assign matched_variant = nil %}
+
+            {% comment %} 直接查找匹配的变体，避免嵌套循环 {% endcomment %}
+            {% if product.variants[0].title != 'Default Title' %}
+              {% for variant in product.variants %}
+                {% if variant.featured_media and variant.featured_media.position == media.position %}
+                  {% assign matched_variant = variant %}
+                  {% break %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {%-liquid
+              assign image_load_scene = 'default'
+              if lcp_media_id != blank and media.id == lcp_media_id
+                assign image_load_scene = 'lcp'
+              endif
+            -%}
+            <a href="{{media.preview_image | image_url: width: media.preview_image.width }}" class="swiper-slide flex items-center justify-center" data-pswp-width="{{media.preview_image.width}}" data-pswp-height="{{media.preview_image.height}}" media-type="{{media.media_type}}" media-id="{{media.id}}">
+                 {% render 'diff-end-img',
+                  picture_class: 'w-full h-full',
+                  pc_img: media.preview_image,
+                  mb_img: media.preview_image,
+                  pc_img_width: 650,
+                  mb_img_width: 375,
+                  class: 'max-w-full max-h-full h-auto flex-none w-full',
+                  alt: product.title,
+                  load_scene: image_load_scene
+                 %}
+
+              {% comment %} 优化变体标签渲染逻辑 {% endcomment %}
+              {% if product.variants[0].title == 'Default Title' %}
+                {% if forloop.index0 == 0  %}
+                  {% render 'product-tag', product: product, variant: current_variant %}
+                {% endif %}
+              {% else %}
+                {% if forloop.index0 == 0 %}
+                  {% if matched_variant %}
+                    {% render 'product-tag', product: product, variant: matched_variant %}
+                  {% else %}
+                    {% render 'product-tag', product: product, variant: current_variant %}
+                  {% endif %}
+                {% elsif matched_variant %}
+                  {% render 'product-tag', product: product, variant: matched_variant %}
+                {% endif %}
+              {% endif %}
+            </a>
+          {%- endfor -%}
+        </div>
+
+        <div class="swiper-button-next swiper--pagebtn" tabindex="0" role="button" aria-label="Next slide"></div>
+        <div class="swiper-button-prev swiper--pagebtn" tabindex="0" role="button" aria-label="Previous slide"></div>
+
+        {% comment %} <div class="swiper-pagination"></div> {% endcomment %}
+      </div>
+
+      {% comment %} 图片、视频、3D 资源切换 {% endcomment %}
+      {%- assign has_modal = false -%}
+      {%- if modal_meta == true or model_3d.size > 0 -%}
+      {%- assign has_modal = true -%}
+      {%- endif -%}
+      <div class="product_gallery-tab-bar absolute flex items-center lg:h-8 lg:gap-x-2 left-1/2 {% if first_video_media == blank and has_modal == false %} product_gallery-tab-bar--half {% endif %}">
+        <div style="--tw-text-opacity: 0.85;--tw-bg-opacity: 0.85;" class="product_gallery-tab_item active z-[1] cursor-pointer flex items-center justify-center h-full rounded-2xl bg-black px-4 text-black text-sm" data-type="image">
+          <svg width="14" height="14" viewBox="0 0 14 14">
+            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+              <g transform="translate(-324.000000, -787.000000)">
+                <g transform="translate(324.000000, 787.000000)">
+                  <rect x="0" y="0" width="14" height="14"></rect>
+                  <path d="M2.82230722,12.9999384 C2.55218619,13.0030154 2.29269909,12.8907585 2.1046851,12.6894232 C1.91114914,12.4938533 1.80334616,12.2244616 1.80636221,11.9441207 L1.80636221,3.92479772 C1.80313211,3.64458655 1.91089057,3.37527366 2.10447298,3.17993556 C2.2925592,2.97876218 2.55203703,2.86666853 2.8220951,2.86985592 L12.9839892,2.86985592 C13.2540327,2.86674658 13.513482,2.97882792 13.7016113,3.17993556 C13.8952717,3.37523621 14.0031088,3.6445539 13.9999317,3.92479772 L13.9999317,11.9441207 C14.0030335,12.2245428 13.895222,12.4940354 13.7016113,12.6896434 C13.513482,12.890751 13.2540327,13.0028324 12.9839892,12.999654 L2.82230722,12.999654 L2.82230722,12.9999384 Z M5.46433605,7.93556009 L3.43216936,10.045746 L3.43216936,11.31243 L12.3743392,11.31243 L12.3743392,8.35764131 L9.73209823,5.61422348 L6.48063153,8.99153377 L5.46454818,7.93578027 L5.46433605,7.93556009 Z M3.78854097,4.92792866 C3.55610604,5.16357105 3.42743647,5.48817745 3.43280574,5.82537418 C3.42744394,6.1623113 3.55613062,6.48664226 3.78854097,6.72193898 C4.01525447,6.96311256 4.32772946,7.09660651 4.65231788,7.09095729 C4.97666735,7.09631911 5.28884013,6.96285594 5.5154584,6.72193898 C5.7476561,6.48649317 5.87630331,6.16226171 5.87119364,5.82537418 C5.87630835,5.48833556 5.7477613,5.16392437 5.51567054,4.92814884 C5.28886436,4.68725207 4.97657316,4.55380386 4.65210575,4.55913052 C4.32735764,4.55339819 4.01468106,4.68680028 3.78769246,4.92792866 L3.78832884,4.92792866 L3.78854097,4.92792866 Z M1.01605468,11.1296823 C0.746038403,11.1336083 0.486472278,11.0214899 0.298856819,10.8198918 C0.104517712,10.6247628 -0.003558343,10.3549927 8.9435966e-05,10.0743691 L8.9435966e-05,2.05526636 C-0.00349153875,1.77478497 0.104583201,1.50517746 0.298856819,1.31018402 C0.486632205,1.10867033 0.746194417,0.996507072 1.01626681,1.00008463 L11.178373,1.00008463 C11.4485139,0.996472413 11.7081545,1.10863636 11.8959951,1.31018402 C12.0900275,1.50531297 12.1979288,1.77487079 12.1943356,2.05526636 L12.1943356,2.24616068 L11.3811654,2.24616068 L11.3811654,2.05548653 C11.3816377,1.99949332 11.3596613,1.94581669 11.3204974,1.90730675 C11.283257,1.86678447 11.2314746,1.84413694 11.1775245,1.84477618 L1.01669107,1.84477618 C0.962799279,1.84411826 0.911075544,1.86677374 0.873930288,1.90730675 C0.834951439,1.94593157 0.813074529,1.99955273 0.813474395,2.05548653 L0.813474395,10.0750297 C0.813133127,10.1308871 0.835005306,10.1844171 0.873930288,10.2229893 C0.9110617,10.2635953 0.962755769,10.2863972 1.01669107,10.2859602 L1.20505891,10.2859602 L1.20505891,10.6633453 C1.20505891,10.8231945 1.23496867,10.9817227 1.29309118,11.1299025 L1.01626681,11.1294621 L1.01605468,11.1296823 Z" fill="#FFFFFF" fill-rule="nonzero"></path>
+                </g>
+              </g>
+            </g>
+          </svg>
+          <span class="lg:pl-2 pl-0.5 font-medium">{{ photos_i18n }}</span>
+        </div>
+
+        {%- if first_video_media -%}
+          <div class="product_gallery-tab_item z-[1] cursor-pointer flex items-center justify-center h-full rounded-2xl px-4 text-black text-sm" data-type="video">
+            <svg viewBox="0 0 1024 1024" width="14" height="14" fill="currentColor">
+              <path fill-opacity=".85" fill-rule="evenodd" d="M815.456414,568.245314 L361.495201,824.710618 C330.712165,842.101489 291.662866,831.239029 274.276151,800.448635 C268.850888,790.840955 266,779.993947 266,768.959678 L266,256.029069 C266,220.666791 294.659941,192 330.013769,192 C341.0454,192 351.889816,194.851569 361.495201,200.278129 L815.456414,456.743434 C846.23945,474.134304 857.099314,513.192937 839.712599,543.983331 C833.9845,554.127308 825.597966,562.515845 815.456414,568.245314 Z"></path>
+            </svg>
+            <span class="lg:pl-2 pl-0.5 font-medium">{{ video_i18n }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- if model_3d != blank -%}
+          {%- if modal_meta == true or model_3d.size > 0 -%}
+            <div class="product_gallery-tab_item z-[1] cursor-pointer flex items-center justify-center h-full rounded-2xl px-4 text-black text-sm" data-type="model">
+              <svg width="14" height="14" viewBox="0 0 14 14">
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g transform="translate(-528.000000, -787.000000)">
+                    <g transform="translate(528.000000, 787.000000)">
+                      <rect x="0" y="0" width="14" height="14"></rect>
+                      <path d="M7.13800164,1 L7.21381728,1.0309585 L13,3.35962791 L12.9881926,3.59822191 L12.9881926,9.96613794 L6.73371311,13 L1,10.3138158 L1,3.59822191 L1.26069394,3.46531384 L1.40455723,3.39805916 L6.99693484,1.0376306 L7.13800164,1 Z M1.65538619,4.24190974 L1.6551321,10.0163545 L6.73948815,12.3986467 L6.74012064,6.83844261 C6.0406053,6.50113075 4.34569382,5.63561979 1.65538619,4.24190974 Z M7.09475307,1.60308077 L2.18311708,3.70045658 L1.998,3.783 L6.777,6.285 L12.283045,3.70045658 L7.09475307,1.60308077 Z" fill="#1A1A1A" fill-rule="nonzero"></path>
+                    </g>
+                  </g>
+                </g>
+              </svg>
+              <span class="lg:pl-2 pl-0.5 font-medium">{{ model_i18n }}</span>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+
+        <div style="--tw-bg-opacity: 0.85;" class="product--list-tabs_slider absolute h-full left-0 top-0 transition-all duration-300 rounded-2xl bg-black"></div>
+      </div>
+
+      {% comment %} video - 资源dom {% endcomment %}
+      {%- if first_video_media -%}
+        {%- case first_video_media.media_type -%}
+          {%- when 'external_video' -%}
+            {%- assign external_video_url = 'https://www.youtube.com/watch?v=' | append: first_video_media.external_id -%}
+            {%- render 'jky-video', video_url: external_video_url, title: product.title, class: "product_gallery-videobox", autoplay: false, controls: true, loop: false -%}
+
+          {%- when 'video' -%}
+            {%- assign video_url = '' -%}
+            {%- assign video_h = 0 -%}
+            {%- for item in first_video_media.sources -%}
+              {%- if item.format == 'mp4' and item.height > video_h -%}
+                {% assign video_url = item.url %}
+              {%- endif -%}
+            {%- endfor -%}
+
+            {%- render 'jky-video', video_url: video_url, title: product.title, class: "product_gallery-videobox", autoplay: false, controls: true, loop: false, poster: first_video_media.preview_image -%}
+        {%- endcase -%}
+      {%- endif -%}
+
+      {% comment %} 3D 模型渲染 {% endcomment %}
+      {%- if model_3d != blank -%}
+        <script type="application/json" id="ProductJSON-{{ product.id }}">
+          {{ product.media | where: 'media_type', 'model' | json }}
+        </script>
+        <div class="w-full h-full product_gallery-modelbox">
+          {%- assign count = 1 -%}
+          {%- if show_3d_model_unfold -%}
+            {%- assign count = 2 -%}
+          {%- endif -%}
+
+          {%- for model in model_3d limit: count -%}
+            {%- assign index = forloop.index -%}
+            {%- if modal_meta == true -%}
+              {%- assign modal_meta_num = index -%}
+              {%- render "jky-3dmodal", url: model.url, preview_image: model.preview_image, index: index -%}
+            {%- else -%}
+              {%- for model_source in model.sources -%}
+                {%- if model_source.format == 'glb' -%}
+                  {%- render "jky-3dmodal", url: model_source.url, preview_image: model.preview_image, index: index -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {% comment %} 3D 模型切换 {% endcomment %}
+      {%- if model_3d != blank -%}
+        {%- if model_3d.size > 1 or modal_meta_num > 1 -%}
+          <div style="border-bottom: 1px solid rgba(0,0,0,0.15);" class="product_gallery-3d-tab absolute hidden left-1/2 z-[2] items-center pb-2 lg:bottom-6 lg:gap-x-12 gap-x-10 bottom-4 -translate-x-1/2">
+            <div class="product_gallery-3d-tab_item active font-normal lg:text-base text-sm cursor-pointer text-gray-600" data-index="1">{{ unfolded_i18n }}</div>
+            <div class="product_gallery-3d-tab_item font-normal lg:text-base text-sm cursor-pointer text-gray-600" data-index="2">{{ folded_i18n }}</div>
+            <div style="background: #1A1A1A;" class="product_gallery-3d-tab_highlight absolute left-0 h-0.5 transition-all duration-300 -bottom-px"></div>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    {% comment %} 缩略图 swiper {% endcomment %}
+    <div class="product-image-thumbs absolute left-1/2 mb-0 z-[2]">
+      <div class="swiper h-full">
+        <div class="swiper-wrapper" {% if image_media.size < 10 %} style="justify-content:center;" {% endif %}>
+          {%- for media in image_media -%}
+            <div class="swiper-slide flex items-center justify-center rounded-none border-none overflow-hidden cursor-pointer lg:w-12 transition-all duration-300 ease-linear" data-media="{{media.media_type}}">
+              {% render 'diff-end-img',
+                picture_class: 'w-full h-full',
+                pc_img: media.preview_image,
+                mb_img: media.preview_image,
+                pc_img_width: 72,
+                mb_img_width: 72,
+                class: '',
+                alt: product.title
+              %}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+
+    {% comment %} 延保不等于右侧 {% endcomment %}
+    {%- if position == 'left' -%}
+      {%- if warranty_list.size > 0 -%}
+        <div style="color:#191919;" class="product-warranty_tab flex items-center justify-between font-normal mx-auto lg:text-sm text-xs gap-3 pc-show lg:!flex {% unless first_video_media%} product-warranty_tab--none {% endunless %}">
+          {%- for zitem in warranty_list -%}
+            <div style="color:#1A1A1A;" class="product-warranty-item flex items-center font-medium">
+              <img class="lg:h-6 h-5 mr-0 lg:mr-1" src="{{zitem.settings.icon | image_url: width: 60}}" alt="{{zitem.settings.icon.alt | escape}}" width="60" height="60" loading="lazy">
+              <span>{{zitem.settings.title | escape}}</span>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- elsif warranty_enable and first_icon_list.warranty_list.value.count > 0 -%}
+        <div style="color:#191919;" class="product-warranty_tab flex items-center justify-between font-normal mx-auto lg:text-sm text-xs gap-3 pc-show lg:!flex {% unless first_video_media%} product-warranty_tab--none {% endunless %}">
+          {%- for zitem in first_icon_list.warranty_list.value -%}
+            <div style="color:#1A1A1A;" class="product-warranty-item flex items-center font-medium">
+              <img class="lg:h-6 h-5 mr-0 lg:mr-1" src="{{zitem.icon | image_url: width: 60}}" alt="{{zitem.icon.alt | escape}}" width="60" height="60" loading="lazy">
+              <span>{{zitem.title | escape}}</span>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+      {% if pay_enable %}
+      <div class="pc-left-v4 lg:flex justify-center hidden mt-4">
+        {%- if first_icon_list.total_icon != blank -%}
+          <img class="mr-3 w-6 h-6 -mt-1" src="{{first_icon_list.total_icon | image_url: width: 80}}" alt="{{first_icon_list.total_icon.alt | escape}}" width="24" height="24" loading="lazy">
+        {%- endif -%}
+        {%- render 'payment-icons' -%}
+      </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</product-gllerry>
+
+{%- assign photoswipe = 'photoswipe.js' | asset_url -%}
+{%- assign PhotoSwipeLightbox = 'photoswipelightbox.js' | asset_url -%}
+<script src="{{ 'snippets-product-gllerry.js' | asset_url }}" defer></script>
+
+<script type="module">
+  document.addEventListener('DOMContentLoaded', function () {
+      import(/* webpackChunkName: "photoswipe-lightbox" */ '{{ PhotoSwipeLightbox }}').then((module) => {
+        const PhotoSwipeLightbox = module.default;
+
+        const galleryChildren = this.querySelectorAll('.product-media__box .product_gallery-imagebox .swiper-wrapper a')
+        const options = {
+          gallery: ".product-media__box",
+          children: galleryChildren,
+          pswpModule: () => import('{{ photoswipe }}'),
+
+          wheelToZoom: true,
+          zoom: false,
+          padding: {
+            top: 32, bottom: 184, left: 0, right: 0
+          },
+          counter: false,
+          bgOpacity: 1,
+          arrowNextSVG: `<div class="swiper-button-next swiper--pagebtn" tabindex="0" role="button" aria-label="Next slide"></div>`,
+          arrowPrevSVG: `<div class="swiper-button-prev swiper--pagebtn" tabindex="0" role="button" aria-label="Previous slide"></div>`,
+          closeSVG: `<span class="close pswp--close">×</span>`
+        };
+
+        const lightbox = new PhotoSwipeLightbox(options);
+
+        // 是否是点击 预览缩略图
+        let isClickThumb = false
+        let isScale = false
+
+        const pos_parant = (element, parent) => {
+          var elementRect = element.getBoundingClientRect();
+          var elementLeft = elementRect.left;
+
+          var parentRect = parent.getBoundingClientRect();
+          var parentLeft = parentRect.left;
+          var parentWidth = parentRect.width;
+
+          var relativePosition = {
+              left: elementLeft - parentLeft,
+              right: parentLeft + parentWidth - elementLeft
+          };
+
+          return relativePosition
+        }
+
+        const isMobile = () => document.documentElement.clientWidth < 1024;
+
+        // 监听 beforeOpen 事件
+        lightbox.on('beforeOpen', () => {
+          isScale = true
+        });
+
+        lightbox.on("uiRegister", function () {
+          lightbox.pswp.ui.registerElement({
+            name: 'bulletsIndicator',
+            className: 'pswp__bullets-indicator',
+
+            appendTo: "wrapper",
+            onInit: (el, pswp) => {
+              let maxScrollDistance = 0
+              let pre_index = 0
+              const thumbs = document.querySelector(".product-image-thumbs .swiper")
+              let bullet = document.createElement("div");
+              let bullet_wrapper = document.createElement("div");
+              bullet.className = "pswp__thumbs swiper";
+              bullet_wrapper.className = "swiper-wrapper";
+
+              const imgLength = '{{ image_media.size }}'
+              if (imgLength < 8 && isMobile()) {
+                bullet_wrapper.className += " justify-center"
+              }
+
+              thumbs.querySelectorAll(".swiper-slide[data-media=image]").forEach(item => {
+                const img = item.querySelector("img")
+                const clone_img_node = img.cloneNode(true)
+                let slide_wrapper = document.createElement("div");
+                slide_wrapper.className = "swiper-slide";
+
+                slide_wrapper.appendChild(clone_img_node)
+                bullet_wrapper.appendChild(slide_wrapper)
+              })
+              bullet.appendChild(bullet_wrapper)
+
+              el.appendChild(bullet);
+
+              pswp.on("bindEvents", () => {
+                bullet_wrapper.querySelectorAll(".swiper-slide").forEach((slide, index) => {
+                  slide.addEventListener('click', () => {
+                    if (slide.classList.contains("active")) return
+
+                    isClickThumb = true
+                    pswp.goTo(index)
+                    pos_parant(slide, bullet_wrapper)
+
+                    gaPushDataLayer("products_details_page_user_clicks", {
+                      "product_spu_name": "{{ product.title | escape }}", //识别页面产品spu标题名称text
+                      "module": "Product Image", //固定模块名称Product Image
+                      "position": "Picture", //点击图片类型或者 只有图片类型，固定命名为Picture
+                      "rank": pswp.currSlide.index + 1, // 缩略图从左到右的序号，1，2，3...,
+                      "button_name": "picture", // 点击的形式：左点击left，右点击right，直接点击缩略图 picture
+                    })
+                  })
+                })
+              })
+
+              pswp.on("change", (e) => {
+                const thumbsRoot = document.querySelector(".pswp__thumbs.swiper")
+                const thumbsWrapper = document.querySelector(".pswp__thumbs .swiper-wrapper")
+                if (!thumbsRoot || !thumbsWrapper) return
+
+                const thumbSlides = thumbsRoot.querySelectorAll(".swiper-slide")
+                thumbSlides.forEach((slide) => slide.classList.remove("active"))
+                if (thumbSlides[pswp.currSlide.index]) {
+                  thumbSlides[pswp.currSlide.index].classList.add("active")
+                }
+
+                const current_dis = thumbsWrapper.scrollLeft
+                const currentSlide = thumbSlides[pswp.currSlide.index]
+                const pos_info = currentSlide ? pos_parant(currentSlide, thumbsWrapper) : null
+                const slide_w = thumbsWrapper.querySelector(".swiper-slide")?.getBoundingClientRect().width || 0
+
+                let next = pswp.currSlide.index > pre_index
+                if(pos_info && pos_info.right < slide_w && next) { // right
+                  thumbsWrapper.scrollLeft = current_dis + (12 + slide_w) * (pswp.currSlide.index - pre_index)
+                }
+
+                if(pos_info && pos_info.left < 0 && !next) { // left
+                  thumbsWrapper.scrollLeft = current_dis - (12 + slide_w) * (pre_index - pswp.currSlide.index)
+                }
+
+                if (!isClickThumb && !isScale) {
+                  // 数据埋码
+                  gaPushDataLayer("products_details_page_user_clicks", {
+                    "product_spu_name": "{{ product.title | escape }}", //识别页面产品spu标题名称text
+                    "module": "Product Image", //固定模块名称Product Image
+                    "position": "Picture", //点击图片类型或者 只有图片类型，固定命名为Picture
+                    "rank": pswp.currSlide.index + 1, // 缩略图从左到右的序号，1，2，3...,
+                    "button_name": next ? "right" : "left", // 点击的形式：左点击left，右点击right，直接点击缩略图 picture
+                  })
+                }
+
+                pre_index = pswp.currSlide.index
+                isClickThumb = false
+                isScale = false
+              })
+            },
+          });
+        });
+
+        lightbox.init();
+      })
+  })
+</script>

@@ -1,0 +1,176 @@
+{% schema %}
+{
+  "name": "KV Banner Component",
+  "tag": "section",
+  "class": "kv-banner-component",
+  "settings": [
+    {
+      "type": "text",
+      "id": "sectionTitle",
+      "label": "Section Title"
+    },
+    {
+      "type": "select",
+      "id": "bannerType",
+      "label": "Banner Type",
+      "default": "common-banner",
+      "options": [
+        {
+          "value": "first-screen-banner",
+          "label": "First Screen Banner"
+        },
+        {
+          "value": "common-banner",
+          "label": "Common Banner"
+        },
+        {
+          "value": "just-image",
+          "label": "Just Image"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "contentAlign",
+      "label": "Content Align (Only For PC)",
+      "default": "right",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "type": "html",
+      "id": "sloganTitle",
+      "label": "Slogan Title"
+    },
+    {
+      "type": "html",
+      "id": "sloganContent",
+      "label": "Slogan Content"
+    },
+    {
+      "type": "html",
+      "id": "moreInfo",
+      "label": "More Information"
+    },
+    {
+      "type": "image_picker",
+      "id": "pcBannerImg",
+      "label": "PC Banner image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mbBannerImg",
+      "label": "Mobile banner image"
+    },
+    {
+      "type": "select",
+      "id": "btnType",
+      "label": "Button Type",
+      "default": "account",
+      "options": [
+        {
+          "value": "account",
+          "label": "Account Button"
+        },
+        {
+          "value": "normal",
+          "label": "Normal Button"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "btnText",
+      "label": "Button Text"
+    },
+    {
+      "type": "url",
+      "id": "btnLink",
+      "label": "Button Link"
+    },
+    {
+      "type": "text",
+      "id": "btnAnchor",
+      "label": "Button Anchor"
+    }
+  ],
+  "blocks": []
+}
+{% endschema %}
+{% if section.settings.bannerType == 'just-image' %}
+  {%- assign alignClass = 'layer-container section-container' -%}
+{% else %}
+  {%- assign alignClass = 'align-' | append: section.settings.contentAlign -%}
+{% endif %}
+{% if section.settings.sectionTitle != blank %}
+  <h2 class="section-title">{{ section.settings.sectionTitle }}</h2>
+{% endif %}
+<div class="kv-banner-box {{ section.settings.bannerType }} {{ alignClass }}">
+  <img
+      class="pc-img"
+      src="{{ section.settings.pcBannerImg | image_url: width: 1920 }}"
+      alt="{{ section.settings.pcBannerImg.alt | escape }}" loading="lazy"
+  >
+  <img
+      class="mb-img"
+      src="{{ section.settings.mbBannerImg | image_url: width: 768 }}"
+      alt="{{ section.settings.mbBannerImg.alt | escape }}" loading="lazy"
+  >
+
+  {% if section.settings.bannerType != 'just-image' %}
+    <div class="slogan">
+      {% if section.settings.sloganTitle != blank %}
+        <div class="slogan-txt title">{{ section.settings.sloganTitle }}</div>
+      {% endif %}
+      {% if section.settings.sloganContent != blank %}
+        <div class="slogan-txt content">{{ section.settings.sloganContent }}</div>
+      {% endif %}
+      {% if section.settings.moreInfo != blank %}
+        <div class="slogan-txt more-info">{{ section.settings.moreInfo }}</div>
+      {% endif %}
+      {% if section.settings.btnText != blank %}
+        {% if section.settings.btnType == 'account' %}
+          {% comment %} 账号按钮，如登录或注册 {% endcomment %}
+          {% assign ref = '{"u":"'
+              | append: shop.url
+              | append: '","id":"'
+              | append: shop.id
+              | append: '","back":"/account/overview", "original": "'
+              | append: canonical_url
+              | append: '"}'
+              | base64_encode
+          %}
+          {%- assign btnLink = section.settings.btnLink | append: '?jackeryRef=' | append: ref -%}
+        {% else %}
+          {% comment %} 普通按钮 {% endcomment %}
+          {%- assign btnLink = section.settings.btnLink -%}
+        {% endif %}
+
+        {% comment %} 锚点按钮，则直接跳转当前页锚点即可，无需输出超链接 {% endcomment %}
+        {% if section.settings.btnAnchor != blank %}
+          {%- assign btnLink = 'javascript:void(0);' -%}
+        {% endif %}
+
+        <a
+            href="{{ btnLink }}"
+            class="btn-link"
+            {% if section.settings.btnAnchor != blank %} data-anchor="{{ section.settings.btnAnchor }}" {% endif %}
+        >
+          {{- section.settings.btnText -}}
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>

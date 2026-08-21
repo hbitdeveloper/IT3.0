@@ -1,0 +1,435 @@
+{% style %} 
+  .sticky-scroll {
+    display: block;
+    position: relative;
+  }
+  .sticky-scroll .sticky-scroll-container {
+    position: sticky;
+    top: var(--jky-header-h);
+    min-height: 50dvh;
+    overflow: hidden;
+  }
+
+
+  key-scroll .sticky-scroll-container {
+    height: 100dvh;
+    min-height: 640px;
+    background: #050503;
+  }
+  key-scroll .frame {
+    will-change: opacity, transform, filter;
+    transform: translateZ(0);
+  }
+
+  key-scroll .vignette {
+    background:
+        radial-gradient(
+        circle at 78% 52%,
+        rgba(255, 92, 24, 0.08),
+        transparent 38%
+        ),
+        linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.22),
+        transparent 34%,
+        rgba(0, 0, 0, 0.04)
+        );
+    mix-blend-mode: screen;
+    opacity: 0.55;
+  }
+
+  key-scroll .headline {
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(1100px, 90vw);
+    z-index: 2;
+    will-change: transform, opacity;
+  }
+
+  .key-scroll-heading {
+    line-height: 1.47;
+    font-size: 4.75rem;
+    color:var(--heading-color);
+  }
+  .key-scroll-subheading {
+    line-height: 1.95;
+    color: var(--subheading-color);
+    font-size: 2.625rem;;
+  }
+
+  key-scroll .copy {
+    z-index: 3;
+    width: min(430px, 32vw);
+    color: var(--heading-color);
+    will-change: opacity, transform, filter;
+  }
+  key-scroll .copy h2 {
+    color: var(--brand-color);
+    font-size: 2.375rem;
+    line-height: 1.31;
+  }
+  key-scroll .copy p {
+    color: var(--heading-color);
+  }
+  key-scroll .copy-1 {
+    left: 58.4%;
+    top: 47.8%;
+    transform: translateY(34px);
+  }
+  key-scroll .copy-2 {
+    left: 58.4%;
+    top: 42.3%;
+    transform: translateY(34px);
+  }
+  .sticky-scroll .sticky-scroll-container{min-height:50dvh;overflow:hidden;position:sticky;top:0;}
+  @media (max-width: 900px) {
+      key-scroll .sticky-stage { min-height:720px; }
+      key-scroll .headline { top:24%; }
+      key-scroll .copy { width:72vw; left:14vw !important; top:58% !important; }
+  }
+
+  @media (max-width: 1023.98px) {
+    .sticky-scroll .sticky-scroll-container{top:0;}
+    key-scroll .sticky-scroll-container {
+      height: 100dvh;
+    }
+
+    .key-scroll-heading {
+      line-height: 1.17;
+      font-size: 2.5rem;
+    }
+    .key-scroll-subheading {
+      line-height: 1.28;
+      font-size: 1.458rem;
+    }
+
+    key-scroll .frame-3, key-scroll .frame-2 {
+      height: 100%;
+      bottom: 0;
+      top: unset;
+      width: 100%;
+      left: 0;
+      object-position: bottom;
+      object-fit: cover;
+    }
+
+    key-scroll .copy h2 {
+      font-size: 1.5rem;
+      line-height: 1.15;
+      margin-bottom: 1.375rem;
+    }
+    key-scroll .copy h3 {
+      font-size: 1.125rem;
+      margin-bottom: 0.125rem;
+      line-height: 1.22;
+    }
+    key-scroll .copy p {
+      font-size: 0.875rem;
+      line-height: 1.28;
+      opacity: 0.8;
+    }
+    key-scroll .copy {
+      position: static;
+      width: 100%;
+    }
+    .copy-wrapper {
+      display: flex;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 21.4375rem;
+      transform: translateX(-50%);
+      height: 100%;
+      align-items: flex-start;
+      padding-top: 22.5dvh;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+{% endstyle %}
+
+{% assign has_second_frame = false %}
+
+{% if section.settings.video_2 != blank
+  or section.settings.video_2_mb != blank
+  or section.settings.banner_2 != blank
+  or section.settings.banner_2_mb != blank %}
+  {% assign has_second_frame = true %}
+{% endif %}
+
+<key-scroll
+  data-sticky-distance="{{ section.settings.scroll_distance }}"
+  data-trigger-position="top"
+  class="sticky-scroll"
+  style="--heading-color:{{ section.settings.heading_color | default: '#ffffff' }};--subheading-color:{{ section.settings.subheading_color | default: '#ffffff' }};"
+  {% if section.settings.anchor %}anchor-target="{{ section.settings.anchor | escape }}" {% endif %}
+  {% unless has_second_frame %}data-single-frame{% endunless %}
+>
+  <div class="sticky-scroll-container overflow-hidden">
+    {%- if section.settings.banner_bg -%}
+      {%- render 'responsive-image', image_class: 'frame frame-1 absolute inset-0 object-cover object-center object-no-repeat h-full w-full', image: section.settings.banner_bg, mimage: section.settings.banner_bg_mb -%}
+    {%- else -%}
+       <div class="frame frame-1 absolute inset-0 bg-cover bg-center bg-no-repeat h-full w-full" style="background-image:url({{'placeholder.webp' | asset_url}})"></div>
+    {%- endif -%}
+
+    {%- if section.settings.video_1 or section.settings.video_1_mb -%}
+      {%- if section.settings.video_1 -%}
+        {{
+            section.settings.video_1 | video_tag: image_size: '3840x',
+            autoplay: false,
+            loop: true,
+            muted: true,
+            controls: false,
+            class: 'frame frame-2 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full frame-video frame-video-2 frame-video-2__pc hidden lg:block'
+        }}
+      {%- else -%}
+        {%- if section.settings.banner_1 -%}
+          {%- render 'responsive-image', image_class: 'frame frame-2 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full hidden lg:block', image: section.settings.banner_1, mimage: section.settings.banner_1_mb -%}
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- if section.settings.video_1_mb -%}
+        {{
+            section.settings.video_1_mb | video_tag: image_size: '3840x',
+            autoplay: false,
+            loop: true,
+            muted: true,
+            controls: false,
+            class: 'frame frame-2 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full frame-video frame-video-2 frame-video-2__mb block lg:hidden'
+        }}
+      {%- else -%}
+        {%- if section.settings.banner_1 -%}
+          {%- render 'responsive-image', image_class: 'frame frame-2 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full block lg:hidden', image: section.settings.banner_1, mimage: section.settings.banner_1_mb -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- else -%}
+      {%- if section.settings.banner_1 -%}
+        {%- render 'responsive-image', image_class: 'frame frame-2 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full', image: section.settings.banner_1, mimage: section.settings.banner_1_mb -%}
+      {%- endif -%}
+    {%- endif -%}
+
+    {%- if has_second_frame -%}
+    {%- if section.settings.video_2 or section.settings.video_2_mb -%}
+      {%- if section.settings.video_2 -%}
+        {{
+            section.settings.video_2 | video_tag: image_size: '3840x',
+            autoplay: false,
+            loop: true,
+            muted: true,
+            controls: false,
+            class: 'frame frame-3 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full frame-video frame-video-3 frame-video-3__pc'
+        }}
+      {%- else -%}
+        {%- if section.settings.banner_2 -%}
+          {%- render 'responsive-image', image_class: 'frame frame-3 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full hidden lg:block', image: section.settings.banner_2, mimage: section.settings.banner_2_mb -%}
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- if section.settings.video_2_mb -%}
+        {{
+            section.settings.video_2_mb | video_tag: image_size: '750x',
+            autoplay: false,
+            loop: true,
+            muted: true,
+            controls: false,
+            class: 'frame frame-3 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full frame-video frame-video-3 frame-video-3__mb block lg:hidden'
+        }}
+      {%- else -%}
+        {%- if section.settings.banner_2 -%}
+          {%- render 'responsive-image', image_class: 'frame frame-3 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full block lg:hidden', image: section.settings.banner_2, mimage: section.settings.banner_2_mb -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- else -%}
+      {%- if section.settings.banner_2 -%}
+        {%- render 'responsive-image', image_class: 'frame frame-3 absolute inset-0 object-cover object-center object-no-repeat opacity-0 h-full w-full', image: section.settings.banner_2, mimage: section.settings.banner_2_mb -%}
+      {%- endif -%}
+    {%- endif -%}
+    {%- endif -%}
+    <div class="vignette absolute inset-0 pointer-events-none"></div>
+
+    <div class="headline absolute left-1/2 text-center">
+      {%- if section.settings.title -%}
+        <h2 class="key-scroll-heading m-0 font-bold">{{- section.settings.title -}}</h2>
+      {%- endif -%}
+      {%- if section.settings.subtitle -%}
+        <p class="key-scroll-subheading font-normal">{{- section.settings.subtitle -}}</p>
+      {%- endif -%}
+    </div>
+
+    <div class="copy-wrapper copy-wrapper-1">
+      <div class="copy copy-1 absolute opacity-0">
+        {%- if section.settings.frame_title_1 -%}
+          <h2 class="font-semibold mb-8">{{ section.settings.frame_title_1 | newline_to_br }}</h2>
+        {%- endif -%}
+        {%- if section.settings.frame_subtitle_1 -%}
+          <h3 class="text-3xl font-semibold mb-1">{{ section.settings.frame_subtitle_1 | newline_to_br }}</h3>
+        {%- endif -%}
+        {%- if section.settings.frame_des_1 -%}
+          <p class="text-2xl font-light">{{ section.settings.frame_des_1 | newline_to_br }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- if has_second_frame -%}
+    <div class="copy-wrapper copy-wrapper-2">
+      <div class="copy copy-2 absolute opacity-0">
+        {%- if section.settings.frame_title_2 -%}
+          <h2 class="font-semibold mb-8">{{ section.settings.frame_title_2 | newline_to_br }}</h2>
+        {%- endif -%}
+        {%- if section.settings.frame_subtitle_2 -%}
+          <h3 class="text-3xl font-semibold mb-1">{{ section.settings.frame_subtitle_2 | newline_to_br }}</h3>
+        {%- endif -%}
+        {%- if section.settings.frame_des_2 -%}
+          <p class="text-2xl font-light">{{ section.settings.frame_des_2 | newline_to_br }}</p>
+        {%- endif -%}
+      </div> 
+    </div> 
+    {%- endif -%}
+  </div>
+</key-scroll>
+
+<script src="{{ 'pd-components.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "PD活动组件 - 图文滚动切换",
+  "tag": "section",
+  "class": "section-key-frame-scroll",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Power Priority Mode"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "说明文案",
+      "default": "Secure Your Cooooooore Essentials"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_bg",
+      "label": "背景图片"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_bg_mb",
+      "label": "MB背景图片"
+    },
+    { "type": "header", "content": "第一屏内容设置" },
+    {
+      "type": "image_picker",
+      "id": "banner_1",
+      "label": "图片"
+    },
+    {
+      "type": "video",
+      "id": "video_1",
+      "label": "视频",
+      "info": "该配置会覆盖图片设置"
+    },
+    {
+      "type": "video",
+      "id": "video_1_mb",
+      "label": "MB视频",
+      "info": "该配置会覆盖图片设置"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_1_mb",
+      "label": "MB图片"
+    },
+    {
+      "type": "textarea",
+      "id": "frame_title_1",
+      "label": "标题",
+      "default": "Prioritize What Truly Matters."
+    },
+    {
+      "type": "textarea",
+      "id": "frame_subtitle_1",
+      "label": "副标题",
+      "default": "Step 1."
+    },
+    {
+      "type": "textarea",
+      "id": "frame_des_1",
+      "label": "描述",
+      "default": "Set up your priority and anxiety threshold"
+    },
+    { "type": "header", "content": "第二屏内容设置" },
+    {
+      "type": "image_picker",
+      "id": "banner_2",
+      "label": "图片"
+    },
+    {
+      "type": "video",
+      "id": "video_2",
+      "label": "视频",
+      "info": "该配置会覆盖图片设置"
+    },
+    {
+      "type": "video",
+      "id": "video_2_mb",
+      "label": "MB视频",
+      "info": "该配置会覆盖图片设置"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_2_mb",
+      "label": "MB图片"
+    },
+    {
+      "type": "textarea",
+      "id": "frame_title_2",
+      "label": "标题",
+      "default": "Smart Dispatch, Zero Effort"
+    },
+    {
+      "type": "textarea",
+      "id": "frame_subtitle_2",
+      "label": "副标题",
+      "default": "Step 2."
+    },
+    {
+      "type": "textarea",
+      "id": "frame_des_2",
+      "label": "描述",
+      "default": "Smartly cut non-essentials at low battery to keep your core gear running longer."
+    },
+    { "type": "header", "content": "动画设置" },
+    {
+      "type": "range",
+      "id": "scroll_distance",
+      "min": 1,
+      "max": 5,
+      "step": 0.1,
+      "label": "滚动动画行程",
+      "info": "控制动画切换响应速度",
+      "default": 2.6
+    },
+    { "type": "header", "content": "颜色设置" },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "文案颜色",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "subheading_color",
+      "label": "说明文案颜色",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "PD活动组件 - 图文滚动切换"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,269 @@
+{{ 'section-pdp-calculator-plus.min.css' | asset_url | stylesheet_tag }}
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign fixed_capacity = product.metafields.my_fields.wattage
+  assign has_fixed_capacity = false
+  if fixed_capacity != blank
+    assign has_fixed_capacity = true
+  endif
+
+  assign show_runtime_tab = false
+  assign show_savings_tab = false
+  assign show_solar_tab = false
+
+  if section.settings.tab_runtime != blank
+    if has_fixed_capacity or section.settings.runtime_use_energy_dropdown
+      assign show_runtime_tab = true
+    endif
+  endif
+  if section.settings.tab_savings != blank
+    if has_fixed_capacity or section.settings.savings_use_energy_dropdown
+      assign show_savings_tab = true
+    endif
+  endif
+  if section.settings.tab_solar != blank
+    assign show_solar_tab = true
+  endif
+
+  assign tab_count = 0
+  if show_runtime_tab
+    assign tab_count = tab_count | plus: 1
+  endif
+  if show_savings_tab
+    assign tab_count = tab_count | plus: 1
+  endif
+  if show_solar_tab
+    assign tab_count = tab_count | plus: 1
+  endif
+
+  assign resolved_default_tab = section.settings.default_tab
+  if resolved_default_tab == 'runtime' and show_runtime_tab == false
+    assign resolved_default_tab = blank
+  endif
+  if resolved_default_tab == 'savings' and show_savings_tab == false
+    assign resolved_default_tab = blank
+  endif
+  if resolved_default_tab == 'solar' and show_solar_tab == false
+    assign resolved_default_tab = blank
+  endif
+
+  if resolved_default_tab == blank
+    if show_runtime_tab
+      assign resolved_default_tab = 'runtime'
+    elsif show_savings_tab
+      assign resolved_default_tab = 'savings'
+    elsif show_solar_tab
+      assign resolved_default_tab = 'solar'
+    else
+      assign resolved_default_tab = 'runtime'
+    endif
+  endif
+-%}
+
+<div
+  class="pdp-calculator-plus section-padding"
+  style="{{ style }}"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{ section.settings.anchor | escape }}"
+  {% endif %}
+  data-pdp-calculator-plus-root
+  data-pyp-layout="{% if tab_count > 1 %}tabs{% else %}single{% endif %}"
+  data-pyp-default-tab="{{ resolved_default_tab }}"
+>
+  <div class="section-container-lg">
+    <div class="flex flex-col items-center justify-center text-center">
+      <h2 class="font-semibold lg:text-5xl text-2xl lg:leading-[1.1] leading-[1.1] text-[#242F20]">
+        {{ section.settings.title }}
+      </h2>
+      {% if section.settings.subtitle != blank %}
+        <p class="mt-4 font-medium text-sm lg:text-base text-[rgba(0,0,0,0.65)]">
+          {{ section.settings.subtitle }}
+        </p>
+      {% endif %}
+    </div>
+
+    {% if tab_count > 1 %}
+      <div class="mt-6 pyp-tabs lg:w-fit" style="--pyp-tabs-cols: {{ tab_count }};" role="tablist" aria-label="Plan Your Power">
+        {% if show_runtime_tab %}
+          <button class="pyp-tab w-auto{% if resolved_default_tab == 'runtime' %} is-active{% endif %}" type="button" role="tab" data-pyp-tab="runtime" aria-selected="{% if resolved_default_tab == 'runtime' %}true{% else %}false{% endif %}">
+            {% if section.settings.tab_runtime_icon != blank %}
+              <img
+                class="pyp-tab-icon"
+                src="{{ section.settings.tab_runtime_icon | image_url: width: 48 }}"
+                alt=""
+                width="24"
+                height="24"
+                loading="lazy"
+              >
+            {% endif %}
+            <span class="pyp-tab-text lg:text-base text-sm font-medium">{{ section.settings.tab_runtime }}</span>
+          </button>
+        {% endif %}
+        {% if show_savings_tab %}
+          <button class="pyp-tab w-auto{% if resolved_default_tab == 'savings' %} is-active{% endif %}" type="button" role="tab" data-pyp-tab="savings" aria-selected="{% if resolved_default_tab == 'savings' %}true{% else %}false{% endif %}">
+            {% if section.settings.tab_savings_icon != blank %}
+              <img
+                class="pyp-tab-icon"
+                src="{{ section.settings.tab_savings_icon | image_url: width: 48 }}"
+                alt=""
+                width="24"
+                height="24"
+                loading="lazy"
+              >
+            {% endif %}
+            <span class="pyp-tab-text lg:text-base text-sm font-medium">{{ section.settings.tab_savings }}</span>
+          </button>
+        {% endif %}
+        {% if show_solar_tab %}
+          <button class="pyp-tab w-auto{% if resolved_default_tab == 'solar' %} is-active{% endif %}" type="button" role="tab" data-pyp-tab="solar" aria-selected="{% if resolved_default_tab == 'solar' %}true{% else %}false{% endif %}">
+            {% if section.settings.tab_solar_icon != blank %}
+              <img
+                class="pyp-tab-icon"
+                src="{{ section.settings.tab_solar_icon | image_url: width: 48 }}"
+                alt=""
+                width="24"
+                height="24"
+                loading="lazy"
+              >
+            {% endif %}
+            <span class="pyp-tab-text lg:text-base text-sm font-medium">{{ section.settings.tab_solar }}</span>
+          </button>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if show_runtime_tab %}
+      <div class="pyp-panel{% if resolved_default_tab == 'runtime' %} is-active{% endif %}" role="tabpanel" data-pyp-panel="runtime" {% if resolved_default_tab != 'runtime' %}hidden{% endif %}>
+        {% render 'pdp-calculator-plus-runtime', section: section %}
+      </div>
+    {% endif %}
+    {% if show_savings_tab %}
+      <div class="pyp-panel{% if resolved_default_tab == 'savings' %} is-active{% endif %}" role="tabpanel" data-pyp-panel="savings" {% if resolved_default_tab != 'savings' %}hidden{% endif %}>
+        {% render 'pdp-calculator-plus-savings', section: section %}
+      </div>
+    {% endif %}
+    {% if show_solar_tab %}
+      <div class="pyp-panel{% if resolved_default_tab == 'solar' %} is-active{% endif %}" role="tabpanel" data-pyp-panel="solar" {% if resolved_default_tab != 'solar' %}hidden{% endif %}>
+        {% render 'pdp-calculator-plus-solar-setup', section: section %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+
+<script src="{{ 'section-pdp-calculator-plus.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "PDP Calculator Plus",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["product", "collection", "page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "default_tab",
+      "label": "默认 Tab",
+      "options": [
+        { "value": "runtime", "label": "Runtime" },
+        { "value": "savings", "label": "Savings" },
+        { "value": "solar", "label": "Solar Setup" }
+      ],
+      "default": "runtime"
+    },
+    { "type": "header", "content": "间距" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "PC上边距", "default": 96 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "PC下边距", "default": 96 },
+    { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "PC左边距", "default": 0 },
+    { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "PC右边距", "default": 0 },
+    { "type": "select", "id": "mb_padding_type", "label": "MB边距", "options": [ { "value": "default", "label": "与PC一致" }, { "value": "custom", "label": "单独配置" } ], "default": "custom" },
+    { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "MB上边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "MB下边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "MB左边距", "default": 0, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "MB右边距", "default": 0, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "header", "content": "文案" },
+    { "type": "text", "id": "title", "label": "主标题", "default": "Plan Your Power" },
+    { "type": "text", "id": "subtitle", "label": "副标题", "default": "Calculate runtime, estimate savings, and find a solar setup that fits." },
+    { "type": "text", "id": "tab_runtime", "label": "Tab：Runtime", "default": "Runtime" },
+    { "type": "image_picker", "id": "tab_runtime_icon", "label": "PC端Tab图标：Runtime" },
+    { "type": "text", "id": "tab_savings", "label": "Tab：Savings", "default": "Savings" },
+    { "type": "image_picker", "id": "tab_savings_icon", "label": "PC端Tab图标：Savings" },
+    { "type": "text", "id": "tab_solar", "label": "Tab：Solar Setup", "default": "Solar Setup" },
+    { "type": "image_picker", "id": "tab_solar_icon", "label": "PC端Tab图标：Solar Setup" },
+    { "type": "header", "content": "产品" },
+    { "type": "header", "content": "Runtime" },
+    { "type": "text", "id": "runtime_question", "label": "问题文案", "default": "What do you need to power?" },
+    { "type": "checkbox", "id": "runtime_use_energy_dropdown", "label": "Runtime使用储能下拉框（从下拉选择储能数据）", "default": false },
+    { "type": "text", "id": "runtime_calculate_text", "label": "计算按钮文案", "default": "Calculate" },
+    { "type": "text", "id": "runtime_right_title", "label": "结果标题", "default": "Estimated Runtime" },
+    { "type": "text", "id": "runtime_result_unit", "label": "结果单位", "default": "hrs" },
+    { "type": "text", "id": "runtime_battery_capacity_label", "label": "Battery capacity 文案", "default": "Battery capacity" },
+    { "type": "text", "id": "runtime_usable_capacity_label", "label": "Usable 文案", "default": "Usable (after loss)" },
+    { "type": "text", "id": "runtime_error_text", "label": "超出功率提示（用 ${power} 作为占位）", "default": "The total power exceeds ${power}W. Please adjust your devices." },
+    { "type": "header", "content": "Savings" },
+    { "type": "checkbox", "id": "savings_use_energy_dropdown", "label": "Savings使用储能下拉框（从下拉选择储能数据）", "default": false },
+    { "type": "text", "id": "savings_title", "label": "模块标题", "default": "Savings Estimator" },
+    { "type": "text", "id": "savings_rate_label", "label": "电价标题", "default": "Your electricity rate ($/kWh)" },
+    { "type": "text", "id": "savings_rate_placeholder", "label": "电价占位", "default": "0" },
+    { "type": "text", "id": "savings_rate_help", "label": "电价提示文案", "default": "US average: $0 / kWh" },
+    { "type": "text", "id": "savings_charges_label", "label": "充电次数标题", "default": "Full charges per year (from solar)" },
+    { "type": "text", "id": "savings_charges_placeholder", "label": "充电次数占位", "default": "0" },
+    { "type": "text", "id": "savings_charges_help", "label": "充电次数提示文案", "default": "Assumes you charge with solar and discharge to power household devices." },
+    { "type": "text", "id": "savings_result_title", "label": "右侧标题", "default": "Estimated Savings" },
+    { "type": "text", "id": "savings_result_period", "label": "右侧周期文案", "default": "per year" },
+    { "type": "text", "id": "savings_kwh_label", "label": "Yearly kWh 文案", "default": "Yearly kWh offset" },
+    { "type": "text", "id": "savings_five_year_label", "label": "5-year 文案", "default": "5-year savings" },
+    { "type": "text", "id": "savings_note", "label": "说明", "default": "Estimates are for reference only and may vary by usage." },
+    { "type": "header", "content": "Solar Setup" },
+    { "type": "text", "id": "solar_title", "label": "模块标题", "default": "Solar Setup" },
+    { "type": "text", "id": "solar_choose_solar_label", "label": "左侧选择：Choose Your Solar", "default": "Choose Your Solar" },
+    { "type": "text", "id": "solar_choose_panel_label", "label": "左侧选择：Choose Your Solar Panel Type", "default": "Choose Your Solar Panel Type" },
+    { "type": "text", "id": "solar_choose_num_label", "label": "左侧选择：Number of Solar Panels", "default": "Number of Solar Panels" },
+    { "type": "text", "id": "solar_select_placeholder", "label": "下拉占位", "default": "Select" },
+    { "type": "text", "id": "solar_match", "label": "结果标题", "default": "Full Charge Time" },
+    { "type": "text", "id": "solar_hours", "label": "小时文案", "default": "h" },
+    { "type": "text", "id": "solar_des", "label": "描述文案", "default": "Results vary by sunlight and panel performance." },
+    { "type": "text", "id": "solar_part_title", "label": "配件模块标题", "default": "Recommended Accessories" },
+    { "type": "text", "id": "solar_error", "label": "异常提示语", "default": "Please complete selections before calculating." }
+  ],
+  "blocks": [
+    {
+      "type": "runtime_card",
+      "name": "Runtime Card",
+      "limit": 10,
+      "settings": [
+        { "type": "text", "id": "title", "label": "名称", "default": "LED Light" },
+        { "type": "number", "id": "wattage", "label": "功率(W)", "default": 10 },
+        { "type": "checkbox", "id": "editable_wattage", "label": "允许用户自定义瓦数", "default": false },
+        { "type": "image_picker", "id": "icon", "label": "图标" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PDP Calculator Plus",
+      "category": "V5.0",
+      "blocks": [
+        { "type": "runtime_card", "settings": { "title": "LED Light", "wattage": 10, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "Sump Pump", "wattage": 800, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "Refrigerator", "wattage": 120, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "Fan", "wattage": 60, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "Wi‑Fi Router", "wattage": 10, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "TV", "wattage": 100, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "Microwave", "wattage": 1000, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "Laptop", "wattage": 60, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "Phone Charger", "wattage": 18, "editable_wattage": false } },
+        { "type": "runtime_card", "settings": { "title": "Custom Appliance", "wattage": 10, "editable_wattage": true } }
+      ]
+    }
+  ]
+}
+{% endschema %}
+

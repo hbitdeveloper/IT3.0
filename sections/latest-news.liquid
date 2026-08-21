@@ -1,0 +1,106 @@
+{{ 'section-latest-news.min.css' | asset_url | stylesheet_tag }}
+
+<div class="latest-news-box">
+  <div class="left-news">
+    <div class="news-title">{{ section.settings.title }}</div>
+    {% if section.settings.view_more != blank %}
+      <div class="news-btn">
+        <a href="{{section.settings.url}}" target="{% if section.settings.open_new %}_blank{% else %}_self{% endif %}">
+          <button class="index-button">
+            <span>{{ section.settings.view_more | escape }}</span>
+            <div>
+              <div class="arrow">
+                <svg
+                  class="line"
+                  width="20"
+                  height="15"
+                  viewBox="0 0 20 15"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                >
+                  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                      <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                          <g transform="translate(672.000000, 286.000000)">
+                              <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                          </g>
+                      </g>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </button>
+        </a>
+      </div>
+    {% endif %}
+  </div>
+  <div class="right-news">
+    {% for block in section.blocks %}
+      <div class="news-item">
+        <a href="{{block.settings.url}}" target="{% if section.settings.open_new %}_blank{% else %}_self{% endif %}">
+          <span class="news-date text-overflow-1">{{ block.settings.date }}</span>
+          <span class="news-type text-overflow-1">{{ block.settings.type }}</span>
+          <div class="news-content text-overflow-1">{{ block.settings.title }}</div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+  {% if section.settings.view_more != blank %}
+    <div class="news-btn-mb">
+      <a href="{{section.settings.url}}" target="{% if section.settings.open_new %}_blank{% else %}_self{% endif %}">
+        {{ section.settings.view_more }}
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "首页-最新动态",
+  "class": "latest-news-component",
+  "max_blocks": 6,
+  "disabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    { "type": "text", "id": "title", "label": "Title(必填)" },
+    { "type": "text", "id": "view_more", "label": "View More" },
+    { "type": "url", "id": "url", "label": "Link" },
+    { "type": "checkbox", "id": "open_new", "label": "Open New Window", "default": false }
+  ],
+  "blocks": [
+    {
+      "name": "Items",
+      "type": "latest-news",
+      "settings": [
+        {
+          "type": "text",
+          "id": "date",
+          "label": "Date"
+        },
+        {
+          "type": "text",
+          "id": "type",
+          "label": "Type"
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "首页-最新动态",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

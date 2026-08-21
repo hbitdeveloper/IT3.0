@@ -1,0 +1,227 @@
+<script src="{{ 'collections.min.js' | asset_url }}" defer></script>
+{{ 'collections.min.css' | asset_url | stylesheet_tag }}
+<style>
+    .collection-product-main {
+        padding-bottom: 30px;
+        background: #f5f5f5;
+    }
+    .collection-hero {
+        padding: 70px 0 50px 0;
+    }
+    .collection-hero.collection-hero--no-content {padding: 32px;height: 0px;}
+    .collection-hero .collection-title {
+        margin-bottom: 20px;
+        font-size: 44px;
+        color: #333333;
+        line-height: 44px;
+    }
+    .collection-hero .collection-subheading {
+        font-size: 18px;
+        color: #000000;
+        line-height: 18px;
+    }
+
+    @media screen and (max-width: 1024px) {
+        .collection-hero {
+            padding: 50px 0 22px 0;
+        }
+        .collection-hero.collection-hero--no-content {padding: 32px;height: 0px;}
+        .collection-hero .collection-title {
+            margin-bottom: 8px;
+            font-size: 24px;
+            color: #000;
+            line-height: 26px;
+        }
+        .collection-hero .collection-subheading {
+            font-size: 14px;
+            line-height: 18px;
+        }
+        
+        html .product-grid__list .grid__item:nth-child(n+{{section.settings.collection_size | plus:1}}) {
+            display: none;
+        }
+
+        html .product-grid__list.active .grid__item:nth-child(n+{{section.settings.collection_size | plus:1}}) {
+                display: block;
+        }
+    }
+</style>
+<div class="collection-product-main collection-product-main-three" data-handle="{{collection.handle}}" 
+    data-start-time="{{ collection.metafields.custom.promotions_start_time.value | escape }}"
+    data-end-time="{{ collection.metafields.custom.promotions_end_time.value  | escape }}"
+    data-freetax="{{ section.settings.freetax }}"
+>
+    {% if collection.handle == 'all' or collection.handle == blank and template == 'collection' %}
+        {% render 'collection-tabs', list: section.settings.collection_list  %}
+        {% for col in section.settings.collection_list %}
+            <div class="collection-hero section-container text-center {% if section.settings.collection_show_des != true and section.settings.collection_show_title != true %} collection-hero--no-content{% endif %}">
+                <h2 class="collection-title font-bold" {% if col.handle != blank %} data-anchor="{{col.handle}}" {% endif %}">
+                    {%- if section.settings.collection_show_title == true -%}
+                    {{col.title | escape}}
+                    {%- endif -%}
+                </h2>
+                <div class="collection-subheading font-400">
+                {%- if section.settings.collection_show_des == true -%}
+                {{col.description | strip_html}}
+                {%- endif -%}
+                </div>
+            </div>
+
+            <div class="product-grid__list section-container" data-collection="{{col.handle}}">
+                <div class="grid">
+                    {%- for product in col.products -%}
+                        {%- assign product_index = forloop.index -%}
+                        {%- assign fcp = false -%}
+                        {%- if product_index < 4 -%}
+                            {%- assign fcp = true -%}
+                        {%- endif -%}
+                        <li class="grid__item">
+                            {% 
+                                render 'product-card', 
+                                product: product,
+                                fcp: fcp,
+                                sectionTitle: col.title | escape,
+                                position: product_index,
+                                cardClick: section.settings.collection_card_click
+                            %}
+                        </li>
+                    {%- endfor -%}
+                </div>
+
+                {% if col.products.size > section.settings.collection_size %}
+                    <div
+                        class="z-button-fill-middle view-all_mobile"
+                        data-collection="{{col.handle}}"
+                        data-title="{{col.title | escape}}"
+                        data-see-more="{{ 'sections.collection_template.see_more' | t }}"
+                    >
+                        <span class="all">{{ 'sections.collection_template.see_more' | t }}</span>
+                        <span class="less">{{ 'sections.collection_template.see_less' | t }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        {%- if request.page_type != 'collection' -%}
+            {% assign collection = section.settings.collection_list | first %}
+        {%- endif -%}
+
+        <div class="collection-hero section-container text-center {% if section.settings.collection_show_des != true and section.settings.collection_show_title != true %} collection-hero--no-content{% endif %}">
+            <h2 class="collection-title font-bold" {% if collection.handle != blank %} data-anchor="{{collection.handle}}" {% endif %}">
+            {%- if section.settings.collection_show_title == true -%}
+            {{collection.title | escape}}
+            {%- endif -%}
+            </h2>
+            <div class="collection-subheading font-400">
+            {%- if section.settings.collection_show_des == true -%}
+            {{collection.description | strip_html}}
+            {%- endif -%}
+            </div>
+        </div>
+
+        <div class="product-grid__list section-container" data-collection="{{collection.handle}}">
+            <div class="grid">
+                {%- for product in collection.products -%}
+                    {%- assign product_index = forloop.index -%}
+                    {%- assign fcp = false -%}
+                    {%- if product_index < 4 -%}
+                        {%- assign fcp = true -%}
+                    {%- endif -%}
+                    <li class="grid__item">
+                        {%
+                            render 'product-card', 
+                            product: product,
+                            fcp: fcp,
+                            sectionTitle: collection.title | escape, 
+                            position: product_index,
+                            cardClick: section.settings.collection_card_click,
+                            startTime: collection.metafields.custom.promotions_start_time.value  | escape,
+                            endTime: collection.metafields.custom.promotions_end_time.value  | escape
+                        %}
+                    </li>
+                {%- endfor -%}
+            </div>
+            {% if collection.products.size > section.settings.collection_size %}
+                <div
+                    class="z-button-fill-middle view-all_mobile"
+                    data-collection="{{collection.handle}}"
+                    data-title="{{col.title | escape}}"
+                    data-see-more="{{ 'sections.collection_template.see_more' | t }}"
+                >
+                    <span class="all">{{ 'sections.collection_template.see_more' | t }}</span>
+                    <span class="less">{{ 'sections.collection_template.see_less' | t }}</span>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Collection Product Grid",
+  "class": "section",
+  "settings": [
+    {
+        "type": "collection_list",
+        "id": "collection_list",
+        "label": "Collections",
+        "info": "请选择需要展示的collection(仅限于所有产品集合页生效,不影响具体collection显示)"
+    },
+    {
+      "type": "number",
+      "id": "collection_size",
+      "label": "每个collection默认展示的数量",
+      "default": 6
+    },
+    {
+        "type": "checkbox",
+        "id": "collection_card_click",
+        "label": "每个卡片都可点击跳转",
+        "default": false
+    },
+    {
+        "type": "checkbox",
+        "id": "collection_show_title",
+        "label": "是否显示标题",
+        "default": true
+    },
+    {
+        "type": "checkbox",
+        "id": "collection_show_des",
+        "label": "是否显示描述",
+        "default": true
+    },
+    {"type": "text", "id": "freetax", "label": "免税文案"}
+  ]
+}
+{% endschema %}
+
+<script>
+(function () {
+  function onReady(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn, { once: true });
+      return;
+    }
+    fn();
+  }
+
+  onReady(function () {
+    var root = document.querySelector('.collection-product-main-three');
+    if (!root) return;
+
+    var freeTaxValue = root.getAttribute('data-freetax');
+    if (!freeTaxValue) return;
+
+    root.querySelectorAll('.price--on-sale').forEach(function (priceEl) {
+      var div = document.createElement('div');
+      div.className = 'origin-compare-price origin-price';
+      div.style.color = 'var(--jds-color-primary)';
+      div.style.textDecoration = 'none';
+      div.textContent = freeTaxValue;
+
+      priceEl.insertAdjacentElement('afterend', div);
+    });
+  });
+})();
+</script>

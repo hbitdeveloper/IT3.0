@@ -1,0 +1,364 @@
+
+{% comment %}
+  css/js 源码位于 src/common/components/column-layout
+{% endcomment %}
+
+{% liquid
+
+    assign gap = block.settings.gap | divided_by: 16.0 | round: 2 | append: 'rem'
+    assign gap_mb = block.settings.gap_mb | divided_by: 32.0 | round: 2 | append: 'rem'
+    assign flex_basis = 100 | divided_by: block.blocks.size | round: 2 | append: '%'
+    if block.settings.swiper_width_mb == -1
+        assign swiper_width_mb = '100%'
+    else
+        assign swiper_width_mb = block.settings.swiper_width_mb | divided_by: 32.0 | round: 2 | append: 'rem'
+    endif
+    if block.settings.swiper_width_pc == -1
+        assign swiper_width_pc = '100%'
+    else
+        assign swiper_width_pc = block.settings.swiper_width_pc | divided_by: 16.0 | round: 2 | append: 'rem'
+    endif
+
+    assign is_swiper = ""
+    if block.settings.enable_swiper
+        if block.settings.enable_swiper_pc or block.settings.enable_swiper_mb
+            assign is_swiper = "isSwiper"
+        endif
+    endif
+
+    assign flex_wrap = "nowrap"
+    if block.settings.flex_wrap
+        assign flex_wrap ="wrap"
+    endif
+
+    assign center_content = "center"
+    if block.settings.center_content != true
+        assign center_content = "flex-start"
+    endif
+ %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+<div {{ block.shopify_attributes }} style="{{ style }};" class="{{ is_swiper }} v-column-layout-container section-padding max-w-full {{ block.settings.page_width }} [content-visibility:auto] [contain-intrinsic-size:auto_300px]"
+    data-swiper-enable="{{ block.settings.enable_swiper }}"
+    data-swiper-pagination="{{ block.settings.enable_swiper_pagination }}"
+    data-swiper-navigation="{{ block.settings.enable_swiper_navigation }}"
+    data-swiper-pc="{{ block.settings.enable_swiper_pc }}"
+    data-swiper-mb="{{ block.settings.enable_swiper_mb }}"
+    data-swiper-centered="{{ block.settings.swiper_centered }}"
+    data-disable-offset="{{ block.settings.disable_offset }}"
+    data-swiper-interval="{{ block.settings.swiper_interval }}"
+    data-swiper-loop="{{ block.settings.swiper_loop }}"
+    data-swiper-auto="{{ block.settings.swiper_auto }}"
+    data-gap="{{ gap }}"
+    data-gap-mb="{{ gap_mb }}"
+    >
+    <div class="tile {% unless block.settings.disable_same_width %}[&>div]:flex-[1_1_var(--flex-basis)] {% endunless %}"
+            style="--gap: {{ gap }}; --gap-mb: {{ gap_mb }}; --flex-basis: {{ flex_basis }}; --mb-flex-direction: {{ block.settings.mb_align }};
+            --swiper-width-pc: {{ swiper_width_pc }}; --swiper-width-mb: {{ swiper_width_mb }}; --flex-wrap: {{ flex_wrap }}; --center-content: {{ center_content }};">
+        {% content_for 'blocks' %}
+    </div>
+
+    {% liquid
+        assign swiper_arrow_class = 'swiper-arrow inline-block !w-[1.875rem] !h-[1.875rem] text-[#111111] lg:!w-[2.5rem] lg:!h-[2.5rem] lg:translate-y-[-50%]'
+        assign mb_left_arrow_class = 'mb-swiper-button-prev left-0 ' | append: swiper_arrow_class
+        assign mb_right_arrow_class = 'mb-swiper-button-next right-0 ' | append: swiper_arrow_class
+
+        assign pc_swiper_arrow_base_class = 'pc-arrow absolute top-2/4 z-10 '
+        assign pc_left_arrow_class = 'hidden lg:block pc-swiper-button-prev left-[6.25rem] ' | append: pc_swiper_arrow_base_class | append: swiper_arrow_class
+        assign pc_right_arrow_class = 'hidden lg:block pc-swiper-button-next right-[6.25rem] ' | append: pc_swiper_arrow_base_class | append: swiper_arrow_class
+
+        assign total = block.blocks.size
+    %}
+
+    <div class="hidden swiper-navigation-button">
+        {%- render 'v5-icon-arrow-left', class: pc_left_arrow_class -%}
+        {%- render 'v5-icon-arrow-right', class: pc_right_arrow_class -%}
+    </div>
+
+    <div class="hidden slideshow-pagination !relative !bottom-0 mt-[2px]"></div>
+
+    <div class="hidden swiper-navigation-button flex justify-between lg:hidden mt-[1.5rem] w-[4.875rem] h-[2rem] mx-auto">
+        {%- render 'v5-icon-arrow-left', class: mb_left_arrow_class -%}
+        {%- render 'v5-icon-arrow-right', class: mb_right_arrow_class -%}
+    </div>
+</div>
+
+{% schema %}
+{
+  "name": "V-一行多列布局",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "_block-container"
+    },
+    {
+      "type": "@theme"
+    }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "page_width",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "w-full",
+      "label": "版心"
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == false }}",
+      "content": "PC边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == false }}",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == false }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == false }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == false }}",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == false }}",
+      "content": "MB边距"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == false }}",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "上边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' and block.settings.enable_swiper == false }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "下边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' and block.settings.enable_swiper == false }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' and block.settings.enable_swiper == false }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' and block.settings.enable_swiper == false }}",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "通用配置"
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_same_width",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "容器取消相同宽度",
+      "default": false
+    },
+    {
+        "type": "checkbox",
+        "id": "flex_wrap",
+        "visible_if": "{{ settings.customize_vcomponents == true }}",
+        "label": "启用换行",
+        "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "center_content",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "内容居中显示",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "mb_align",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "column",
+          "label": "竖直排列"
+        },
+        {
+          "value": "row",
+          "label": "水平排列"
+        }
+      ],
+      "default": "column",
+      "label": "MB排列方式"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "PC容器间距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "gap_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "MB容器间距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": 48
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "轮播配置"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_swiper",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "启用轮播",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_swiper_pc",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true }}",
+      "label": "PC启用轮播",
+      "default": false
+    },
+    {
+      "type": "checkbox", "id": "enable_swiper_pagination", "label": "显示分页", "default": false,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true }}"
+    },
+    {
+      "type": "checkbox", "id": "enable_swiper_navigation", "label": "显示切换按钮", "default": false,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true }}"
+    },
+    {
+      "type": "number", "id": "swiper_width_pc", "label": "PC卡片宽度", "default": 420,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true and block.settings.enable_swiper_pc == true }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_swiper_mb",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true }}",
+      "label": "MB启用轮播",
+      "default": false
+    },
+    {
+        "type": "number", "id": "swiper_width_mb", "label": "MB卡片宽度", "default": 550,
+        "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true and block.settings.enable_swiper_mb == true }}"
+    },
+    {
+        "type": "range",
+        "id": "swiper_interval",
+        "min": 3,
+        "max": 12,
+        "step": 1,
+        "unit": "s",
+        "label": "轮播间隔",
+        "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true }}",
+        "default": 6
+    },
+    { "type": "checkbox", "id": "swiper_centered", "label": "卡片居中显示", "default": false, "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true }}" },
+    { "type": "checkbox", "id": "disable_offset", "label": "禁用偏移计算", "default": false, "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true and block.settings.swiper_centered == true }}" },
+    { "type": "checkbox", "id": "swiper_loop", "label": "无限循环", "default": true, "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true }}" },
+    { "type": "checkbox", "id": "swiper_auto", "label": "自动轮播", "default": true, "visible_if": "{{ settings.customize_vcomponents == true and block.settings.enable_swiper == true }}" }
+  ],
+  "presets": [
+    {
+      "name": "V-一行多列布局",
+      "category": "Basic"
+    }
+  ]
+}
+{% endschema %}

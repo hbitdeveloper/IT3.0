@@ -1,0 +1,143 @@
+{% comment %}
+  博客大分类简介
+  展示博客大分类的标题、简介及标签导航。
+{% endcomment %}
+
+{% style %}
+  .blog-v3-category-intro .intro a{
+    text-decoration: underline;
+  }
+{% endstyle %}
+
+{% liquid
+    assign title = blog.title | escape
+    assign h1 = blog.metafields.custom.h1 | default: title
+    assign intro = blog.metafields.custom.intro
+    assign current_tag = current_tags | first
+    assign str = blog.title
+    assign tag_class = "block px-3 py-2 text-center font-normal text-[0.875rem] text-[#737373] rounded border border-solid border-[rgba(0,0,0,0.1)] bg-[#fff] hover:text-[var(--jds-color-primary)] hover:font-medium hover:border-[var(--jds-color-primary)] hover:bg-[#FFF8F6]"
+    # 判断当前是否为标签页
+    if current_tag != blank
+      assign title = current_tag | escape
+      assign str = str | append: ':' | append: blog.url | append: '|' | append: current_tag
+      # 获取当前标签的相关信息
+      assign curr_tag_info = shop.metaobjects.tag.values| where: 'title', current_tag | first
+      assign h1 = title
+      if curr_tag_info
+        assign h1 = curr_tag_info.h1 | default: title
+        assign intro = curr_tag_info.intro
+      else
+        assign intro = blank
+      endif
+    endif
+  %}
+
+  <div class="blog-v3-category-intro">
+    {% assign container_class = 'lg:w-[66.75rem] w-[20.4375rem] mx-auto' %}
+    {% comment %} 面包屑 {% endcomment %}
+    <div class="border-b border-[rgba(0,0,0,0.07)] bread-crumbs">
+      <div class="{{ container_class }}">
+        {% render 'bread-crumbs', is_show_home: true, str: str %}
+      </div>
+    </div>
+    
+    {% comment %} 标题 & 简介 {% endcomment %}
+    <div class="bg-[#F5F5F5] py-6 lg:py-8">
+      <div class="{{ container_class }}">
+        <h1 class="text-[#1a1a1a] font-medium text-[2rem] leading-[2.5rem] -tracking-[0.04rem] mb-2 lg:mb-4 lg:text-[3rem] lg:leading-[3.5rem] lg:-tracking-[0.06rem]">{{ h1 | escape }}</h1>
+  
+        {% if intro != blank %}
+          <div class="text-[#666666] font-normal text-[0.8125rem] leading-[1.3125rem] mb-4 lg:mb-6 lg:text-[0.875rem] lg:leading-[1.375rem] intro">
+            {{ intro | metafield_tag | replace: '<em>', '<em style="color: var(--jds-color-primary);">' }}
+          </div>
+        {% endif %}
+  
+        {% comment %} 博客页标签 {% endcomment %}
+        <div class="flex gap-1.5 lg:gap-2 flex-wrap">
+          {% if current_tag == blank %}
+            {% for tag in blog.all_tags %}
+              {% assign tag_handle = tag | handle %}
+              {% assign tag_url = blog.url | append: '/tagged/' | append: tag_handle %}
+              <a
+                class="{{ tag_class }}" 
+                {% if settings.article_new_blank %}target="_blank"{% endif %} 
+                href="{{ tag_url }}"
+                aria-label="{{ tag }}"
+                data-ga-event="blogs_collection_user_clicks" 
+                data-ga-action="click" 
+                data-ga-params-module="{{ h1 | escape }}"
+                data-ga-params-button_name="{{ tag }}" 
+                data-ga-params-link="{{ request.origin | append: tag_url }}"
+              >{{ tag }}</a>
+            {% endfor %}
+          {% elsif curr_tag_info == blank %}
+              {% assign curr_tag_handle = title | handle %}
+              {% for tag in blog.all_tags %}
+                {% assign tag_handle = tag | handle %}
+                {% if tag_handle != curr_tag_handle %}
+                  {% assign tag_url = blog.url | append: '/tagged/' | append: tag_handle %}
+                  <a 
+                    class="{{ tag_class }}" 
+                    {% if settings.article_new_blank %}target="_blank"{% endif %} 
+                    href="{{ tag_url }}"
+                    aria-label="{{ tag }}"
+                    data-ga-event="blogs_collection_user_clicks" 
+                    data-ga-action="click" 
+                    data-ga-params-module="{{ h1 | escape }}"
+                    data-ga-params-button_name="{{ tag }}" 
+                    data-ga-params-link="{{ request.origin | append: tag_url }}"
+                  >{{ tag }}</a>
+                {% endif %}
+              {% endfor %}
+          {% else %}
+            {% assign tags = curr_tag_info.releated_tags.value %}
+            {%- if tags == blank -%}
+              {% assign curr_tag_handle = title | handle %}
+              {% for tag in blog.all_tags %}
+                {% assign tag_handle = tag | handle %}
+                {% if tag_handle != curr_tag_handle %}
+                  {% assign tag_url = blog.url | append: '/tagged/' | append: tag_handle %}
+                  <a 
+                    class="{{ tag_class }}" 
+                    {% if settings.article_new_blank %}target="_blank"{% endif %} 
+                    href="{{ tag_url }}"
+                    aria-label="{{ tag }}"
+                    data-ga-event="blogs_collection_user_clicks" 
+                    data-ga-action="click" 
+                    data-ga-params-module="{{ h1 | escape }}"
+                    data-ga-params-button_name="{{ tag }}" 
+                    data-ga-params-link="{{ request.origin | append: tag_url }}"
+                  >{{ tag }}</a>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              {% for tag in curr_tag_info.releated_tags.value %}
+                {% assign tag_handle = tag.title | handle %}
+                {% assign tag_url = '/' | append: tag.blog_handle | append: '/tagged/' | append: tag_handle %}
+                <a 
+                  class="{{ tag_class }}" 
+                  {% if settings.article_new_blank %}target="_blank"{% endif %} 
+                  href="{{ tag_url }}"
+                  aria-label="{{ tag.title }}"
+                  data-ga-event="blogs_collection_user_clicks"
+                  data-ga-action="click"
+                  data-ga-params-module="{{ h1 | escape }}"
+                  data-ga-params-button_name="{{ tag.title }}"
+                  data-ga-params-link="{{ request.origin | append: tag_url }}"
+                >{{ tag.title }}</a>
+              {% endfor %}
+            {%- endif -%}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {% schema %}
+  {
+    "name": "V3博客大分类简介",
+    "tag": "section",
+    "settings": []
+  }
+  {% endschema %}
+  

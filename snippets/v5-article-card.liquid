@@ -1,0 +1,105 @@
+{% liquid
+  assign is_template = template_mode | default: false
+  assign article_title = article.title | default: ''
+  assign article_url = article.url | default: '#'
+  assign article_tags = article.tags | default: blank
+  assign article_updated = article.updated_at | date: "%s"
+  assign article_published_label = article.published_at | date: format: 'date'
+  assign article_published_iso = article.published_at | date: "%Y-%m-%dT%H:%M:%S%z"
+  assign article_image_alt = article_title
+  if article != blank and article.image != blank
+    assign article_image_alt = article.image.alt | default: article_title
+  endif
+%}
+<li
+  class="focus-zoom-container flex flex-col justify-between w-full lg:w-[26.5rem] bg-white"
+  data-article-title="{% if is_template %}{% else %}{{ article_title | escape }}{% endif %}"
+  data-article-tags="{% if is_template %}{% else %}{{ article_tags | join: ',' | escape }}{% endif %}"
+  data-article-updated="{% if is_template %}{% else %}{{ article_updated }}{% endif %}"
+>
+  <div class="w-full h-[14.25rem] lg:h-[18.75rem] overflow-hidden">
+    <a
+      class="flex w-full h-full"
+      {% if is_template %}
+        data-role="link"
+        href="#"
+      {% else %}
+        href="{{ article_url }}"
+      {% endif %}
+    >
+      {%- if is_template -%}
+        <img
+          data-role="image"
+          class="object-cover focus-zoom w-full h-full"
+          width="424"
+          height="300"
+          alt=""
+          hidden
+        >
+        <div data-role="image-placeholder" class="w-full h-full bg-[#F5F5F3]" aria-hidden="true"></div>
+      {%- elsif article.image != blank -%}
+        {%- assign article_load_scene = 'default' -%}
+        {%- if lazy_load == false -%}
+          {%- assign article_load_scene = 'lcp' -%}
+        {%- endif -%}
+        {%- render 'diff-end-img',
+          class: 'object-cover focus-zoom w-full h-full',
+          pc_img: article.image,
+          mb_img: article.image,
+          pc_img_width: 848,
+          mb_img_width: 343,
+          alt: article_image_alt,
+          load_scene: article_load_scene
+        -%}
+      {%- else -%}
+        <div class="w-full h-full bg-[#F5F5F3]" aria-hidden="true"></div>
+      {%- endif -%}
+    </a>
+  </div>
+  <div class="flex-1 flex flex-col justify-between bg-[#F5F5F3] px-4 py-3 lg:py-5">
+    <div class="flex flex-col gap-y-3">
+      <a
+        class="font-semibold text-[#242F20] text-sm lg:text-xl line-clamp-2"
+        {% if is_template %}
+          data-role="title"
+          href="#"
+        {% else %}
+          href="{{ article_url }}"
+        {% endif %}
+      >
+        {% unless is_template %}{{ article_title | escape }}{% endunless %}
+      </a>
+      <div
+        class="flex flex-wrap items-center gap-1"
+        {% if is_template %}
+          data-role="tags"
+          hidden
+        {% endif %}
+      >
+        {% unless is_template %}
+          {% for tag in article_tags limit: 3 %}
+            <span class="bg-white text-[#242F20]/90 text-xs lg:text-sm px-1">{{ tag }}</span>
+          {% endfor %}
+        {% endunless %}
+      </div>
+    </div>
+    <div
+      class="flex justify-between items-center mt-3 lg:mt-5"
+      {% if is_template %}
+        data-role="published-wrapper"
+        hidden
+      {% endif %}
+    >
+      <time
+        class="text-[#242F20] text-sm"
+        {% if is_template %}
+          data-role="published-at"
+        {% else %}
+          datetime="{{ article_published_iso }}"
+        {% endif %}
+      >
+        {% unless is_template %}{{ article_published_label | escape }}{% endunless %}
+      </time>
+    </div>
+  </div>
+</li>

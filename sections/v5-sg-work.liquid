@@ -1,0 +1,267 @@
+{%- style -%}
+  .v5-sg-work .metafield-rich_text_field ol li {
+    list-style: decimal;
+    list-style-position: inside;
+  }
+
+   .v5-sg-work .metafield-rich_text_field em {
+    font-style: italic;
+   }
+   .v5-sg-work .metafield-rich_text_field a{
+    text-decoration: underline;
+   }
+
+  .v5-sg-work .metafield-rich_text_field ul li {
+    list-style: inside;
+  }
+  @media screen and (min-width: 1024px) {
+    .v5-sg-work jky-video{
+      height: 20rem;
+      padding-bottom: 0;
+    }
+    .v5-sg-work jky-video .jky-video-poster_container {
+      height: 20rem;
+    }
+    .v5-sg-work jky-video .jky-video_media {
+      height: 20rem;
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .v5-sg-work jky-video {
+      width: 9rem;
+      height: 28.5rem;
+    }
+    .v5-sg-work jky-video .jky-video-poster_container {
+      width: 9rem;
+      height: 28.5rem;
+    }
+    .v5-sg-work jky-video .jky-video_media {
+      width: 9rem;
+      height: 28.5rem;
+    }
+  }
+{%- endstyle -%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<section
+  class="v5-sg-work section-padding "
+  {{ section.shopify_attributes }}
+  style="{{style}}"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+>
+  <div
+    class="lg:w-[82.5rem] w-[21.4375rem] mx-auto lg:pt-[3.5rem] lg:pb-[3.125rem] lg:px-[2rem] px-[1rem] py-[1.5rem]"
+    style="background: {{section.settings.bg_color}};"
+  >
+    {% comment %} Title {% endcomment %}
+    <h2 class="metafield-rich_text_field lg:text-[1.75rem] text-[1rem] leading-[1] lg:leading-[1.1] font-semibold text-[#242F20] lg:pr-[3rem]"> 
+      {{ section.settings.module_title }}
+    </h2>
+
+    <div class="metafield-rich_text_field lg:mt-[1rem] mt-[0.75rem] lg:text-[#000000] text-[rgba(36,47,32,0.9)] lg:text-[1rem] text-[0.75rem] leading-[1.1] lg:pr-[3rem]">
+      {{ section.settings.description }}
+    </div>
+
+    {% comment %} PC Flow Video {% endcomment %}
+    <div class="mt-[2.375rem] lg:block hidden w-[75rem] h-[20rem] mx-auto">
+      {% comment %} 视频展示 {% endcomment %}
+      {% if section.settings.videoSrc != blank or section.settings.poster != blank %}
+        {%- render 'jky-video',
+          video_url: section.settings.videoSrc,
+          poster: section.settings.poster,
+          isHidePauseBtn: false,
+          class: 'newcomer-video-box video-pc-block h-full flex',
+          autoplay: section.settings.autoplay,
+          controls: section.settings.controls,
+          loop: section.settings.loop
+        -%}
+      {% endif %}
+    </div>
+
+    {% comment %} Mobile Layout {% endcomment %}
+    <div class="lg:hidden flex mt-[1.5rem]">
+      <div class="mb-video-work w-[9rem] h-[28.5rem] shrink-0">
+        {% comment %} Left flow video {% endcomment %}
+        {% if section.settings.videoSrcMB != blank or section.settings.posterMB != blank %}
+          {%- render 'jky-video',
+            video_url: section.settings.videoSrcMB,
+            poster: section.settings.posterMB,
+            isHidePauseBtn: false,
+            class: 'newcomer-video-box video-mb-block w-full',
+            autoplay: section.settings.autoplay,
+            controls: section.settings.controls,
+            loop: section.settings.loop
+          -%}
+        {% endif %}
+      </div>
+
+      {% comment %} MB steps {% endcomment %}
+      <div class="flex flex-col pl-[1rem] justify-between">
+        {% for item in section.blocks %}
+          {% if item.settings.mb_title != blank or item.settings.subTitle != blank %}
+            <div>
+              <div class="font-semibold text-[0.875rem] mb-[0.75rem] text-[#242F20]">
+                {{ item.settings.mb_title }}
+              </div>
+              <div class="leading-[1] text-[0.75rem] text-[rgba(36,47,32,0.9)]">
+                {{ item.settings.subTitle }}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    {% comment %} PC steps {% endcomment %}
+    <div class="lg:grid grid-cols-3 gap-x-[120px] mt-[1rem] hidden px-[4.25rem]">
+      {% for item in section.blocks %}
+        {% if item.settings.pc_title != blank or item.settings.subTitle != blank %}
+          <div class="text-center w-[18.75rem]">
+            <div class="font-semibold mb-[0.75rem] text-[1rem] text-[#242F20]">
+              {{ item.settings.pc_title }}
+            </div>
+            <div class="text-[rgba(36,47,32,0.9)] lg:text-[0.875rem] text-[0.75rem] leading-[1]">
+              {{ item.settings.subTitle }}
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "V5-工作原理",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#F5F5F3" },
+    { "type": "header", "content": "PC边距" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "label": "MB边距",
+      "options": [
+        { "value": "default", "label": "与PC一致" },
+        { "value": "custom", "label": "单独配置" }
+      ],
+      "default": "custom"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    { "type": "richtext", "id": "module_title", "label": "模块标题" },
+    { "type": "richtext", "id": "description", "label": "备注文案" },
+    { "type": "url", "id": "videoSrc", "label": "PC视频源（支持格式: mp4、mov、m4v）" },
+    { "type": "image_picker", "id": "poster", "label": "PC视频封面图（1200 x 320 单位px）" },
+    { "type": "url", "id": "videoSrcMB", "label": "MB视频源（支持格式: mp4、mov、m4v）" },
+    { "type": "image_picker", "id": "posterMB", "label": "MB视频封面图（750 x 320 单位px）" },
+    { "type": "checkbox", "id": "autoplay", "default": true, "label": "是否自动播放" },
+    { "type": "checkbox", "id": "loop", "default": true, "label": "是否循环播放" },
+    { "type": "checkbox", "id": "controls", "default": false, "label": "是否显示控件" }
+  ],
+  "blocks": [
+    {
+      "type": "block",
+      "name": "产品描述",
+      "settings": [
+        { "type": "richtext", "id": "pc_title", "label": "pc标题" },
+        { "type": "richtext", "id": "mb_title", "label": "mb标题" },
+        { "type": "richtext", "id": "subTitle", "label": "描述文案" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-工作原理"
+    }
+  ]
+}
+{% endschema %}

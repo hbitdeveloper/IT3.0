@@ -1,0 +1,141 @@
+{%- comment -%}
+  文件说明：V5 Header Shop Menu 商品卡片（SPU/SKU 通用）
+
+  入参：
+  - product：Product 对象（必传）
+  - variant：Variant 对象（可选；传入则按 SKU 渲染，否则按 SPU 渲染）
+  - index：用于动画顺序/样式定位（由父级循环传入）
+  - ga_position / ga_title：埋点上下文（由父级传入）
+  - img_class / tags_extra_class：样式扩展（可选）
+
+  关键点：
+  - SPU 基准变体使用 product.selected_or_first_available_variant（取第一个有效变体）
+  - 卡片总数上限由父级使用 shop_collection_max 计数/截断，本文件不负责计数
+{%- endcomment -%}
+
+{%- liquid
+  assign is_sku = false
+  if variant != blank
+    assign is_sku = true
+  endif
+
+  # SPU 基准变体：用于 SPU 模式的标题/图片兜底（第一个有效变体）
+  assign base_variant = product.selected_or_first_available_variant
+
+  # 跳转链接：SKU 模式指向 variant.url，SPU 模式指向 product.url
+  assign card_url = product.url
+  if is_sku
+    assign card_url = variant.url
+  endif
+
+  # 主图选择：SKU 优先 variant.featured_image；SPU 优先产品菜单图，其次基准变体图，再兜底产品主图
+  assign p_img = blank
+  if is_sku
+    assign p_img = variant.featured_image | default: product.metafields.custom.shop_menu_product_image | default: product.featured_image
+  else
+    if product.metafields.custom.shop_menu_product_image != blank
+      assign p_img = product.metafields.custom.shop_menu_product_image
+    elsif base_variant != blank and base_variant.featured_image != blank
+      assign p_img = base_variant.featured_image
+    else
+      assign p_img = product.featured_image
+    endif
+  endif
+  
+  assign p_img_obj = p_img
+  if p_img.value != blank
+    assign p_img_obj = p_img.value
+  endif
+-%}
+
+<a
+  href="{{ card_url }}"
+  style="--index: {{ index }};"
+  class="v5-menu-animate v5-shop-card flex flex-col overflow-hidden relative pb-1"
+  data-ga-event="5.0_top_nav_user_clicks"
+  data-ga-action="click"
+  data-ga-params-module="Shop Menu"
+  data-ga-params-position="{{ ga_position | escape }}"
+  data-ga-params-title="{{ ga_title | escape }}"
+  data-ga-params-link="{{ card_url | escape }}"
+>
+  <div class="v5-shop-card-tags absolute top-2 left-2 right-2 gap-x-1 text-sm font-normal text-white flex {{ tags_extra_class }}">
+    {%- render "product-tag-header-v5", product: product, variant: variant -%}
+  </div>
+
+  <div class="v5-shop-card--media-wrapper overflow-hidden w-full flex items-center justify-center">
+    {%- if p_img_obj != blank -%}
+      <img
+        width="{{ p_img_obj.width }}"
+        height="{{ p_img_obj.height }}"
+        loading="lazy"
+        class="{{ img_class | default: 'w-full h-full object-contain opacity-0 transition-slow-ease' }}"
+        data-src="{{ p_img_obj | image_url: width: 350 }}"
+        alt="{{ p_img_obj.alt | escape }}"
+        fetchpriority="low"
+      />
+    {%- else -%}
+      <img
+        width="350"
+        height="350"
+        loading="lazy"
+        class="{{ img_class | default: 'w-full h-full object-contain opacity-0 transition-slow-ease' }}"
+        data-src="{{ 'placeholder.webp' | asset_url }}"
+        alt=""
+        fetchpriority="low"
+      />
+    {%- endif -%}
+  </div>
+
+  <div class="v5-shop-card--content px-3 flex flex-col gap-y-2 text-center flex-1 justify-between">
+    <div class="color-text-main-secondery v5-shop-card-title font-semibold text-base line-clamp-2">
+      {%- liquid
+        # 标题展示：SKU/SPU 分开降级，但统一输出 display_title（减少重复过滤逻辑）
+        assign product_title_clean = product.title | escape | strip | replace: 'Jackery', ''
+
+        assign variant_title_clean = ''
+        if variant != blank
+          assign variant_title_clean = variant.title | escape | strip | replace: 'Jackery', ''
+        endif
+
+        assign base_variant_title_clean = ''
+        if base_variant != blank
+          assign base_variant_title_clean = base_variant.title | escape | strip | replace: 'Jackery', ''
+        endif
+
+        assign display_title = product_title_clean
+
+        if is_sku
+          # SKU 模式：shortname -> SKU title -> SPU shortname -> SPU title
+          if variant.metafields.custom.shortname != blank
+            assign display_title = variant.metafields.custom.shortname
+          elsif variant.title != 'Default Title'
+            assign display_title = variant_title_clean
+          elsif product.metafields.custom.shortname != blank
+            assign display_title = product.metafields.custom.shortname
+          endif
+        else
+          # SPU 模式：SPU shortname -> 基准变体 title -> SPU title
+          if product.metafields.custom.shortname != blank
+            assign display_title = product.metafields.custom.shortname
+          elsif base_variant != blank and base_variant.title != 'Default Title'
+            assign display_title = base_variant_title_clean
+          endif
+        endif
+      -%}
+      {{ display_title }}
+    </div>
+
+    <div class="color-text-info v5-shop-card-subtitle font-normal text-sm line-clamp-2 min-h-10">
+      {%- if is_sku -%}
+        {%- if variant.metafields.custom.product_features_info != blank -%}
+          {{ variant.metafields.custom.product_features_info | metafield_tag | strip_html }}
+        {%- endif -%}
+      {%- else -%}
+        {%- if product.metafields.custom.product_features_info != blank -%}
+          {{ product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</a>

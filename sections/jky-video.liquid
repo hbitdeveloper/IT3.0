@@ -1,0 +1,79 @@
+    <div style="padding-top:{{section.settings.padding_top}}px;padding-bottom:{{section.settings.padding_bottom}}px;" class="{% if section.settings.full_width != true %}section-container{% endif %}">
+        {% assign type = 'mp4' %}
+        {%- if section.settings.video_url contains "youtube.com" -%}
+            {% assign type = 'youtube' %}
+        {%- endif -%}
+        <jky-video 
+            video-type="{{type}}" 
+            video-autoplay="{{section.settings.autoplay}}" 
+            video-controls="{{section.settings.controls}}" 
+            video-loop="{{section.settings.loop}}" 
+            video-src="{{section.settings.video_url}}"
+        >
+            <div class="jky-video-poster_container absolute">
+                {%- if section.settings.poster != blank -%}
+                <img
+                    src="{{ section.settings.poster | image_url: width: 1920 }}"
+                    alt="{{section.settings.poster.alt}}"
+                    loading="lazy"
+                    width="{{ section.settings.poster.width }}"
+                    height="{{ section.settings.poster.height }}"
+                >
+                {%- else -%}
+                    <img
+                        class="loading_img"
+                        src=""
+                        alt="Poster"
+                        loading="lazy"
+                    >
+                {%- endif -%}
+
+                <span {% if section.settings.video_url == blank or section.settings.video_url == "" %}style="display: none;"{% endif %} class="jky-video-poster_button jky-new-video-poster_button">
+                    <svg class="icon icon-play" viewBox="0 0 1024 1024" width="48" height="48"><path d="M426.929231 335.556923l245.76 146.510769c7.876923 4.726154 12.603077 12.603077 12.603077 22.055385 0 9.452308-4.726154 17.329231-12.603077 22.055385l-245.76 144.935384c-9.452308 6.301538-18.904615 6.301538-26.781539 3.150769-9.452308-3.150769-12.603077-11.027692-12.603077-20.48V351.310769c0-9.452308 4.726154-15.753846 14.178462-20.48 9.452308-3.150769 18.904615-3.150769 26.781538 1.575385z" fill="#ffffff"></path></svg>
+                </span>
+            </div>
+        </jky-video>
+    </div>
+
+{% schema %}
+  {
+    "name": "JKY Video",
+    "class": "section jky-video-section",
+    "disabled_on": {
+      "templates": ["collection"]
+    },
+    "settings": [
+      {"type": "image_picker", "id": "poster", "label": "封面图片"},
+      {"type": "url", "id": "video_url", "label": "视频地址" },
+      {"type": "checkbox", "id": "full_width", "label": "全屏宽度？", "default": false},
+      {"type": "checkbox", "id": "autoplay", "label": "自动播放？", "default": true},
+      {"type": "checkbox", "id": "loop", "label": "循环播放？", "default": true},
+      {"type": "checkbox", "id": "controls", "label": "显示播放控件？", "default": true},
+      {
+        "type": "range",
+        "id": "padding_top",
+        "min": 0,
+        "max": 100,
+        "step": 4,
+        "unit": "px",
+        "label": "顶部间隙",
+        "default": 12
+      },
+      {
+          "type": "range",
+          "id": "padding_bottom",
+          "min": 0,
+          "max": 100,
+          "step": 4,
+          "unit": "px",
+          "label": "底部间隙",
+          "default": 12
+      }
+    ],
+    "presets": [
+        {
+        "name": "JKY video"
+        }
+    ]
+  }
+{% endschema %}

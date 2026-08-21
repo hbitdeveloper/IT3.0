@@ -1,0 +1,252 @@
+{% comment %}
+  标题：产品结构化数据
+  说明：
+  1. JS动态生成的结构化数据亦有效，且可以动态获取其他有用数据，比如评价数据
+  2. 详细说明：https://alidocs.dingtalk.com/i/nodes/N7dx2rn0JbZ2DAKAUxn5y2eRJMGjLRb3
+{% endcomment %}
+
+{%- assign product_schema_config = product.metafields.schema.config.value -%}
+{%- assign use_new_product_schema = false -%}
+{%- if settings.enable_product_schema and product_schema_config != blank and product_schema_config.use_new_schema.value == true -%}
+	{%- assign use_new_product_schema = true -%}
+{%- endif -%}
+
+{%- unless use_new_product_schema -%}
+
+{% assign current_variant = product.selected_or_first_available_variant %}
+{% assign description = product.description | strip_html | slice: 0, 1000 | replace: '"', '' | replace: '{', '' | replace: '}', '' %}
+
+{% comment %} 从收到订单到商品送达最终客户处所需的总时间 - 1.处理时间 {% endcomment %}
+{% assign handlingTimeMin = '' %}
+{% assign handlingTimeMax = '' %}
+
+{% comment %} 从收到订单到商品送达最终客户处所需的总时间 - 2.运输时间 {% endcomment %}
+{% assign transitTimeMin = '' %}
+{% assign transitTimeMax = '' %}
+
+{% case shop.id %}
+	{% comment %} 美站 US 或 Demo US 或 UAT {% endcomment %}
+	{% when 9709262 or 55005249633 or 79611232554 %}
+		{% assign handlingTimeMin = 0 %}
+		{% assign handlingTimeMax = 1 %}
+		{% assign transitTimeMin = 2 %}
+		{% assign transitTimeMax = 5 %}
+
+		{% comment %} 加 CA {% endcomment %}
+	{% when 60738666677 %}
+		{% assign handlingTimeMin = 0 %}
+		{% assign handlingTimeMax = 1 %}
+		{% assign transitTimeMin = 3 %}
+		{% assign transitTimeMax = 5 %}
+
+		{% comment %} 日站 JP 或 Demo JP {% endcomment %}
+	{% when 10015375438 or 56124375224 %}
+		{% assign handlingTimeMin = 0 %}
+		{% assign handlingTimeMax = 1 %}
+		{% assign transitTimeMin = 2 %}
+		{% assign transitTimeMax = 7 %}
+
+		{% comment %} 澳 AU {% endcomment %}
+	{% when 68984701213 %}
+		{% assign handlingTimeMin = 0 %}
+		{% assign handlingTimeMax = 4 %}
+		{% assign transitTimeMin = 3 %}
+		{% assign transitTimeMax = 20 %}
+
+		{% comment %} 德 DE {% endcomment %}
+	{% when 57272172741 %}
+		{% assign handlingTimeMin = 1 %}
+		{% assign handlingTimeMax = 2 %}
+		{% assign transitTimeMin = 3 %}
+		{% assign transitTimeMax = 7 %}
+
+		{% comment %} 法 FR {% endcomment %}
+	{% when 69511053598 %}
+		{% assign handlingTimeMin = 0 %}
+		{% assign handlingTimeMax = 4 %}
+		{% assign transitTimeMin = 3 %}
+		{% assign transitTimeMax = 7 %}
+
+		{% comment %} 英 UK {% endcomment %}
+	{% when 56981160124 %}
+		{% assign handlingTimeMin = 1 %}
+		{% assign handlingTimeMax = 2 %}
+		{% assign transitTimeMin = 3 %}
+		{% assign transitTimeMax = 5 %}
+
+		{% comment %} 欧洲 EU {% endcomment %}
+	{% when 73356443969 %}
+		{% assign handlingTimeMin = 0 %}
+		{% assign handlingTimeMax = 4 %}
+		{% assign transitTimeMin = 3 %}
+		{% assign transitTimeMax = 7 %}
+
+{% endcase %}
+
+{%- assign CR = settings.shop_cr | default: localization.country.iso_code | default: 'US' -%}
+{%- unless CR == 'US' or CR == 'JP' -%}
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			let countryCode = `${Shopify.country}`;
+
+			// Demo US店铺 Code设置
+			{% if shop.id == 55005249633 %}
+				countryCode = 'US';
+			{% endif %}
+
+			let productStructuredData = {
+				"@context": "https://schema.org/",
+				"@type": "Product",
+				"url": "{{ shop.secure_url | escape }}{{ product.url | escape }}",
+				"name": "{{ product.title | escape }}",
+				"image": "https:{{ product.featured_image.src | image_url: width: 1000 }}",
+				"description": `{{ description | escape }}`,
+				"brand": {
+					"@type": "Brand",
+					"name": "{{ product.vendor }}"
+				},
+				"sku": "{{ product.variants.first.sku }}",
+				"offers": {
+					"@type": "Offer",
+					"price": "{{ current_variant.price | divided_by: 100 }}",
+					"priceCurrency": "{{ shop.currency }}",
+					"availability": "https://schema.org/{% if product.available %}InStock{% else %}OutOfStock{% endif %}",
+					"itemCondition": "https://schema.org/NewCondition",
+					"url": "{{ shop.secure_url | escape }}{{ product.url | escape }}",
+					"hasMerchantReturnPolicy": {
+						"@type": "MerchantReturnPolicy",
+						"applicableCountry": `${countryCode}`,
+						"returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+						"merchantReturnDays": 30,
+						"returnFees": "https://schema.org/FreeReturn",
+						"returnMethod": "https://schema.org/ReturnByMail"
+					},
+					"shippingDetails": [
+						{
+							"@type": "OfferShippingDetails",
+							"deliveryTime": {
+								"@type": "ShippingDeliveryTime",
+								{% if handlingTimeMin != blank and handlingTimeMax != blank %}
+								"handlingTime": {
+									"@type": "QuantitativeValue",
+									"minValue": "{{ handlingTimeMin }}",
+									"maxValue": "{{ handlingTimeMax }}",
+									"unitCode": "DAY"
+								},
+								{% endif %}
+								{% if transitTimeMin != blank and transitTimeMax != blank %}
+								"transitTime": {
+									"@type": "QuantitativeValue",
+									"minValue": "{{ transitTimeMin }}",
+									"maxValue": "{{ transitTimeMax }}",
+									"unitCode": "DAY"
+								}
+								{% endif %}
+							},
+							"shippingDestination": {
+								"@type": "DefinedRegion",
+								"addressCountry": `${countryCode}`
+							},
+							"shippingRate": {
+								"@type": "MonetaryAmount",
+								{% if shop.id == 73356443969 %}
+								{% comment %} 欧洲 {% endcomment %}
+								"minValue": 20,
+								"maxValue": 100,
+								{% else %}
+								{% comment %} 其他 {% endcomment %}
+								"value": 0,
+								{% endif %}
+								"currency": "{{ shop.currency }}"
+							}
+						},
+						// 英国 - 北爱尔兰
+						{% if shop.id == 56981160124 %}
+						{
+							"@type": "OfferShippingDetails",
+							"deliveryTime": {
+								"@type": "ShippingDeliveryTime",
+								{% if handlingTimeMin != blank and handlingTimeMax != blank %}
+								"handlingTime": {
+									"@type": "QuantitativeValue",
+									"minValue": "{{ handlingTimeMin }}",
+									"maxValue": "{{ handlingTimeMax }}",
+									"unitCode": "DAY"
+								},
+								{% endif %}
+								{% if transitTimeMin != blank and transitTimeMax != blank %}
+								"transitTime": {
+									"@type": "QuantitativeValue",
+									"minValue": "6",
+									"maxValue": "7",
+									"unitCode": "DAY"
+								}
+								{% endif %}
+							},
+							"shippingDestination": [
+								{
+									"@type": "DefinedRegion",
+									"addressCountry": `${countryCode}`,
+									"addressRegion": ["NIR"]
+								}
+							],
+							"shippingRate": {
+								"@type": "MonetaryAmount",
+								"value": "49.99",
+								"currency": "{{ shop.currency }}"
+							}
+						}
+						{% endif %}
+					]
+				}
+			}
+
+
+			// 启用judge.me插件后，且评论有数据时，才展示对应结构化数据
+			let pdpReviewBadge = document.querySelector('.jdgm-prev-badge');
+			if (pdpReviewBadge && pdpReviewBadge.getAttribute('data-number-of-reviews') != 0) {
+				let productReviewData = {
+					"@type": "AggregateRating",
+					"ratingValue": pdpReviewBadge.getAttribute('data-average-rating'),
+					"reviewCount": pdpReviewBadge.getAttribute('data-number-of-reviews')
+				}
+				productStructuredData.aggregateRating = productReviewData;
+
+				let reviewsArr = [];
+				document.querySelectorAll('.jdgm-rev').forEach(function (item) {
+					let score = item.querySelector('.jdgm-rev__rating').getAttribute('data-score');
+					let author = item.querySelector('.jdgm-rev__author').innerText;
+					let datetime = item.querySelector('.jdgm-rev__timestamp').getAttribute('data-content');
+					let title = item.querySelector('.jdgm-rev__title').innerText;
+					let content = item.querySelector('.jdgm-rev__body').innerText;
+					let currData = {
+						"@type": "Review",
+						"author": {
+							"@type": "Person",
+							"name": author
+						},
+						"datePublished": datetime,
+						"reviewBody": content,
+						"name": title,
+						"reviewRating": {
+							"@type": "Rating",
+							"bestRating": "5",
+							"ratingValue": score,
+							"worstRating": "1"
+						}
+					}
+					reviewsArr.push(currData);
+				});
+				productStructuredData.review = reviewsArr;
+			}
+
+			// 生成产品结构化数据的script标签
+			let productStructuredDataScript = document.createElement('script');
+			productStructuredDataScript.type = 'application/ld+json';
+			productStructuredDataScript.textContent = JSON.stringify(productStructuredData, null, 2);
+			document.head.appendChild(productStructuredDataScript);
+		})
+	</script>
+{%- endunless -%}
+{%- endunless -%}
+

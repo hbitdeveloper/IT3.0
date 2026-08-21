@@ -1,0 +1,196 @@
+{% comment %} 4.0商详页内容组件（Product Detail Page V4 Content) - 计算器 {% endcomment %}
+{{ 'snippet-pdp-calculator.min.css' | asset_url | stylesheet_tag }}
+
+{% assign newProduct = product %}
+{% if newProduct == blank %}
+  {% assign newProduct = settings.product %}
+{% endif %}
+{% assign a11y_prefix = section.id | default: index | default: 'pdp-calculator' %}
+{% assign capacity = newProduct.metafields.my_fields.wattage %}
+{% if capacity != blank %}
+  {% comment %} 产品最大功率，单位：W（瓦特） {% endcomment %}
+  {% assign max_power = newProduct.metafields.custom.max_power %}
+
+  {% assign efficiency = 0.8 %}
+  {% assign ac_consumption = 0 %}
+
+  {%- if capacity >= 100 and capacity < 1000 -%}
+    {% assign efficiency = 0.82 %}
+    {% assign ac_consumption = 10 %}
+  {%- elsif capacity>= 1000 and capacity < 1200 -%}
+    {% assign efficiency = 0.82 %}
+    {% assign ac_consumption = 15 %}
+  {%- elsif capacity>= 1200 and capacity < 2100 -%}
+    {% assign efficiency = 0.82 %}
+    {% assign ac_consumption = 18 %}
+  {%- elsif capacity>= 2100 and capacity < 3050 -%}
+    {% assign efficiency = 0.85 %}
+    {% assign ac_consumption = 25 %}
+  {%- elsif capacity>= 3050 and capacity < 5000 -%}
+    {% assign efficiency = 0.85 %}
+    {% assign ac_consumption = 22 %}
+  {%- elsif capacity>= 5000 -%}
+    {% assign efficiency = 0.85 %}
+    {% assign ac_consumption = 50 %}
+  {%- endif  -%}
+
+  {% if newProduct.metafields.custom.efficiency != blank %}
+    {% assign efficiency = newProduct.metafields.custom.efficiency %}
+  {% endif %}
+
+  {% if newProduct.metafields.custom.ac_consumption != blank %}
+    {% assign ac_consumption = newProduct.metafields.custom.ac_consumption %}
+  {% endif %}
+
+  {% if newProduct.metafields.custom.efficiency != blank %}
+    {% assign efficiency = newProduct.metafields.custom.efficiency %}
+  {% endif %}
+
+  {% assign power_flag = '${power}' %}
+  {% assign power_text = '(' | append: max_power | append: 'W)' %}
+  {% assign capacity_flag = '${Capacity}' %}
+  {% assign capacity_text = '('| append: capacity | append: 'Wh)' %}
+
+  {% assign calc_type = 'ui-hrs' %}
+  {% if settings.type == 'costSavings' %}
+    {% assign calc_type = 'ui-cost-savings' %}
+  {% endif %}
+
+  {% if settings.page_width != blank %}
+  <style>
+    @media screen and (max-width: 1024px) {
+      .pdp-calculator-outer {background: #f5f5f5;}
+    }
+
+    .pdp-calculator .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+  <div class="pdp-calculator-outer">
+  {% endif %}
+    <div
+      class="pdp-calculator {% if settings.page_width != blank %}{{settings.page_width}}{% else %} section-container-lg{% endif %}"
+      data-index="{{ index }}"
+      data-type="{{ calc_type }}"
+      data-id="{{ section.id }}"
+      data-capacity="{{ capacity }}"
+      data-efficiency="{{ efficiency }}"
+      data-product-title="{{ product.title | escape }}"
+      {%if settings.anchor_id != blank%}anchor={{settings.anchor_id | escape}}{%endif%}
+    >
+      <div class="info-box">
+        {% if settings.topTitle != blank %}
+          <h2 class="top-title">{{ settings.topTitle }}</h2>
+        {% endif %}
+        {% if settings.title != blank %}
+          <h3 class="title">{{ settings.title }}</h3>
+        {% endif %}
+        {% if settings.subtitle != blank %}
+          <p class="subtitle">{{ settings.subtitle | replace: power_flag, power_text | replace: capacity_flag, capacity_text }}</p>
+        {% endif %}
+      </div>
+      {% if settings.type == blank %}
+        <div class="calculator-box ui-hrs">
+          <div class="content-box">
+            <div class="result-box">
+              <div class="end-result" role="status" aria-live="polite" aria-atomic="true">
+                <output class="result-num" id="{{ section.id }}-resultNum">00</output>
+                <span class="result-unit">{{ settings.hrs }}</span>
+              </div>
+              <p class="tips text-ellipsis-1">{{ settings.runningTimeText }}</p>
+            </div>
+            <i class="bar"></i>
+            <div class="form-box">
+              <div class="inp-box">
+                <label class="visually-hidden" for="{{ a11y_prefix }}-power-input">{{ settings.runningTimeText }}</label>
+                <input
+                  id="{{ a11y_prefix }}-power-input"
+                  name="{{ settings.runningTimeText }}"
+                  aria-describedby="{{ a11y_prefix }}-power-hint {{ a11y_prefix }}-power-error"
+                  type="number"
+                  min="0"
+                  max="{{ max_power }}"
+                  data-max-power="{{ max_power }}"
+                  data-ac_consumption="{{ ac_consumption }}"
+                  class="power-inp"
+                  onkeyup="value=value.replace(/[^\d]/g,'')"
+                  onblur="value=value.replace(/[^\d]/g,'')"
+                >
+                <span class="unit">W</span>
+              </div>
+              <button aria-label="{{settings.btnTips}}" type="button" class="btn-enter" disabled>
+                <span class="over"></span>
+                <span class="hide">Enter</span>
+              </button>
+            </div>
+            <div class="btn-tips" id="{{ a11y_prefix }}-power-hint" role="status" aria-live="polite" data-once-show="false">{{ settings.btnTips }}</div>
+            <div class="error-tips text-ellipsis-1" id="{{ a11y_prefix }}-power-error" role="alert" aria-live="assertive">
+              {% assign max_power_text = max_power | append: 'W' %}
+              {{ settings.errorTips | replace: power_flag, max_power_text }}
+            </div>
+          </div>
+          <div class="note text-ellipsis-3">{{ settings.note }}</div>
+        </div>
+      {% else %}
+        <div class="calculator-box ui-cost-savings">
+          <div class="content-box">
+            <div class="result-box">
+              <div class="end-result" role="status" aria-live="polite" aria-atomic="true">
+                <output class="result-num" id="{{ section.id }}-resultNum">00</output>
+                <span class="result-unit">{{ settings.savingsUnit }}</span>
+              </div>
+            </div>
+            <div class="form-box">
+              <div class="inp-box">
+                <label class="visually-hidden" for="{{ a11y_prefix }}-cost-input">{{ settings.electricitybill }}</label>
+                <input
+                  id="{{ a11y_prefix }}-cost-input"
+                  name="{{ settings.electricitybill }}"
+                  aria-label="{{ settings.electricitybill }}"
+                  type="number"
+                  min="0"
+                  class="cost-inp"
+                  placeholder="{{ settings.electricitybill }}"
+                >
+                <span class="unit">{{ settings.electricityPriceUnit }}</span>
+              </div>
+              <div class="inp-box">
+                <label class="visually-hidden" for="{{ a11y_prefix }}-times-input">{{ settings.times }}</label>
+                <input
+                  id="{{ a11y_prefix }}-times-input"
+                  name="{{ settings.times }}"
+                  aria-label="{{ settings.times }}"
+                  type="number"
+                  min="1"
+                  step="1"
+                  class="times-inp"
+                  placeholder="{{ settings.times }}"
+                  onkeyup="value=value.replace(/[^0-9]/g,'').replace(/^0+/, '')"
+                  onblur="value=value.replace(/[^0-9]/g,'').replace(/^0+/, '')"
+                >
+                <span class="unit">{{ settings.timesUnit }}</span>
+              </div>
+              <button aria-label="{{settings.btnText}}" aria-label="{{settings.btnText}}" type="button" class="btn-enter" disabled>
+                {{ settings.btnText }}
+              </button>
+            </div>
+          </div>
+          <div class="note text-ellipsis-3">{{ settings.costSavingsUINote }}</div>
+        </div>
+      {% endif %}
+    </div>
+  {% if settings.page_width != blank %}
+  </div>
+  {% endif %}
+
+{% endif %}
+
+<script defer src="{{ 'snippet-pdp-calculator.min.js' | asset_url }}"></script>

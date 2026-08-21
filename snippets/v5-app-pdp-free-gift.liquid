@@ -1,0 +1,80 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign time_now = 'now' | date: '%s'
+  assign is_block_valid_time = false
+
+  assign block_begin_time = 0
+  if block.settings.begin_time_str != blank
+    assign block_begin_time = block.settings.begin_time_str | date: '%s'
+  endif
+
+  assign block_end_time = 0
+  if block.settings.end_time_str != blank
+    assign block_end_time = block.settings.end_time_str | date: '%s'
+  endif
+
+  if block_begin_time == 0 and block_end_time == 0
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time != 0 and block_end_time == 0 and block_begin_time < time_now
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time == 0 and block_end_time != 0 and block_end_time > time_now
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time != 0 and block_end_time != 0 and block_end_time > time_now and block_begin_time < time_now
+    assign is_block_valid_time = true
+  endif
+-%}
+
+{%- if is_block_valid_time -%}
+  <div {{ block.shopify_attributes }} class="w-full section-padding" style="{{ style }}">
+    <v5-app-pdp-free-gift class="w-full bg-[#F5F5F3] p-3 flex gap-x-3 lg:gap-x-4" data-product-title="{{ product.title | escape }}">
+      {%- if block.settings.gift_image != blank -%}
+        <div class="w-20 h-20 lg:w-[10.375rem] lg:h-[10.375rem]">
+          {%- render 'diff-end-img',
+            class: 'w-full h-full object-contain',
+            pc_img: block.settings.gift_image,
+            mb_img: block.settings.gift_image,
+            pc_img_width: 166,
+            mb_img_width: 80,
+            placeholder_name: 'hero-apparel-1'
+          -%}
+        </div>
+      {%- endif -%}
+      <div class="flex-1 flex flex-col items-start justify-center gap-y-2 lg:gap-y-3">
+        {%- if block.settings.gift_title != blank -%}
+          <h4 class="font-semibold text-black/90 text-base lg:text-2xl line-clamp-5 lg:line-clamp-3">{{ block.settings.gift_title | escape }}</h4>
+        {%- endif -%}
+        <div
+          class="w-full flex flex-wrap items-center gap-x-1"
+          data-count-down
+          data-ends-in-text="{{ block.settings.ends_in_text | escape }}"
+          data-countdown-label-text="{{ block.settings.countdown_label_text | escape }}"
+          data-shopify-time="{{ 'now' | date: "%Y/%m/%d %H:%M:%S" }}"
+          data-begin-time="{{ block.settings.begin_time_str | escape }}"
+          data-end-time="{{ block.settings.end_time_str | escape }}"
+        ></div>
+        {%- if block.settings.gift_dialog_btn != blank -%}
+          <button
+            class="appearance-none bg-transparent text-[#242F20] text-sm lg:text-base underline underline-offset-2"
+            data-content="{{ block.settings.gift_dialog_content | escape | newline_to_br}}"
+            data-dialog-btn
+          >{{ block.settings.gift_dialog_btn | escape }}</button>
+        {%- endif -%}
+      </div>
+    </v5-app-pdp-free-gift>
+
+    {% render 'lazy-load-asset-group',
+      script: 'snippet-v5-app-pdp-free-gift.js',
+      strategy: 'idle',
+      delay: 1800
+    %}
+  </div>
+{%- endif -%}

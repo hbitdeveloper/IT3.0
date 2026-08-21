@@ -1,0 +1,190 @@
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: calc({{ section.settings.padding_top }}px * 0.75);
+    padding-bottom: calc({{ section.settings.padding_bottom }}px  * 0.75);
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+<div
+  class="color-{{ section.settings.color_scheme }} gradient {% if section.settings.type == 'embed' %} embed-component {% endif %}"
+  {% if section.settings.type == 'embed' and section.settings.anchor != blank %}
+    data-anchor="{{section.settings.anchor}}" anchor="{{section.settings.anchor}}"
+  {% endif %}
+  {% if section.settings.type == 'embed' and section.settings.handle != blank %}
+    data-handle="{{ section.settings.handle }}"
+  {% endif %}
+  {% if section.settings.type == 'independent' and section.settings.common_anchor != blank %}
+    anchor-target="{{section.settings.common_anchor}}"
+  {% endif %}
+>
+  <div class="section-{{ section.id }}-padding {{section.settings.page_width}}">
+    {{ section.settings.custom_liquid }}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.custom-liquid.name",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "基础设置"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "类型",
+      "default": "independent",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle（当前页面唯一的handle）",
+      "default": "custom-liquid-01",
+      "visible_if": "{{ section.settings.type == 'embed' }}"
+    },
+    {
+      "type": "select",
+      "id": "anchor",
+      "label": "旧商详页Tab使用的锚点设置",
+      "info": "非锚点section请清空此项",
+      "options": [
+        {
+          "value": "",
+          "label": "非锚点section"
+        },
+        {
+          "value": "anchor__1",
+          "label": "第一个section锚点"
+        },
+        {
+          "value": "anchor__2",
+          "label": "第二个section锚点"
+        },
+        {
+          "value": "anchor__3",
+          "label": "第三个section锚点"
+        },
+        {
+          "value": "anchor__4",
+          "label": "第四个section锚点"
+        }
+      ],
+      "default": "",
+      "visible_if": "{{ section.settings.type == 'embed' }}"
+    },
+    {
+      "type": "text",
+      "id": "common_anchor",
+      "label": "通用锚点定位ID",
+      "info": "用于常见的二级导航锚点定位,确保唯一性,禁止空格和-符号",
+      "visible_if": "{{ section.settings.type == 'independent' }}"
+    },
+    {
+      "type": "header",
+      "content": "内容与样式"
+    },
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "t:sections.custom-liquid.settings.custom_liquid.label",
+      "info": "t:sections.custom-liquid.settings.custom_liquid.info"
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "w-full",
+      "label": "组件宽度"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "options": [
+        {
+          "value": "accent-1",
+          "label": "t:sections.all.colors.accent_1.label"
+        },
+        {
+          "value": "accent-2",
+          "label": "t:sections.all.colors.accent_2.label"
+        },
+        {
+          "value": "background-1",
+          "label": "t:sections.all.colors.background_1.label"
+        },
+        {
+          "value": "background-2",
+          "label": "t:sections.all.colors.background_2.label"
+        },
+        {
+          "value": "inverse",
+          "label": "t:sections.all.colors.inverse.label"
+        }
+      ],
+      "default": "background-1",
+      "label": "t:sections.all.colors.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 52
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.custom-liquid.presets.name"
+    }
+  ]
+}
+{% endschema %}

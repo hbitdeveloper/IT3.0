@@ -1,0 +1,601 @@
+<style>
+
+      #shopify-section-{{ section.id }} {
+        background: {{ section.settings.bg_color }};
+    }
+
+   #shopify-section-{{ section.id }} [data-ps-menu] {
+    background: #ffffff;
+  }
+
+  #shopify-section-{{ section.id }} [data-ps-option]:hover,
+  #shopify-section-{{ section.id }} [data-ps-option]:focus,
+  #shopify-section-{{ section.id }} [data-ps-option][aria-selected="true"] {
+    background: #1e5bd7;
+    color: #fff;
+    outline: none;
+  }
+</style>
+
+{%- capture style -%}
+    {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div {% if section.settings.anchor != blank %}anchor-target="{{ section.settings.anchor | escape }}"{% endif %} style="{{ style }}" class="section-padding section-container-lg">
+
+        {% comment %} 标题区 {% endcomment %}
+        <div class="flex flex-col items-center justify-center pb-[2.5rem] lg:px-[10rem] px-0">
+            <div class="flex flex-col items-center justify-center lg:gap-[1.5rem] gap-[1rem] w-full">
+                <h2 class="font-semibold lg:text-[3rem] text-[1.75rem] lg:leading-[1.1] leading-[1.1] text-[#121810] text-center w-full" data-title>{{ section.settings.title }}</h2>
+                <p class="font-normal text-[0.875rem] lg:text-[1rem] text-[rgba(0,0,0,0.65)] text-center">{{ section.settings.subtitle }}</p>
+            </div>
+        </div>
+
+        {% comment %} 内容区 {% endcomment %}
+        <div class="lg:mx-[2.5rem] lg:py-[1.5rem] py-[1.5rem]  border-y-[#C6C7C8] border-y border-solid">
+            <div class="flex lg:flex-row flex-col lg:items-start items-start lg:gap-[2.5rem] gap-[2rem] w-full">
+                {% comment %} 左侧（PC：两列 / MB：一列） {% endcomment %}
+                <div class="flex flex-col lg:gap-[1.5rem] gap-[2rem] lg:w-[51rem] w-full">
+                    <div class="flex lg:flex-row flex-col lg:items-start items-start lg:gap-[1.5rem] gap-[2rem] w-full">
+                        {% comment %} 选择电源（下拉选择产品） {% endcomment %}
+                        <div class="flex flex-col lg:gap-[1.5rem] gap-[2rem] lg:w-[24.75rem] w-full">
+                            <div class="flex items-center">
+                                <p id="ps-label-{{ section.id }}" class="font-semibold lg:text-[1.25rem] text-[1.25rem] lg:leading-[1.0027] leading-normal text-[rgba(36,47,32,0.9)]">{{ section.settings.choose_power_station_label }}</p>
+                            </div>
+
+                            <div class="border border-[#e8e8e5] border-solid w-full select-none">
+                                <div class="cursor-pointer relative flex items-center justify-between lg:h-[3.5rem] h-[2.5rem] p-[1rem] w-full" data-ps-select>
+                                  {% comment %} Hidden input so you still have a form value {% endcomment %}
+                                  <input type="hidden" name="power_station" value="" data-ps-value>
+
+                                  <div class="w-full bg-transparent outline-none font-normal lg:text-[1.25rem] text-[1rem] leading-normal text-[#121810] pr-[2.5rem] text-left line-clamp-1"
+                                          role="combobox"
+                                          aria-haspopup="listbox"
+                                          aria-expanded="false"
+                                          aria-controls="ps-listbox-{{ section.id }}"
+                                          aria-labelledby="ps-label-{{ section.id }}"
+                                          tabindex="0"
+                                          data-ps-trigger>
+                                    <span data-ps-label>{{ section.settings.power_station_placeholder }}</span>
+                                  </div>
+
+                                  <div id="ps-listbox-{{ section.id }}" class="absolute left-[-1px] right-0 top-full hidden overflow-auto z-30 border w-[calc(100%_+_2px)] max-h-[15.625rem] shadow-none rounded-none border-t-0 border-solid border-[#E8E8E5]"
+                                       role="listbox"
+                                       tabindex="-1"
+                                       data-ps-menu>
+
+                                    {% if section.settings.collection_shop != blank %}
+                                      {% assign selected_collection = collections[section.settings.collection_shop] %}
+                                      {% for product in selected_collection.products %}
+                                        {% assign capacity = product.metafields.my_fields.wattage %}
+                                        {% if capacity != blank %}
+                                          {% assign max_power = product.metafields.custom.max_power %}
+
+                                          {% assign efficiency = 0.8 %}
+                                          {% assign ac_consumption = 0 %}
+
+                                          {%- if capacity >= 100 and capacity < 1000 -%}
+                                            {% assign efficiency = 0.82 %}
+                                            {% assign ac_consumption = 10 %}
+                                          {%- elsif capacity >= 1000 and capacity < 1200 -%}
+                                            {% assign efficiency = 0.82 %}
+                                            {% assign ac_consumption = 15 %}
+                                          {%- elsif capacity >= 1200 and capacity < 2100 -%}
+                                            {% assign efficiency = 0.82 %}
+                                            {% assign ac_consumption = 18 %}
+                                          {%- elsif capacity >= 2100 and capacity < 3050 -%}
+                                            {% assign efficiency = 0.85 %}
+                                            {% assign ac_consumption = 25 %}
+                                          {%- elsif capacity >= 3050 and capacity < 5000 -%}
+                                            {% assign efficiency = 0.85 %}
+                                            {% assign ac_consumption = 22 %}
+                                          {%- elsif capacity >= 5000 -%}
+                                            {% assign efficiency = 0.85 %}
+                                            {% assign ac_consumption = 50 %}
+                                          {%- endif -%}
+
+                                          {% if product.metafields.custom.efficiency != blank %}
+                                            {% assign efficiency = product.metafields.custom.efficiency %}
+                                          {% endif %}
+                                          {% if product.metafields.custom.ac_consumption != blank %}
+                                            {% assign ac_consumption = product.metafields.custom.ac_consumption %}
+                                          {% endif %}
+
+                                          {% assign shortname = product.metafields.custom.shortname | default: product.title %}
+                                          {% assign words = shortname | split: ' ' %}
+                                          {% if words.first == 'Jackery' %}
+                                            {% assign shortname = shortname | remove_first: 'Jackery ' %}
+                                          {% endif %}
+
+                                          <div data-ps-option
+                                                  role="option"
+                                                  aria-selected="false"
+                                                  class="cursor-pointer outline-none line-clamp-2 w-full text-left text-[1rem] leading-[2rem] text-[#121810] px-[1rem] py-[0.5rem] "
+                                                  tabindex="-1"
+                                                  data-value="{{ product.id }}"
+                                                  data-label="{{ shortname | escape }}"
+                                                  data-capacity="{{ capacity | default: 0 }}"
+                                                  data-max-power="{{ max_power | default: 0 }}"
+                                                  data-efficiency="{{ efficiency }}"
+                                                  data-ac-consumption="{{ ac_consumption }}">
+                                            {{ shortname }}
+                                          </div>
+                                        {% endif %}
+                                      {% endfor %}
+                                    {% endif %}
+                                  </div>
+
+                                  <div class="pointer-events-none absolute right-[1rem] top-1/2 -translate-y-1/2 flex items-center justify-center rotate-180">
+                                    {% render 'icon-arrow-up' %}
+                                  </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col lg:gap-[1.5rem] gap-[2rem] lg:w-[24.75rem] w-full">
+                            <div class="flex items-center">
+                                <p class="font-semibold text-[1.25rem] leading-[1.0027] lg:text-[rgba(36,47,32,0.9)] text-[rgba(0,0,0,0.9)]">{{ section.settings.wattage_label }}</p>
+                            </div>
+
+                            <div class="flex flex-col lg:gap-[0.75rem] gap-[0.5rem] w-full">
+                                <div class="flex flex-col lg:gap-[1.5rem] gap-[1rem] w-full" data-device-list>
+                                    {% for i in (1..section.settings.init_device_number) %}
+                                        <div class="flex items-center lg:gap-[2.4375rem] gap-[0.75rem] w-full" data-device-row>
+                                            <div class="flex items-center justify-start">
+                                                <label data-device-label for="device-wattage-{{ section.id }}-{{ forloop.index }}" class="font-semibold lg:text-[1.25rem] text-[0.75rem] leading-normal text-[rgba(36,47,32,0.9)]">
+                                                    <span>{{ section.settings.device_text }} <span data-device-index>{{ forloop.index }}</span>:</span>
+                                                </label>
+                                            </div>
+
+                                            <div class="relative flex-1 border border-[#c6c7c8] border-solid flex items-center overflow-clip lg:h-[3rem] h-[2.5rem] px-[0.75rem]">
+                                                <input id="device-wattage-{{ section.id }}-{{ forloop.index }}" aria-describedby="device-wattage-unit-{{ section.id }}-{{ forloop.index }}" class="w-full bg-transparent outline-none text-right font-semibold lg:text-[1.5rem] text-[1rem] leading-normal text-[rgba(0,0,0,0.65)] lg:tracking-[-0.015rem] tracking-[0rem] pr-[2.25rem]" type="number" min="0" step="1" name="device_wattage[]"/>
+                                                <span data-device-unit id="device-wattage-unit-{{ section.id }}-{{ forloop.index }}" class="absolute right-[0.75rem] font-semibold lg:text-[1.5rem] text-[1rem] leading-normal text-[rgba(0,0,0,0.65)] lg:tracking-[-0.015rem] tracking-[0rem]">W</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <p class="invisible font-normal text-[0.875rem] lg:text-[1rem] leading-normal text-[#f52317]" data-error>{{ section.settings.error_text }}</p>
+                                <span class="hidden" data-error-no-device>{{ section.settings.error_text_no_device }}</span>
+
+                                <div role="button" tabindex="0" aria-label="{{ section.settings.add_device_text | escape }}" class="flex items-center gap-[0.5rem] border-b border-solid border-[#242f20] pb-[0.5rem] w-fit cursor-pointer" data-add-device>
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <g clip-path="url(#clip0_4491_13619)"><path d="M0 8H16" stroke="black"/><path d="M8 0.222656L8 16.2227" stroke="black"/></g><defs><clipPath id="clip0_4491_13619"><rect width="16" height="16" fill="white"/></clipPath></defs>
+                                    </svg>
+                                    <p class="font-semibold lg:text-[1.25rem] text-[1rem] leading-normal lg:text-[rgba(0,0,0,0.65)] text-[#242f20]">{{ section.settings.add_device_text }}</p>
+                                </div>
+
+                                <div role="button" tabindex="0" aria-label="{{ section.settings.calculate_text | escape }}" class="cursor-pointer border border-[var(--jds-color-primary)] border-solid flex items-center justify-center lg:h-[3rem] h-[2.5rem] w-full lg:px-[2.5rem] px-[1.125rem] py-[0.75rem] mt-[1.5rem] lg:mt-[0.75rem]" data-calculate>
+                                    <p class="font-semibold lg:text-[1.25rem] text-[1rem] leading-normal text-[var(--jds-color-primary)] ">{{ section.settings.calculate_text }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+                <div class="w-full lg:w-[1px] self-stretch bg-[rgba(198,199,200,1)] h-[1px] lg:h-auto"></div>
+
+                <div class=" lg:flex flex-col justify-center lg:gap-[1.5rem] gap-[1rem] lg:w-[21.5rem] w-full">
+                    <p class="font-semibold text-[1rem] lg:text-[1.5rem] leading-[1.1] text-[rgba(36,47,32,0.9)] w-full mb-[1rem] lg:mb-0">{{ section.settings.right_title }}</p>
+
+                    <div class="flex flex-col gap-[1rem] lg:gap-[2.5rem] w-full">
+                        <p class="font-extrabold  text-[var(--jds-color-primary)] text-[2.25rem] lg:text-[1.5rem] leading-[1.1] v5-font-oxm text-center lg:text-left ">
+                            <span class="lg:text-[4.5rem] text-[3rem]" data-result-pc-num>00</span>
+                            <span>{{ section.settings.result_hours_pc }}</span>
+                        </p>
+                        <p class="font-normal text-[0.875rem] leading-normal text-[rgba(0,0,0,0.65)] w-full">{{ section.settings.result_desc_pc }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <template data-device-template>
+        <div class="flex items-center lg:gap-[2.4375rem] gap-[0.75rem] w-full" data-device-row>
+            <div class="flex items-center justify-start">
+                <label data-device-label for="device-wattage-{{ section.id }}-1" class="font-semibold lg:text-[1.25rem] text-[0.75rem] leading-normal text-[rgba(36,47,32,0.9)]">
+                    <span>{{ section.settings.device_text }} <span data-device-index>1</span>:</span>
+                </label>
+            </div>
+
+            <div class="relative flex-1 border border-[#c6c7c8] border-solid flex items-center overflow-clip lg:h-[3rem] h-[2.5rem] px-[0.75rem]">
+                <input id="device-wattage-{{ section.id }}-1" aria-describedby="device-wattage-unit-{{ section.id }}-1" class="w-full bg-transparent outline-none text-right font-semibold lg:text-[1.5rem] text-[1rem] leading-normal text-[rgba(0,0,0,0.65)] lg:tracking-[-0.015rem] tracking-[0rem] pr-[2.25rem]" type="number" min="0" step="1" name="device_wattage[]" />
+                <span data-device-unit id="device-wattage-unit-{{ section.id }}-1" class="absolute right-[0.75rem] font-semibold lg:text-[1.5rem] text-[1rem] leading-normal text-[rgba(0,0,0,0.65)] lg:tracking-[-0.015rem] tracking-[0rem]">W</span>
+            </div>
+        </div>
+    </template>
+
+</div>
+
+<script type="module">
+document.addEventListener("DOMContentLoaded", function() {
+  const root = document.getElementById('shopify-section-{{ section.id }}');
+  if (!root) return;
+
+  const list = root.querySelector('[data-device-list]');
+  const btn = root.querySelector('[data-add-device]');
+  const tpl = root.querySelector('template[data-device-template]');
+  if (!list || !btn || !tpl) return;
+
+  const updateIndices = () => {
+    const rows = list.querySelectorAll('[data-device-row]');
+    rows.forEach((row, i) => {
+      const idx = i + 1;
+      row.querySelectorAll('[data-device-index]').forEach((el) => (el.textContent = String(idx)));
+      const input = row.querySelector('input[name="device_wattage[]"]');
+      const label = row.querySelector('[data-device-label]');
+      const unit = row.querySelector('[data-device-unit]');
+      if (input) {
+        input.id = `device-wattage-{{ section.id }}-${idx}`;
+        if (label) label.setAttribute('for', input.id);
+        if (unit) {
+          unit.id = `device-wattage-unit-{{ section.id }}-${idx}`;
+          input.setAttribute('aria-describedby', unit.id);
+        }
+      }
+    });
+  };
+
+  updateIndices();
+
+  const psRoot = root.querySelector('[data-ps-select]');
+    if (psRoot) {
+      const trigger = psRoot.querySelector('[data-ps-trigger]');
+      const menu = psRoot.querySelector('[data-ps-menu]');
+      const labelEl = psRoot.querySelector('[data-ps-label]');
+      const valueInput = psRoot.querySelector('[data-ps-value]');
+      const options = Array.from(psRoot.querySelectorAll('[data-ps-option]'));
+
+      const open = () => {
+        menu.classList.remove('hidden');
+        trigger.setAttribute('aria-expanded', 'true');
+        trigger.parentElement.querySelector('svg').parentElement.classList.remove('rotate-180');
+      };
+
+      const close = () => {
+        menu.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.parentElement.querySelector('svg').parentElement.classList.add('rotate-180');
+      };
+
+      const isOpen = () => !menu.classList.contains('hidden');
+
+      const selectOption = (optBtn, { silent = false } = {}) => {
+          const v = optBtn.dataset.value || '';
+          const lbl = optBtn.dataset.label || '';
+
+          // clear previous selected state
+          options.forEach((b) => b.setAttribute('aria-selected', 'false'));
+          optBtn.setAttribute('aria-selected', 'true');
+
+          // update visible label + hidden input
+          labelEl.textContent = lbl || 'Select';
+          valueInput.value = v;
+
+          // store selected data on container for calculator
+          psRoot.dataset.capacity = optBtn.dataset.capacity || '0';
+          psRoot.dataset.maxPower = optBtn.dataset.maxPower || '0';
+          psRoot.dataset.efficiency = optBtn.dataset.efficiency || '0';
+          psRoot.dataset.acConsumption = optBtn.dataset.acConsumption || '0';
+
+          if (!silent) close();
+    };
+
+    // Optional: behave like native <select> (auto-select first option)
+    if (!valueInput.value && options.length) selectOption(options[0], { silent: true });
+
+      trigger.addEventListener('click', () => {
+        isOpen() ? close() : open();
+      });
+
+      options.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectOption(btn);
+        });
+      });
+
+      // click outside closes
+      document.addEventListener('click', (e) => {
+        if (!psRoot.contains(e.target)) close();
+      });
+
+      // keyboard basics
+      trigger.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            open();
+            const selected = options.find((b) => b.getAttribute('aria-selected') === 'true') || options[0];
+            selected?.focus();
+          }
+        });
+
+      menu.addEventListener('keydown', (e) => {
+        const idx = options.indexOf(document.activeElement);
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          close();
+          trigger.focus();
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          options[Math.min(idx + 1, options.length - 1)]?.focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          options[Math.max(idx - 1, 0)]?.focus();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (document.activeElement?.matches('[data-ps-option]')) {
+            selectOption(document.activeElement);
+          }
+        }
+      });
+    }
+
+  btn.addEventListener('click', () => {
+
+    const btnLabel = btn.querySelector('p')?.textContent?.trim() || "";
+    const title = root.querySelector('[data-title]').textContent.trim();
+    const productName = psRoot.querySelector('[data-ps-label]').textContent.trim().replaceAll(' ', '_');
+    const event_parameters = {
+      module: title,
+      position: productName,
+      button_name: btnLabel
+    };
+    gaPushDataLayer("5.0_categories_collection_user_clicks", event_parameters);
+
+    const node = tpl.content.firstElementChild.cloneNode(true);
+    list.appendChild(node);
+    updateIndices();
+    const input = node.querySelector('input[name="device_wattage[]"]');
+    if (input) input.focus();
+    if (list.childElementCount >= 5) {
+        btn.classList.add('hidden');
+    }
+  });
+
+  const calcBtn = root.querySelector('[data-calculate]');
+  const errorEl = root.querySelector('[data-error]');
+  const powerExceedErrorTemplate = errorEl.textContent;
+  const noDeviceErrorText = root.querySelector('[data-error-no-device]').textContent;
+  const pcNumEl = root.querySelector('[data-result-pc-num]');
+
+  const showError = (msg) => {
+    errorEl.textContent = msg;
+    errorEl.classList.remove('invisible');
+  };
+
+  const hideError = () => {
+    errorEl.classList.add('invisible');
+  };
+
+    const getSelectedProduct = () => {
+      if (!psRoot) return null;
+
+      const id = psRoot.querySelector('[data-ps-value]')?.value;
+      if (!id) return null;
+
+      const capacity = Number(psRoot.dataset.capacity || 0);
+      const maxPower = Number(psRoot.dataset.maxPower || 0);
+      const efficiency = Number(psRoot.dataset.efficiency || 0);
+      const acConsumption = Number(psRoot.dataset.acConsumption || 0);
+
+      if (!capacity || !efficiency) return null;
+      return { capacity, maxPower, efficiency, acConsumption };
+    };
+
+  const getTotalWattage = () => {
+    const inputs = list.querySelectorAll('input[name="device_wattage[]"]');
+    let sum = 0;
+    inputs.forEach((inp) => {
+      const v = Number(inp.value);
+      if (Number.isFinite(v) && v > 0) sum += v;
+    });
+    return sum;
+  };
+
+  const calculate = () => {
+    hideError();
+
+    const product = getSelectedProduct();
+    if (!product) {
+      showError('Please select a power station.');
+      return;
+    }
+
+    const totalW = getTotalWattage();
+    if (!totalW) {
+      showError(noDeviceErrorText);
+      return;
+    }
+
+    // Validate vs product max power if present
+    if (product.maxPower > 0 && totalW > product.maxPower) {
+      showError(powerExceedErrorTemplate.replaceAll('${power}', product.maxPower));
+      return;
+    }
+
+    const denom = totalW + (product.acConsumption > 0 ? product.acConsumption : 0);
+    if (denom <= 0) {
+      showError('Invalid wattage.');
+      return;
+    }
+
+    // Runtime hours
+    const hours = (product.capacity * product.efficiency) / denom;
+
+    // Render
+    Jackery.Utils.countUp(pcNumEl, hours);
+  };
+
+  calcBtn.addEventListener('click', () => {
+
+    const btnLabel = calcBtn.querySelector('p')?.textContent?.trim() || '';
+    const title = root.querySelector('[data-title]').textContent.trim();
+    const productName = psRoot.querySelector('[data-ps-label]').textContent.trim().replaceAll(' ', '_');
+    const event_parameters = {
+      module: title,
+      position: productName,
+      button_name: btnLabel
+    };
+    gaPushDataLayer("5.0_categories_collection_user_clicks", event_parameters);
+
+    calculate();
+  });
+
+  list.addEventListener('input', (e) => {
+    if (e.target && e.target.matches('input[name="device_wattage[]"]')) hideError();
+  });
+});
+</script>
+
+{% schema %}
+{
+  "name": "V5-储能估算",
+  "tag": "section",
+  "limit": 1,
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "label": "PC上边距",
+      "default": 96
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "PC下边距",
+      "default": 40
+    },
+    {
+      "type": "text",
+      "id": "mb_padding_type",
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ false }}"
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "MB上边距",
+      "default": 128
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "MB下边距",
+      "default": 128
+    },
+    {
+      "type": "collection",
+      "id": "collection_shop",
+      "label": "产品系列"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "主标题",
+      "default": "Power Up, Perfect Match"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "副标题",
+      "default": "Pick a device and panel count to see full-charge time under different weather."
+    },
+
+    {
+      "type": "text",
+      "id": "choose_power_station_label",
+      "label": "选择电源标题",
+      "default": "Choose Your Power Station"
+    },
+    {
+      "type": "text",
+      "id": "power_station_placeholder",
+      "label": "电源下拉占位文本",
+      "default": "Please select a product"
+    },
+    {
+      "type": "text",
+      "id": "wattage_label",
+      "label": "输入功率标题",
+      "default": "Input the Total Appliance Wattage"
+    },
+    {
+      "type": "range",
+      "id": "init_device_number",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "label": "初始显示Device数量",
+      "default": 2
+    },
+    {
+      "type": "text",
+      "id": "device_text",
+      "label": "Device标签文本",
+      "default": "Device"
+    },
+    {
+      "type": "text",
+      "id": "add_device_text",
+      "label": "添加设备按钮文本",
+      "default": "Add More Device"
+    },
+    {
+      "type": "text",
+      "id": "calculate_text",
+      "label": "计算按钮文本",
+      "default": "Calculate"
+    },
+    {
+      "type": "text",
+      "id": "error_text",
+      "label": "超过功率错误提示",
+      "default": "Input power cannot exceed ${power}W."
+    },
+    {
+      "type": "text",
+      "id": "error_text_no_device",
+      "label": "未选择设备错误提示",
+      "default": "Please input appliance wattage."
+    },
+
+    {
+      "type": "text",
+      "id": "right_title",
+      "label": "计算结果展示标题",
+      "default": "How long will it take to fully charge the power station?"
+    },
+    {
+      "type": "text",
+      "id": "result_hours_pc",
+      "label": "结果小时文本",
+      "default": "HOURS"
+    },
+    {
+      "type": "text",
+      "id": "result_desc_pc",
+      "label": "结算结果说明",
+      "default": "Data is based on lab test. The fully charged hours are based on the weather and other conditions"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-储能估算",
+      "category": "V5.0"
+    }
+  ]
+}
+{% endschema %}

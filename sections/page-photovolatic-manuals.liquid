@@ -1,0 +1,92 @@
+{% assign manualItems = section.blocks | where: 'type', 'manual_item' %}
+
+<section class="w-full flex-center flex-col pt-50 lg:j-pt-50 xl:a-pt-50 bg-#F5F3EF">
+  {% if section.settings.title != blank %}
+    <h2 class="w-full text-center font-600 text-#313131 text-48 leading-58 mb-10 px-40 lg:px-0 lg:j-w-1000 lg:j-text-40 lg:j-leading-56 lg:j-mb-5 xl:a-w-1000 xl:a-text-40 xl:a-leading-56 xl:a-mb-5">
+      {{ section.settings.title | newline_to_br }}
+    </h2>
+  {% endif %}
+  {% if section.settings.sub_title != blank %}
+    <p class="w-full text-center font-400 text-#626262 text-32 leading-39 px-40 lg:px-0 lg:j-w-950 lg:j-text-18 lg:j-leading-26 xl:a-w-950 xl:a-text-18 xl:a-leading-26">
+      {{ section.settings.sub_title | newline_to_br }}
+    </p>
+  {% endif %}
+  <ul class="w-full flex overflow-x-auto px-40 lg:flex-wrap gap-x-20 mt-50 pb-80 lg:px-0 lg:j-w-1280 lg:j-pb-100 lg:j-gap-16 lg:j-mt-50 xl:a-w-1280 xl:a-gap-16 xl:a-mt-50 xl:a-pb-100">
+    {% for block in manualItems %}
+      {% assign index = forloop.index0 %}
+      <li class="group w-full shrink-0 flex-start flex-col w-429 min-h-513 p-20 pb-106 rounded-24 {% if index == 0 %} ml-80 lg:ml-0 {% endif %} lg:j-p-20 lg:j-w-308 lg:j-min-h-356 lg:j-rounded-12 lg:j-pb-68 xl:a-p-20 xl:a-w-308 xl:a-min-h-356 xl:a-rounded-12 xl:a-pb-68 bg-white shadow-[0px_1px_3px_0px_#0000001A] relative">
+        <img class="w-full h-280 lg:j-h-180 xl:a-h-180 object-contain" src="{{ block.settings.manual_item_img | image_url: width: 268 }}" alt="" loading="lazy">
+        <p class="w-full font-600 text-center mt-40 mb-20 line-clamp-2 text-30 leading-39 lg:j-mt-40 lg:j-mb-20 lg:j-text-18 lg:j-leading-24 xl:a-mt-40 xl:a-mb-20 xl:a-text-18 xl:a-leading-24 text-black">
+          {{ block.settings.manual_item_title | newline_to_br }}
+        </p>
+        <button
+          class="group-hover:text-white group-hover:bg-primary transition-all duration-300 appearance-none absolute left-1/2 -translate-x-1/2 bottom-40 font-600 flex items-center justify-center min-w-232 h-66 rounded-33 border-1 text-28 bg-transparent text-primary border-solid border-primary max-w-389 w-max px-10 lg:j-bottom-40 lg:j-min-w-132 lg:j-max-w-200 lg:j-h-28 lg:j-px-10 lg:j-rounded-14 lg:j-text-13 lg:j-border-1 xl:a-bottom-40 xl:a-min-w-132 xl:a-max-w-200 xl:a-h-28 xl:a-px-10 xl:a-rounded-14 xl:a-text-13 xl:a-border-1"
+          data-download-manual
+          data-link="{{ block.settings.Manual_download_link }}"
+          data-section-title="{{ section.settings.title | escape }}"
+          data-item-title="{{ block.settings.manual_item_title | escape }}"
+          data-button-text="{{ block.settings.Manual_button_text | escape }}"
+        >
+          {{ block.settings.Manual_button_text | escape }}
+        </button>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+
+{% schema %}
+  {
+    "name": "photovolatic Manuals",
+    "class": "section-photovolatic section-photovolatic-manuals",
+    "presets": [
+      {
+        "name": "photovolatic Manuals",
+        "category": "光伏安装"
+      }
+    ],
+    "settings": [
+      {
+        "type": "textarea",
+        "id": "title",
+        "label": "Section Title",
+        "default": "Manuals"
+      },
+      {
+        "type": "textarea",
+        "id": "sub_title",
+        "label": "Section Sub Title",
+        "default": "Were the videos inadequate? Then you will find the detailed operating instructions in the documents. It contains detailed sketches and explanations of how to put all our systems into operation."
+      }
+    ],
+    "blocks": [
+      {
+        "type": "manual_item",
+        "name": "Manual Item",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "manual_item_img",
+            "label": "Manual Item Image"
+          },
+          {
+            "type": "textarea",
+            "id": "manual_item_title",
+            "label": "Manual Item Title"
+          },
+          {
+            "type": "text",
+            "id": "Manual_button_text",
+            "label": "Manual Download Button Text",
+            "default": "DOWNLOAD"
+          },
+          {
+            "type": "url",
+            "id": "Manual_download_link",
+            "label": "Manual Download Link"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}
+

@@ -1,0 +1,644 @@
+{% comment %}
+  FAQ
+{% endcomment %}
+
+{%- assign categories = section.settings.handlefaq -%}
+{%- assign faq_items = categories.category.value -%}
+{%- assign faq_num = faq_items | size -%}
+
+{% if faq_num > 0 %}
+
+  {{- 'section-faq.min.css' | asset_url | stylesheet_tag -}}
+
+  <style>
+    .produc-detail--faq {
+      padding-top: calc(var(--pc-padding-top) * 1px);
+      padding-bottom: calc(var(--pc-padding-bottom) * 1px);
+    }
+    @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+      .produc-detail--faq {
+        padding-top: calc(var(--pc-padding-top) * 100vw / 1440);
+        padding-bottom: calc(var(--pc-padding-bottom) * 100vw / 1440);
+      }
+    }
+    @media screen and (max-width: 1023.98px) {
+      .produc-detail--faq {
+        padding-top: calc(var(--mb-padding-top) * 100vw / 750);
+        padding-bottom: calc(var(--mb-padding-bottom) * 100vw / 750);
+      }
+    }
+  </style>
+
+  {%- capture style -%}
+    {% render 'spacing-padding', settings: section.settings %}
+  {%- endcapture -%}
+
+  <product-faq-columns
+    id="{{ section.settings.handle }}"
+    class="
+      block newcomer-faq newcomer-main-container
+      {% if section.settings.types == 'embed' %}embed-component{% endif %}
+      {% if section.settings.component_use_range == 'product_v5' %} section-padding {% endif %}
+       {% if section.settings.title_position == 'left' %}faq-position-title-left{% endif %}
+    "
+    data-handle="{{ section.settings.handle }}"
+    {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %}
+    style="{{ style }}"
+  >
+    {% comment %} faq {% endcomment %}
+
+    <div
+      class="produc-detail--faq {{section.settings.page_width}} product-block-section "
+      {% if section.settings.component_use_range == 'not_product_v5' %}
+        style="--pc-padding-top:{{ section.settings.pc_padding_top }};--pc-padding-bottom:{{ section.settings.pc_padding_bottom }};--mb-padding-top:{{ section.settings.mb_padding_top }};--mb-padding-bottom:{{ section.settings.mb_padding_bottom }};"
+      {% endif %}
+      data-show-category="{{section.settings.faq_show_category}}"
+    >
+      {% comment %} 如果标题是上方 {% endcomment %}
+      {% if section.settings.title_position == 'top' %}
+        <h2 class="faq-title {% if section.settings.title_align == 'left' %}text-left{% else %}text-center{% endif %} lg:text-center" >{{ section.settings.title | escape }}</h2>
+      {% endif %}
+      {%- assign view_more_link = '' -%}
+      {% comment %} 初始化计数变量 {% endcomment %}
+      {%- assign faq_all_count = 0 -%}
+
+      <div class="produc-detail--faq-wrap flex">
+
+        {% comment %} 左侧 {% endcomment %}
+        {% if section.settings.title_position == 'left' %}
+          <div class="w-[21.4375rem] lg:w-[18.875rem] mx-auto text-[rgba(0,0,0,.9)] leading-[125%]">
+            <h2 class="font-semibold text-[1.5rem] lg:text-[3rem]  mb-4 lg:mb-6">{{ section.settings.title | escape }}</h2>
+            <div class="font-normal lg:font-medium text-base mb-4 lg:mb-0">{{ section.settings.sub_title | escape }} </div>
+          </div>
+        {% else %}
+            {%- if section.settings.faq_show_category -%}
+              <div class="produc-detail--faq-left">
+                {%- for faq_category in faq_items -%}
+                  {%- if forloop.index0 == 0 -%}
+                    {%- assign view_more_link = faq_category.view_more_link -%}
+                  {%- endif -%}
+                  <div
+                    class="faq-category-name {% if forloop.index0 == 0 %}active{% endif %}"
+                    data-product-title="{{ product.title | escape }}"
+                    data-index="{{forloop.index0}}"
+                    data-view-more-link="{{faq_category.view_more_link}}"
+                  >
+                    {{ faq_category.column_name | escape }}
+                  </div>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+         {%- endif -%}
+
+        <div class="produc-detail--faq-right">
+          {% comment %} 需要分类展示 {% endcomment %}
+          {%- if section.settings.faq_show_category -%}
+            {%- for faq_category in faq_items -%}
+              <ul data-index="{{forloop.index0}}" class="{% if forloop.index0 == 0 %}active{% endif %}">
+                {% comment %} 最多显示 10个 {% endcomment %}
+                {%- for faq_question_and_answer in faq_category.column_content.value limit: 10 -%}
+                  {%- assign faq_media = faq_question_and_answer.answer_media -%}
+                  {%- assign faq_media_url = faq_media | metafield_text -%}
+                  {%- assign faq_image_href = faq_media | image_url: width: 1600 -%}
+                  {%- capture faq_toggle_icon -%}
+                    {% if settings.jky_theme_version == 'v5' %}
+                      <svg class="toggle_btn active shrink-0 lg:w-6 w-4 lg:h-6 h-4 transition-all duration-300 ease-in-out" width="22" height="12" viewBox="0 0 22 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0.6875 0.726563L10.6875 10.2266L20.6875 0.726563" stroke="black" stroke-opacity="0.65" stroke-width="2"></path>
+                      </svg>
+                    {% else %}
+                      <svg
+                        class="toggle_btn active"
+                        viewBox="0 0 1024 1024"
+                        version="1.1"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="36"
+                        height="36"
+                      >
+                        <path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity="1"></path>
+                      </svg>
+                    {% endif %}
+                  {%- endcapture -%}
+                  {%- capture faq_answer_media_markup -%}
+                    {%- if faq_media_url contains '.mp4' or faq_media_url contains '.mov' -%}
+                      {% comment %} video {% endcomment %}
+                      {% render 'jky-video',
+                        class: 'w-full h-full',
+                        video_url: faq_media_url,
+                        autoplay: false,
+                        loop: false,
+                        controls: true,
+                      %}
+                    {%- elsif faq_media_url contains '.jpg'
+                      or faq_media_url contains '.jpeg'
+                      or faq_media_url contains '.png'
+                      or faq_media_url contains '.webp'
+                      or faq_media_url contains '.gif'
+                    -%}
+                      {% comment %} image {% endcomment %}
+                      <div class="pswp-gallery-faq">
+                        <a
+                          href="{{ faq_image_href }}"
+                          data-pswp-width="{{ faq_media.width | default: 1200 }}"
+                          data-pswp-height="{{ faq_media.height | default: 1200 }}"
+                        >
+                          {% render 'responsive-image', image: faq_media %}
+                        </a>
+                      </div>
+                    {%- endif -%}
+                  {%- endcapture -%}
+                  <li>
+                    <div class="faq-header flex">
+                      <h3>{{ faq_question_and_answer.question | escape }}</h3>
+                      {{ faq_toggle_icon }}
+                    </div>
+                    <div class="faq-content">
+                      <div>{{ faq_question_and_answer.answer_text | metafield_tag }}</div>
+                      <div>{{ faq_answer_media_markup }}</div>
+                    </div>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endfor -%}
+          {%- else -%}
+            <ul data-index="0">
+              {%- for faq_category in faq_items -%}
+                {%- for faq_question_and_answer in faq_category.column_content.value -%}
+                  {% comment %} 只显示前 10 个 {% endcomment %}
+                  {%- if faq_all_count < 10 -%}
+                    {%- assign faq_media = faq_question_and_answer.answer_media -%}
+                    {%- assign faq_media_url = faq_media | metafield_text -%}
+                    {%- assign faq_image_href = faq_media | image_url: width: 1600 -%}
+                    {%- assign faq_icon_clip_id = section.id | append: '-faq-icon-' | append: faq_all_count -%}
+                    {%- capture faq_toggle_icon -%}
+                      {% if settings.jky_theme_version == 'v5' %}
+                        <svg class="toggle_btn active shrink-0 lg:w-6 w-4 lg:h-6 h-4 transition-all duration-300 ease-in-out" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g clip-path="url(#{{ faq_icon_clip_id }})">
+                            <path d="M22 9L12 18.5L2 9" stroke="#818181" stroke-width="2"/>
+                          </g>
+                          <defs>
+                            <clipPath id="{{ faq_icon_clip_id }}">
+                              <rect width="24" height="24" fill="white" transform="translate(24 1.04908e-06) rotate(90)"/>
+                            </clipPath>
+                          </defs>
+                        </svg>
+                      {% else %}
+                        <svg
+                          class="toggle_btn active"
+                          viewBox="0 0 1024 1024"
+                          version="1.1"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="36"
+                          height="36"
+                        >
+                          <path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity="1"></path>
+                        </svg>
+                      {% endif %}
+                    {%- endcapture -%}
+                    {%- capture faq_answer_media_markup -%}
+                      {%- if faq_media_url contains '.mp4' or faq_media_url contains '.mov' -%}
+                        {% comment %} video {% endcomment %}
+                        {% render 'jky-video',
+                          class: 'w-full h-full',
+                          video_url: faq_media_url,
+                          autoplay: false,
+                          loop: false,
+                          controls: true,
+                        %}
+                      {%- elsif faq_media_url contains '.jpg'
+                        or faq_media_url contains '.jpeg'
+                        or faq_media_url contains '.png'
+                        or faq_media_url contains '.webp'
+                        or faq_media_url contains '.gif'
+                      -%}
+                        {% comment %} image {% endcomment %}
+                        <div class="pswp-gallery-faq">
+                          <a
+                            href="{{ faq_image_href }}"
+                            data-pswp-width="{{ faq_media.width | default: 1200 }}"
+                            data-pswp-height="{{ faq_media.height | default: 1200 }}"
+                          >
+                            {% render 'responsive-image', image: faq_media %}
+                          </a>
+                        </div>
+                      {%- endif -%}
+                    {%- endcapture -%}
+                    <li>
+                      <div class="faq-header flex">
+                        <span>{{ faq_question_and_answer.question | escape }}</span>
+                        {{ faq_toggle_icon }}
+                      </div>
+                      <div class="faq-content">
+                        <div>{{ faq_question_and_answer.answer_text | metafield_tag }}</div>
+                        <div>{{ faq_answer_media_markup }}</div>
+                      </div>
+                    </li>
+                  {%- endif -%}
+
+                  {% comment %} 计数加 1 {% endcomment %}
+                  {%- assign faq_all_count = faq_all_count | plus: 1 -%}
+                {%- endfor -%}
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        </div>
+      </div>
+
+      {% comment %} 不需要分类展示 {% endcomment %}
+      {%- if section.settings.faq_show_category == false and faq_all_count > 10 -%}
+        {%- assign view_more_link = section.settings.faq_show_category_link -%}
+      {%- endif -%}
+
+      <a
+        href="{{view_more_link}}"
+        target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+        class="faq--more"
+        style="{% if faq_num > 0 and view_more_link != blank %}display:block{% else %}display:none{% endif %}"
+      >
+        <span class="index-button">
+          <span>{{ 'general.action_text.view_more' | t }}</span>
+          <div>
+            <div class="arrow">
+              <svg
+                class="line"
+                width="20"
+                height="15"
+                viewBox="0 0 20 15"
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink"
+              >
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                    <g transform="translate(672.000000, 286.000000)">
+                      <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                    </g>
+                  </g>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </span>
+      </a>
+    </div>
+  </product-faq-columns>
+
+  <script src="{{ 'section-faq.min.js' | asset_url }}" defer></script>
+  
+  {% comment %} 图片放大 {% endcomment %}
+  {%- assign photoswipe = 'photoswipe.js' | asset_url -%}
+  {%- assign PhotoSwipeLightbox = 'photoswipelightbox.js' | asset_url -%}
+
+  <script type="module">
+    document.addEventListener('DOMContentLoaded', function () {
+      const faqRoot = document.getElementById({{ section.settings.handle | json }})
+      if (!faqRoot) return
+
+      const photoswipeStyleHref = {{ 'photoswipe.css' | asset_url | json }}
+      let lightboxInstance = null
+      let lightboxPromise = null
+      let previewAssetsWarmed = false
+
+      const ensureStylesheet = (href) => {
+        if (document.querySelector('link[href="' + href + '"]')) return
+
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = href
+        document.head.appendChild(link)
+      }
+
+      const getGalleryElements = () => Array.from(faqRoot.querySelectorAll('.pswp-gallery-faq a'))
+
+      let currentGalleryItems = []
+
+      const getGalleryItems = (elements = getGalleryElements()) => {
+        return elements.map((el) => {
+          const img = el.querySelector('img')
+          const rawSrc = el.getAttribute('href') || (img ? img.getAttribute('src') : '')
+          const baseSrc = rawSrc.split('?')[0]
+
+          return {
+            src: rawSrc || (baseSrc ? baseSrc + '?width=1200' : ''),
+            width: parseInt(el.getAttribute('data-pswp-width'), 10) || 1200,
+            height: parseInt(el.getAttribute('data-pswp-height'), 10) || 800
+          }
+        })
+      }
+
+      const ensureLightbox = async () => {
+        if (lightboxInstance) return lightboxInstance
+
+        if (!lightboxPromise) {
+          currentGalleryItems = getGalleryItems()
+          lightboxPromise = import(/* webpackChunkName: "photoswipe-lightbox" */ '{{ PhotoSwipeLightbox }}').then((module) => {
+            const PhotoSwipeLightbox = module.default
+            ensureStylesheet(photoswipeStyleHref)
+
+            const closeSVGString = `
+              <svg width="32px" class="svg-close-btn" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <title>X备份 10</title>
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g transform="translate(-1824.000000, -32.000000)">
+                    <g transform="translate(1824.000000, 32.000000)">
+                      <rect x="0" y="0" width="32" height="32"></rect>
+                      <g transform="translate(6.000000, 6.000000)" fill="#666666" fill-rule="nonzero">
+                        <path d="M0.392826504,19.6093163 C0.563203835,19.7796143 0.763647752,19.8948159 0.994158258,19.9549211 C1.22466876,20.0150263 1.45768482,20.0150263 1.69320642,19.9549211 C1.92872803,19.8948159 2.13167749,19.7796143 2.30205482,19.6093163 L9.99910127,11.9008264 L17.711181,19.6093163 C17.8815583,19.7796143 18.0820023,19.8948159 18.3125128,19.9549211 C18.5430233,20.0150263 18.7735338,20.0150263 19.0040443,19.9549211 C19.2345548,19.8948159 19.4349987,19.7796143 19.605376,19.6093163 C19.7857756,19.4390183 19.9035364,19.2361633 19.9586584,19.0007513 C20.0137805,18.7653393 20.0137805,18.5324318 19.9586584,18.3020285 C19.9035364,18.0716253 19.7857756,17.8712747 19.605376,17.7009767 L11.9083296,9.99248685 L19.605376,2.29902329 C19.7857756,2.12872527 19.9035364,1.92837466 19.9586584,1.69797145 C20.0137805,1.46756824 20.0137805,1.23466066 19.9586584,0.999248685 C19.9035364,0.763836714 19.7857756,0.560981718 19.605376,0.390683696 C19.4349987,0.220385675 19.2345548,0.105184072 19.0040443,0.0450788881 C18.7735338,-0.015026296 18.5430233,-0.015026296 18.3125128,0.0450788881 C18.0820023,0.105184072 17.8815583,0.220385675 17.711181,0.390683696 L9.99910127,8.09917355 L2.30205482,0.390683696 C2.13167749,0.220385675 1.92872803,0.105184072 1.69320642,0.0450788881 C1.45768482,-0.015026296 1.22466876,-0.015026296 0.994158258,0.0450788881 C0.763647752,0.105184072 0.563203835,0.220385675 0.392826504,0.390683696 C0.212426978,0.560981718 0.0946661765,0.763836714 0.039544099,0.999248685 C-0.0155779784,1.23466066 -0.0130724294,1.46756824 0.0470607459,1.69797145 C0.107193921,1.92837466 0.222449174,2.12872527 0.392826504,2.29902329 L8.10490625,9.99248685 L0.392826504,17.7009767 C0.222449174,17.8712747 0.107193921,18.0716253 0.0470607459,18.3020285 C-0.0130724294,18.5324318 -0.0155779784,18.7653393 0.039544099,19.0007513 C0.0946661765,19.2361633 0.212426978,19.4390183 0.392826504,19.6093163 Z"></path>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </svg>
+            `
+
+            const lightbox = new PhotoSwipeLightbox({
+              dataSource: currentGalleryItems,
+              pswpModule: () => import('{{ photoswipe }}'),
+              arrowPrev: false,
+              arrowNext: false,
+              closeSVG: closeSVGString,
+              wheelToZoom: true,
+              zoom: false,
+              history: false,
+              counter: false,
+              bgOpacity: 1,
+            })
+
+            lightbox.addFilter('numItems', () => currentGalleryItems.length)
+            lightbox.addFilter('itemData', (itemData, index) => currentGalleryItems[index] || itemData)
+
+            lightbox.init()
+            lightboxInstance = lightbox
+            return lightbox
+          })
+        }
+
+        return lightboxPromise
+      }
+
+      const warmPreviewAssets = () => {
+        if (previewAssetsWarmed) return
+        previewAssetsWarmed = true
+        ensureStylesheet(photoswipeStyleHref)
+        void ensureLightbox()
+      }
+
+      const canHoverPreview = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+      if (canHoverPreview) {
+        faqRoot.addEventListener('mouseenter', warmPreviewAssets, { once: true })
+      } else {
+        faqRoot.addEventListener('pointerdown', warmPreviewAssets, { once: true, passive: true })
+        faqRoot.addEventListener('touchstart', warmPreviewAssets, { once: true, passive: true })
+      }
+      faqRoot.addEventListener('focusin', warmPreviewAssets, { once: true })
+
+      faqRoot.addEventListener('click', async (event) => {
+        const anchor = event.target.closest('.pswp-gallery-faq a')
+        if (!anchor || !faqRoot.contains(anchor)) return
+
+        event.preventDefault()
+        const galleryElements = getGalleryElements()
+        const index = galleryElements.indexOf(anchor)
+        if (index < 0) return
+
+        currentGalleryItems = getGalleryItems(galleryElements)
+        warmPreviewAssets()
+        const lightbox = await ensureLightbox()
+        lightbox.loadAndOpen(index)
+      })
+    })
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "FAQ",
+  "settings": [
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "header", "content": "使用场景设置" },
+    {
+      "type": "select",
+      "id": "component_use_range",
+      "label": "组件使用场景",
+      "options": [
+        { "value": "product_v5", "label": "商详页5.0"},
+        { "value": "not_product_v5", "label": "非商详页5.0" }
+      ],
+      "default": "not_product_v5"
+    },
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container",
+      "label": "组件宽度",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "types",
+      "label": "类型",
+      "default": "independent",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ],
+      "visible_if": "{{ section.settings.component_use_range == 'not_product_v5' }}"
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle（当前页面唯一的handle）",
+      "default": "embed-component-01",
+      "visible_if": "{{ section.settings.component_use_range == 'not_product_v5' }}"
+    },
+    { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.component_use_range == 'product_v5' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+
+    { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.component_use_range == 'product_v5' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "与PC一致"
+        },
+        {
+          "value": "custom",
+          "label": "单独配置"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距",
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' and section.settings.component_use_range == 'product_v5' }}"
+    },
+
+    { "type": "header", "content": "样式设置", "visible_if": "{{ section.settings.component_use_range == 'not_product_v5' }}" },
+    { "type": "number", "id": "pc_padding_top", "label": "上边距PC", "visible_if": "{{ section.settings.component_use_range == 'not_product_v5' }}" },
+    { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC", "visible_if": "{{ section.settings.component_use_range == 'not_product_v5' }}" },
+    { "type": "number", "id": "mb_padding_top", "label": "上边距MB", "visible_if": "{{ section.settings.component_use_range == 'not_product_v5' }}" },
+    { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB", "visible_if": "{{ section.settings.component_use_range == 'not_product_v5' }}" },
+    { "type": "metaobject", "id": "handlefaq", "label": "菜单Handle", "metaobject_type": "faq_block"},
+    { "type": "text", "id": "title", "label": "FAQ 标题", "default": "FAQ" },
+    {
+      "type": "select",
+      "id": "title_position",
+      "label": "FAQ 标题位置",
+      "options": [
+        { "value": "top", "label": "上方" },
+        { "value": "left", "label": "左侧" }
+      ],
+      "default": "top"
+    },
+    { "type": "text", "id": "sub_title", "label": "FAQ 副标题", "visible_if": "{{ section.settings.title_position == 'left' }}"  },
+    {
+      "type": "select",
+      "id": "title_align",
+      "label": "FAQ 标题对齐方式",
+      "options": [
+        { "value": "left", "label": "左对齐" },
+        { "value": "center", "label": "居中" }
+      ],
+      "default": "center",
+      "info": "仅Mobile端生效，PC端固定居中显示"
+    },
+
+    { "type": "header", "content": "其它设置" },
+    { "type": "checkbox", "id": "faq_show_category", "label": "是否按分类展示", "default": true },
+    {
+      "type": "url",
+      "id": "faq_show_category_link",
+      "label": "更多按钮链接",
+      "info": "只有在【不按分类展示】时，并且【FAQ的总数量超过10个】，配置才生效"
+    },
+    { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false }
+  ],
+  "presets": [
+    {
+      "name": "FAQ"
+    }
+  ]
+}
+{% endschema %}

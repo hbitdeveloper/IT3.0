@@ -1,0 +1,170 @@
+<style>
+    .slider-title {
+        color: var(--text-black);
+        margin: 6.25vw 0 2.60417vw;
+    }
+    .scene-container {
+        display: flex;
+        max-height: 720px;
+        height: 44vw;
+    }
+    .scene-container .thumb-container {
+        background-color: #eeeae2;
+        border-radius: 4.16667vw 0 0 0;
+        padding: 16px 0;
+        width: 22.13542vw;
+    }
+    .scene-container .thumbsSlider-slideshow {
+        flex: 1;
+    }
+    .scene-swiper .swiper-container .slideshow {
+        overflow-y: hidden;
+    }
+    .scene-container .slide-image {
+        background-repeat: no-repeat;
+        bottom: 0;
+        height: 100%;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 100%;
+    }
+    .scene-container .slide-image:hover .slid-collection-title::after {
+        transform: scale(1);
+    }
+    .scene-container .slide-image {
+        background-size: cover;
+        background-position: center;
+    }
+    .scene-swiper .swiper-container .slide-info {
+        bottom: auto;
+        left: 90px;
+        top: 30px;
+        max-width: 60%;
+    }
+    .swiper-container .slide-info .slid-collection-title {
+        color: var(--text-black);
+    }
+    @media screen and (max-width: 768px) {
+        .slider-title {
+            color: var(--text-black);
+            margin: 58px 0 25px;
+        }
+        .scene-container {
+            flex-direction: column;
+            height: auto;
+        }
+        .scene-container .swiper-container {
+            height: 125.3vw;
+        }
+
+        .scene-container .thumb-container {
+            background-color: #fafafa;
+            border-radius: 0;
+            padding: 6.66667vw 0 1.86667vw 0;
+            width: 100vw;
+            display: none;
+        }
+
+        .scene-container .thumbsSlider-slideshow {
+            flex: 1;
+        }
+
+
+        .scene-container .slide-image {
+            height: 125.3vw;
+        }
+        .scene-swiper .swiper-container .slide-info {
+            left: 8vw;
+            top: 6.67vw;
+            max-width: 90%;
+        }
+        .scene-swiper .thumb-container .slideshow-thumbnail-container .slideshow-thumbnail-name {
+            width: max-content;
+        }
+        .scene-swiper .slideshow-thumbnail-container .slideshow-thumbnail-name::after {
+            right: 0;
+            width: auto;
+        }
+        .scene-swiper .slide-info {
+            text-align: left;
+        }
+        .scene-slideshow-pagination .slideshow-pagination-item.active .pagination-separator {
+            background: var(--primary-color);
+        }
+    }
+</style>
+<h2 class="slider-title jky-text-2xl font-bold text-center">{{ section.settings.title | escape }}</h2>
+<div class="scene-container flex">
+        <div class="thumb-container">
+            <div class="slideshow-pagination slideshow-thumbnail-container slideshow-thumbnail-container-scene">
+                <div class="swiper-wrapper">
+                    {% for block in section.blocks %}
+                    {%- assign img_url = block.settings.image | image_url: width: 220 -%}
+                    <div class="slideshow-thumbnail swiper-slide">
+                        <div class="slideshow-thumbnail-img" style="background-image: url('{{ img_url }}');">
+                        </div>
+                        <div style="width: 100%;">
+                            <h3 class="slideshow-thumbnail-name jky-text-sm font-300">{{ block.settings.title | escape }}</h3>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="thumbsSlider-slideshow swiper-container">
+            <div class="swiper-container slideshow slideshowscene">
+                <div class="swiper-wrapper">
+                    {% for block in section.blocks %}
+                    {%- assign img_url = block.settings.image | image_url: width: 1600 -%}
+                    {%- assign m_img_url = block.settings.m_image | image_url: width: 750 -%}
+                    <div class="swiper-slide slide">
+                        <a href="{{ block.settings.link }}">
+                          <picture>
+                            <source media="(min-width: 1024px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+                                    data-srcset="{{img_url}}">
+                            <img class="slide-image swiper-lazy" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+                                 data-src="{{m_img_url}}" alt="{{ block.settings.title}}">
+                          </picture>
+                        </a>
+                        <div class="slide-content slide-content-img">
+                        </div>
+
+                        <div class="slide-info absolute" style="text-align:left;">
+                            <a class="slid-collection-title jky-text-2xl underlines-btn font-bold" style="color: {{block.settings.title_color}};" href="{{ block.settings.link }}">{{ block.settings.title | escape }}</a>
+
+                            <div class="slid-collection-subtitle jky-text-lg font-400" style="color: {{block.settings.subtitle_color}}; margin-top: 2px;">{{ block.settings.subtitle | escape }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="slideshow-pagination scene-slideshow-pagination flex lg:hidden"></div>
+        </div>
+    </div>
+
+{% schema %}
+{
+  "name": "Scene swiper",
+  "tag": "section",
+  "class": "section scene-swiper",
+  "settings": [
+    {"type": "textarea", "id": "title", "label": "Section title", "default": "Application Scenarios of Jackery Solar"}
+  ],
+  "blocks": [{
+      "type": "image", "name": "Slide scene",
+      "settings": [
+        {"type": "textarea", "id": "title", "label": "Heading", "default": "Two line slide title."},
+        { "type": "color", "id": "title_color", "label": "Heading color", "default": "#000000" },
+        {"type": "textarea", "id": "subtitle", "label": "Sub Heading"},
+        { "type": "color", "id": "subtitle_color", "label": "Sub Heading color", "default": "#000000" },
+        {"type": "url", "id": "link", "label": "Slide link"},
+        {"type": "image_picker", "id": "image", "label": "Image"},
+        {"type": "image_picker", "id": "m_image", "label": "Mobile Image"}
+      ]
+  }]
+}
+{% endschema %}

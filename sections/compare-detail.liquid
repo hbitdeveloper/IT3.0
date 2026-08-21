@@ -1,0 +1,338 @@
+<script type="application/ld+json" id="compare-detail-type">
+  [
+      {% for item in section.blocks %}
+          {
+              "id": {{ item.settings.id | json}},
+              "title": {{ item.settings.title | json}},
+              "handle": {{ item.settings.handle | json }},
+              "image": {{ item.settings.image | image_url: width: 80  | json}},
+              "s_image": {{ item.settings.s_image | image_url: width: 40  | json}}
+          }{% if forloop.last != true %},{% endif %}
+      {% endfor %}
+  ]
+</script>
+
+
+{{ 'section-compare-detail.min.css' | asset_url | stylesheet_tag }}
+<div id="compare-detail" class="compare-detail" data-add-to-cart="{{ 'products.product.add_to_cart' | t }}" data-open-auto-discount-price="{{settings.open_auto_discount_price}}">
+  <div>
+    <div class="compare-container">
+      <div class="com-header">
+        {% for item in section.blocks %}
+          <div class="com-header-item" data-id="{{ item.settings.id | escape }}" data-title="{{ item.settings.title | strip_html  }}">
+            {%- 
+              render 'responsive-image', 
+              image: item.settings.image, 
+              width: 80,
+              mwidth: 40,
+              image_class: 'item-img item-origin'
+            -%}
+
+            {%- 
+              render 'responsive-image', 
+              image: item.settings.s_image, 
+              width: 80,
+              mwidth: 40,
+              image_class: 'item-img item-active'
+            -%}
+            <div class="item-title">{{ item.settings.title }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <template v-if="pageLoading">
+      <div class="compare-loading">
+        {% render 'icon-loading', color: '#8a8a8a', width: 40, height:40 %}
+      </div>
+    </template>
+    <template v-else>
+      <template v-if="selectProductList.length > 0">
+        <div class="selects">
+          <div class="compare-container">
+            <div class="detail-selects">
+              <template v-for="(item, index) in selectProductList" :key="index">
+                <div class="select-item" :class="[openDropdown === index ? 'open' : '']">
+                  <div class="select-input" @click="handleOpen(index)">
+                    <span class="selected-label">${item.title}</span>
+                    <span class="arrow">
+                      {% render 'icon-down-out-lined', width: 20, height: 20, color: '#666' %}
+                    </span>
+                  </div>
+                  <div class="select-dropdown">
+                    <template v-for="product in productList">
+                      <div>
+                        <div class="group-label">${product.classifyTitle}</div>
+                        <template v-for="opt in product.fourProductResps">
+                          <div
+                            class="select-option"
+                            :class="item.skuId == opt.skuId ? 'selected' : ''"
+                            @click="handleProductSelect(opt, product.classifyTitle, index)"
+                          >
+                            ${opt.title}
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        <div class="compare-container">
+          <div class="detail-main">
+            <div class="detail-products">
+              <template v-for="(item, index) in selectProductList" :key="index">
+                <div class="product-item">
+                  <div class="product-image">
+                    <a
+                      :href="`${item.goodUrl}?variant=${item.skuId}`"
+                      target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                      @click="handleGaImage(item)"
+                    >
+                      <img :src="item.image" :alt="item.title">
+                    </a>
+                  </div>
+                  <div class="product-price">
+                    <span class="price">${formatMoney(item.shopifyFrontprice, money_format)}</span>
+                    <template v-if="item.shopifyFrontOriginalPrice > item.shopifyFrontprice">
+                      <span class="price-old">${formatMoney(item.shopifyFrontOriginalPrice, money_format)}</span>
+                    </template>
+                  </div>
+                  <template v-if="item.available">
+                    <button
+                      class="index-button compare-add-to-cart"
+                      :class="[index == selectIndex ? 'btn--loading' : '']"
+                      @click="handleAddToCart(item, index, '{{ 'products.product.add_to_cart' | t }}')"
+                    >
+                      <span>{{ 'products.product.add_to_cart' | t }}</span>
+                      <div>
+                        <div class="arrow">
+                          {% render 'icon-arrow-right', width: 20, height: 20, color: '#FFFFFF' %}
+                        </div>
+                      </div>
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button class="sold-out-button" :style="{ width: width + 'px' }" disabled>
+                      <span>{{ 'products.product.sold_out' | t }}</span>
+                    </button>
+                  </template>
+                </div>
+              </template>
+            </div>
+            <div class="detail-diff">
+              <input
+                class="form-checkbox"
+                v-model="showDiff"
+                id="showDiff"
+                type="checkbox"
+                name="showDiff"
+                @change="e => handleDiffChange('{{ section.settings.show_diff | escape }}')"
+              >
+              <label class="form-label checkbox-label" id="checkbox-label" for="showDiff"></label>
+              <span class="info">{{ section.settings.show_diff | escape }}</span>
+            </div>
+            <div class="detail-info ">
+              <template v-for="(item, index) in detailList" :key="index">
+                <div class="detail-item">
+                  <div
+                    class="first-level"
+                    :class="[item.show ? 'open' : '']"
+                    @click="handleLevelClick(item)"
+                  >
+                    <span class="title">${item.infoShowTitle}</span>
+                    <span class="arrow">
+                      {% render 'icon-down-out-lined', width: 20, height: 20, color: '#1A1A1A' %}
+                    </span>
+                  </div>
+                  {% comment %} 一级 {% endcomment %}
+                  <template v-if="item.childInfos.length > 0">
+                    <div class="dropdown" :class="[item.show ? 'show' : '']">
+                      {% comment %} 二级 {% endcomment %}
+                      <template v-for="(item1, j) in item.childInfos" :key="j">
+                        <template v-if="item1.childInfos.length > 0">
+                          <div
+                            class="second-level"
+                            :class="[item1.show ? 'open' : '']"
+                            @click="handleLevelClick(item1)"
+                          >
+                            <span class="title">${item1.infoShowTitle}</span>
+                            <span class="arrow">
+                              {% render 'icon-down-out-lined', width: 20, height: 20, color: '#666666' %}
+                            </span>
+                          </div>
+                          {% comment %} 三级 {% endcomment %}
+                          <div class="dropdown" :class="[item1.show ? 'show' : '']">
+                            <template v-for="(item2, j) in item1.childInfos" :key="j">
+                              <div class="detail-between">
+                                <template v-for="(item3, m) in item2.showValue" :key="m">
+                                  <div class="last-item">
+                                    <div class="key">${item2.infoShowTitle}</div>
+                                    <div class="value">${item3 ? item3 : '一'}</div>
+                                  </div>
+                                </template>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
+                        <template v-else>
+                          <div class="dropdown" :class="[item.show ? 'show' : '']">
+                            <div class="detail-between">
+                              <template v-for="(item2, m) in item1.showValue" :key="m">
+                                <div class="last-item">
+                                  <div class="key">${item1.infoShowTitle}</div>
+                                  <div class="value">${item2 ? item2 : '一'}</div>
+                                </div>
+                              </template>
+                            </div>
+                          </div>
+                        </template>
+                      </template>
+                    </div>
+                  </template>
+                  {% comment %} 一级 {% endcomment %}
+                  <template v-else>
+                    <div class="dropdown" :class="[item.show ? 'show' : '']">
+                      <div class="detail-between">
+                        <template v-for="j in item.showValue">
+                          <div class="last-item">
+                            <div class="value">${j ? j : '一'}</div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </div>
+          <template v-if="!isMobile">
+            <div class="detail-main detail-last-products">
+              <div class="detail-products">
+                <template v-for="(item, index) in selectProductList" :key="index">
+                  <div class="product-item">
+                    <div class="product-image">
+                      <a
+                        :href="`${item.goodUrl}?variant=${item.skuId}`"
+                        target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                        @click="handleGaImage(item)"
+                      >
+                        <img :src="item.image" :alt="item.title">
+                      </a>
+                    </div>
+                    <div class="product-price">
+                      <span class="price">${formatMoney(item.shopifyFrontprice, money_format)}</span>
+                      <template v-if="item.shopifyFrontOriginalPrice > item.shopifyFrontprice">
+                        <span class="price-old">${formatMoney(item.shopifyFrontOriginalPrice, money_format)}</span>
+                      </template>
+                    </div>
+                    <template v-if="item.available">
+                      <button
+                        class="index-button compare-add-to-cart"
+                        :class="[index == selectIndex ? 'btn--loading' : '']"
+                        @click="handleAddToCart(item, index, '{{ 'products.product.add_to_cart' | t }}')"
+                      >
+                        <span>{{ 'products.product.add_to_cart' | t }}</span>
+                        <div>
+                          <div class="arrow">
+                            {% render 'icon-arrow-right', width: 20, height: 20, color: '#FFFFFF' %}
+                          </div>
+                        </div>
+                      </button>
+                    </template>
+                    <template v-else>
+                      <button class="sold-out-button" :style="{ width: width + 'px' }" disabled>
+                        <span>{{ 'products.product.sold_out' | t }}</span>
+                      </button>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+    </template>
+  </div>
+  <template v-if="isMobile">
+    <div class="compare-container">
+      <div class="detail-main detail-last-products">
+        <div class="detail-products">
+          <template v-for="(item, index) in selectProductList" :key="index">
+            <div class="product-item">
+              <div class="product-image">
+                <a
+                  :href="`${item.goodUrl}?variant=${item.skuId}`"
+                  target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                  @click="handleGaImage(item)"
+                >
+                  <img :src="item.image" :alt="item.title">
+                </a>
+              </div>
+              <div class="product-title">${item.title}</div>
+              <div class="product-price">
+                <span class="price">${formatMoney(item.shopifyFrontprice, money_format)}</span>
+                <template v-if="item.shopifyFrontOriginalPrice && item.shopifyFrontOriginalPrice > item.shopifyFrontprice">
+                  <span class="price-old">${formatMoney(item.shopifyFrontOriginalPrice, money_format)}</span>
+                </template>
+              </div>
+              <template v-if="item.available">
+                <button
+                  class="index-button compare-add-to-cart"
+                  :class="[index == selectIndex ? 'btn--loading' : '']"
+                  @click="handleAddToCart(item, index, '{{ 'products.product.add_to_cart' | t }}')"
+                >
+                  <span>{{ 'products.product.add_to_cart' | t }}</span>
+                  <div>
+                    <div class="arrow">
+                      {% render 'icon-arrow-right', width: 20, height: 20, color: '#FFFFFF' %}
+                    </div>
+                  </div>
+                </button>
+              </template>
+              <template v-else>
+                <button class="sold-out-button" disabled>
+                  <span>{{ 'products.product.sold_out' | t }}</span>
+                </button>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>
+<script data-cookieconsent="ignore">
+  function onScriptLoad() {
+    const script = document.createElement('script');
+    script.src = "{{ 'section-compare-detail.min.js' | asset_url }}";
+    script.defer= true
+    document.body.appendChild(script);
+  }
+</script>
+<script data-cookieconsent="ignore" src="{{ 'vue3.global.min.js' | asset_url }}" onload="onScriptLoad()"></script>
+
+{% schema %}
+{
+  "name": "Compare Detail",
+  "settings": [
+    { "type": "text", "id": "show_diff", "label": "展示差异", "default": "Show only difference" },
+    { "type": "checkbox", "id": "new_window", "label": "打开新的页面", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "productType",
+      "name": "类型(必须是3个)",
+      "limit": 3,
+      "settings": [
+        { "type": "richtext", "id": "title", "label": "标题" },
+        { "type": "text", "id": "id", "label": "ID", "info": "OS后台配置的ID(必填)" },
+        {"type": "text", "id": "handle", "label": "Handle", "info": "链接带系列的参数时，需要自动选中对应的系列(solar-generator、portable-power-station、solar-panel)" },
+        { "type": "image_picker", "id": "image", "label": "默认图片(80*80)" },
+        { "type": "image_picker", "id": "s_image", "label": "选中图片(80*80)" }
+      ]
+    }
+  ]
+}
+{% endschema %}

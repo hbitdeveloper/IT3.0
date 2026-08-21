@@ -1,0 +1,348 @@
+{%- assign my_points = section.blocks | where: 'type', 'my_points' -%}
+{%- assign show_my_points_section = false -%}
+
+{% comment %} 编辑模式 {% endcomment %}
+{%- if my_points.size > 0 and request.design_mode -%}
+  {%- assign show_my_points_section = true -%}
+{%- endif -%}
+
+{% comment %} 登录后 {% endcomment %}
+{%- if my_points.size > 0 and customer.id -%}
+  {%- assign show_my_points_section = true -%}
+{%- endif -%}
+
+{%- if show_my_points_section -%}
+  {%- capture style -%}
+    {% render 'spacing-padding', settings: section.settings %}
+  {%- endcapture -%}
+
+  <style>
+    /* 日站样式调整 */
+    html[lang="ja"] v5-membership-my-points {
+      --jp-custom-line-height: calc(100% + 5px);
+    }
+    v5-membership-my-points jds-dialog {
+      --v5-membership-my-points-dialog-width: 53.125rem;
+      --jds-btn-large-height:3rem;
+      --v5-membership-redeem-confirm-dialog-width: 27.5rem;
+    }
+    v5-membership-my-points .points-wrap {
+      background: var(--pc-bg-color);
+    }
+    v5-membership-my-points jds-dialog::part(dialog-container) {
+      min-width: unset;
+    }
+    v5-membership-my-points jds-dialog.v5-membership-rules-redeem-dialog::part(dialog-container),
+    v5-membership-my-points jds-dialog.v5-membership-redeem-confirm-dialog::part(dialog-container) {
+      min-height: unset;
+    }
+    v5-membership-my-points jds-dialog::part(dialog-content) {
+      padding-left: 0;
+      padding-right: 0;
+      margin-bottom: 2.5rem;
+      margin-right: 0;
+    }
+
+    v5-membership-my-points jds-dialog.v5-membership-my-rewards-dialog,
+    v5-membership-my-points jds-dialog.v5-membership-my-activity-dialog {
+      height: fit-content;
+      --jds-dialog-min-height: 39.75rem;
+      --jds-dialog-max-height: min(39.75rem, 80vh);
+    }
+    
+    v5-membership-my-points .rewards-tabs-wrap .tab-item.active {
+      color: #242F20;
+    }
+    @media screen and (max-width: 1023.98px) {
+      v5-membership-my-points jds-dialog {
+        --v5-membership-my-points-dialog-width: 100vw;
+        --jds-btn-large-height: 2.5rem;
+        --jds-btn-large-padding-vertical: 1rem;
+      }
+      v5-membership-my-points .points-wrap {
+        background: var(--mb-bg-color);
+      }
+      v5-membership-my-points jds-dialog.v5-membership-my-rewards-dialog,
+      v5-membership-my-points jds-dialog.v5-membership-my-activity-dialog {
+        --jds-dialog-min-height: 32.3125rem;
+        --jds-dialog-max-height: 32.3125rem;
+      }
+    }
+  </style>
+  
+  {%- assign my_points_block = my_points.first -%}
+  <v5-membership-my-points
+    class="flex w-full section-padding"
+    {% if section.settings.anchor != blank %}
+      anchor-target="{{ section.settings.anchor | escape}}"
+    {% endif %}
+    style="--pc-bg-color:{{ section.settings.pc_bg_color | default: '#FFFFFF' }};--mb-bg-color:{{ section.settings.mb_bg_color | default: '#FFFFFF' }};{{ style }}"
+  >
+    <div
+      class="points-wrap section-container-lg flex flex-col lg:flex-row lg:items-center lg:justify-between px-4 py-10 gap-y-10 lg:px-[7.5rem] lg:gap-y-0"
+      style="background:{{ my_points_block.settings.bg_color | default: '#FFFFFF' }}"
+    >
+      <div class="flex gap-x-6 items-start justify-between lg:items-center lg:justify-start lg:gap-x-20">
+        <div class="flex-1 lg:flex-none flex flex-col items-center justify-center gap-y-6">
+          <div class="balance-point-wrap">
+            {%- if request.design_mode -%}
+              <span class="font-semibold text-[#242F20] text-5xl">999</span>
+            {%- else -%}
+              <span class="flex w-32 h-12 skeleton"></span>
+            {%- endif -%}
+          </div>
+          <span class="font-semibold text-[#242F20] text-[1.1875rem] leading-[1.75rem] lg:text-xl">{{ my_points_block.settings.available_text | escape }}</span>
+        </div>
+        <div class="flex-1 lg:flex-none flex flex-col items-center justify-center gap-y-6">
+          <div class="coming-soon-point-wrap">
+            {%- if request.design_mode -%}
+              <span class="font-semibold text-[#242F20] text-5xl">999</span>
+            {%- else -%}
+              <span class="flex w-32 h-12 skeleton"></span>
+            {%- endif -%}
+          </div>
+          <span class="font-semibold text-[#242F20] text-[1.1875rem] leading-[1.75rem] lg:text-xl">{{ my_points_block.settings.incoming_text | escape }}</span>
+        </div>
+      </div>
+      <div class="flex gap-x-8 lg:gap-x-3">
+        <jds-button
+          data-dialog="v5-membership-my-rewards-dialog"
+          class="flex-1"
+          kind="custom" style="--jds-btn-custom-color:#242F20;--jds-btn-large-height:3rem;"
+        >{{ my_points_block.settings.my_rewards_btn_text | escape }}</jds-button>
+        <jds-button
+          data-dialog="v5-membership-my-activity-dialog"
+          class="flex-1"
+          kind="custom" style="--jds-btn-custom-color:#242F20;--jds-btn-large-height:3rem;"
+        >{{ my_points_block.settings.my_activity_btn_text | escape }}</jds-button>
+      </div>
+    </div>
+
+    {% comment %} 我的奖励 弹窗 {% endcomment %}
+    <jds-dialog class="v5-membership-my-rewards-dialog" size="extra" showclose="" closeicon="close" disablebodyscroll="" style="--jds-dialog-bg:#F5F5F3;--jds-dialog-index:20000;--jds-dialog-width:var(--v5-membership-my-points-dialog-width)">
+      <div class="w-full h-full flex flex-col overflow-hidden">
+        {%- if my_points_block.settings.my_rewards_dialog_title != blank -%}
+          <h3 class="w-full text-center font-semibold text-black text-xl lg:text-[1.75rem] lg:leading-none my-4">{{ my_points_block.settings.my_rewards_dialog_title | escape }}</h3>
+        {%- endif -%}
+        {%- if my_points_block.settings.unused_subtitle != blank -%}
+          <p class="w-full text-center font-normal text-black text-sm lg:text-base mb-0.5" data-rewards-subtitle>{{ my_points_block.settings.unused_subtitle | newline_to_br }}</p>
+        {%- endif -%}
+        <div class="w-full px-4 lg:px-[3.75rem] mb-5">
+          <div class="rewards-tabs-wrap w-full lg:w-[38.125rem] mx-auto flex items-center justify-center gap-x-20 py-4 border-0 border-b-[1px] border-solid border-[#C6C7C8] relative">
+            <div class="tab-item cursor-pointer font-semibold text-black/30 text-base lg:text-xl active" data-type="unused">{{ my_points_block.settings.unused_text | default: 'Unused' | escape }}</div>
+            <div class="tab-item cursor-pointer font-semibold text-black/30 text-sm lg:text-xl" data-type="to_be_redeem">{{ my_points_block.settings.available_redeem_text | default: 'To be Redeemed' | escape }}</div>
+            <div class="tab-deco-line w-0 h-0.5 bg-[#242F20] absolute left-0 bottom-0 transition-all duration-300"></div>
+          </div>
+        </div>
+        <div
+          class="rewards-data-wrap flex-1 flex flex-col overflow-y-auto px-4 lg:px-[3.75rem] gap-y-5 max-h-[18.875rem] lg:max-h-[23.6875rem] lg:min-h-[23.6875rem]"
+          data-coupon-type-text="{{ 'membershipIndex.coupon' | t }}"
+          data-gift-card-type-text="{{ 'membershipIndex.gift_card' | t }}"
+          data-product-type-text="{{ 'membershipIndex.jackery_product' | t }}"
+          data-virtual-card-type-text="{{ 'membershipIndex.extras' | t }}"
+          data-code-text="{{ 'membershipIndex.code' | t }}"
+          data-copy-and-use-text="{{ 'membershipIndex.copy_and_use' | t }}"
+          data-rules-text="{{ 'membershipIndex.rules' | t }}"
+          data-copy-success-text="{{ 'membershipIndex.copy_success_text' | t }}"
+          data-redeem-now-text="{{ 'membershipIndex.redeem_now' | t }}"
+          data-out-of-stock-text="{{ 'membershipIndex.out_of_stock' | t }}"
+          data-redeem-text="{{ 'membershipIndex.redeem' | t }}"
+          data-cancel-redeem-text="{{ 'membershipIndex.cancel' | t }}"
+          data-points-text="{{ 'membershipIndex.points' | t }}"
+          data-unused-subtitle="{{ my_points_block.settings.unused_subtitle | newline_to_br }}"
+          data-unused-no-data-text="{{ my_points_block.settings.unused_no_data | newline_to_br }}"
+          data-redeem-subtitle="{{ my_points_block.settings.available_redeem_subtitle | newline_to_br }}"
+          data-redeem-no-data-text="{{ my_points_block.settings.available_redeem_no_data | newline_to_br }}"
+        >
+          <div class="w-20 lg:w-24 h-5 lg:h-7 skeleton"></div>
+          <ul class="grid grid-cols-2 gap-x-4 lg:gap-x-6 -mt-2 lg:mt-0">
+            <li class="bg-white flex flex-col w-full h-[17.125rem] gap-y-4 lg:h-[20.5rem] p-4">
+              <div class="w-full h-[8.1875rem] lg:h-[12.75rem] skeleton"></div>
+              <div class="w-3/5 h-6 lg:h-9 skeleton"></div>
+              <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between lg:mt-2">
+                <span class="inline-flex w-9 h-5 skeleton"></span>
+                <span class="inline-flex w-24 h-[1.875rem] lg:w-40 lg:h-8 skeleton"></span>
+              </div>
+            </li>
+            <li class="bg-white flex flex-col w-full h-[17.125rem] gap-y-4 lg:h-[20.5rem] p-4">
+              <div class="w-full h-[8.1875rem] lg:h-[12.75rem] skeleton"></div>
+              <div class="w-3/5 h-6 lg:h-9 skeleton"></div>
+              <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between lg:mt-2">
+                <span class="inline-flex w-9 h-5 skeleton"></span>
+                <span class="inline-flex w-24 h-[1.875rem] lg:w-40 lg:h-8 skeleton"></span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </jds-dialog>
+    
+    {% comment %} 我的活动 弹窗 {% endcomment %}
+    <jds-dialog class="v5-membership-my-activity-dialog" size="extra" showclose="" closeicon="close" disablebodyscroll="" style="--jds-dialog-bg:#F5F5F3;--jds-dialog-index:20000;--jds-dialog-width:var(--v5-membership-my-points-dialog-width)">
+      <div class="w-full h-full flex flex-col overflow-hidden">
+        {%- if my_points_block.settings.my_activity_dialog_title != blank -%}
+          <h3 class="w-full text-center font-semibold text-black text-xl lg:text-[1.75rem] lg:leading-[1.1] my-6">{{ my_points_block.settings.my_activity_dialog_title | escape }}</h3>
+        {%- endif -%}
+        <div class="w-full px-4 lg:px-[3.75rem]">
+          <div
+            class="activity-points-title flex items-center justify-start pt-2 pb-6 gap-x-4 lg:gap-x-6 lg:pt-1 lg:pb-5 border-0 border-solid border-[#C6C7C8]"
+            data-time-text="{{ my_points_block.settings.time_text | default: 'Time' | escape }}"
+            data-activity-text="{{ my_points_block.settings.activity_text | default: 'Action' | escape }}"
+            data-points-text="{{ my_points_block.settings.points_text | default: 'Points' | escape }}"
+          >
+            <span class="inline-flex w-full h-5 lg:h-7 skeleton"></span>
+          </div>
+        </div>
+        <ul
+          class="activity-points-wrap flex-1 overflow-y-auto px-4 lg:px-[3.75rem] max-h-[18.875rem] lg:max-h-[23.6875rem] lg:min-h-[23.6875rem]"
+          data-points-text="{{ my_points_block.settings.points_text | default: 'Points' | escape }}"
+          data-activity-no-data-text="{{ my_points_block.settings.my_activity_no_data | newline_to_br }}"
+        >
+          <div class="flex items-center justify-start py-2.5">
+            <span class="inline-flex w-full h-5 lg:h-6 skeleton"></span>
+          </div>
+          <div class="flex items-center justify-start py-2.5">
+            <span class="inline-flex w-full h-5 lg:h-6 skeleton"></span>
+          </div>
+          <div class="flex items-center justify-start py-2.5">
+            <span class="inline-flex w-full h-5 lg:h-6 skeleton"></span>
+          </div>
+          <div class="flex items-center justify-start py-2.5">
+            <span class="inline-flex w-full h-5 lg:h-6 skeleton"></span>
+          </div>
+          <div class="flex items-center justify-start py-2.5">
+            <span class="inline-flex w-full h-5 lg:h-6 skeleton"></span>
+          </div>
+          <div class="flex items-center justify-start py-2.5">
+            <span class="inline-flex w-full h-5 lg:h-6 skeleton"></span>
+          </div>
+          <div class="flex items-center justify-start py-2.5">
+            <span class="inline-flex w-full h-5 lg:h-6 skeleton"></span>
+          </div>
+          <div class="flex items-center justify-start py-2.5">
+            <span class="inline-flex w-full h-5 lg:h-6 skeleton"></span>
+          </div>
+        </ul>
+      </div>
+    </jds-dialog>
+
+    {% comment %} 积分兑换规则弹窗 {% endcomment %}
+    <jds-dialog class="v5-membership-rules-redeem-dialog" size="extra" showclose="" closeicon="close" disablebodyscroll="" style="--jds-dialog-index:20001;--jds-dialog-width:var(--v5-membership-redeem-confirm-dialog-width)">
+      <div class="w-full h-full flex flex-col gap-y-3 lg:gap-y-5 px-6 overflow-hidden" data-content></div>
+    </jds-dialog>
+
+    {% comment %} 积分兑换确认弹窗 {% endcomment %}
+    <jds-dialog class="v5-membership-redeem-confirm-dialog" size="extra" showclose="" closeicon="close" disablebodyscroll="" style="--jds-dialog-index:20002;--jds-dialog-width:var(--v5-membership-redeem-confirm-dialog-width)">
+      <div class="w-full h-full flex flex-col gap-y-6 p-6 overflow-hidden">
+        <div class="w-full font-semibold text-[#242F20] lg:text-base text-center" data-content="{{ 'membershipIndex.redeem_confirm_content' | t }}"></div>
+        <div class="w-full flex flex-wrap items-center justify-center gap-x-6">
+          <jds-button data-action="cancel" variant="secondary" kind="custom" style="--jds-btn-custom-color:#242F20;">{{ 'membershipIndex.cancel' | t }}</jds-button>
+          <jds-button data-action="redeem" data-redeem-success-text="{{ 'membershipIndex.redeem_success_tips' | t }}" kind="custom" style="--jds-btn-custom-color:#242F20">{{ 'membershipIndex.redeem' | t }}</jds-button>
+        </div>
+      </div>
+    </jds-dialog>
+  </v5-membership-my-points>
+
+  <script src="{{ 'section-v5-membership-my-points.min.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+
+{% schema %}
+{
+  "name": "V5-会员-我的积分（登录后显示）",
+  "class": "v5-membership-my-points",
+  "limit": 1,
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 64 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 64 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "pc_bg_color", "label": "PC端版块背景色", "default": "#FFFFFF" },
+    { "type": "color_background", "id": "mb_bg_color", "label": "MB端版块背景色", "default": "#F5F5F3" }
+  ],
+  "blocks": [
+    {
+      "type": "my_points",
+      "name": "我的积分",
+      "limit": 1,
+      "settings": [
+        { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "linear-gradient(90deg, #DBB351 0%, #FEEF92 50%, #DBB351 100%)" },
+        { "type": "text", "id": "available_text", "label": "可用积分文案", "default": "Points Balance" },
+        { "type": "text", "id": "incoming_text", "label": "在途积分文案", "default": "Coming Soon" },
+        { "type": "text", "id": "my_rewards_btn_text", "label": "我的奖励文案", "default": "My Rewards" },
+        { "type": "text", "id": "my_activity_btn_text", "label": "我的活动文案", "default": "My Activity" },
+
+        { "type": "header", "content": "我的奖励弹窗配置" },
+        { "type": "text", "id": "my_rewards_dialog_title", "label": "弹窗标题", "default": "My Rewards" },
+        { "type": "header", "content": "【已兑换未用权益】" },
+        { "type": "text", "id": "unused_text", "label": "文案", "default": "Unused" },
+        { "type": "textarea", "id": "unused_subtitle", "label": "副标题", "default": "Use at checkout before it expires!" },
+        { "type": "textarea", "id": "unused_no_data", "label": "无数据文案", "default": "No available rewards" },
+        { "type": "header", "content": "【可兑换权益】" },
+        { "type": "text", "id": "available_redeem_text", "label": "文案", "default": "To be Redeemed" },
+        { "type": "textarea", "id": "available_redeem_subtitle", "label": "副标题", "default": "You have {0} Jackery points.", "info": "{0}是变量占位符" },
+        { "type": "textarea", "id": "available_redeem_no_data", "label": "无数据文案", "default": "No convertible prizes" },
+
+        { "type": "header", "content": "我的活动弹窗配置" },
+        { "type": "text", "id": "my_activity_dialog_title", "label": "弹窗标题", "default": "My Activity" },
+        { "type": "textarea", "id": "my_activity_no_data", "label": "无数据文案", "default": "No available activity" },
+        { "type": "text", "id": "time_text", "label": "时间列表文案", "default": "Time" },
+        { "type": "text", "id": "activity_text", "label": "活动列表文案", "default": "Action" },
+        { "type": "text", "id": "points_text", "label": "积分列表文案", "default": "Points" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-会员-我的积分",
+      "blocks": [
+        {
+          "type": "my_points"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

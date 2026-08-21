@@ -1,0 +1,85 @@
+{% comment %} 产品列表轮播图组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Product List Carousel",
+  "tag": "section",
+  "class": "product-list-carousel-component",
+  "settings": [
+    {
+      "type": "text",
+      "id": "viewMoreTxt",
+      "label": "View More Text",
+      "default": "VIEW MORE"
+    },
+    {
+      "type": "text",
+      "id": "btnMoreTxt",
+      "label": "Button More Text",
+      "default": "MORE"
+    },
+    {
+      "type": "text",
+      "id": "btnMoreLink",
+      "label": "Button More Link"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Product List",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        }
+      ]
+    }
+  ],
+  "presets": [{
+        "name": "Product List Carousel"
+   }]
+}
+{% endschema %}
+{% assign total = section.blocks | size %}
+<div class="product-list-carousel section-container" data-total="{{ total }}">
+	<div class="swiper {% if total == 1 %}single-slide{% endif %} {% if total > 3 %}can-rotated{% else %}non-rotated{% endif %}">
+		<div class="swiper-wrapper">
+			{% for block in section.blocks %}
+				<div class="swiper-slide">
+					<div class="slide-box">
+						{% render 'product-tag', product: block.settings.product, uid: block.settings.product.id %}
+						<a href="{{ block.settings.product.url }}" class="img-link"
+							 data-product-name="{{ block.settings.product.title | escape }}" data-product-id="{{ block.settings.product.id }}">
+							<div class="img-box">
+								{% render 'responsive-image',
+										image: block.settings.product.featured_image,
+										image_class: 'swiper-img'
+								%}
+							</div>
+						</a>
+						<div class="content-box">
+							<div class="item-title line-clamp-2">{{ block.settings.product.title | escape }}</div>
+							<div class="item-content">
+								{{ block.settings.product.metafields.custom.product_features_info | metafield_tag }}
+							</div>
+
+							{% if section.settings.viewMoreTxt != blank %}
+								<a href="{{ block.settings.product.url }}" class="btn-view-more z-button-fill-middle"
+									 data-product-name="{{ block.settings.product.title | escape }}" data-product-id="{{ block.settings.product.id }}">{{ section.settings.viewMoreTxt }}</a>
+							{% endif %}
+
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+	{% if total > 3 %}
+		<div class="swiper-arrow swiper-button-next"></div>
+		<div class="swiper-arrow swiper-button-prev"></div>
+	{% endif %}
+	{% if section.settings.btnMoreTxt != blank %}
+		<a href="{{ section.settings.btnMoreLink }}" class="btn-more z-button-big">{{ section.settings.btnMoreTxt }}</a>
+	{% endif %}
+</div>

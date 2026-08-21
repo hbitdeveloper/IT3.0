@@ -1,0 +1,120 @@
+{% comment %} 订阅弹窗 {% endcomment %}
+<style>
+  jds-dialog[id="{{ id }}"] {
+    --dialog-width: {{ pc_dialog_width | default: '30rem' }};
+  }
+  jds-dialog[id="{{ id }}"]::part(dialog-content) {
+    --jds-dialog-padding-x-extra: 3.75rem;
+    overflow-y: auto;
+  }
+  @media screen and (min-width: 1024px) {
+    jds-dialog[id="{{ id }}"] .newbee-form .form-row .form-item.error[data-field=check_box] {
+      margin-bottom: 1.25rem;
+    }
+    jds-dialog[id="{{ id }}"] .newbee-form .form-row.form-row_check_box .field_error-tips{
+      bottom: -1.5rem;
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    jds-dialog[id="{{ id }}"] {
+      --dialog-width: {{ mb_dialog_width | default: '100vw' }};
+      --jds-btn-large-height: 2.5rem;
+      --jds-btn-large-padding-vertical: 1rem;
+    }
+    jds-dialog[id="{{ id }}"]::part(dialog-content) {
+      --jds-dialog-padding-x-extra: 1rem;
+    }
+  }
+</style>
+<jds-dialog
+  id="{{ id }}"
+  class="{{ class }}"
+  size="extra"
+  showclose=""
+  closeicon="close"
+  disablebodyscroll=""
+  style="--jds-dialog-index:20001;--jds-dialog-width:var(--dialog-width);--jds-dialog-bg:#F5F5F3;"
+>
+  <div class="flex flex-col gap-y-3 pt-6 pb-4 lg:gap-y-4 lg:pt-5 lg:pb-10">
+    <h2 class="v5-font-oxm font-extrabold text-black text-center lg:text-left text-4xl lg:text-[2.5rem]">
+      {{ settings.newsletter_heading | escape }}
+    </h2>
+    <p class="font-normal text-[#242F20] text-center lg:text-left text-sm lg:text-base">
+      {{ settings.newsletter_subheading | newline_to_br }}
+    </p>
+  </div>
+  <jky-form
+    jky-form-id="{{ id }}"
+    class="subscribe-email"
+  >
+    <form data-action="/osconsumerapi/v1/notice/subscribe" data-notscroll="true">
+      <div class="form-container newbee-form newbee-form_{{ id }}" style="--field-col-distance:1rem;">
+        {% comment %} 邮箱 {% endcomment %}
+        <div class="form-row flex full">
+          <div class="form-item bg-white required" data-field="input">
+            <input
+              class="!pl-[2.625rem]"
+              style="--input-bg:#FFF;--input-h:3rem;--input-border:0;"
+              type="email"
+              id="email"
+              name="email"
+              placeholder="{{ 'newsletter.email_placeholder' | t }}"
+              data-error="{{ 'newsletter.email_empty_info' | t }}"
+              data-value="email"
+              data-reg="email"
+              data-regerror="{{ 'newsletter.email_error_info' | t }}"
+            >
+            <div class="absolute left-0 bottom-0 w-[2.625rem] h-full flex items-center justify-center">
+              <div class="font-normal text-primary text-[1.75rem] pt-3">*</div>
+            </div>
+          </div>
+        </div>
+
+        {% comment %} 电话 {% endcomment %}
+        <div class="form-row flex full">
+          <div
+            class="form-item"
+            data-field="phone_input"
+            style="--input-bg:#FFF;--input-h:3rem;--input-border:0;"
+          >
+            {% render "jky-formField-phoneSelect", id: id, required: true, error_text: {{ 'newsletter.phone_error_info' | t}}, value: 'phone' %}
+          </div>
+        </div>
+        {% comment %} 隐私协议 {% endcomment %}
+        <div class="form-row privacy form-row_check_box flex full">
+          <div
+            class="form-item required"
+            data-field="check_box"
+            data-error="{{ 'newsletter.policy_empty_info' | t }}"
+          >
+            {% render 'jky-formField-checkbox', key: settings.privacy_policy, value: 'agree_recevie' %}
+          </div>
+        </div>
+
+        <div style="display: none;" class="form-row flex full">
+          <div class="form-item form-item_const" data-field="input">
+            <input
+              type="text"
+              id="tags"
+              name="tags"
+              data-error=""
+              data-value="tags"
+              data-reg=""
+              value="{{ settings.subscribe_tag | escape }}"
+              data-regerror=""
+            >
+          </div>
+        </div>
+
+        <div class="newbee-form_submit flex full">
+          <button
+            class="form_sub_btn jky-v5-button flex items-center justify-center w-full font-semibold bg-[#9D1D22] text-white h-12 lg:text-xl "
+            data-success="{{ 'newsletter.success' | t}}"
+          >
+            {{ settings.subcribe_btn | escape }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </jky-form>
+</jds-dialog>

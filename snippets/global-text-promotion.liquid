@@ -1,0 +1,175 @@
+{% comment %}
+  标题：全局文案促销机动版块
+  数据源：内容 - 元对象 - 全局文案促销机动版块
+  详细说明见：https://alidocs.dingtalk.com/i/nodes/amweZ92PV6vXPzezUdLO7by5VxEKBD6p
+
+  片段接收参数：
+    id: 版块ID
+
+  示例：
+   {% render 'global-text-promotion', id: 'globalTextPromotion' %}
+{% endcomment %}
+
+{% assign pdp_v4_text_promotion = shop.metaobjects.pdp_v4_text_promotion.values %}
+
+{% if pdp_v4_text_promotion != blank %}
+  {% comment %} 仅获取第一个条目 {% endcomment %}
+  {%- assign global_text_promotion = pdp_v4_text_promotion | first -%}
+
+  {% comment %} 本版块是否展示有【版块开关+版块有效期】共同决定 {% endcomment %}
+  {%- liquid
+    assign show_global_text_promotion = false
+    assign global_enable = global_text_promotion.enable | default: true, allow_false: true
+
+    assign is_global_valid_time = false
+    assign time_now = 'now' | date: '%s'
+
+    assign block_start_time = 0
+    if global_text_promotion.block_start_time != blank
+      assign block_start_time = global_text_promotion.block_start_time | date: '%s'
+    endif
+
+    assign block_end_time = 0
+    if global_text_promotion.block_end_time != blank
+      assign block_end_time = global_text_promotion.block_end_time | date: '%s'
+    endif
+
+    if block_start_time == 0 and block_end_time == 0
+      assign is_global_valid_time = true
+    endif
+
+    if block_start_time != 0 and block_end_time == 0 and block_start_time < time_now
+      assign is_global_valid_time = true
+    endif
+
+    if block_start_time == 0 and block_end_time != 0 and block_end_time > time_now
+      assign is_global_valid_time = true
+    endif
+
+    if block_start_time != 0 and block_end_time != 0 and block_end_time > time_now and block_start_time < time_now
+      assign is_global_valid_time = true
+    endif
+
+    assign is_product_valid = false
+    assign product_list = global_text_promotion.product_list.value
+    for curr_product in product_list
+       if curr_product.id == product.id
+          assign is_product_valid = true
+          break
+      endif
+    endfor
+
+    if global_enable and is_global_valid_time and is_product_valid
+      assign show_global_text_promotion = true
+    endif
+  -%}
+
+  {% comment %} 判断 背景图 与 内容区 是否存在 {% endcomment %}
+  {%- liquid
+    assign has_bg_img = false
+    if global_text_promotion.block_pc_bg_img or global_text_promotion.block_mb_bg_img
+      assign has_bg_img = true
+    endif
+
+    assign has_content = false
+    assign has_countdown = false
+
+    assign is_countdown_valid_time = false
+    assign time_now = 'now' | date: '%s'
+
+    assign countdown_start_time = 0
+    if global_text_promotion.countdown_start_time != blank
+      assign countdown_start_time = global_text_promotion.countdown_start_time | date: '%s'
+    endif
+
+    assign countdown_end_time = 0
+    if global_text_promotion.countdown_end_time != blank
+      assign countdown_end_time = global_text_promotion.countdown_end_time | date: '%s'
+    endif
+
+    if countdown_start_time == 0 and countdown_end_time == 0
+      assign is_countdown_valid_time = true
+    endif
+
+    if countdown_start_time != 0 and countdown_end_time == 0 and countdown_start_time < time_now
+      assign is_countdown_valid_time = true
+    endif
+
+    if countdown_start_time == 0 and countdown_end_time != 0 and countdown_end_time > time_now
+      assign is_countdown_valid_time = true
+    endif
+
+    if countdown_start_time != 0 and countdown_end_time != 0 and countdown_end_time > time_now and countdown_start_time < time_now
+      assign is_countdown_valid_time = true
+    endif
+
+    if is_countdown_valid_time
+      assign has_countdown = true
+    endif
+
+    if global_text_promotion.title != blank or has_countdown
+      assign has_content = true
+    endif
+
+    assign wrapper_class = ''
+    if has_bg_img and has_content
+      assign wrapper_class = 'has-all'
+    elsif has_bg_img and has_content == false
+      assign wrapper_class = 'only-bg-img'
+    elsif has_bg_img == false and has_content
+      assign wrapper_class = 'only-content'
+    else
+      assign wrapper_class = 'has-nothing'
+    endif
+  %}
+
+  {% if show_global_text_promotion %}
+    <div
+      class="text-promotion-wrapper global-text-promotion product-info_block w-full {{ wrapper_class }}"
+      {{ block.shopify_attributes }}
+      id="{{ id }}"
+    >
+      {% if has_content or has_bg_img %}
+        {{ 'snippet-app-text-promotion.min.css' | asset_url | stylesheet_tag }}
+      {% endif %}
+
+      {% if has_bg_img %}
+        {% render 'diff-end-img',
+          class: 'text-promotion-bg-img',
+          pc_img: global_text_promotion.block_pc_bg_img | metafield_text,
+          mb_img: global_text_promotion.block_mb_bg_img | metafield_text,
+          pc_img_width: 500,
+          mb_img_width: 686,
+          placeholder_name: 'hero-apparel-1'
+        %}
+      {% endif %}
+
+      {% if has_content %}
+        <div
+          id="app-text-promotion"
+          class="text-promotion-content"
+          data-type="global"
+          data-shopify-time-str="{{ 'now' | date: "%Y/%m/%d %H:%M:%S" }}"
+          data-ends-in-text="{{ global_text_promotion.ends_in_text | metafield_text | default:'Ends in'}}"
+          data-countdown-start-str="{{ global_text_promotion.countdown_start_time | date: "%Y/%m/%d %H:%M:%S"}}"
+          data-countdown-end-str="{{ global_text_promotion.countdown_end_time | date: "%Y/%m/%d %H:%M:%S"}}"
+          data-countdown-label-str="{{ global_text_promotion.countdown_labels | metafield_text | default:'Days,Hrs,Mins,Secs' }}"
+          data-countdown-text-color="{{ global_text_promotion.countdown_text_color | metafield_text  | default: '#666666'}}"
+          data-countdown-bg-color="{{ global_text_promotion.countdown_bg_color | metafield_text | default: 'var(--jds-color-primary)' }}"
+          data-countdown-number-color="{{ global_text_promotion.countdown_number_color | metafield_text | default: '#FFFFFF' }}"
+          style="--text-promotion-text-color: {{ global_text_promotion.title_color | metafield_text | default: '#666666' }}; --block-bg-color:{{ global_text_promotion.block_bg_color | default: '#F7F9FA' }};"
+        >
+          {% if global_text_promotion.title != blank %}
+            <div
+              class="text-promotion-richtext text-#666 text-28 leading-42 lg:j-text-16 lg:j-leading-24 xl:a-text-16 xl:a-leading-24 jds-rte"
+              style="--hight-light-color: {{ global_text_promotion.title_main_color | default: 'var(--jds-color-primary)' }};"
+            >
+              {{ global_text_promotion.title | metafield_tag }}
+            </div>
+          {% endif %}
+        </div>
+        <script src="{{ 'snippet-app-text-promotion.min.js' | asset_url }}" defer></script>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endif %}

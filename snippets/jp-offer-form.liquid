@@ -1,0 +1,78 @@
+{% comment %} 日站offer表单  {% endcomment %}
+{% comment %} aws s3桶 {% endcomment %}
+<script src="{{ 'aws-sdk-2.1046.0.min.js' | asset_url }}" defer></script>
+
+<jky-form
+  data-scroll="true"
+  data-is-in-dialog="true"
+  data-no-reset-after-submit="true"
+  data-reset-radio="true"
+  data-upload_exceed_error="{{ section.upload_exceed_error | escape }}"
+  data-upload_format_error="{{ section.upload_format_error | escape }}"
+  data-upload_more_error="{{ section.upload_more_error | escape }}"
+  jky-form-id="jp-offer-form"
+  class="jp-offer-form"
+  onsubmitcall="(e)=>toOffer(e)"
+>
+  <form data-action="/osconsumerapi/consumer/act/save-job">
+    <div class="hidden">
+      <div class="form-item form-item_const" data-field="input">
+        <input type="hidden" name="cr" data-value="cr" value="{{shop.address.country_code}}">
+      </div>
+      {% comment %} 岗位名称 {% endcomment %}
+      <div class="form-item form-item_const" data-field="input">
+        <input type="hidden" name="hcName" class="hc-name" data-value="hcName" value="">
+      </div>
+
+      {% comment %} 文件列表 {% endcomment %}
+      <div class="form-item form-item_const" data-field="input">
+        <input type="hidden" name="files" class="file-value" data-value="files" value="">
+      </div>
+    </div>
+    <section class="top-border">
+      <div class="form-row flex">
+        <div class="form-item flex-col w-full required" data-field="input">
+          <label class="form-label"><span class="red">*</span> メールアドレス </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="{{ section.modal_input_email }}"
+            data-error="{{ section.modal_require }}"
+            data-value="email"
+            data-reg="email"
+            data-regerror="{{ section.email_error }}"
+            maxlength="50"
+          >
+        </div>
+      </div>
+    </section>
+
+    {% comment %} 说明文案 {% endcomment %}
+    {% assign titletipsColor = '<em style="color: ' | append: section.modal_tips_color | append: '">' %}
+    <div class="section-desc jds-b1 bottom-20">
+      {{ section.modal_tips | replace: '<em>', titletipsColor }}
+    </div>
+    <div class="form-item flex-col required file-box">
+      <div class="upload-container">
+        {% comment %} 选择文件按钮 {% endcomment %}
+        <div class="file-list" id="fileList"></div>
+        <label for="fileInput" class="choose-btn" id="chooseLabel"> ＋ {{ section.upload_text }}
+          <span class="loading-spinner"></span>
+        </label>
+        <input
+          type="file"
+          id="fileInput"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+          data-error="{{ section.modal_require }}"
+        >
+      </div>
+    </div>
+
+    <div class="flex justify-center w-full relative">
+      <jds-button class="form_sub_btn jp-form-submit" data-success="{{ section.modal_success }}">{{ section.offer_btn }}</jds-button>
+    </div>
+  </form>
+</jky-form>
+
+<script src="{{ 'snippet-jp-offer-form.min.js' | asset_url }}" defer></script>

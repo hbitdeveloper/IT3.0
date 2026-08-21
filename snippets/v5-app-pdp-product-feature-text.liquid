@@ -1,0 +1,44 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% assign raw_json = product.metafields.custom.feature_text_json | strip %}
+{% assign cleaned = raw_json 
+  | remove: '{' 
+  | remove: '}' 
+  | replace: '","', '|' 
+  | remove: '"' 
+%}
+
+{% assign pairs = cleaned | split: '|' %}
+
+{%- if pairs.size > 0 -%}
+  <style>
+    {% comment %} 欧洲DIY3 DE FR NL 特性文案单独处理 {% endcomment %}
+    html:is([lang="de"], [lang="fr"], [lang="nl"]) .feature-copywriting {
+      -webkit-hyphens: auto; 
+      -ms-hyphens: auto; 
+      hyphens: auto;
+    }
+    @media screen and (min-width: 1024px) {
+      html[lang="de"] .product-feature-text ul li:nth-of-type(2) {
+        flex: unset;
+        max-width: 40%;
+      }
+    }
+  </style>
+
+  <div {{ block.shopify_attributes }} class="product-feature-text section-padding" style="{{ style }}">
+    <ul class="flex border-0 border-solid border-[#E2E3E3] lg:border-b-[1px] lg:pb-6">
+      {% for pair in pairs limit: 3 %}
+        {% assign kv = pair | split: ':' %}
+        {% assign key = kv[0] %}
+        {% assign value = kv[1] %}
+        <li class="flex-1 max-w-[33.33%] flex flex-col items-center justify-start gap-y-1 px-2 lg:gap-y-2 lg:px-4 text-center">
+          <span class="font-semibold text-[#242F20] text-base lg:text-2xl">{{ value | escape }}</span>
+          <span class="feature-copywriting text-[#242F20]/65 text-sm lg:text-base">{{ key | escape }}</span>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+{%- endif -%}

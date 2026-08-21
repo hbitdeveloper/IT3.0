@@ -1,0 +1,91 @@
+{%- if block.settings.is_show == 'banner' -%}
+  {% style %}
+    .subs-banner-modal.modal-container.modal .moadal-header {text-align: inherit;}
+  {% endstyle %}
+  <jky-subs-modal class="relative" id="subs-modal-{{block.id}}">
+    <div 
+      class="subs-modal-trigger text_b2 cursor-pointer max-w-fit" 
+      style="color: {{block.settings.text_color}};"
+    >
+      {{block.settings.heading}}
+    </div>
+
+    <template>
+      <div>
+        <div class="subs-modal-content">{{block.settings.modal_content | newline_to_br}}</div>
+        <div class="subs-modal-header">
+          <div {% if block.settings.heading_center == true %}class="text-center"{% endif %}>
+            {{block.settings.modal_heading | newline_to_br}}
+          </div>
+        </div>
+      </div>
+    </template>
+  </jky-subs-modal>
+{%- endif -%}
+<script src="{{ 'jky-subs-modal.js' | asset_url }}" defer></script>
+{% schema %}
+{
+  "name": "订阅说明弹窗",
+  "settings": [
+    {
+      "type": "select",
+      "id": "is_show",
+      "options": [
+        {
+            "value": "banner",
+            "label": "订阅Banner弹窗"
+        },
+        {
+          "value": "form",
+          "label": "弹窗不显示"
+        }
+      ],
+      "default": "form",
+      "label": "弹窗类型",
+      "info": "只有【订阅Banner弹窗】类型才显示"
+    },
+    {"type": "header", "content": "弹窗按钮"},
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "弹窗按钮文案",
+      "default": "Winner list",
+      "visible_if": "{{ block.settings.is_show == 'banner' }}"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "弹窗按钮颜色",
+      "default": "#fd5000",
+      "visible_if": "{{ block.settings.is_show == 'banner' }}"
+    },
+    {"type": "header", "content": "弹窗内容"},
+    {
+      "type": "textarea",
+      "id": "modal_heading",
+      "label": "弹窗标题",
+      "default": "Check the Power of Electrical Appliancesk the Power ",
+      "visible_if": "{{ block.settings.is_show == 'banner' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "heading_center",
+      "default": true,
+      "label": "弹窗标题居中？", 
+      "visible_if": "{{ block.settings.is_show == 'banner' }}"
+    },
+    {
+      "type": "richtext",
+      "id": "modal_content",
+      "label": "弹窗正文",
+      "default": "<p>If it is an inductive load appliance, such as a household refrigerator, induction cooker, etc., the utput power of the energy storage needs to be greater than the starting power of the appliance.tput power of the energy storage needs to be greater than the starting.</p>",
+      "visible_if": "{{ block.settings.is_show == 'banner' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "订阅说明弹窗"
+    }
+  ]
+}
+{% endschema %}

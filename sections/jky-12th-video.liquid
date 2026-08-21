@@ -1,0 +1,139 @@
+<div class="jky-12th-video {%if section.settings.is_gift_block == true%} gift-anchor gift-anchor--mb{%endif%}" anchor="{{ section.settings.anchor | escape }}" style="background: {{ section.settings.bg_color }}">
+    {% render 'new-title', class: 'sence-title',  title: section.settings.title, type: section.settings.type, bgColor: section.settings.bg_color %}
+    <div class="jky-12th-container">
+    {% if section.settings.sub_title != blank %}
+    <div class="sub-title">{{ section.settings.sub_title }}</div>
+    {% endif %}
+    {% if section.settings.des_text_pc != blank %}
+    {%- render "activity-description", settings: section.settings -%}
+    {% endif %}
+    {% if section.settings.videoPC != blank %}
+        <div class="jky-up video-img-box pc-block">
+            {%-
+                render 'jky-video',
+                video_url: section.settings.videoPC,
+                poster: section.settings.imgPC,
+                class: "features-media",
+                autoplay: true,
+                controls: true,
+                loop: true
+            -%}
+        </div>
+    {% endif %}
+    {% if section.settings.videoMB != blank%}
+        <div class="jky-up video-img-box mobile-block">
+          {%-
+                render 'jky-video',
+                video_url: section.settings.videoMB,
+                poster: section.settings.imgMB,
+                class: "features-media",
+                autoplay: true,
+                controls: true,
+                loop: true
+            -%}
+        </div>
+        {%- elsif section.settings.videoPC != blank-%}
+        <div class="jky-up video-img-box mobile-block">
+          {%- render 'jky-video', video_url: section.settings.videoPC,
+          poster: section.settings.imgPC,
+          class: "features-media", autoplay: true, controls: true, loop: true -%}
+        </div>
+    {% endif %}
+    {%- if section.settings.button != blank -%}
+        <div class="jky-up button">
+            <a
+                target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                href="{{ section.settings.link }}"
+                data-ga-event="12anniversary_page_user_clicks"
+                data-ga-action="click"
+                data-ga-params-module="Video"
+                data-ga-params-button_name="{{section.settings.button | escape}}"
+                data-ga-params-link="{{section.settings.link}}"
+                data-ga-params-url="{{section.settings.imgPC | img_url: 'master'}}"
+            >
+                <button class="jky-12th-btn">
+                    <span> {{ section.settings.button | escape }} </span>
+                </button>
+            </a>
+        </div>
+    {%- endif -%}
+    </div>
+</div>
+
+{% schema %}
+    {
+        "name": "12周年 - 用户视频",
+        "settings": [
+            { "type": "checkbox", "id": "is_gift_block", "label": "是否为礼盒模块", "default": false, "info": "该模块的顺序请保持：KV-滚动介绍-品牌介绍-获奖Swiper" },
+            { "type": "text",  "id": "anchor", "label": "二级标题定位锚点" },
+            { "type": "color_background","id": "bg_color","label": "背景色","default": "#ffffff" },
+            { "type": "text",  "id": "title", "label": "标题" },
+            { "type": "select", "id": "type", "label": "标题类型", "options": [
+                { "value": "1", "label": "小档" },
+                { "value": "2", "label": "大档" }
+            ], "default": "1"},
+            { "type": "text",  "id": "more", "label": "展开", "default": "More" },
+            { "type": "text",  "id": "collapse", "label": "收起", "default": "collapse" },
+            { "type": "text",  "id": "sub_title", "label": "小标题"},
+            { "type": "header", "content": "PC富文本配置" },
+            {
+              "type": "select",
+              "id": "pc_position",
+              "options": [
+                {
+                  "value": "left",
+                  "label": "居左"
+                },
+                {
+                  "value": "center",
+                  "label": "居中"
+                },
+                {
+                  "value": "right",
+                  "label": "居右"
+                }
+              ],
+              "default": "center",
+              "label": "富文本位置PC"
+            },
+            { "type": "number", "id": "padding_top_pc", "label": "上边距PC", "default": 120 },
+            { "type": "number", "id": "padding_bottom_pc", "label": "下边距PC", "default": 120 },
+            { "type": "number", "id": "text_size_pc", "label": "文字大小PC", "default": 25 },
+            { "type": "richtext", "id": "des_text_pc", "label": "富文本文案PC" },
+            { "type": "header", "content": "MB富文本配置" },
+            {
+              "type": "select",
+              "id": "mb_position",
+              "options": [
+                {
+                  "value": "left",
+                  "label": "居左"
+                },
+                {
+                  "value": "center",
+                  "label": "居中"
+                },
+                {
+                  "value": "right",
+                  "label": "居右"
+                }
+              ],
+              "default": "center",
+              "label": "富文本位置MB"
+            },
+            { "type": "number", "id": "padding_top_mb", "label": "上边距MB", "default": 120 },
+            { "type": "number", "id": "padding_bottom_mb", "label": "下边距MB", "default": 120 },
+            { "type": "number", "id": "text_size_mb", "label": "文字大小MB", "default": 25 },
+            { "type": "richtext", "id": "des_text_mb", "label": "富文本文案MB" },
+            { "type": "color", "id": "text_color", "label": "文本颜色" },
+            { "type": "color", "id": "text_active", "label": "部分文本颜色" },
+            { "type": "checkbox", "id": "new_window", "label": "新开标签页", "default": false },
+            { "type": "url", "id": "videoPC", "label": "PC视频链接" },
+            { "type": "url", "id": "videoMB", "label": "MB视频链接" },
+            { "type": "image_picker", "id": "imgPC", "label": "PC封面图" },
+            { "type": "image_picker", "id": "imgMB", "label": "MB封面图" },
+            { "type": "url", "id": "link", "label": "按钮跳转地址" },
+            { "type": "text",  "id": "button", "label": "按钮文案" }
+        ]
+    }
+{% endschema %}

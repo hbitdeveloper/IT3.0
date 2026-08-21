@@ -1,0 +1,122 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- assign raw_json = product.metafields.custom.feature_text_json | strip -%}
+{%- assign cleaned = raw_json | remove: '{' | remove: '}' | replace: '","', '|' | remove: '"' -%}
+{%- assign pairs = cleaned | split: '|' -%}
+{%- if pairs.size > 0 -%}
+
+  <style>
+    .v5-app-pdp-core-params jds-dialog {
+      --v5-app-pdp-core-params-dialog-width: 40rem;
+    }
+    @media screen and (min-width: 1024px) {
+      .v5-app-pdp-core-params jds-dialog .lg\:w-1\/3 {
+        width: 33.333333333333333%;
+      }
+    }
+    .v5-app-pdp-core-params jds-dialog::part(dialog-container) {
+      min-width: unset;
+    }
+    .v5-app-pdp-core-params jds-dialog.v5-app-pdp-core-params-dialog::part(dialog-container) {
+      min-height: unset;
+    }
+    .v5-app-pdp-core-params jds-dialog::part(dialog-content) {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      margin-bottom: 2.5rem;
+      margin-right: 0;
+    }
+    .v5-app-pdp-core-params jds-dialog.v5-app-pdp-core-params-dialog {
+      height: fit-content;
+      --jds-dialog-min-height: unset;
+      --jds-dialog-max-height: min(39.75rem, 80vh);
+    }
+    @media screen and (max-width: 1023.98px) {
+      .v5-app-pdp-core-params jds-dialog {
+        --v5-app-pdp-core-params-dialog-width: 100vw;
+      }
+      .v5-app-pdp-core-params jds-dialog::part(dialog-content) {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .v5-app-pdp-core-params jds-dialog.v5-app-pdp-core-params-dialog {
+        --jds-dialog-max-height: 32.3125rem;
+      }
+    }
+  </style>
+
+  <div
+    {{ block.shopify_attributes }}
+    class="v5-app-pdp-core-params w-full section-padding"
+    style="{{ style }}"
+    data-no-core-params-text="{{ block.settings.no_core_params_text | escape }}"
+  >
+    <div class="w-full py-3 lg:py-4 flex flex-col items-center gap-3 lg:gap-4 bg-[#F5F5F3]">
+      <style>
+        {% comment %} 欧洲DIY3 DE FR NL 特性文案单独处理 {% endcomment %}
+        html:is([lang="de"], [lang="fr"], [lang="nl"]) .core-params-key {
+          -webkit-hyphens: auto;
+          -ms-hyphens: auto;
+          hyphens: auto;
+        }
+        @media screen and (min-width: 1024px) {
+          html[lang="de"] ul.core-params-wrapper li:nth-of-type(2) {
+            flex: unset;
+            max-width: 40%;
+          }
+        }
+      </style>
+      <ul class="core-params-wrapper w-full flex flex-wrap gap-y-2">
+        {%- for pair in pairs limit: 3 -%}
+          {% assign kv = pair | split: ':' %}
+          {% assign key = kv[0] %}
+          {% assign value = kv[1] %}
+          <li class="flex-1 max-w-[33.33%] flex flex-col items-center justify-start px-2 lg:px-3 text-center lg:first-of-type:pl-5 lg:last-of-type:pr-5">
+            <span class="font-semibold text-[#242F20] text-sm lg:text-lg">{{ value | escape }}</span>
+            <span class="core-params-key text-[#666]/65 text-sm">{{ key | escape }}</span>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {%- if block.settings.all_core_params_btn_text != blank -%}
+        <button
+          class="appearance-none bg-transparent w-fit flex items-center gap-2 text-sm lg:text-base lg:leading-5 text-[#707070] font-normal underline-offset-4 lg:hover:underline"
+          data-product-spu-name="{{ product.title | escape }}"
+          data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+          data-full-params-btn
+        >
+          {{ block.settings.all_core_params_btn_text | escape }}
+          <svg class="w-[1.125rem] h-4 inline-table" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16.373 8.25L9.55762 15.0654L8.42578 13.9336L13.3096 9.0498H2V7.4502H13.3115L8.42676 2.56543L9.55762 1.43457L16.373 8.25Z" fill="currentColor"/>
+          </svg>
+        </button>
+      {%- endif -%}
+    </div>
+  
+    {%- if block.settings.all_core_params_btn_text != blank -%}
+      {% comment %} 核心参数弹窗 {% endcomment %}
+      <jds-dialog
+        class="v5-app-pdp-core-params-dialog"
+        caption="{{ block.settings.core_params_text | escape }}"
+        size="extra"
+        showclose=""
+        closeicon="close"
+        disablebodyscroll=""
+        style="--jds-dialog-index:20000;--jds-dialog-width:var(--v5-app-pdp-core-params-dialog-width)"
+      >
+        <div class="core-params-content"></div>
+      </jds-dialog>
+    {%- endif -%}
+  </div>
+
+  {%- if block.settings.all_core_params_btn_text != blank -%}
+    {% render 'lazy-load-asset-group',
+      script: 'snippet-v5-app-pdp-core-params.js',
+      strategy: 'idle',
+      delay: 1800
+    %}
+  {%- endif -%}
+{%- endif -%}
+

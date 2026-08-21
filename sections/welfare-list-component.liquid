@@ -1,0 +1,252 @@
+{% schema %}
+{
+  "name": "Welfare List Component",
+  "tag": "section",
+  "class": "welfare-list-component layer-container section-container",
+  "settings": [
+    {
+      "type": "text",
+      "id": "sectionTitle",
+      "label": "Section Title",
+      "default": "BE THE FIRST TO EXPLORE"
+    },
+    {
+      "type": "text",
+      "id": "welfarePoint1",
+      "label": "Welfare Point 1",
+      "default": "Product Updates"
+    },
+    {
+      "type": "text",
+      "id": "welfarePoint2",
+      "label": "Welfare Point 2",
+      "default": "Early-bird Offer"
+    },
+    {
+      "type": "text",
+      "id": "welfarePoint3",
+      "label": "Welfare Point 3",
+      "default": "New Product Giveaways"
+    },
+    {
+      "type": "text",
+      "id": "welfarePoint4",
+      "label": "Welfare Point 4",
+      "default": "$200 Off Coupon"
+    }
+  ]
+}
+{% endschema %}
+<h2 class="section-title">{{ section.settings.sectionTitle }}</h2>
+<ul>
+  {% if section.settings.welfarePoint1 != blank %}
+    <li data-achor="event-subscribe-component">
+      <img
+          src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-product.png?v=1685181380"
+          alt="{{section.settings.welfarePoint1}}" loading="lazy"
+      >
+
+      <p>{{ section.settings.welfarePoint1 }}</p>
+    </li>
+  {% endif %}
+  {% if section.settings.welfarePoint2 != blank %}
+    <li data-achor="event-subscribe-component">
+      <img
+          src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-offer.png?v=1685181380"
+          alt="{{section.settings.welfarePoint2}}" loading="lazy"
+      >
+      <p>{{ section.settings.welfarePoint2 }}</p>
+    </li>
+  {%- endif %}
+  {% if section.settings.welfarePoint3 != blank %}
+    <li data-achor="unlock-product-component">
+      <img
+          src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-giveaways.png?v=1685181380"
+          alt="{{section.settings.welfarePoint3}}" loading="lazy"
+      >
+      <p>{{ section.settings.welfarePoint3 }}</p>
+    </li>
+  {%- endif %}
+  {% if section.settings.welfarePoint4 != blank %}
+    <li data-achor="kv-banner-component-2">
+      <img
+          src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-coupon.png?v=1685181380"
+          alt="{{section.settings.welfarePoint4}}" loading="lazy"
+      >
+      <p>{{ section.settings.welfarePoint4 }}</p>
+    </li>
+  {%- endif %}
+</ul>
+<script type="text/javascript">
+  (function () {
+    let welfareList = {
+      selector: document.querySelector('.welfare-list-component'),
+      selectorItem: document.querySelectorAll('.welfare-list-component ul li'),
+      sectionIdPrefix: '', // sections id属性值前缀
+      init: function () {
+        const sectionId = this.selector && this.selector.id ? this.selector.id : '';
+        this.sectionIdPrefix = sectionId.includes('__') ? sectionId.split('__')[0] + '__' : '';
+
+        this.eleClickInteractive();
+      },
+      // 点击锚点item交互
+      eleClickInteractive: function () {
+        let that = this;
+        this.selectorItem.forEach(function (item) {
+          item.addEventListener('click', function () {
+            let achorId = that.sectionIdPrefix + this.dataset.achor;
+            that.scrollToFunc(achorId);
+          });
+        });
+      },
+      // 平滑滚动到具体组件位置
+      scrollToFunc: function (id) {
+        const target = document.getElementById(id);
+        if (!target) return;
+
+        const startY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        const targetY = Math.max(0, target.getBoundingClientRect().top + startY - 100);
+        const duration = 1000;
+        const startTime = performance.now();
+
+        const easeInOut = function (t) {
+          return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        };
+
+        const step = function (currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easedProgress = easeInOut(progress);
+          const nextY = startY + (targetY - startY) * easedProgress;
+          window.scrollTo(0, nextY);
+
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          }
+        };
+
+        requestAnimationFrame(step);
+      },
+    };
+
+    const bootstrap = function () {
+      if (!welfareList.selector) return;
+      welfareList.init();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootstrap);
+    } else {
+      bootstrap();
+    }
+  })();
+</script>
+<style>
+  .welfare-list-component {
+    text-align: center;
+  }
+
+  .welfare-list-component ul {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .welfare-list-component li {
+    background-color: #f5f5f7;
+  }
+
+  .welfare-list-component li img {
+    display: block;
+  }
+
+  .welfare-list-component li p {
+    font-weight: 600;
+  }
+
+  @media screen and (min-width: 1024px) {
+    .welfare-list-component {
+      padding-top: 6.25vw;
+      padding-bottom: 3.125vw;
+    }
+
+    .welfare-list-component .section-title {
+      margin-bottom: 2.0833vw;
+      font-size: 2.2917vw;
+      font-weight: 600;
+      line-height: 1.27;
+    }
+
+    .welfare-list-component li {
+      margin-right: 1.0417vw;
+      padding: 3.6458vw 2.1875vw;
+      width: 25%;
+      min-height: 16.6667vw;
+      border-radius: 1.0417vw;
+      cursor: pointer;
+    }
+
+    .welfare-list-component li:last-child {
+      margin-right: 0;
+    }
+
+    .welfare-list-component li:hover {
+      color: var(--jds-color-primary);
+      background: linear-gradient(180deg, #FBFBFC 0%, #F5F5F7 100%);
+    }
+
+    .welfare-list-component li img {
+      margin: 0 auto 1.1458vw;
+      width: 4.6875vw;
+      height: 4.6875vw;
+    }
+
+    .welfare-list-component li p {
+      font-size: 1.25vw;
+      line-height: 1.33;
+    }
+  }
+
+  @media screen and (max-width: 1023px) {
+    .welfare-list-component {
+      max-width: 100%;
+      padding: 13.3333vw 4vw 8vw;
+    }
+
+    .welfare-list-component .section-title {
+      margin-bottom: 8vw;
+      font-size: 6vw;
+      font-weight: 500;
+      line-height: 1.47;
+    }
+
+    .welfare-list-component ul {
+      flex-wrap: wrap;
+    }
+
+    .welfare-list-component li {
+      width: 50%;
+      max-width: calc(50% - 1.3333vw);
+      margin-bottom: 2.6667vw;
+      margin-right: 2.6667vw;
+      min-height: 50.6667vw;
+      padding: 10.6667vw 3.2vw 9.0667vw;
+      border-radius: 2.6667vw;
+    }
+
+    .welfare-list-component li:nth-child(2n) {
+      margin-right: 0;
+    }
+
+    .welfare-list-component li img {
+      margin: 0 auto 2.6667vw;
+      width: 16vw;
+      height: 16vw;
+    }
+
+    .welfare-list-component li p {
+      font-size: 4.2667vw;
+      line-height: 1.44;
+    }
+  }
+</style>

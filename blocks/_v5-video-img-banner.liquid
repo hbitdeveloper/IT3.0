@@ -1,0 +1,809 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign pc_value = block.settings.pc_media_size | strip
+  assign mb_value = block.settings.mb_media_size | strip
+
+  if pc_value == '56.25%'
+    assign pc_class = 'pc_ratio_16_9'
+  elsif pc_value == '100%'
+    assign pc_class = 'pc_ratio_1_1'
+  elsif pc_value == '177%'
+    assign pc_class = 'pc_ratio_9_16'
+  else
+    assign pc_class = 'pc_ratio_16_9'
+  endif
+
+  if mb_value == '56.25%'
+    assign mb_class = 'mb_ratio_16_9'
+  elsif mb_value == '100%'
+    assign mb_class = 'mb_ratio_1_1'
+  elsif mb_value == '177%'
+    assign mb_class = 'mb_ratio_9_16'
+  else
+    assign mb_class = 'mb_ratio_9_16'
+  endif
+-%}
+
+{%- liquid
+  assign pc_video = block.settings.desktop_video
+  assign pc_preview_image = block.settings.poster_pc
+  if block.settings.poster_pc == blank and block.settings.desktop_source == 'uploaded'
+    assign pc_preview_image = block.settings.desktop_video.preview_image
+  endif
+
+  if block.settings.desktop_source == 'url'
+    assign pc_video = block.settings.desktop_video_url
+  endif
+
+  assign mb_video = block.settings.mobile_video
+  assign mb_preview_image = block.settings.poster_mb
+  if block.settings.poster_mb == blank and block.settings.mobile_source == 'uploaded'
+    assign mb_preview_image = block.settings.mobile_video.preview_image
+  endif
+
+  if block.settings.mobile_source == 'url'
+    assign mb_video = block.settings.mobile_video_url
+  endif
+
+  assign pc_video_full = block.settings.video_pc_full_url
+  assign pc_youtube_full = block.settings.youtube_pc_full_url
+  assign mb_video_full = block.settings.video_mb_full_url
+  assign mb_youtube_full = block.settings.youtube_mb_full_url
+  assign video_full_muted = block.settings.video_dialog_muted
+
+  assign pause_all_dom = '#' | append: block.id
+
+  assign video_object_fit = block.settings.video_object_fit | default: 'object-contain'
+-%}
+
+{%- if pc_youtube_full -%}
+  {% capture pc_video_tag %}
+    <iframe
+      style="width:100%;height:100%;object-fit:contain;"
+      src="https://www.youtube.com/embed/{{ pc_youtube_full.id }}?enablejsapi=1&autoplay=1&branding=0&cc_load_policy=0&autohide=0&cc_load_policy=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&controls=1&autoplay=1{% if block.settings.video_dialog_muted %}&mute=1{% endif %}"
+      class="js-youtube"
+      allow="autoplay; encrypted-media"
+      allowfullscreen
+      title="{{ section.settings.description | escape }}"
+    ></iframe>
+  {% endcapture %}
+{%- elsif pc_video_full -%}
+  {% capture pc_video_tag %}
+    {{
+      pc_video_full | video_tag: image_size: '1102x',
+      autoplay: true,
+      muted: video_full_muted,
+      controls: true,
+      controlsList: 'nodownload',
+      style: 'width:100%;height:100%;object-fit:contain;'
+    }}
+  {% endcapture %}
+{%- endif -%}
+
+{%- if mb_youtube_full -%}
+  {% capture mb_video_tag %}
+    <iframe
+      style="width:100%;height:100%;object-fit:contain;"
+      src="https://www.youtube.com/embed/{{ mb_youtube_full.id }}?enablejsapi=1&autoplay=1&branding=0&cc_load_policy=0&autohide=0&cc_load_policy=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&controls=1&autoplay=1{% if block.settings.video_dialog_muted %}&mute=1{% endif %}"
+      class="js-youtube"
+      allow="autoplay; encrypted-media"
+      allowfullscreen
+      title="{{ section.settings.description | escape }}"
+    ></iframe>
+  {% endcapture %}
+{%- elsif mb_video_full -%}
+  {% capture mb_video_tag %}
+    {{
+      mb_video_full | video_tag: image_size: '750x',
+      autoplay: true,
+      muted: video_full_muted,
+      controls: true,
+      controlsList: 'nodownload',
+      style: 'width:100%;height:100%;object-fit:contain;'
+    }}
+  {% endcapture %}
+{%- endif -%}
+
+{%- capture data_card_blocks_output -%}
+  {% content_for 'blocks' %}
+{%- endcapture -%}
+{%- assign data_card_blocks_output = data_card_blocks_output | strip -%}
+
+{%- liquid
+  assign template_name = template
+  if template contains 'product.'
+    assign template_name = 'product'
+  endif
+
+  # 根据内容布局 匹配对应类名
+  assign content_class = ''
+  assign btn_group_class = ''
+  assign animate_flash_line_class = 'pc-flash-line absolute top-0 left-0 bottom-0 w-0.5 hidden'
+
+  if block.settings.mb_position == 'top-and-bottom'
+    assign content_class = ' items-start justify-between top-[2.5rem] bottom-[2.5rem] '
+    assign btn_group_class = 'absolute left-0 bottom-0 lg:relative'
+  elsif block.settings.mb_position == 'all-bottom'
+    assign content_class = 'items-start justify-between top-auto bottom-[2.5rem]'
+    assign btn_group_class = 'relative pl-[0.9375rem] lg:pl-0'
+    assign animate_flash_line_class = animate_flash_line_class | append: ' mb-flash-line'
+  elsif block.settings.mb_position == 'all-top'
+    assign content_class = 'items-start justify-between top-[2.5rem] bottom-auto'
+    assign btn_group_class = 'relative pl-[0.9375rem] lg:pl-0'
+    assign animate_flash_line_class = animate_flash_line_class | append: ' mb-flash-line'
+  endif
+
+  if block.settings.pc_position == 'top'
+    assign content_class = content_class | append: ' lg:justify-start lg:top-[3.75rem] lg:bottom-auto'
+  elsif block.settings.pc_position == 'center'
+    assign content_class = content_class | append: ' lg:justify-start lg:top-[10.375rem] lg:bottom-auto'
+  else
+    assign content_class = content_class | append: ' lg:justify-start lg:top-auto lg:bottom-[3.75rem]'
+  endif
+
+  assign module_pc_page_width = block.settings.pc_page_width | default: 'w-full'
+  assign banner_info_class = ''
+  if module_pc_page_width == 'w-full'
+    assign banner_info_class = 'section-container-lg'
+  else
+    assign banner_info_class = 'w-[21.4375rem] lg:w-[75rem] '
+  endif
+
+  # 隐藏动画线
+  assign hide_animate_flash_line = block.settings.hide_animate_flash_line | default: false
+  unless hide_animate_flash_line 
+  assign banner_info_class = banner_info_class | append: ' lg:pl-[2.625rem] '
+  endunless 
+
+  # 判断是否有_v-data-card-group block
+  assign has_card_group = false
+  if data_card_blocks_output != blank
+    assign has_card_group = true
+  endif
+
+  assign module_pc_page_height = block.settings.pc_page_height | default: '37.5rem'
+  assign module_pc_height_class = 'lg:h-[37.5rem]'
+  assign module_pc_min_height_class = 'lg:min-h-[37.5rem]'
+  if module_pc_page_height == '50rem'
+    assign module_pc_height_class = 'lg:h-[50rem]'
+    assign module_pc_min_height_class = 'lg:min-h-[50rem]'
+  endif
+
+  assign block_class = 'h-[38.125rem] ' | append: module_pc_height_class
+  if has_card_group
+    assign block_class = 'min-h-[38.125rem] ' | append: module_pc_min_height_class | append: ' ' | append: module_pc_height_class
+  endif
+
+  assign data_block_position = block.settings.data_block_position | default: 'default'
+%}
+
+{{ 'blocks-_v5-video-img-banner.css' | asset_url | stylesheet_tag }}
+
+<v5-video-img-banner 
+  data-pc-class="{{ pc_class }}" 
+  data-mb-class="{{ mb_class }}" 
+  data-video-full-muted="{{ video_full_muted }}"
+  data-template="{{template_name }}"
+  {% if block.settings.bg_type == 'video' %}
+    data-bg-type="video"
+  {% endif %}
+>
+  <div
+    id="{{ block.id }}" data-has-card-group="{{ has_card_group }}"
+    class="block-v5-video-img-banner w-full {{ block_class }} section-padding {% if settings.enable_animations_scroll %}scroll-trigger animate--slide-in{% endif %} "
+    {% if block.settings.anchor != blank %}
+      anchor-target="{{block.settings.anchor | escape}}"
+    {% endif %}
+    style="background:{{ block.settings.module_bg }};{{ style }}"
+  >
+    <div class="w-full {{ module_pc_page_width }} h-[38.125rem] lg:h-full flex relative">
+      {%- if block.settings.bg_type == 'video' -%}
+        {% comment %} PC {% endcomment %}
+        <div class="pc-banner-video hidden lg:block h-full w-full overflow-hidden relative">
+          {%- if pc_video != blank -%}
+            {%- render 'viewport-video',
+              type: 'banner',
+              pauseAllDOM: pause_all_dom,
+              url: pc_video,
+              observe: true,
+              poster: pc_preview_image,
+              autoplay: false,
+              loop: true,
+              controls: false,
+              class: video_object_fit
+            -%}
+          {%- else -%}
+            {%- if pc_preview_image != blank -%}
+              {%- render 'responsive-image',
+                image: pc_preview_image,
+                mimage: pc_preview_image,
+                image_class: 'w-full h-full object-cover'
+              -%}
+            {%- else -%}
+              {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover translate3d' }}
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+
+        {% comment %} MB {% endcomment %}
+        <div class="mb-banner-video block lg:hidden h-full w-full overflow-hidden relative">
+          {%- if mb_video != blank -%}
+            {%- render 'viewport-video',
+              type: 'banner',
+              pauseAllDOM: pause_all_dom,
+              url: mb_video,
+              observe: true,
+              poster: mb_preview_image,
+              autoplay: false,
+              loop: true,
+              controls: false,
+              class: video_object_fit
+            -%}
+          {%- else -%}
+            {%- if mb_preview_image != blank -%}
+              {%- render 'responsive-image',
+                image: mb_preview_image,
+                mimage: mb_preview_image,
+                image_class: 'w-full h-full object-cover translate3d',
+                width: 750
+              -%}
+            {%- else -%}
+              {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if block.settings.bg_type == 'img' -%}
+        {% render 'diff-end-img',
+          class: 'banner-bg-img w-full h-full object-cover',
+          style: '',
+          anchor: '',
+          pc_img: pc_preview_image,
+          mb_img: mb_preview_image,
+          placeholder_name: 'hero-apparel-1',
+          alt: 'Background Image alt',
+          load_scene: block.settings.load_scene
+        %}
+      {%- endif -%}
+
+      <div class="banner-info {{ banner_info_class }} flex flex-col absolute left-1/2 -translate-x-1/2 z-10 {{ content_class }}">
+        {%- if pc_video_full or pc_youtube_full -%}
+          <template pc-video>{{ pc_video_tag }}</template>
+        {%- endif -%}
+        {%- if mb_video_full or mb_youtube_full -%}
+          <template mb-video>{{ mb_video_tag }}</template>
+        {%- endif -%}
+
+        {%- unless hide_animate_flash_line %}
+          {%- render 'animate-flash-line',
+            container_class: animate_flash_line_class,
+            line_height: '1rem',
+            duration: '1.5'
+          -%}
+        {%- endunless -%}
+
+        <div class="info-box relative pl-[0.9375rem] lg:pl-0">
+          {%- if block.settings.mb_position == 'top-and-bottom' -%}
+            {%- unless hide_animate_flash_line %}
+              {%- render 'animate-flash-line',
+                container_class: 'mb-flash-line absolute top-0 left-0 bottom-0 w-[2px] hidden',
+                line_height: '1rem',
+                duration: '1.5'
+              -%}
+            {%- endunless -%}
+          {%- endif -%}
+          {% content_for 'block', type: 'v-heading-content', id: 'vHeadingContent' %}
+        </div>
+
+        {%- if data_block_position == 'default' -%}
+          <div class="pc-data-card-box hidden lg:block">
+          {{ data_card_blocks_output }}
+        </div>
+        {%- endif -%}
+        
+        {% content_for 'block', type: '_button-group', id: 'btnGroup', custom_class: btn_group_class %}
+      </div>
+
+      {%- if data_block_position == 'bottom_center' -%}
+        <div class="data-card-box absolute bottom-6 left-1/2 -translate-x-1/2">
+            {{ data_card_blocks_output }}
+          </div>
+      {%- endif -%}
+    </div>
+
+    {%- if data_block_position == 'default' -%}
+      <div class="mb-data-card-box lg:hidden"></div>
+    {%- endif -%}
+  </div>
+</v5-video-img-banner>
+
+<script src="{{ 'blocks-_v5-video-img-banner.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-视频或图片Banner",
+  "class": "v5-video-img-banner",
+  "blocks": [{ "type": "_v-data-card-group" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "版块基础配置"
+    },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "color_background",
+      "id": "module_bg",
+      "label": "版块背景配置"
+    },
+    {
+      "type": "header",
+      "content": "内容区域布局配置"
+    },
+    {
+      "type": "select",
+      "id": "pc_page_width",
+      "options": [
+        {
+          "value": "lg:section-container-lg",
+          "label": "大版心/1320px"
+        },
+        {
+          "value": "lg:w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "lg:w-full",
+      "label": "PC端组件宽度"
+    },
+    {
+      "type": "select",
+      "id": "pc_page_height",
+      "options": [
+        {
+          "value": "37.5rem",
+          "label": "600px(默认)"
+        },
+        {
+          "value": "50rem",
+          "label": "800px"
+        }
+      ],
+      "default": "37.5rem",
+      "label": "PC端组件高度"
+    },
+    {
+      "type": "select",
+      "id": "pc_position",
+      "label": "PC端",
+      "options": [
+        {
+          "value": "top",
+          "label": "上"
+        },
+        {
+          "value": "center",
+          "label": "中"
+        },
+        {
+          "value": "bottom",
+          "label": "下"
+        }
+      ],
+      "default": "bottom"
+    },
+    {
+      "type": "select",
+      "id": "mb_position",
+      "label": "移动端",
+      "options": [
+        {
+          "value": "top-and-bottom",
+          "label": "文本和按钮上下分离"
+        },
+        {
+          "value": "all-bottom",
+          "label": "内容聚合在底部"
+        },
+        {
+          "value": "all-top",
+          "label": "内容聚合在顶部"
+        }
+      ],
+      "default": "top-and-bottom"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_animate_flash_line",
+      "label": "隐藏动画线",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "data_block_position",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认（PC端跟随文本组，移动端固定在背景图下方）"
+        },
+        {
+          "value": "bottom_center",
+          "label": "固定在内容区域底部居中"
+        }
+      ],
+      "default": "default",
+      "label": "数据卡片位置"
+    },
+    {
+      "type": "header",
+      "content": "内容区域背景及其公共配置"
+    },
+    {
+      "type": "select",
+      "id": "bg_type",
+      "label": "背景展示类型",
+      "options": [
+        {
+          "value": "img",
+          "label": "图片"
+        },
+        {
+          "value": "video",
+          "label": "视频"
+        }
+      ],
+      "default": "video"
+    },
+    {
+      "type": "select",
+      "id": "load_scene",
+      "label": "图片加载场景",
+      "options": [
+        { "value": "lcp", "label": "首屏关键图（LCP）" },
+        { "value": "default", "label": "普通图（默认）" },
+        { "value": "defer", "label": "次要/延后图" }
+      ],
+      "default": "default",
+      "visible_if": "{{ block.settings.bg_type == 'img' }}"
+    },
+    {
+      "type": "select",
+      "id": "video_object_fit",
+      "label": "背景视频展示形式",
+      "options": [
+        {
+          "value": "object-contain",
+          "label": "默认"
+        },
+        {
+          "value": "object-cover",
+          "label": "铺满"
+        }
+      ],
+      "default": "object-contain",
+      "visible_if": "{{ block.settings.bg_type == 'video' }}"
+    },
+    {
+      "type": "header",
+      "content": "PC端配置"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_pc",
+      "label": "视频封面图",
+      "info": "推荐尺寸: 1440x600"
+    },
+    {
+      "type": "video",
+      "id": "desktop_video",
+      "label": "背景视频",
+      "info": "用于预览，循环播放，建议配置3秒内、2M内的视频",
+      "visible_if": "{{ block.settings.bg_type == 'video' }}"
+    },
+    {
+      "type": "header",
+      "content": "移动端配置"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_mb",
+      "label": "视频封面图",
+      "info": "推荐尺寸: 375x610"
+    },
+    {
+      "type": "video",
+      "id": "mobile_video",
+      "label": "背景视频",
+      "info": "用于预览，循环播放，建议配置3秒内、2M内的视频",
+      "visible_if": "{{ block.settings.bg_type == 'video' }}"
+    },
+    {
+      "type": "header",
+      "content": "弹窗视频配置",
+    },
+    {
+      "type": "checkbox",
+      "id": "video_dialog_muted",
+      "label": "弹窗视频是否静音播放",
+      "default": true
+    },
+    {
+      "type": "video",
+      "id": "video_pc_full_url",
+      "label": "PC端本地视频",
+      "info": "建议10M以内，支持 MP4、WEBM、MOV 格式"
+    },
+    {
+      "type": "video_url",
+      "id": "youtube_pc_full_url",
+      "accept": ["youtube"],
+      "label": "PC端youtube视频",
+      "info": "优先使用youtube视频"
+    },
+    {
+      "type": "select",
+      "id": "pc_media_size",
+      "options": [
+        {
+          "value": "56.25%",
+          "label": "16:9"
+        },
+        {
+          "value": "100%",
+          "label": "1:1"
+        },
+        {
+          "value": "177%",
+          "label": "9:16"
+        }
+      ],
+      "default": "56.25%",
+      "label": "PC端视频尺寸",
+      "visible_if": "{{ block.settings.bg_type == 'video' }}"
+    },
+    {
+      "type": "video",
+      "id": "video_mb_full_url",
+      "label": "移动端本地视频",
+      "info": "建议10M以内，支持 MP4、WEBM、MOV 格式"
+    },
+    {
+      "type": "video_url",
+      "id": "youtube_mb_full_url",
+      "accept": ["youtube"],
+      "label": "移动端youtube视频",
+      "info": "优先使用youtube视频"
+    },
+    {
+      "type": "select",
+      "id": "mb_media_size",
+      "options": [
+        {
+          "value": "56.25%",
+          "label": "16:9"
+        },
+        {
+          "value": "100%",
+          "label": "1:1"
+        },
+        {
+          "value": "177%",
+          "label": "9:16"
+        }
+      ],
+      "default": "177%",
+      "label": "移动端视频尺寸",
+      "visible_if": "{{ block.settings.bg_type == 'video' }}"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+    {
+      "type": "paragraph",
+      "content": "1. 数值以750px稿即2倍图值为标准进行配置与换算。",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 举例如48px在750px稿上为48px，在375px稿上则为24px。",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-视频或图片Banner",
+      "category": "内容展示",
+      "blocks": [
+        {
+          "id": "vHeadingContent",
+          "type": "v-heading-content",
+          "static": true,
+          "settings": {
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "radius_3": 0,
+            "radius_4": 0
+          },
+          "blocks": [
+            {
+              "type": "_v-heading-content-subheading",
+              "settings": {
+                "heading": "<p>Solar Generator 5000 Plus</p>",
+                "mb_heading": "<p>Solar Generator 5000 Plus</p>",
+                "padding_top": 0,
+                "padding_bottom": 40,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#ffffff",
+                "heading_size": "heading_3",
+                "mb_content_type": "custom",
+                "mb_heading_size": "heading_4"
+              }
+            },
+            {
+              "type": "_v-heading-content-heading",
+              "settings": {
+                "heading": "<p>Whole Home Power 24/7</p>",
+                "mb_heading": "<p>Whole Home Power 24/7</p>",
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#ffffff",
+                "font_family": "v5-font-oxm",
+                "heading_size": "heading_0"
+              }
+            }
+          ]
+        },
+        {
+          "id": "btnGroup",
+          "type": "_button-group",
+          "static": true,
+          "settings": {
+            "page_width": "w-full",
+            "pc_content_align": "left",
+            "padding_top": 40,
+            "padding_bottom": 0
+          },
+          "blocks": [
+            {
+              "type": "_button-group-btn-and-dialog",
+              "settings": {
+                "content": "Play Video",
+                "variant": "secondary",
+                "kind": "custom",
+                "custom_color": "#ffffff",
+                "custom_text_color": "#FFFFFF",
+                "animated": false,
+                "icon": "play",
+                "icon_position": "prev",
+                "disable_on_hover": true,
+                "dialog_type": "special",
+                "dialog_index": 20000
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

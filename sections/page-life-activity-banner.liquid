@@ -1,0 +1,188 @@
+{% comment %} jackery-life 活动 banner {% endcomment %}
+
+{% comment %} activity banner {% endcomment %}
+<swiper-container
+  class="life-activity-banner"
+  init="false"
+  pagination="true"
+  pagination-clickable="true"
+  auto-height="true"
+  loop="{{ section.settings.loop }}"
+  auto-height="true"
+  autoplay="{{ section.settings.autoplay }}"
+  autoplay-delay="{{ section.settings.autoplay_delay | times: 1000 }}"
+  autoplay-disable-on-interaction="false"
+  data-is-life-activity-icon-img="{%if section.settings.life_icon_img != blank %} true {% else %} false {% endif %}"
+  data-life-activity-icon-img="{{ section.settings.life_icon_img | image_url: width: 44 }}"
+  data-life-activity-icon-text="{{ section.settings.life_icon_text | escape }}"
+>
+  {% for block in section.blocks %}
+    {% case block.type %}
+      {% when 'slide_item' %}
+        <swiper-slide
+          class="activity-slide max-h-1080 lg:j-max-h-800 xl:a-max-h-800"
+          data-link="{{ block.settings.slide_link | escape }}"
+          data-jfLayer="二期 Activity 活动页-主KV Banner"
+        >
+        {% comment %} background image {% endcomment %}
+        <picture>
+          <source media="(min-width:1024px)" srcset="{{ block.settings.pc_slide_img | image_url: width: 1920}}">
+          <img
+            class="w-full max-h-1080 lg:j-max-h-800 xl:a-max-h-800 object-cover"
+            src="{{ block.settings.mb_slide_img | image_url: width: 750}}"
+            alt="jackery life"
+            loading="lazy"
+          >
+        </picture>
+      </swiper-slide>
+    {% endcase %}
+  {% endfor %}
+</swiper-container>
+
+{% comment %} swiper web components {% endcomment %}
+<script defer src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/swiper-element-bundle.min.js?v=1710123644" data-cookieconsent="ignore"></script>
+<script type="module">
+  class ActivityBanner {
+    constructor({swiperContainer}) {
+      this.DOM = document.querySelector(swiperContainer)
+
+      const params = {
+        injectStyles: [`
+            .swiper-pagination-bullets.swiper-pagination-horizontal {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                bottom: 5.33333333333333vw;
+            }
+            .swiper-pagination-bullet {
+                width: 5.33333333333333vw;
+                height: 0.4vw;
+                border-radius: 0;
+                opacity: 1;
+                background-color: rgba(255, 255, 255, 0.5);
+                transition: all .3s ease-in-out;
+            }
+            .swiper-pagination-bullet-active {
+                width: 13.3333333333333vw;
+                background-color: #FFFFFF;
+            }
+            @media screen and (min-width: 1024px) {
+                .swiper-pagination-bullets.swiper-pagination-horizontal {
+                    bottom: 2.22222222222222vw;
+                }
+                .swiper-pagination-bullet {
+                    width: 2.77777777777778vw;
+                    height: 0.138888888888889vw;
+                }
+                .swiper-pagination-bullet-active {
+                    width: 6.94444444444444vw;
+                }
+            }
+            @media screen and (min-width: 1440px) {
+                .swiper-pagination-bullets.swiper-pagination-horizontal {
+                    bottom: 32px;
+                }
+                .swiper-pagination-bullet {
+                    width: 40px;
+                    height: 2px;
+                }
+                .swiper-pagination-bullet-active {
+                    width: 100px;
+                }
+            }
+        `],
+        pagination: {
+          clickable: true,
+          renderBullet: function(index, className) {
+            return `<span class="${className}"></span>`;
+          }
+        }
+      }
+
+      Object.assign(this.DOM, params)
+
+      this.DOM.initialize();
+
+      this.init()
+    }
+    init() {
+      document.querySelectorAll('.activity-slide').forEach(it => it.onclick = () => {
+        const link = it.dataset.link
+        const searchParams = window.location.search
+        const decodeParams = decodeURIComponent(searchParams)
+        const params = new URLSearchParams(decodeParams)
+        const shopifyActivityId = params.get('shopifyActivityId')
+        if (link) {
+          window.open(`${link}?shopifyActivityId=${shopifyActivityId}`, "_self")
+        }
+      })
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    new ActivityBanner({swiperContainer: '.life-activity-banner'})
+  })
+</script>
+
+
+{% schema %}
+  {
+    "name": "Life Activity Banner",
+    "class": "section-life-activity section-life-activity-banner",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "loop",
+        "label": "Loop",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "autoplay",
+        "label": "Auto Play",
+        "default": true
+      },
+      {
+        "type": "range",
+        "id": "autoplay_delay",
+        "min": 3,
+        "max": 7,
+        "step": 1,
+        "unit": "s",
+        "label": "Auto Play Delay",
+        "default": 5
+      },
+      {
+        "type": "image_picker",
+        "id": "life_icon_img",
+        "label": "icon 图标"
+      },
+      {
+        "type": "textarea",
+        "id": "life_icon_text",
+        "label": "icon 图标提示文案"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "slide_item",
+        "name": "Slide item",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "pc_slide_img",
+            "label": "PC Slide Image"
+          }, {
+            "type": "image_picker",
+            "id": "mb_slide_img",
+            "label": "Mobile Slide Image"
+          }, {
+            "type": "url",
+            "id": "slide_link",
+            "label": "Slide Link"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

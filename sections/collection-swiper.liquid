@@ -1,0 +1,90 @@
+{%- style -%}
+    .collection-slideshow .slide-image {
+        object-fit: cover;
+        transition: all .6s ease;
+        opacity: 0.3;
+    }
+    .collection-slideshow .swiper-slide-active .slide-image {
+        opacity: 1;
+    }
+    .collection-slideshow .slide-content {
+        opacity: 0;
+        transform: translate(50%, 30px);
+        transition: all .3s ease;
+    }
+    .collection-slideshow .swiper-slide-active .slide-content {
+        opacity: 1;
+        transform: translate(50%, 0);
+        transition-delay: 0.1s;
+    }
+{%- endstyle -%}
+
+<div class="thumbsSlider-slideshow swiper-container">
+    <div class="swiper-container collection-slideshow slideshow22222">
+        <div class="swiper-wrapper">
+            {% for block in section.blocks %}
+                {%- assign p_img_url = block.settings.thumbnail_image | image_url: width: 640 -%}
+                <div class="swiper-slide slide">
+                    {%- render 'responsive-image', image: block.settings.image, mimage: block.settings.m_image, image_class: 'slide-image absolute fade' -%}
+
+                    <div class="index-container absolute">
+                        <div class="slide-content slide-content-img absolute ">
+                            {% render 'responsive-image', image: block.settings.thumbnail_image, image_class: "", mimage: block.settings.thumbnail_image %}
+                            
+
+                            <div class="flex items-center justify-center">
+                              {%- if block.settings.help_link != blank -%}
+                              <a class="z-button-middle" style="margin-right: 15px;" href="{{ block.settings.help_link }}">{{ block.settings.help_text | escape }} <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-sm"></jds-icon></a>
+                              {%- endif -%}
+                            
+                              {%- if block.settings.link != blank -%}
+                              <a class="z-button-middle" href="{{ block.settings.link }}" data-analytics-title="{{ block.settings.title | escape }}">{% if block.settings.view_more != blank %} {{block.settings.view_more | escape}} {% else %}{{ 'general.action_text.view_more' | t }}{% endif %}<jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon></a>
+                              {%- endif -%}
+                            </div>
+                        </div>
+                        <div class="slide-info absolute left-0 top-0 flex flex-col">
+                            <h2 class="slid-collection-title jky-text-2xl font-500">{{ block.settings.title | escape }}</h2>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="slideshow-pagination slideshow-thumbnail-container">
+            <div class="swiper-wrapper">
+                {% for block in section.blocks %}
+                    {%- assign p_img_url = block.settings.thumbnail_image | image_url: width: 235 -%}
+                    <div class="slideshow-thumbnail swiper-slide">
+                        <div class="slideshow-thumbnail-img"
+                            style="background-image: url('{{ p_img_url }}');"
+                        >
+                        </div>
+                        <div class="slideshow-thumbnail-name jky-text-sm font-300">{{ block.settings.title | escape }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% schema %}
+{
+  "name": "Collection swiper",
+  "tag": "section",
+  "class": "section collection-swiper",
+  "settings": [],
+  "blocks": [{
+      "type": "image", "name": "Collection Swiper",
+      "settings": [
+        {"type": "textarea", "id": "title", "label": "Heading", "default": "Two line slide title."},
+        {"type": "text", "id": "view_more", "label": "View More"},
+        {"type": "url", "id": "link", "label": "Slide link"},
+        {"type": "text", "id": "help_text", "label": "Help choose text", "default": "Help you choose"},
+        {"type": "url", "id": "help_link", "label": "Help choose link"},
+        {"type": "image_picker", "id": "image", "label": "Image"},
+        {"type": "image_picker", "id": "m_image", "label": "Mobile Image"},
+        {"type": "image_picker", "id": "thumbnail_image", "label": "Thumbnail Image"}
+    ]
+  }
+  ]
+}
+{% endschema %}

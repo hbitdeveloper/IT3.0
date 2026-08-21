@@ -1,0 +1,133 @@
+{%- assign pcSizes = 0 -%}
+{%- assign mbSizes = 0 -%}
+
+{% comment %}计算 PC 轮播的大小{% endcomment %}
+{%- for i in (0..4) -%}
+    {% assign image_pc_index = 'image_pc_' | append: forloop.index %}
+    {% assign pagination_index = 'image_pagination_' | append: forloop.index %}
+    {%- if settings[image_pc_index] != blank and settings[pagination_index] != blank -%}
+        {%- assign pcSizes = pcSizes | plus: 1 -%}
+    {%- endif -%}
+{%- endfor -%}
+
+{% comment %}计算 MB 轮播的大小{% endcomment %}
+{%- for i in (0..4) -%}
+    {% assign image_mb_index = 'image_mb_' | append: forloop.index %}
+    {% assign pagination_index = 'image_pagination_' | append: forloop.index %}
+    {%- if settings[image_mb_index] != blank and settings[pagination_index] != blank -%}
+        {%- assign mbSizes = mbSizes | plus: 1 -%}
+    {%- endif -%}
+{%- endfor -%}
+
+<section class="five-kwh-swiper-one" anchor="{{ settings.anchor_id  | url_decode | strip | replace: ' ', '' }}" style="background: {{ settings.bgColor }}">
+    <div class="five-main-container">
+        <div class="five-kwh-content">
+            {% assign titleColor = '<em style="color: ' | append: settings.title_color | append: '">' %}
+            {% assign subTitleColor = '<em style="color: ' | append: settings.subtitle_color | append: '">' %}
+            {% if settings.title != blank %}
+                <div class="five-one-title five-kwh-title">
+                    {{ settings.title | replace: '<em>', titleColor }}
+                </div>
+            {% endif %}
+            {% if settings.sub_title != blank %}
+                <div class="five-one-subtitle five-kwh-subtitle">{{ settings.sub_title | replace: '<em>', subTitleColor }}</div>
+            {% endif %}
+        </div>
+
+        <div class="five-kwh-box">
+            <div class="show-pc five-kwh-one-content swiper">
+                <i class="line"></i>
+                <ul class="five-one-list swiper-wrapper">
+                    {%- for i in (0..4) -%}
+                        {% assign pagination_index = 'image_pagination_' | append: forloop.index %}
+                        {% assign image_pc_index = 'image_pc_' | append: forloop.index %}
+                        {%- if settings[pagination_index] != blank and settings[image_pc_index] != blank -%}
+                            <li class="swiper-slide" style="color: {{ settings.pagination_color }};" data-index="{{ forloop.index }}"><span>{{ settings[pagination_index] }}</span></li>
+                        {%- endif -%}
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% comment %} PC 轮播 {% endcomment %}
+            <div class="five-kwh-one-carousel-pc show-pc swiper"
+                 data-autoplay="{{ settings.autoPlay }}"
+                 data-delay="{{ settings.swiperInterval }}"
+                 data-size="{{ pcSizes }}">
+                <div class="swiper-wrapper">
+                    {%- for i in (0..4) -%}
+                        {% assign pagination_index = 'image_pagination_' | append: forloop.index %}
+                        {% assign image_pc_index = 'image_pc_' | append: forloop.index %}
+                        {% assign image_des_index = 'image_des_' | append: forloop.index %}
+                        {%- if settings[image_pc_index] -%}
+                            <div class="swiper-slide" data-tab="{{settings[pagination_index] | escape}}">
+                                <div class="item-kwh-image {% if settings.border_radius %}border-radius{% endif %}">
+                                    {% render 'responsive-image',
+                                            image: settings[image_pc_index],
+                                            image_class: 'five-kwh-one-image'
+                                    %}
+                                </div>
+                                <div class="item-kwh-description five-kwh-subtitle" style="color: {{ settings.description_color }};">
+                                    {{ settings[image_des_index] | newline_to_br }}
+                                </div>
+                            </div>
+                        {%- endif -%}
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            {% comment %} MB 轮播 {% endcomment %}
+            <div class="five-kwh-one-carousel-mb show-mb swiper"
+                 data-autoplay="{{ settings.autoPlay }}"
+                 data-delay="{{ settings.swiperInterval }}"
+                 data-size="{{ mbSizes }}">
+                <div class="swiper-wrapper">
+                    {%- for i in (0..4) -%}
+                        {% assign pagination_index = 'image_pagination_' | append: forloop.index %}
+                        {% assign image_mb_index = 'image_mb_' | append: forloop.index %}
+                        {% assign image_des_index = 'image_des_' | append: forloop.index %}
+                        {%- if settings[image_mb_index] -%}
+                            <div class="swiper-slide" data-tab="{{settings[pagination_index] | escape}}">
+                                <div class="item-kwh-image {% if settings.border_radius %}border-radius{% endif %}">
+                                    {% render 'responsive-image',
+                                            mimage: settings[image_mb_index],
+                                            image_class: 'five-kwh-one-image'
+                                    %}
+                                </div>
+                                {% if settings[pagination_index] != blank %}
+                                    <div class="tab-list-item">
+                                        <div class="span-title">{{settings[pagination_index]}}</div>
+                                    </div>
+                                {%- endif %}
+                                {% if settings[image_des_index] != blank %}
+                                    <div class="item-kwh-description five-kwh-subtitle" style="color: {{ settings.description_color }};">
+                                        {{ settings[image_des_index] | newline_to_br }}
+                                    </div>
+                                {%- endif %}
+                            </div>
+                        {%- endif -%}
+                    {% endfor %}
+                </div>
+            </div>
+            {% assign desTitleColor = '<em style="color: ' | append: settings.descriptions_color | append: '">' %}
+            {% if settings.des_title != blank %}
+                <div class="five-kwh-one-description">
+                    {{ settings.des_title | replace: '<em>', desTitleColor }}
+                </div>
+            {% endif %}
+            {% if pcSizes > 1 %}
+                <div class="swiper-navigation show-pc">
+                    <div class="swiper-button-next swiper-one-button-next swiper-tab-vs-pc-button"></div>
+                    <div class="swiper-button-prev swiper-one-button-prev swiper-tab-vs-pc-button"></div>
+                </div>
+            {% endif %}
+            {% if mbSizes > 1 %}
+                <div class="swiper-navigation show-mb">
+                    <div class="swiper-button-next swiper-one-button-next swiper-tab-vs-pc-button"></div>
+                    <div class="swiper-button-prev swiper-one-button-prev swiper-tab-vs-pc-button"></div>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</section>

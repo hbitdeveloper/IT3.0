@@ -1,0 +1,132 @@
+<jky-product-detail-main
+    sectionid="{{section.id}}"
+    class="{% if section.settings.type == 'embed' %} embed-component {% endif %}"
+    data-handle="{{ section.settings.handle }}" 
+    {% if section.settings.anchor != blank %} data-anchor="{{section.settings.anchor}}" {% endif %}
+>
+    <div class="group-block produc-detail--content variant-detail-group" section-id="{{section.id}}" style="background: {{section.settings.bg_color}};">
+        {% content_for 'blocks' %}
+    </div>
+</jky-product-detail-main>
+
+<script>
+    if (!customElements.get("jky-product-detail-main")) {
+        class JkyProductDetailMain extends HTMLElement {
+            constructor() {
+                super();
+                this.section_id = this.getAttribute("sectionid")
+            }
+
+            variantChangeEventListener(e) {
+                if (e.detail && e.detail.variant) {
+                    document.querySelectorAll('.product-blocks-detail__variant_block').forEach(item => {
+                        const pid = item.getAttribute("pid")
+                        const current_id = e.detail.variant.id
+                        if(pid == current_id) {
+                            item.classList.remove("hide")
+                        } else {
+                            item.classList.add("hide")
+                        }
+                    })
+                }
+            }
+
+            init() {
+                document.addEventListener('variantChangeEvent', this.variantChangeEventListener.bind(this));
+            }
+
+            connectedCallback() {
+                window.initLazyScript(this, this.init.bind(this))
+            }
+        }
+
+        customElements.define("jky-product-detail-main", JkyProductDetailMain);
+    }
+</script>
+
+{% schema %}
+{
+  "name": "产品详情",
+  "class": "product-detail-main",
+  "tag": "section",
+  "enabled_on": {
+       "templates": ["product","page"]
+   },
+   "settings": [
+    {
+        "type": "select",
+        "id": "type",
+        "label": "类型",
+        "default": "independent",
+        "options": [
+          {
+            "value": "embed",
+            "label": "内嵌使用"
+          },
+          {
+            "value": "independent",
+            "label": "独立使用"
+          }
+        ]
+    },
+    {
+        "type": "text",
+        "id": "handle",
+        "label": "Handle（当前页面唯一的handle）",
+        "default": "product_detail_main-01"
+    },
+    {
+        "type": "select",
+        "id": "anchor",
+        "label": "锚点设置",
+        "info": "非锚点section请清空此项",
+        "options": [
+            {
+            "value": "",
+            "label": "非锚点section"
+            },
+            {
+            "value": "anchor__1",
+            "label": "第一个section锚点"
+            },
+            {
+            "value": "anchor__2",
+            "label": "第二个section锚点"
+            },
+            {
+            "value": "anchor__3",
+            "label": "第三个section锚点"
+            },
+            {
+            "value": "anchor__4",
+            "label": "第四个section锚点"
+            }
+        ],
+        "default": ""
+    },
+    { "type": "color", "id": "bg_color", "label": "背景颜色", "default": "#FFFFFF" }
+   ],
+   "blocks": [
+       {
+      "type": "_variant_detail_section"
+    },{
+      "type": "product-table"
+    },{
+      "type": "heading-content"
+    },{
+      "type": "video"
+    },{
+      "type": "image"
+    },{
+      "type": "richtext"
+    }
+   ],
+   "presets": [
+       {
+           "name": "产品详情",
+           "settings": {},
+           "blocks": []
+       }
+   ]
+}
+{% endschema %}

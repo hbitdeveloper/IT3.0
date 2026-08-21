@@ -1,0 +1,107 @@
+<style>
+    .sticky-nav, .section-jky-nav {
+        background: {{ section.settings.pc_background }};
+    }
+    .sticky-nav .container, .section-jky-nav .sticky-nav .container{
+        color: {{ section.settings.text_color }} !important;
+    }
+    jky-nav .jky-nav-inner .jky-nav-inner--container .jky-nav-slideline .jky-nav-slideline--inner{
+        background: {{ section.settings.text_color }} !important;
+    }
+    jky-nav .jky-nav-inner .jky-nav-inner--container{
+      gap: 48px;
+    }
+    jky-nav .jky-nav-inner .jky-nav-inner--container .jky-nav-slideline,jky-nav .jky-nav-inner .jky-nav-inner--container .jky-nav-slideline .jky-nav-slideline--inner{
+      height: 4px;
+    }
+    @media screen and (max-width: 1024px) {
+      .sticky-nav, .section-jky-nav {
+        height: 11.7333333vw;
+      }
+      jky-nav .jky-nav-inner .jky-nav-inner--container{
+        gap: 6.4vw;
+      }
+      .section-jky-nav .sticky-nav .container {
+        font-weight: 500;
+        font-size: 3.733333vw;
+        color: #FFFFFF;
+        line-height: 3.733333vw;
+      }
+      .no_ceiling jky-nav .jky-nav-inner .jky-nav-inner--container{
+        gap: 2.4vw;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+      }
+      .no_ceiling jky-nav .jky-nav-inner .jky-nav-inner--container .jky-nav-slideline{
+        display: none;
+      }
+      .no_ceiling .jky-nav-item.active{
+        background-color: var(--jds-color-primary);
+      }
+      .no_ceiling .jky-nav-item{
+        width: 42.4vw;
+        height: 8.533333vw;
+        line-height: 1;
+        border-radius: 8px;
+        padding: 2vw 1.33333vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.2);
+        opacity: 0.9;
+      }
+    }
+</style>
+{%- assign blocks_nav = section.blocks | where: 'type', "jky_nav" -%}
+{%- render 'jky-nav', trigger_event: section.settings.event_name, tabs: blocks_nav, open_trigger: true, module: section.settings.event_module -%}
+<script defer>
+  const windowWidth = window.innerWidth;
+  // 不吸顶仅存在mb情况
+  if (windowWidth < 1024) {
+    const navSections = document.querySelectorAll('.section-jky-nav');
+    navSections.forEach(function (section) {
+      if (section.querySelector('.no_ceiling')) {
+        section.style.height = 'auto';
+        section.style.position = 'unset';
+        // cal_scroll_target控制了头部定位需要，需移除
+        let parent = section.closest('.cal_scroll_target');
+        if (parent) {
+          parent.classList.remove('cal_scroll_target');
+        }
+      }
+    });
+  }
+
+</script>
+{% schema %}
+{
+  "name": "quality nav tabs",
+  "class": "cal_scroll_target  section-jky-nav",
+  "settings": [
+    { "type": "header", "content": "数据埋点相关"},
+    { "type": "text", "id": "event_name", "label": "埋点事件名称", "default": "page_anchor_clicks" },
+    { "type": "text", "id": "event_module", "label": "埋点固定名称", "default": "page_anchor" },
+    { "type": "header", "content": "基础配置相关"},
+    { "type": "color", "id": "text_color", "label": "文本和线条颜色", "default": "#fff" },
+    { "type": "color_background", "id": "pc_background", "label": "背景颜色", "default": "#fd5000" }
+  ],
+  "blocks": [
+    {
+      "type": "jky_nav",
+      "name": "Nav导航栏",
+      "limit": 10,
+      "settings": [
+        {"type": "text", "id": "title", "label": "导航栏名称"},
+        {"type": "text", "id": "anchor", "label": "导航栏锚点"}
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "品质中心 - 导航栏"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,181 @@
+<div class="index-container">
+  <h2 class="support-section-title h2">{{ section.settings.title | escape }}</h2>
+  {% if section.settings.link != blank %}
+    <div style="text-align: center;">
+      <a class="support-more underlines-btn h5" href="{{section.settings.link}}">{{ section.settings.link_text | escape }}
+        <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+      </a>
+    </div>
+  {% endif %}
+
+  <div class="index-support support-content-list flex">
+    {%- for block in section.blocks -%}
+    <div class="index-support-item {% if forloop.index == 1 %} active{% endif %}">
+      {%- assign img_url = block.settings.image | image_url: width: 200 -%}
+      <img src="{{img_url}}" alt="{{block.settings.title}}" loading="lazy">
+      <div>
+        <div class="index-support-item_title text-overflow-2">{{ block.settings.title | escape }}</div>
+        <div class="index-support-item_p hide-mb">{{ block.settings.content | newline_to_br }}</div>
+      </div>
+      <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right hide-pc"></jds-icon>
+    </div>
+    <div class="index-support-item_content_m hide-pc">{{ block.settings.content | newline_to_br }}</div>
+    {%- endfor -%}
+  </div>
+</div>
+
+<script type="module">
+  document.addEventListener('DOMContentLoaded', () => {
+    const slideUp = (target, duration = 300) => {
+      if (!target) return
+  
+      target.style.height = `${target.offsetHeight}px`
+      target.offsetHeight
+      target.style.transitionProperty = 'height, margin, padding'
+      target.style.transitionDuration = `${duration}ms`
+      target.style.overflow = 'hidden'
+      target.style.height = '0'
+      target.style.paddingTop = '0'
+      target.style.paddingBottom = '0'
+      target.style.marginTop = '0'
+      target.style.marginBottom = '0'
+  
+      window.setTimeout(() => {
+        target.style.display = 'none'
+        target.style.removeProperty('height')
+        target.style.removeProperty('padding-top')
+        target.style.removeProperty('padding-bottom')
+        target.style.removeProperty('margin-top')
+        target.style.removeProperty('margin-bottom')
+        target.style.removeProperty('overflow')
+        target.style.removeProperty('transition-duration')
+        target.style.removeProperty('transition-property')
+      }, duration)
+    }
+  
+    const slideDown = (target, duration = 300) => {
+      if (!target) return
+  
+      target.style.removeProperty('display')
+      let display = window.getComputedStyle(target).display
+      if (display === 'none') display = 'block'
+      target.style.display = display
+  
+      const height = target.scrollHeight
+      target.style.overflow = 'hidden'
+      target.style.height = '0'
+      target.style.paddingTop = '0'
+      target.style.paddingBottom = '0'
+      target.style.marginTop = '0'
+      target.style.marginBottom = '0'
+      target.offsetHeight
+      target.style.transitionProperty = 'height, margin, padding'
+      target.style.transitionDuration = `${duration}ms`
+      target.style.height = `${height}px`
+      target.style.removeProperty('padding-top')
+      target.style.removeProperty('padding-bottom')
+      target.style.removeProperty('margin-top')
+      target.style.removeProperty('margin-bottom')
+  
+      window.setTimeout(() => {
+        target.style.removeProperty('height')
+        target.style.removeProperty('overflow')
+        target.style.removeProperty('transition-duration')
+        target.style.removeProperty('transition-property')
+      }, duration)
+    }
+  
+    const slideToggle = (target, duration = 300) => {
+      if (!target) return
+  
+      if (window.getComputedStyle(target).display === 'none') {
+        slideDown(target, duration)
+      } else {
+        slideUp(target, duration)
+      }
+    }
+  
+    const supportItems = document.querySelectorAll('.index-support-item')
+    if (!supportItems.length) return
+  
+    if (window.innerWidth > 1024) {
+      supportItems.forEach((item) => {
+        item.addEventListener('mouseenter', function () {
+          if (this.classList.contains('active')) return
+          this.parentElement?.querySelectorAll('.index-support-item').forEach((supportItem) => {
+            supportItem.classList.remove('active')
+          })
+          this.classList.add('active')
+        })
+      })
+    } else {
+      supportItems.forEach((item) => {
+        item.addEventListener('click', function () {
+          const next = this.nextElementSibling
+  
+          slideToggle(next)
+          this.classList.toggle('active')
+  
+          this.parentElement?.querySelectorAll('.index-support-item_content_m').forEach((contentItem) => {
+            if (contentItem === next) return
+            slideUp(contentItem)
+            contentItem.previousElementSibling?.classList.remove('active')
+          })
+        })
+      })
+    }
+  })
+</script>
+
+{% schema %}
+  {
+    "name": "Index support",
+    "tag": "section",
+    "class": "section index-section-support",
+    "presets": [
+      {
+        "name": "Index support",
+        "category": "光伏安装"
+      }
+    ],
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Section title",
+        "default": "Support"
+      }, {
+        "type": "url",
+        "id": "link",
+        "label": "Slide link"
+      }, {
+        "type": "text",
+        "id": "link_text",
+        "label": "Button text",
+        "default": "View more"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "image",
+        "name": "Index Support",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Two line slide title."
+          }, {
+            "type": "textarea",
+            "id": "content",
+            "label": "Support content"
+          }, {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Icon"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

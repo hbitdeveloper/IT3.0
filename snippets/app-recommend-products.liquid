@@ -1,0 +1,78 @@
+{% comment %}
+    产品详情页 - 添加产品推荐
+    Accepts: 
+    - block_settings: {Object} 块设置项。非必须。默认以全局设置为准。如果单独使用，则必须传入此参数
+    - product: {Object} 产品信息
+    - sku_img_bg: {String} sku 图片背景颜色。非必须，默认为'#F8F8F8'。为了兼容多变体详情页，则传入'#FFFFFF’
+    
+    Usage: {% render 'app-recommend-products', block_settings: block.settings, product: product, sku_img_bg: '#FFFFFF' %}
+{% endcomment %}
+
+
+{% comment %} 全局开关，或者传参了 block_settings {% endcomment %}
+{%- if settings.open_products_recommend or block_settings != null -%}
+  {{ 'snippet-app-recommend-products.min.css' | asset_url | stylesheet_tag }}
+
+  {%- liquid 
+    assign margin_top = settings.recommend_products_margin_top
+    assign margin_bottom = settings.recommend_products_margin_bottom
+    
+    assign position = settings.recommend_products_position
+    assign section_width = 'w_1200'
+
+    assign view_more_text = settings.view_more_text | escape
+    assign add_to_cart_text = settings.add_to_cart_text | escape
+    assign buy_now_text = settings.buy_now_text | escape
+
+    assign view_more_style = settings.view_more_style
+    assign add_to_cart_style = settings.add_to_cart_style
+    assign buy_now_style = settings.buy_now_style
+
+    assign sku_card_bg = '#F8F8F8'
+
+
+    if block_settings != null
+      assign margin_top = block_settings.recommend_products_margin_top
+      assign margin_bottom = block_settings.recommend_products_margin_bottom
+      
+      assign position = 'single'
+      assign section_width = block_settings.recommend_product_section_width
+
+      assign view_more_text = block_settings.view_more_text | escape
+      assign add_to_cart_text = block_settings.add_to_cart_text | escape
+      assign buy_now_text = block_settings.buy_now_text | escape
+
+      assign view_more_style = block_settings.view_more_style
+      assign add_to_cart_style = block_settings.add_to_cart_style
+      assign buy_now_style = block_settings.buy_now_style
+
+      assign sku_card_bg = sku_img_bg | default: "#F8F8F8"
+    endif
+  -%}
+
+  <jky-app-recommend-products
+    data-product-title="{{ product.title | escape }}"
+    data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+    data-position="{{ position }}"
+    data-view-more-text="{{ view_more_text }}"
+    data-view-more-style="{{ view_more_style }}"
+    data-add-to-cart-text="{{ add_to_cart_text }}"
+    data-add-to-cart-style="{{ add_to_cart_style }}"
+    data-buy-now-text="{{ buy_now_text }}"
+    data-buy-now-style="{{ buy_now_style }}"
+    data-sku-card-bg="{{ sku_card_bg }}"
+    data-open-auto-discount-price="{{ settings.open_auto_discount_price}}"
+    data-discount-tag-display-style="{{ settings.discount_tag_display_style}}"
+    data-discount-amount-display-style="{{ settings.discount_amount_display_style}}"
+    data-discount-percent-display-style="{{ settings.discount_percent_display_style}}"
+    class="
+      block relative max-w-full w-screen mx-auto
+      {% if section_width == 'w_1200' %} lg:w-[75rem] {% elsif section_width == 'w_1312' %} lg:w-[82rem] {% endif %}
+      {% if position == 'right' and settings.recommend_products_border_bottom %}lg:pb-5 lg:border-0 lg:border-solid lg:border-b-[1px] lg:border-[#00000012]{% endif %}
+    "
+    style="margin-top:{{ margin_top }}px;margin-bottom:{{ margin_bottom }}px;"
+  >
+  </jky-app-recommend-products>
+
+  <script src="{{ 'snippet-app-recommend-products.min.js' | asset_url }}" defer></script>
+{%- endif -%}

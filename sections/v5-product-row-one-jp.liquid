@@ -1,0 +1,559 @@
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  # 筛选出 v5-product-item 类型的 block
+  assign product_items = section.blocks | where: 'type', 'v5-product-item'
+-%}
+
+  <style>
+    v5-product-row-one[section-id="{{ section.id }}"] .jdgm-preview-badge [role="button"] {
+      cursor: initial;
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] {
+      background: var(--pc-bg-color);
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] jds-tooltip::part(tooltip) {
+      --jds-popover-background-color: #FFF;
+      --jds-popover-padding: 0;
+      --jds-popover-border-radius: 0;
+      --jds-index-popover: 97;
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] jds-tooltip {
+      max-height: 5.25rem;
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info {
+      display: block;
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info summary {
+      cursor: pointer;
+      list-style: none;
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info summary::-webkit-details-marker {
+      display: none;
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info[open] summary,
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info:not([open]) .product-selling-info-full,
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info:not([open]) .product-selling-info-collapse {
+      display: none;
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info[open] .product-selling-info-collapse svg {
+      transform: rotate(180deg);
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info:not(.is-overflowing) .product-selling-info-trigger,
+    v5-product-row-one[section-id="{{ section.id }}"] .product-selling-info:not(.is-overflowing) .product-selling-info-collapse {
+      display: none;
+    }
+
+    v5-product-row-one[section-id="{{ section.id }}"] .product-tag-img img {
+        width: 10.5rem;
+        height: auto;
+    }
+
+    v5-product-row-one[section-id="{{ section.id }}"] .product-label-tag.product-tag-text .product-label-tag-text {
+      font-size: 1.25rem;
+      line-height: 100%;
+    }
+    v5-product-row-one[section-id="{{ section.id }}"] .product-label-tag.product-tag-text .product-label-tag-text.product-label-tag-text--p {
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 100%;
+    }
+
+
+    @media screen and (max-width: 1023.98px) {
+      v5-product-row-one[section-id="{{ section.id }}"] {
+        background: var(--mb-bg-color);
+      }
+      v5-product-row-one[section-id="{{ section.id }}"] jds-tooltip {
+        max-height: unset;
+      }
+    }
+
+    @media screen and (max-width: 374.98px) {
+      v5-product-row-one[section-id="{{ section.id }}"] .price-container {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+
+  <v5-product-row-one
+    sss="{{ shop.id }}"
+    section-id="{{ section.id }}"
+    class="{% if section.settings.related_v_tabs and section.settings.belongs_to != blank and request.design_mode == false %}!hidden{% endif %} flex flex-col w-full section-padding px-0"
+    {% if section.settings.anchor != blank %}
+      anchor-target="{{ section.settings.anchor | escape}}"
+    {% endif %}
+    {% if section.settings.belongs_to != blank %}
+      belongs-to-target="{{ section.settings.belongs_to | escape }}"
+    {% endif %}
+    style="
+      --pc-bg-color:{{ section.settings.pc_bg_color | default: '#FFFFFF' }};
+      --mb-bg-color:{{ section.settings.mb_bg_color | default: '#FFFFFF' }};
+      --main-color:{{ section.settings.main_color | default: '#93161B' }};
+      {{ style }}"
+  >
+    {% comment %} 模块标题、副标题 {% endcomment %}
+    {%- if section.settings.title != blank or section.settings.subtitle != blank -%}
+      <div class="w-full h-fit mx-auto lg:w-[75rem] flex flex-col items-center justify-center gap-y-6 lg:gap-y-4 mb-6 lg:mb-10 px-4 lg:px-0">
+        {% comment %} 模块标题 {% endcomment %}
+        {%- if section.settings.title != blank -%}
+          <h2 class="w-full text-center text-[1.75rem] lg:text-5xl text-[#1A1A1A] font-semibold leading-[1.1]" style="color:{{ section.settings.title_color | default: '#1A1A1A' }}">{{ section.settings.title | newline_to_br }}</h2>
+        {%- endif -%}
+        {% comment %} 副标题 {% endcomment %}
+        {%- if section.settings.subtitle != blank -%}
+          <div class="subtitle w-full flex items-center justify-center">
+            <p class="w-full text-left text-sm lg:text-base" style="color:{{ section.settings.subtitle_color | default: '#1A1A1A' }}">{{ section.settings.subtitle | newline_to_br }}</p>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if product_items.size > 0 -%}
+      <ul class="w-full mx-auto lg:w-[75rem] flex flex-col gap-y-3 lg:gap-y-6">
+        {%- for block in product_items -%}
+          {%- liquid
+            assign curr_product = block.settings.product
+            assign curr_variant_id = block.settings.variant_id
+            assign variant = curr_product.variants | where: "id", curr_variant_id | first
+            if variant == blank
+              assign variant = curr_product.selected_or_first_available_variant
+            endif
+
+            # SPU 标题
+            assign display_title = curr_product.title
+            if variant.metafields.custom.shortname != blank
+              assign display_title = variant.metafields.custom.shortname
+            elsif variant.title != blank and variant.title != 'Default Title'
+              assign display_title = variant.title
+            endif
+            if block.settings.product_title != blank
+              assign display_title = block.settings.product_title
+            endif
+
+            # 图片
+            assign base_img = variant.featured_image | default: curr_product.featured_image
+            assign p_img = base_img
+            assign m_img = base_img
+
+            if block.settings.pc_product_image != blank
+              assign p_img = block.settings.pc_product_image
+            endif
+            if block.settings.mb_product_image != blank
+              assign m_img = block.settings.mb_product_image
+            endif
+
+            # 价格、划线价
+            assign price = variant.price | default: 1999
+            assign compare_at_price = variant.compare_at_price | default: price
+
+            # 划线价
+            if compare_at_price < price
+              assign compare_at_price = price
+            endif
+
+            # 开启了自动折扣
+            if settings.open_auto_discount_price and settings.display_auto_discount_price_in_activity_page
+              assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1
+              if auto_discount_price > 0 and auto_discount_price < variant.price
+                assign price = auto_discount_price
+              endif
+            endif
+          -%}
+
+          {%- if variant.available or request.design_mode -%}
+            <li class="w-full h-auto mx-auto py-6 lg:py-8 lg:pl-[31.5rem] flex flex-col lg:flex-row items-center bg-white relative" data-card-item>
+              <div class="w-[6.25rem] h-[6.25rem] lg:h-[28.75rem] absolute top-6 left-4 lg:left-6 lg:top-8 lg:w-[28.75rem] lg:mr-6 shrink-0">
+                <a href="{{ curr_product.url }}?variant={{ variant.id }}" class="focus-zoom-container flex w-full h-full overflow-hidden">
+                  {%- render 'diff-end-img',
+                    class: 'focus-zoom w-full h-full object-cover',
+                    style: '',
+                    anchor: '',
+                    pc_img: p_img,
+                    mb_img: m_img,
+                    pc_img_width: 920,
+                    mb_img_width: 200,
+                    placeholder_name: 'hero-apparel-1',
+                    alt: p_img.alt | default: 'product image',
+                    load_scene: block.settings.load_scene | default: 'default',
+                  -%}
+                </a>
+                <div class="hidden lg:block">
+                    {% render 'product-tag', product: curr_product, variant: variant, display_discount_tag_time: true %}
+                </div>
+              </div>
+              <div class="w-full lg:min-h-[28.75rem] flex-1 flex flex-col items-start justify-start px-4 lg:pl-8 lg:pr-10 relative lg:border-l lg:border-[#DDDDDD] lg:border-solid">
+                {% comment %} 产品标题、副标题 {% endcomment %}
+                <div class="flex flex-col mb-5 lg:mb-3.5 w-full">
+
+                <div class="min-h-[6.25rem] lg:min-h-auto">
+
+                  <h3 class="pl-28 lg:pl-0 text-[#1A1A1A] font-semibold text-base lg:text-2xl line-clamp-2 un-ja-text" title="{{ display_title | escape }}">{{ display_title | escape }}</h3>
+
+                  <div
+                    class="pl-28 lg:pl-0 jdgm-widget jdgm-preview-badge mt-[0.375rem] lg:mt-[0.875rem] text-xs lg:text-base text-[#353535]"
+                    data-id="{{ curr_product.id }}"
+                    data-auto-install="false">
+                      {{ curr_product.metafields.judgeme.badge }}
+                  </div>
+
+                {% comment %} 价格 {% endcomment %}
+                <div class="pl-28 lg:pl-0 w-full flex flex-col lg:flex-row item-start gap-y-2 lg:items-center justify-between mt-2 lg:mt-[0.875rem]">
+                  <div class="price-container flex items-baseline lg:items-center gap-x-1">
+                    <span class="font-semibold text-[1.125rem] lg:text-[1.75rem] text-[var(--main-color)]">{{ price | money_without_trailing_zeros }}</span>
+                    {%- if compare_at_price > price and settings.show_discount_amount -%}
+                      <span class="text-black/65 line-through text-xs lg:text-base font-medium mx-1">{{ compare_at_price | money_without_trailing_zeros }}</span>
+                      {%- assign amount_discount = compare_at_price | minus: price | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+                      <span class="text-[var(--main-color)] bg-[#FFEEE6] text-xs lg:text-sm font-medium px-1 lg:px-2 rounded"> {{settings.discount_amount_format | replace: '()', amount_discount}}</span>
+                    {%- endif -%}
+                  </div>
+                </div>
+
+                </div>
+
+                  {%- liquid
+                    assign product_recommend_items_setting = block.settings.product_recommend_items | default: block.settings.product_recommend_items_pc | default: block.settings.product_recommend_items_mb
+                    assign product_appliances_setting = block.settings.product_appliances | default: block.settings.product_appliances_pc | default: block.settings.product_appliances_mb
+                    assign product_power_specs = block.settings.product_power_specs | newline_to_br | split: '<br />'
+                    assign product_recommend_items = product_recommend_items_setting | newline_to_br | split: '<br />'
+                    assign product_appliances = product_appliances_setting | newline_to_br | split: '<br />'
+                  -%}
+
+                  <div class="w-full mt-4 lg:mt-6">
+                    <div class="hidden lg:block w-full">
+                      <div class="grid grid-cols-4 border-b border-solid border-[#E8E8E5] pb-2">
+                        {%- for spec in product_power_specs limit: 4 -%}
+                          {%- assign spec_parts = spec | strip | split: '|' -%}
+                          {%- if spec_parts.size >= 2 -%}
+                            <div class="flex flex-col items-center justify-center">
+                              <p class="text-[#1A1A1A] text-2xl leading-[1.1] font-medium">{{ spec_parts[1] | strip | escape }}</p>
+                              <p class="text-[#999999] text-sm">{{ spec_parts[0] | strip | escape }}</p>
+                            </div>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </div>
+
+                      <div class="grid grid-cols-[auto_1fr] items-start gap-x-3 mt-3">
+                        <p class="text-[#B58E7C] text-sm leading-0 font-medium mr-[1.625rem]">{{ section.settings.product_recommend_title | escape }}</p>
+                        {%- assign badge_class = 'flex items-center justify-center text-center bg-[#B58E7C] lg:h-[1.625rem] px-8 text-white text-sm leading-none whitespace-nowrap' -%}
+                        <div class="space-y-2">
+                          {%- for item in product_recommend_items -%}
+                            {%- assign item_text = item | strip -%}
+                            {%- assign remainder = forloop.index0 | modulo: 2 -%}
+
+                            {%- if item_text != blank -%}
+                              {%- if remainder == 0 -%}<div class="flex flex-wrap gap-2">{%- endif -%}
+
+                                <span class="{{ badge_class }} {% if forloop.last and remainder == 0 %}w-full{% elsif remainder == 0 %}shrink-0{% else %}min-w-max flex-1{% endif %}">
+                                  {{ item_text | escape }}
+                                </span>
+
+                              {%- if remainder == 1 or forloop.last -%}</div>{%- endif -%}
+                            {%- endif -%}
+                          {%- endfor -%}
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-4 gap-x-3 mt-3">
+                        {%- for appliance in product_appliances limit: 4 -%}
+                          {%- assign appliance_parts = appliance | strip | split: '|' -%}
+                          {%- if appliance_parts.size >= 3 -%}
+                            <div class="h-[4.5rem] flex flex-col items-center justify-center border border-solid border-[#E0E0E0] px-3">
+                              <p class="text-[#1A1A1A] text-sm font-medium line-clamp-1 un-ja-text">{{ appliance_parts[0] | strip | escape }}</p>
+                              <p class="text-[#999999] text-xs my-0.5 line-clamp-1 un-ja-text">{{ appliance_parts[1] | strip | escape }}</p>
+                              <p class="text-[#1A1A1A] text-sm font-medium line-clamp-1 un-ja-text">{{ appliance_parts[2] | strip | escape }}</p>
+                            </div>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </div>
+                    </div>
+
+                    <div class="block lg:hidden w-full">
+                      <div class="grid grid-cols-4 pl-px pt-px overflow-hidden text-sm">
+                        {%- for spec in product_power_specs limit: 4 -%}
+                          {%- assign spec_parts = spec | strip | split: '|' -%}
+                          {%- if spec_parts.size >= 2 -%}
+                            <div class="h-7 -ml-px -mt-px flex items-center justify-center border border-solid border-[#CCCCCC] text-[#999999] text-xs leading-tight">
+                              <span class="line-clamp-1 un-ja-text">{{ spec_parts[0] | strip | escape }}</span>
+                            </div>
+
+                            <div class="h-7 -ml-px -mt-px flex items-center justify-center border border-solid border-[#CCCCCC] text-[#1A1A1A] text-base leading-tight font-medium">
+                              <span class="line-clamp-1 un-ja-text">{{ spec_parts[1] | strip | escape }}</span>
+                            </div>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </div>
+
+                      <p class="text-[#B58E7C] text-xs font-medium mt-4 mb-1">{{ section.settings.product_recommend_title | escape }}</p>
+
+                      {%- assign badge_class = 'h-6 px-6 flex items-center justify-center whitespace-nowrap text-center bg-[#B58E7C] text-white text-sm leading-[1.2] font-medium' -%}
+                      <div class="text-[0] space-y-2">
+                        {%- for item in product_recommend_items -%}
+                          {%- assign item_text = item | strip -%}
+
+                          {%- if item_text != blank -%}
+                            {%- assign remainder = forloop.index0 | modulo: 2 -%}
+
+                            {%- if remainder == 0 -%}
+                              <div class="flex flex-wrap gap-2">
+                            {%- endif -%}
+
+                              <div class="{{ badge_class }} {% if forloop.last and remainder == 0 %}w-full{% elsif remainder == 0 %}shrink-0{% else %}min-w-max flex-1{% endif %}">
+                                {{ item_text | escape }}
+                              </div>
+
+                            {%- if remainder == 1 or forloop.last -%}
+                              </div>
+                            {%- endif -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-1 mt-3">
+                        {%- for appliance in product_appliances limit: 4 -%}
+                          {%- assign appliance_parts = appliance | strip | split: '|' -%}
+                          {%- if appliance_parts.size >= 3 -%}
+                            <div class="h-12 grid grid-cols-[5.375rem_auto_4.125rem] items-center border border-solid border-[#CCCCCC] px-1">
+                              <div>
+                                <p class="text-[#1A1A1A] text-sm line-clamp-1 un-ja-text">{{ appliance_parts[0] | strip | escape }}</p>
+                                <p class="text-[#999999] text-xs line-clamp-1 un-ja-text">{{ appliance_parts[1] | strip | escape }}</p>
+                              </div>
+                              <div class="w-px h-full bg-[#CCCCCC]"></div>
+                              <p class="text-[#1A1A1A] text-sm font-medium text-center line-clamp-1 un-ja-text">{{ appliance_parts[2] | strip | escape }}</p>
+                            </div>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </div>
+                    </div>
+                  </div>
+
+                  {%- if block.settings.product_selling_info != blank -%}
+                    {%- assign product_selling_info = block.settings.product_selling_info | newline_to_br -%}
+                  {%- elsif variant.metafields.custom.product_features_info != blank -%}
+                    {%- assign product_selling_info = variant.metafields.custom.product_features_info | metafield_text -%}
+                  {%- else -%}
+                    {%- assign product_selling_info = blank -%}
+                  {%- endif -%}
+
+                  {%- if product_selling_info != blank -%}
+                    <details class="product-selling-info mt-4 lg:mt-3">
+                      <summary>
+                        <div class="product-selling-info-summary-text text-[#666666] text-sm leading-[1.4] lg:text-sm lg:leading-[1.4] line-clamp-2 un-ja-text lg:line-clamp-3">
+                          {{ product_selling_info }}
+                        </div>
+                        <div class="product-selling-info-trigger w-fit flex items-center gap-x-1 mt-1 text-[#666666] text-sm lg:text-sm lg:leading-[1.4] hover:text-[#1A1A1A]">
+                          <span class="product-selling-info-more">{{ section.settings.learn_more_text | default: 'Learn More' }}</span>
+                          {% render 'icon-arrow-bottom', class: 'w-3.5 h-3.5' %}
+                        </div>
+                      </summary>
+                      <div class="product-selling-info-full text-[#666666] text-sm leading-[1.4]">
+                        {{ product_selling_info }}
+                      </div>
+                      <button type="button" class="product-selling-info-collapse appearance-none bg-transparent border-0 p-0 w-fit flex items-center gap-x-1 mt-1 text-[#666666] text-sm lg:text-sm lg:leading-[1.4] hover:text-[#1A1A1A]">
+                        <span>{{ section.settings.learn_less_text | default: 'Learn Less' }}</span>
+                        {% render 'icon-arrow-bottom', class: 'w-3.5 h-3.5' %}
+                      </button>
+                    </details>
+                  {%- endif -%}
+                </div>
+
+                {% comment %} 按钮 {% endcomment %}
+                <div class="w-full flex items-center gap-3 lg:gap-3.5">
+                  {%- liquid
+                    assign pc_btn_type = section.settings.pc_show_btn_type
+                    assign mb_btn_type = section.settings.mb_show_btn_type
+                  -%}
+
+                  {%- capture btn_class -%}
+                    appearance-none flex items-center justify-center px-2 lg:px-6 h-10 text-sm rounded-[2.25rem] lg:text-base leading-[2.125rem] lg:leading-[3rem] text-white font-semibold lg:font-medium bg-[var(--main-color)]
+                  {%- endcapture -%}
+
+                  <button
+                    class="w-[10.375rem] lg:w-[15.125rem] jky-v5-button appearance-none bg-transparent font-semibold lg:font-medium rounded-[2.25rem] px-2 h-10 text-sm lg:text-base text-[var(--main-color)] lg:px-3 flex items-center justify-center border border-solid border-[var(--main-color)] {% if pc_btn_type != 'shop_now_and_add_to_cart' %} lg:hidden {% endif %} {% if mb_btn_type != 'shop_now_and_add_to_cart' %} hidden lg:flex {% endif %}"
+                    style="--border-color:var(--main-color);"
+                    data-sku-id="{{ variant.id }}"
+                    data-add-to-cart-btn
+                  >
+                    {{ section.settings.add_to_cart_text | escape }}
+                  </button>
+
+                  <a href="{{ curr_product.url }}?variant={{ variant.id }}"
+                     class="w-full lg:w-[15.125rem] jky-v5-button {{ btn_class }} {% if pc_btn_type == 'shop_now_and_add_to_cart' %} lg:hidden {% endif %} {% if mb_btn_type == 'shop_now_and_add_to_cart' %} hidden lg:flex {% endif %}">
+                    <span class="w-fit line-clamp-1 un-ja-text">{{ section.settings.shop_now_text | default: '今すぐ購入' | escape }}</span>
+                  </a>
+
+                  <a href="{{ curr_product.url }}?variant={{ variant.id }}" class="w-[10.375rem] lg:w-[15.125rem] {{ btn_class }} {% if pc_btn_type != 'shop_now_and_add_to_cart' %} lg:hidden {% endif %} {% if mb_btn_type != 'shop_now_and_add_to_cart' %} hidden lg:flex {% endif %}">
+                    <span class="w-fit line-clamp-1 un-ja-text">{{ section.settings.shop_now_text | default: '今すぐ購入' | escape }}</span>
+                  </a>
+                </div>
+
+              </div>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </v5-product-row-one>
+
+  <script src="{{ 'section-v5-product-row-one.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-产品组件-一行1个（日站）",
+  "class": "v5-product-row-one",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "checkbox", "id": "related_v_tabs", "label": "是否关联V-Tabs组件", "default": false },
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示",
+      "visible_if": "{{ section.settings.related_v_tabs == true }}"
+    },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 32 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 32 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 40,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 40,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础配置" },
+    { "type": "color_background", "id": "pc_bg_color", "label": "PC端版块背景色", "default": "#f5f5f5" },
+    { "type": "color_background", "id": "mb_bg_color", "label": "MB端版块背景色", "default": "#f5f5f5" },
+    { "type": "color", "id": "main_color", "label": "主颜色", "default": "#FD5000" },
+    { "type": "textarea", "id": "title", "label": "模块标题" },
+    { "type": "color", "id": "title_color", "label": "标题字体颜色", "default": "#1A1A1A" },
+    { "type": "textarea", "id": "subtitle", "label": "模块副标题", "default": "BCP対策から日常業務まで幅広く活用される「ポータブル電源＋ソーラーパネル」の組み合わせ。従来の非常用電源では得られない数々の利点があります。" },
+    { "type": "color", "id": "subtitle_color", "label": "副标题字体颜色", "default": "#1A1A1A" },
+
+    { "type": "header", "content": "通用配置" },
+    { "type": "select", "id": "pc_show_btn_type", "options": [
+      { "value": "shop_now_and_add_to_cart", "label": "View More + Add To Cart" },
+      { "value": "add_to_cart", "label": "View More" }
+    ], "default": "shop_now_and_add_to_cart", "label": "PC端，显示按钮类型" },
+    { "type": "select", "id": "mb_show_btn_type", "options": [
+      { "value": "shop_now_and_add_to_cart", "label": "View More + Add To Cart" },
+      { "value": "add_to_cart", "label": "View More" }
+    ], "default": "shop_now_and_add_to_cart", "label": "MB端，显示按钮类型" },
+    { "type": "text", "id": "shop_now_text", "label": "View More文案", "default": "今すぐ購入" },
+    { "type": "text", "id": "add_to_cart_text", "label": "Add To Cart文案", "default": "カートに追加" },
+    {
+      "type": "text",
+      "id": "product_recommend_title",
+      "label": "推荐人群标题",
+      "default": "こんな人におすすめ"
+    },
+    { "type": "text", "id": "learn_more_text", "label": "卖点Learn More文案", "default": "Learn More" },
+    { "type": "text", "id": "learn_less_text", "label": "卖点Learn Less文案", "default": "Learn Less" },
+
+  ],
+  "blocks": [
+    {
+      "type": "v5-product-item",
+      "name": "产品",
+      "settings": [
+        { "type": "header", "content": "产品配置" },
+        { "type": "product", "id": "product", "label": "选择产品" },
+        { "type": "number", "id": "variant_id", "label": "变体ID(必填)", "visible_if": "{{ block.settings.product != blank }}", "info": "相同商品，变体ID不能重复"},
+        { "type": "textarea", "id": "product_title", "label": "产品标题", "visible_if": "{{ block.settings.product != blank }}" },
+        { "type": "textarea", "id": "product_selling_info", "label": "产品卖点", "visible_if": "{{ block.settings.product != blank }}" },
+        { "type": "header", "content": "产品参数信息配置" },
+        {
+          "type": "textarea",
+          "id": "product_power_specs",
+          "label": "参数信息",
+          "default": "容量|3000Wh\n出力|3000W\n循環次数|4000次\n最短充电时间|1.8时",
+          "info": "最多展示4个，每行一个参数，格式：名称|数值"
+        },
+        {
+          "type": "textarea",
+          "id": "product_recommend_items",
+          "label": "推荐人群",
+          "default": "4人家族\n72時間の停電に備えたい方\n4人家族4人家族\n72時間の停電に備えたい方",
+          "info": "每行一个推荐标签"
+        },
+        {
+          "type": "textarea",
+          "id": "product_appliances",
+          "label": "设备时长",
+          "default": "電気ケトル|消費電力850w|約2時間\n電子レンジ|消費電力960w|約1.5時間\n炊飯器|消費電力330w|約5.3時間\n冷蔵庫|消費電力720w|約3時間",
+          "info": "最多展示4个，每行一个设备，格式：名称|功率|时长"
+        },
+        { "type": "image_picker", "id": "pc_product_image", "label": "PC端产品场景图", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度460, 高度460" },
+        { "type": "image_picker", "id": "mb_product_image", "label": "MB端产品场景图", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度200, 高度200" },
+        {
+          "type": "select",
+          "id": "load_scene",
+          "label": "图片加载场景",
+          "options": [
+            { "value": "lcp", "label": "首屏关键图（LCP）" },
+            { "value": "default", "label": "普通图（默认）" },
+            { "value": "defer", "label": "次要/延后图" }
+          ],
+          "default": "default",
+        },
+        {
+          "type": "paragraph",
+          "content": "1. 首屏关键图（LCP）:用于首页主 KV、首屏主图"
+        },
+        {
+          "type": "paragraph",
+          "content": "2. 普通图（默认）：用于绝大多数图片（列表、内容图）"
+        },
+        {
+          "type": "paragraph",
+          "content": "3. 次要/延后图（低优先级）：用于轮播非首张、备用图、装饰图"
+        },
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-产品组件-一行1个（日站）",
+      "blocks": [
+        { "type": "v5-product-item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

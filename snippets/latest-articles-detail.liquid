@@ -1,0 +1,24 @@
+{% doc %}
+    @description: 适用于博客页面/博客详情页
+    @param { number } limit 文章数量，默认6篇
+    @param { string } [anchor] 切换之后定位位置，默认空
+    @param { string } [title] 标题
+    @example 
+        {% render 'latest-articles-detail', limit: limit, anchor: anchor %}
+{% enddoc %}
+{% paginate blog.articles by limit %}
+    {% assign articles = blog.articles  | sort: "updated_at" | reverse %}
+    {% if settings.enable_blog_schema %}
+        {% render 'structure-data',
+            schema_entry: 'blog_posts',
+            articles: articles,
+            paginate: paginate
+        %}
+    {% endif %}
+    {% for article in articles %}
+        {% render 'article-snippet', article: article, title: title %}
+    {% endfor %}
+    {% if paginate.pages > 1 %}
+        {% render 'pagination-v1', paginate: paginate, anchor: anchor %}
+    {% endif %}
+{% endpaginate %}

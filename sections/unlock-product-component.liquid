@@ -1,0 +1,275 @@
+{% schema %}
+{
+  "name": "Unlock Product Component",
+  "tag": "section",
+  "class": "unlock-product-component layer-container section-container",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enableShareUnlockFunc",
+      "label": "Enable Sharing To Unlock Lottery Function",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "sectionTitle",
+      "label": "Section Title",
+      "default": "UNLOCK FEATURES AND WIN A FREE PRODUCT"
+    },
+    {
+      "type": "text",
+      "id": "sectionSubtitle",
+      "label": "Section Subtitle",
+      "default": "Show your excitement for the 2000 Plus by sharing the event. Earn a chance to win the new product for free and unlock product features by reaching supporter count goals."
+    },
+    {
+      "type": "text",
+      "id": "shareTips",
+      "label": "Share Tips",
+      "default": "Support & Share"
+    },
+    {
+      "type": "text",
+      "id": "insShareSuccessText",
+      "label": "Instagram Share Success Text",
+      "default": "Copy successfully,open Instagram to post!"
+    },
+    {
+      "type": "checkbox",
+      "id": "hideLineIcon",
+      "label": "Hide LINE Icon",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "hideWhatsAppIcon",
+      "label": "Hide WhatsApp Icon",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "backersText",
+      "label": "Backers Text",
+      "default": "Supporters"
+    },
+    {
+      "type": "number",
+      "id": "stageOneBackerNum",
+      "label": "Stage One Backers Number",
+      "default": 1000
+    },
+    {
+      "type": "number",
+      "id": "stageTwoBackerNum",
+      "label": "Stage Two Backers Number",
+      "default": 5000
+    },
+    {
+      "type": "number",
+      "id": "stageThreeBackerNum",
+      "label": "Stage Three Backers Number",
+      "default": 10000
+    },
+    {
+      "type": "text",
+      "id": "alertTipsTitle",
+      "label": "Alert Tips Title",
+      "default": "Please subscribe first to join the giveaways"
+    },
+    {
+      "type": "text",
+      "id": "btnJustShareText",
+      "label": "Button Just Share Text",
+      "default": "JUST SHARE"
+    },
+    {
+      "type": "text",
+      "id": "btnSubscribeText",
+      "label": "Button Subscribe Text",
+      "default": "SUBSCRIBE"
+    }
+  ],
+  "max_blocks": 5,
+  "blocks": [
+    {
+      "name": "Product Image",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "pcProductImg",
+          "label": "PC Product Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbProductImg",
+          "label": "Mobile Product Image"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+{{ 'unlock-product-component.css' | asset_url | stylesheet_tag }}
+<h2 class="section-title">{{ section.settings.sectionTitle }}</h2>
+<p class="section-subtitle">{{ section.settings.sectionSubtitle }}</p>
+{% comment %} 社交分享 {% endcomment %}
+<div class="social-share" data-ins-success-tips="{{ section.settings.insShareSuccessText }}">
+  <p class="share-tips-txt">{{ section.settings.shareTips }}</p>
+  <ul class="social-list">
+    <li class="social-item item-facebook" data-type="Facebook">
+      <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-facebook.png?v=1685181380" alt="Facebook" loading="lazy">
+    </li>
+    <li class="social-item item-twitter" data-type="Twitter">
+      <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-twitter.png?v=1685181380" alt="Twitter" loading="lazy">
+    </li>
+    <li class="social-item item-instagram" data-type="Instagram">
+      <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-instagram.png?v=1685181380" alt="Instagram" loading="lazy">
+    </li>
+    {% if section.settings.hideLineIcon == false %}
+      <li class="social-item item-line" data-type="Line">
+        <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-line.png?v=1685181380" alt="Line" loading="lazy">
+      </li>
+    {% endif %}
+    {% if section.settings.hideWhatsAppIcon == false %}
+      <li class="social-item item-whatsapp" data-type="WhatsApp">
+        <img src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-whatsapp.png?v=1685181380" alt="WhatsApp" loading="lazy">
+      </li>
+    {% endif %}
+  </ul>
+</div>
+
+{% comment %} 解锁产品图 {% endcomment %}
+<div class="selling-points">
+  {% if section.settings.enableShareUnlockFunc %}
+    {% assign limitNum = 2 %}
+    {% assign className = 'lock' %}
+    <img class="icon-lock" src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-lock.png?v=1685181380" alt="icon lock" loading="lazy">
+
+  {% else %}
+    {% assign limitNum = 1 %}
+    {% assign className = 'unlock' %}
+  {% endif %}
+
+  <ul class="product-box {{ className }}">
+    {% for block in section.blocks limit: 1 %}
+      <li class="item-box stage-one">
+        <div class="lock-box"></div>
+        <img
+          class="pc-img product-img"
+          src="{{block.settings.pcProductImg | image_url: width: 1920 }}"
+          alt="{{block.settings.pcProductImg.alt | escape}}" loading="lazy"
+        >
+        <img
+          class="mb-img product-img"
+          src="{{block.settings.mbProductImg | image_url: width: 1024 }}"
+          alt="{{block.settings.mbProductImg.alt | escape}}" loading="lazy"
+        >
+      </li>
+    {% endfor %}
+    {% for block in section.blocks offset: 1 limit: 2 %}
+      <li class="item-box stage-two">
+        <div class="lock-box"></div>
+        <img
+          class="pc-img product-img"
+          src="{{block.settings.pcProductImg | image_url: width: 1920 }}"
+          alt="{{block.settings.pcProductImg.alt | escape}}" loading="lazy"
+        >
+        <img
+          class="mb-img product-img"
+          src="{{block.settings.mbProductImg | image_url: width: 1024 }}"
+          alt="{{block.settings.mbProductImg.alt | escape}}" loading="lazy"
+        >
+      </li>
+    {% endfor %}
+    {% for block in section.blocks offset: 3 limit: limitNum %}
+      <li class="item-box stage-three">
+        <div class="lock-box"></div>
+        <img
+          class="pc-img product-img"
+          src="{{block.settings.pcProductImg | image_url: width: 1920 }}"
+          alt="{{block.settings.pcProductImg.alt | escape}}" loading="lazy"
+        >
+        <img
+          class="mb-img product-img"
+          src="{{block.settings.mbProductImg | image_url: width: 1024 }}"
+          alt="{{block.settings.mbProductImg.alt | escape}}" loading="lazy"
+        >
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+{% comment %} 分享解锁进度 {% endcomment %}
+{% if section.settings.enableShareUnlockFunc %}
+  <div class="stage-list">
+    <div class="line">
+      <p class="progress-bar"></p>
+      <p class="line-all"></p>
+      <p class="curr-backers-box">
+        <span class="curr-share">10000</span>
+        <span class="arrow"></span>
+      </p>
+    </div>
+
+    <ul
+      class="point-box"
+      data-backers-text="{{ section.settings.backersText }}"
+      data-total="{{ section.settings.stageThreeBackerNum }}"
+    >
+      <li class="stage-start">
+        <p class="stage-point">
+          <span class="point-inner"></span>
+        </p>
+      </li>
+      <li class="stage-item stage-one" data-name="stage-one" data-num="{{ section.settings.stageOneBackerNum }}">
+        <p class="stage-point">
+          <span class="point-inner"></span>
+        </p>
+        <p class="stage-num"></p>
+      </li>
+      <li class="stage-item stage-two" data-name="stage-two" data-num="{{ section.settings.stageTwoBackerNum }}">
+        <p class="stage-point">
+          <span class="point-inner"></span>
+        </p>
+        <p class="stage-num"></p>
+      </li>
+      <li class="stage-item stage-three" data-name="stage-three" data-num="{{ section.settings.stageThreeBackerNum }}">
+        <p class="stage-point">
+          <span class="point-inner"></span>
+        </p>
+        <p class="stage-num"></p>
+      </li>
+    </ul>
+  </div>
+{% endif %}
+
+<div class="unlock-product share-alert">
+  {% comment %} 分享时订阅邮箱提示弹窗 {% endcomment %}
+  <div class="alert-box share-tips">
+    <svg class="pc-show icon-close" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+      <g fill="#3C3C3C" fill-rule="evenodd">
+        <path d="M8 7l17 17-1 1L7 8z"></path>
+        <path d="M7 24L24 7l1 1L8 25z"></path>
+      </g>
+    </svg>
+    <div class="mb-show icon-close">
+      <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+        <g fill="#fff" fill-rule="evenodd">
+          <path d="M8 7l17 17-1 1L7 8z"></path>
+          <path d="M7 24L24 7l1 1L8 25z"></path>
+        </g>
+      </svg>
+    </div>
+    <img
+            class="alert-icon"
+            src="https://cdn.shopifycdn.net/s/files/1/0970/9262/files/icon-giveaways.png?v=1685181380"
+            alt="" loading="lazy"
+    >
+    <p class="alert-title">{{ section.settings.alertTipsTitle }}</p>
+    <div class="alert-btns">
+      <button type="button" class="btn-item btn-share">{{ section.settings.btnJustShareText }}</button>
+      <button type="button" class="btn-item btn-subscribe">{{ section.settings.btnSubscribeText }}</button>
+    </div>
+  </div>
+</div>

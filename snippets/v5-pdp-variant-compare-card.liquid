@@ -1,0 +1,89 @@
+{% doc %}
+    V5 产品对比 - 产品卡片
+    @description 适用于 v5-pdp-variant-compare.liquid 主题区块
+    @param { string } variant - 产品变体
+    @param { product } product - 产品
+    @param {string} title 当前产品标题（用于埋点）
+{% enddoc %}
+
+{% liquid
+    # 标签
+    assign tag = variant.metafields.custom.variant_tag
+    # 标题
+    assign variant_title = variant.metafields.custom.shortname | default: variant.title  | escape | replace: 'Jackery', ''
+    if variant_title == 'Default Title'
+        assign variant_title = product.title | escape | strip | replace: 'Jackery', ''
+    endif
+    # 图片
+    assign variant_image = variant.featured_image | default: product.featured_image
+
+    # 产品图片ALT
+    assign img_alt = variant_title | default: variant_image.alt | default: 'product image'
+
+    # 价格
+    if settings.open_auto_discount_price
+        assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1
+        if auto_discount_price > 0
+            assign current_price = variant.price
+            if auto_discount_price < variant.price
+                assign current_price = auto_discount_price
+            endif
+        else
+             assign current_price = variant.price
+        endif
+    else
+        assign current_price = variant.price
+    endif
+
+    # 划线价
+    if variant.compare_at_price > current_price
+       assign compare_at_price = variant.compare_at_price
+    else
+        if variant.price > current_price
+           assign compare_at_price = variant.price
+        else
+            assign compare_at_price = blank
+        endif
+    endif
+
+    # 可用时间图
+    assign available_time_pic_img = variant.metafields.custom.available_runtime.value.pc.value
+    assign available_time_pic_mb_img = variant.metafields.custom.available_runtime.value.mb.value
+%}
+
+<div class="w-full grid grid-rows-[auto_1fr] py-6 px-3  relative v5-pdp-variant-compare-card">
+    {%- if tag != blank -%}
+        <div class="absolute top-3 left-3 z-[1] bg-black px-3 py-0.5 h-7 flex items-center justify-center text-[#fff] font-normal text-[0.75rem] tracking-[-0.02rem] [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform,opacity] tag">{{ tag | escape }}</div> 
+    {%- endif -%}
+    <div class="w-full">
+        <div class="flex items-center justify-center mb-3 lg:mb-4">
+            {% render 'diff-end-img', pc_img: variant_image, pc_img_width: 800, mb_img: variant_image, mb_img_width: 744, class: 'w-full h-[11.625rem] lg:h-[19.875rem] aspect-square', alt: img_alt %}
+        </div>
+        <div class="font-semibold text-[#242F20] text-[0.875rem] mb-[0.75rem] line-clamp-2 leading-[1.2] h-[2.25rem] lg:mb-[1rem] lg:h-[3rem] lg:text-[1.25rem] ">{{ variant_title | escape }}</div>
+        <div class="flex items-end justify-between mb-3 lg:mb-4">
+            <div class="text-center text-[#242F20]">
+                <span class="lg:text-[1.25rem] text-[1rem] font-semibold">{{ current_price | money }}</span>
+                {% if compare_at_price != blank %}
+                    <span class="text-[0.75rem] lg:text-[0.875rem] font-normal line-through pl-1">{{ compare_at_price | money }}</span>
+                {% endif %}
+            </div>
+            <div 
+                class="w-7 h-7 lg:w-10 lg:h-10 bg-[var(--jds-color-primary)] {% if variant.available == true %} cursor-pointer jky-v5-button {% else %} cursor-not-allowed opacity-40 {% endif %}"
+                data-id="{{ variant.id }}"
+                data-title="{{ variant_title | escape }}"
+                data-spu_title="{{ title | escape }}"
+                {%- if variant.available == true -%}
+                    compare-add-to-cart
+                    data-nm-target="add_to_cart_btn"
+                {%- endif -%}
+            >
+                {% render 'v5-icon-cart', class: 'w-full h-full text-[#fff]', stroke_width: 2 %}
+            </div>
+        </div>
+    </div>
+    <div class="w-full border-t-[1px] border-solid border-[#C6C7C8]">
+        <div class="py-3 lg:py-4">
+            {% render 'diff-end-img', pc_img: available_time_pic_img, pc_img_width: 800, mb_img: available_time_pic_mb_img, mb_img_width: 372, class: 'object-cover focus-zoom w-full' %}
+        </div>
+    </div>
+</div>

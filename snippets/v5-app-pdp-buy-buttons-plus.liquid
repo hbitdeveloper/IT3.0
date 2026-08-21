@@ -1,0 +1,1262 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+<style>
+  .row-paypal {
+    min-height: var(--fk-paypal-height);
+  }
+  .row-splitit {
+    min-height: var(--fk-splitit-height);
+  }
+  .row-klarna {
+    min-height: var(--fk-klarna-height);
+  }
+  @media screen and (max-width: 1023.98px) {
+    .row-paypal {
+      min-height: var(--fk-paypal-height-mb);
+    }
+    .row-splitit {
+      min-height: var(--fk-splitit-height-mb);
+    }
+    .row-klarna {
+      min-height: var(--fk-klarna-height-mb);
+    }
+    html:is([lang="de"], [lang="fr"], [lang="nl"]) v5-product-form .jky-v5-button {
+      font-size: 0.875rem;
+      line-height: 1.2;
+    }
+    html:is([lang="de"], [lang="fr"], [lang="nl"]) v5-product-form .djp-wrap {
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    html:is([lang="de"], [lang="fr"], [lang="nl"]) v5-product-form .cart-icon-btn {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+  }
+</style>
+
+<div {{ block.shopify_attributes }} class="section-padding" style="{{ style }}">
+  {%- liquid
+    assign current_variant = product.selected_or_first_available_variant
+    if current_variant == blank and product.variants[0] != blank
+      assign current_variant = product.variants[0]
+    endif
+
+    assign product_form_id = 'product-form-' | append: sectionId
+
+    assign check_against_inventory = true
+    if current_variant.inventory_management != 'shopify' or current_variant.inventory_policy == 'continue'
+      assign check_against_inventory = false
+    endif
+    if current_variant.quantity_rule.min > current_variant.inventory_quantity and check_against_inventory
+      assign quantity_rule_sold_out = true
+    endif
+
+    assign sku_warranty_info = current_variant.metafields.custom.sku_warranty_info.value | default: current_variant.metafields.custom.sku_warranty_info
+    assign sku_warranty_info = sku_warranty_info | strip
+    assign sku_warranty_info_normalized = sku_warranty_info | replace: '：', ':'
+    assign product_warranty_key = ''
+    assign product_warranty_value = ''
+    if sku_warranty_info_normalized contains ':'
+      assign product_warranty_parts = sku_warranty_info_normalized | split: ':'
+      assign product_warranty_key = product_warranty_parts | first | strip
+      assign product_warranty_value = sku_warranty_info_normalized | remove_first: product_warranty_key | remove_first: ':' | strip
+    endif
+
+    # 套餐选购小结
+    assign summary_image = current_variant.featured_image | default: current_variant.featured_media.preview_image | default: product.featured_image
+    assign base_price = current_variant.price | default: 1999
+    assign base_compare_at_price = current_variant.compare_at_price | default: base_price
+
+    if settings.open_auto_discount_price and settings.display_auto_discount_price_in_sticky_cart
+      assign auto_discount_price = current_variant.metafields.custom.auto_discount_price | times: 1
+      if auto_discount_price > 0 and auto_discount_price < current_variant.price
+        assign base_price = auto_discount_price
+      endif
+    endif
+
+    if base_compare_at_price < current_variant.price
+      assign base_compare_at_price = current_variant.price
+    endif
+
+    assign package_summary_title = current_variant.title
+    if package_summary_title == 'Default Title' or package_summary_title == blank
+      assign package_summary_title = product.title
+    endif
+
+    assign package_summary_price = base_price
+    assign package_summary_compare_at_price = base_compare_at_price
+  -%}
+
+  <v5-product-form
+    class="product-form block bg-[#F5F5F3] px-3.5 py-5 lg:p-8"
+    product-title="{{ product.title | escape }}"
+    data-section-id="{{ sectionId }}"
+    data-discount-format="{{ settings.discount_amount_format | escape }}"
+    data-display-auto-discount-price-in-sticky-cart="{{ settings.display_auto_discount_price_in_sticky_cart }}"
+  >
+    <div class="pb-4 lg:pb-6" data-package-summary-root data-package-summary-base-price="{{ package_summary_price }}" data-package-summary-base-compare-price="{{ package_summary_compare_at_price }}">
+      <div class="flex flex-col" data-package-summary>
+        <div class="flex items-start gap-x-3 pb-5 lg:gap-x-6 lg:pb-6 relative" data-package-summary-line data-package-summary-base-line>
+          {% if summary_image != blank %}
+            <img class="w-12 h-12 lg:w-[3.75rem] lg:h-[3.75rem] object-contain" src="{{ summary_image | image_url: width: 64, height: 64 }}" alt="{{ summary_image.alt | escape }}" width="64" height="64" loading="lazy" data-package-summary-image data-fallback-src="{{ product.featured_image | image_url: width: 64, height: 64 }}" data-fallback-alt="{{ product.featured_image.alt | default: product.title | escape }}">
+          {% endif %}
+          <div class="flex-1 flex flex-col gap-y-3">
+            <span class="text-[#242F20] font-semibold text-sm lg:text-xl" data-package-summary-title>{{ package_summary_title }}</span>
+            <div class="flex items-center gap-x-4 lg:gap-x-8">
+              <span class="text-[#242F20] font-medium text-sm lg:text-[1.125rem]" data-package-summary-quantity>x1</span>
+              <div class="flex items-center gap-x-1">
+                <span class="font-medium text-[#242F20] text-sm lg:text-base" data-package-summary-line-price>{{ package_summary_price | money }}</span>
+                {% if package_summary_compare_at_price > package_summary_price %}
+                  <span class="line-through font-normal text-[#777] text-sm lg:text-base" data-package-summary-base-origin-price>{{ package_summary_compare_at_price | money }}</span>
+                {% else %}
+                  <span class="hidden line-through font-normal text-[#777] text-sm lg:text-base" data-package-summary-base-origin-price></span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden flex-col" data-package-summary-bundles-wrapper>
+          <div class="flex flex-col" data-package-summary-bundles></div>
+        </div>
+
+        <div class="pt-6 lg:pt-10 border-0 border-t border-solid border-[#D8D8D8]" data-package-summary-totals>
+          <div class="flex items-center flex-row gap-x-2.5">
+            <span class="font-semibold text-[#242F20] text-xl lg:text-2xl" data-package-summary-total-price>{{ package_summary_price | money }}</span>
+            {% if package_summary_compare_at_price > package_summary_price %}
+              <span class="line-through font-medium text-[#777] text-xs lg:text-2xl" data-package-summary-total-origin-price>{{ package_summary_compare_at_price | money }}</span>
+            {% else %}
+              <span class="hidden line-through font-medium text-[#777] text-xs lg:text-2xl" data-package-summary-total-origin-price></span>
+            {% endif %}
+
+            {% assign package_summary_discount = package_summary_compare_at_price | minus: package_summary_price %}
+            {% assign package_summary_discount = package_summary_discount | at_least: 0 %}
+            {% assign package_summary_discount = package_summary_discount | divided_by: 100 | floor | times: 100 %}
+            {% if package_summary_discount > 0 %}
+              {% assign package_summary_discount_money = package_summary_discount | money_without_trailing_zeros %}
+              <span class="inline-flex items-center font-semibold text-primary bg-[#FFF0E9] text-xs lg:text-sm px-2 py-1 ml-1.5" data-package-summary-total-discount>
+                {{ settings.discount_amount_format | replace: '()', package_summary_discount_money }}
+              </span>
+            {% else %}
+              <span class="hidden inline-flex items-center font-semibold text-primary bg-[#FFF0E9] text-xs lg:text-sm px-2 py-1 ml-1.5" data-package-summary-total-discount></span>
+            {% endif %}
+          </div>
+        </div>
+
+        {%- if block.settings.show_installment_payment -%}
+          <div
+            class="installment-payment-wrap w-full mt-2"
+            data-installment-payment
+            data-installment-type="{{ block.settings.installment_type }}"
+            {% if block.settings.installment_type == 'custom' and block.settings.installment_text != blank %}
+              data-installment-text-template="{{ block.settings.installment_text | escape }}"
+            {% endif %}
+          >
+            {%- assign price_num = package_summary_price | plus: 0.0 -%}
+            {%- if block.settings.installment_type == 'custom' -%}
+              {%- if block.settings.installment_text != blank -%}
+                {% if price_num < 20000 %}
+                  {% comment %} 直接除以 100.0 强制保留小数 {% endcomment %}
+                  {% assign dividend = price_num | divided_by: 100.0 %}
+                  {% assign divisor = 4 %}
+                {% else %}
+                  {% comment %} 先通过 times 1.1229 得到含息总额，再除以 100 {% endcomment %}
+                  {% assign dividend = price_num | times: 1.1229 | divided_by: 100.0 | plus: 0.0 %}
+                  {% assign divisor = 18.0 %}
+                {% endif %}
+
+                {% comment %} 向上取整 {% endcomment %}
+                {% assign per_affirm = dividend | divided_by: divisor | ceil %}
+
+                <div class="flex items-baseline text-black/65 text-xs lg:text-sm gap-x-2 un-ja-text" data-installment-custom>
+                  {%- assign per_affirm_price = per_affirm | times:100 | money_without_trailing_zeros -%}
+                  {%- assign per_affirmplaceholder = "{Installment_per}" -%}
+                  <span data-installment-custom-text>{{ block.settings.installment_text | replace: per_affirmplaceholder, per_affirm_price }}</span>
+                  {%- if block.settings.installment_img != blank -%}
+                    <img class="shrink-0 w-[1.875rem] h-[0.75rem] lg:w-[3.375rem] lg:h-[1.3125rem] object-contain shrink-0" src="{{ block.settings.installment_img | image_url: width: 108 }}" width="54" height="21" alt="Installment" loading="lazy">
+                  {%- else -%}
+                    {{ 'hero-apparel-1' | placeholder_svg_tag: 'shrink-0 w-[1.875rem] h-[0.75rem] lg:w-[3.375rem] lg:h-[1.3125rem] object-contain shrink-0' }}
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            {%- elsif block.settings.installment_type == 'klarna' -%}
+              <div style="--fk-klarna-height: {{ block.settings.fk_klarna_height }}rem;--fk-klarna-height-mb: {{ block.settings.fk_klarna_height_mb }}rem;" class="row-klarna" data-installment-klarna>
+                <klarna-placement data-key="credit-promotion-badge" data-locale="{{ data_local }}" data-purchase-amount="{{ price_num }}"><span></span></klarna-placement>
+              </div>
+            {%- elsif block.settings.installment_type == 'paypal' -%}
+              <div
+                style="--fk-paypal-height: {{ block.settings.fk_paypal_height }}rem;--fk-paypal-height-mb: {{ block.settings.fk_paypal_height_mb }}rem;"
+                class="product-info_block w-full row-paypal"
+                data-installment-paypal
+                data-pp-message
+                data-pp-placement="product"
+                data-pp-amount="{{ price_num | money_without_currency }}"
+                data-pp-style-layout="text"
+                data-pp-style-logo-type="primary"
+                data-pp-style-logo-position="left"
+              ></div>
+            {%- elsif block.settings.installment_type == 'splitit' -%}
+              <div
+                style="--fk-splitit-height: {{ block.settings.fk_splitit_height }}px;--fk-splitit-height-mb: {{ block.settings.fk_splitit_height_mb }}px;"
+                class="w-full row-splitit"
+                data-installment-splitit
+              >
+                <spt-one-liner 
+                  installments="{{ block.settings.splitit_installments | default: 6 }}" 
+                  text_custom="{{ block.settings.splitit_text_custom }}" 
+                  learn_more_color="{{ block.settings.splitit_learn_more_color | default: '#4e8cfd' }}" 
+                  hide_icon="{{ block.settings.splitit_hide_icon | default: true }}" 
+                  logo_color="{{ block.settings.splitit_logo_color | default: '#39bca7' }}" 
+                  amount="{{ price_num | money_without_currency | replace: ',', '' }}"
+                ></spt-one-liner>
+              </div>
+            {%- endif -%}
+          </div>
+
+          {%- if block.settings.installment_type == 'paypal' and block.settings.installment_paypal_client_id != blank -%}
+            <script>
+              (function () {
+                function initPaypal() {
+                  if(window.paypal_script_loaded) return;
+                  window.paypal_script_loaded = true;
+                  var s = document.createElement('script');
+                  var paypal_url = 'https://www.paypal.com/sdk/js?client-id={{ block.settings.installment_paypal_client_id }}&components=messages';
+                  s.type = 'text/javascript';
+                  s.async = true;
+                  s.src = paypal_url;
+                  var x = document.getElementsByTagName('script')[0];
+                  x.parentNode.insertBefore(s, x);
+                  x.defer = true;
+                }
+
+                if(window.attachEvent) {
+                  window.attachEvent('onload', initPaypal);
+                } else {
+                  window.addEventListener('load', initPaypal, false);
+                }
+              })()
+            </script>
+          {%- endif -%}
+
+          {%- if block.settings.installment_type == 'klarna' -%}
+            {% if shop.id == 57272172741 %}
+                {% assign data_local = 'de-DE' %}
+            {% elsif shop.id == 9709262 %}
+                {% assign data_local = 'en-US' %}
+            {% elsif shop.id == 60738666677 %}
+                {% comment %} ca no klarna {% endcomment %}
+                {% assign data_local = '' %}
+            {% elsif shop.id == 73356443969 %}
+                {% assign data_local = 'en-NL' %}
+            {% elsif shop.id == 56981160124 %}
+                {% assign data_local = 'en-GB' %}
+            {% elsif shop.id == 69511053598 %}
+                {% assign data_local = 'fr-FR' %}
+            {% elsif shop.id == 65060929623 %}
+                {% assign data_local = 'nl-NL' %}
+            {% elsif shop.id == 69013700929 %}
+                {% comment %} es no klarna {% endcomment %}
+                {% assign data_local = '' %}
+            {% elsif shop.id == 69511053598 %}
+                {% comment %} fr no klaren-NL {% endcomment %}
+                {% assign data_local = '' %}
+            {% elsif shop.id == 69224431898 %}
+                {% comment %} it no klarna {% endcomment %}
+                {% assign data_local = '' %}
+            {% elsif shop.id == 68984701213 %}
+                {% comment %} au no klarna {% endcomment %}
+                {% assign data_local = '' %}
+            {% elsif shop.id == 68984701213 %}
+                {% comment %} au no klarna {% endcomment %}
+                {% assign data_local = '' %}
+            {% elsif shop.id == 10015375438 %}
+                {% comment %} jp no klarna {% endcomment %}
+                {% assign data_local = '' %}
+            {% elsif shop.id == 10015375438 %}
+                {% comment %} kr no klarna {% endcomment %}
+                {% assign data_local = '60455780502' %}
+            {% endif %}
+
+            {% comment %} 测试店铺demo klarna {% endcomment %}
+            {%- if shop.id == 55005249633 -%}
+              <script>
+                (function () {
+                  function initKlarna() {
+                    if(window.klarna_script_loaded) return;
+                    window.klarna_script_loaded = true;
+                    var s = document.createElement('script');
+                    var klarna_url = 'https://js.klarna.com/web-sdk/v1/klarna.js';
+                    s.type = 'text/javascript';
+                    s.async = true;
+                    s.src = klarna_url;
+
+                    s.id = 'klarna-osm-script-tag';
+                    s.dataset.clientId = 'ac2331f4-16bb-5da0-92ca-905d42d651f2';
+                    s.dataset.environment = 'production';
+
+                    var x = document.getElementsByTagName('script')[0];
+                    x.parentNode.insertBefore(s, x);
+                    x.defer = true;
+                  }
+
+                  if(window.attachEvent) {
+                    window.attachEvent('onload', initKlarna);
+                  } else {
+                    window.addEventListener('load', initKlarna, false);
+                  }
+                })()
+              </script>
+            {%- endif -%}
+          {%- endif -%}
+
+          {%- if block.settings.installment_type == 'splitit' and shop.id == 55005249633 -%}
+            <script>
+              (function () {
+                function initSplitit() {
+                  if(window.splitit_script_loaded) return;
+                  window.splitit_script_loaded = true;
+                  var s = document.createElement('script');
+                  var splitit_url = 'https://cdn.shopify.com/proxy/6da4c7acd8056454fa088038cdfbba4216fa9acf2c292a9c3a4905a58e39a8e1/web-components.splitit.com/upstream.js?shop=jackeryuk.myshopify.com&sp-cache-control=cHVibGljLCBtYXgtYWdlPTkwMA';
+                  s.type = 'text/javascript';
+                  s.async = true;
+                  s.src = splitit_url;
+
+                  var x = document.getElementsByTagName('script')[0];
+                  x.parentNode.insertBefore(s, x);
+                  x.defer = true;
+                }
+
+                if(window.attachEvent) {
+                  window.attachEvent('onload', initSplitit);
+                } else {
+                  window.addEventListener('load', initSplitit, false);
+                }
+              })()
+            </script>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- form 'product',
+      product,
+      id: product_form_id,
+      class: 'form',
+      novalidate: 'novalidate',
+      data-type: 'add-to-cart-form'
+    -%}
+      <input
+        type="hidden"
+        name="id"
+        value="{{ current_variant.id }}"
+        data-sku="{{ current_variant.sku }}"
+        data-sku-title="{{ current_variant.title }}"
+        data-product-warranty-info="{{ sku_warranty_info | escape }}"
+        data-tax-free-popup="{{ current_variant.metafields.custom.open_tax_free_popup_before_buy.value | json }}"
+        class="product-variant-id"
+      >
+      {%- if product_warranty_key != blank and product_warranty_value != blank -%}
+        <input
+          type="hidden"
+          name="properties[{{ product_warranty_key | escape }}]"
+          value="{{ product_warranty_value | escape }}"
+          data-product-warranty-property="true"
+        >
+      {%- endif -%}
+
+      <input
+        type="hidden"
+        name="quantity"
+        value="{{ current_variant.quantity_rule.min | default: 1 }}"
+        class="product-form-quantity-hidden"
+      >
+
+      <div class="product-form__buttons w-full flex flex-col lg:flex-row lg:items-center gap-y-3 lg:gap-x-6">
+        {%- liquid
+          assign price = base_price
+          assign compare_at_price = base_compare_at_price
+          assign money_price = price | money
+
+          if current_variant == product and product.price_varies
+            assign money_price = 'products.product.price.from_price_html' | t: price: money_price
+          endif
+        -%}
+
+        <button
+          class="jky-v5-button-ghost lg:flex-1 disabled:opacity-40 disabled:cursor-not-allowed appearance-none flex items-center justify-center bg-transparent text-primary font-semibold border-2 border-solid border-primary text-base min-w-[6.375rem] px-2 h-10 lg:text-xl lg:min-w-[10rem] lg:h-12 lg:px-4"
+          id="ProductSubmitButton-{{ sectionId }}"
+          type="submit"
+          name="add"
+          hide-price="true"
+          {% if current_variant.available == false or quantity_rule_sold_out %}
+            disabled
+          {% endif %}
+        >
+          <span>{{ 'products.product.add_to_cart' | t }}</span>
+        </button>
+
+        {%- if customer and customer.current_company -%}
+          {% comment %} B2B 用户 {% endcomment %}
+          <div style="flex: 1;" class="buy-now--box">{{ form | payment_button }}</div>
+        {%- else -%}
+          {% comment %} 2C 用户 {% endcomment %}
+          <button
+            class="jky-v5-button lg:flex-1 buy-now--box buy-it-now-custom-btn disabled:opacity-40 disabled:cursor-not-allowed appearance-none flex items-center justify-center bg-primary text-white font-semibold text-base px-2 h-10 gap-x-2 lg:text-xl lg:h-12 lg:px-4"
+            type="button"
+            name="buy-it-now"
+            {% if current_variant.available == false or quantity_rule_sold_out %}
+              disabled
+            {% endif %}
+          >
+            <span>{{ 'products.product.buy_it_now' | t }}</span>
+          </button>
+        {%- endif -%}
+      </div>
+
+      {% comment %} 2C 用户，按需显示【Shopify立即购买】按钮 {% endcomment %}
+      {%- unless customer and customer.current_company -%}
+        {%- if block.settings.show_shopify_buy_it_now -%}
+          <div class="w-full buy-now--box mt-4">{{ form | payment_button }}</div>
+        {%- endif -%}
+      {%- endunless -%}
+    {%- endform -%}
+    
+    {%- render 'v5-app-pdp-shortage-remind', section: section, product: product, block: block -%}
+
+    {%- if block.settings.show_payment_icons -%}
+      {% render 'payment-icons-v5' %}
+    {%- endif -%}
+  </v5-product-form>
+
+  <script type="module">
+    if (!customElements.get('v5-product-form')) {
+      customElements.define('v5-product-form', class ProductForm extends HTMLElement {
+        constructor() {
+          super();
+
+          {% comment %} url链接，携带的【捆绑销售】标签 {% endcomment %}
+          this.bundledTag = getUrlQueryParams('bundled_action_tag') || ''
+          {% comment %} url链接，携带的【产品推荐】标签 {% endcomment %}
+          this.recommendedTag = getUrlQueryParams('action_tag') || ''
+
+          this.form = this.querySelector('form')
+          this.variantInput = this.form.querySelector('[name=id]')
+          this.variantInput.disabled = false
+          this.cart = document.querySelector('cart-notification') || document.querySelector('cart-drawer')
+          this.submitButton = this.querySelector('[type="submit"]');
+          this.submitButtonLabel = this.form.querySelector('[name="add"]')
+          this.productInfoWrapper = document.querySelector('.v5-product-info-wrapper')
+          this.variantFields = document.querySelector('variant-fields')
+          this.selectedVariantNode = document.querySelector('#selected-variant[type="application/json"]')
+          this.quantityInputEl = document.querySelector('quantity-input[data-v5-app-pdp-quantity] input')
+          this.plusQuantityButton = this.productInfoWrapper?.querySelector("quantity-input .quantity__button[name='plus']")
+          this.errorWrapper = this.productInfoWrapper?.querySelector('.add_cart_error_wrapper')
+          this.taxFreePopupScript = document.querySelector('script[type="application/json"][id="tax-free-popup-json"]')
+          this.summaryImage = this.querySelector('[data-package-summary-image]');
+          this.summaryTitle = this.querySelector('[data-package-summary-title]');
+          this.summaryQuantity = this.querySelector('[data-package-summary-quantity]');
+          this.summaryBasePrice = this.querySelector('[data-package-summary-line-price]');
+          this.summaryBaseOriginPrice = this.querySelector('[data-package-summary-base-origin-price]');
+          this.summaryRoot = this.querySelector('[data-package-summary-root]');
+          this.summaryBundlesWrapper = this.querySelector('[data-package-summary-bundles-wrapper]');
+          this.summaryBundles = this.querySelector('[data-package-summary-bundles]');
+          this.summaryTotals = this.querySelector('[data-package-summary-totals]');
+          this.summaryTotalPrice = this.querySelector('[data-package-summary-total-price]');
+          this.summaryTotalOriginPrice = this.querySelector('[data-package-summary-total-origin-price]');
+          this.summaryTotalDiscount = this.querySelector('[data-package-summary-total-discount]');
+          this.quantityButtons = Array.from(document.querySelectorAll('quantity-input[data-v5-app-pdp-quantity] .quantity__button'));
+          this.bundledSaleRoot = document.querySelector('jky-v5-app-bundled-sale-plus')
+          this.selectedBundles = [];
+          this.normalizedSelectedBundles = []
+          this.baseSummaryPrice = Number(this.summaryRoot?.dataset?.packageSummaryBasePrice || 0);
+          this.baseSummaryComparePrice = Number(this.summaryRoot?.dataset?.packageSummaryBaseComparePrice || this.baseSummaryPrice || 0);
+          this.quantityUpdateFrame = 0
+          this.bundleDomSyncFrame = 0
+          this.bundledSaleMutationObserver = null
+
+          this.currentVariant = this.variantFields?.currentVariant
+          if (!this.currentVariant) {
+            this.currentVariant = this.getSelectedVariant()
+          }
+          this.syncProductWarrantyPropertyInput()
+
+          this.buyItNowButton = this.form.querySelector('.buy-it-now-custom-btn')
+          this.handleFormSubmit = this.handleFormSubmit.bind(this)
+          this.handleBuyNowClick = this.handleBuyNowClick.bind(this)
+          this.handleVariantChange = this.handleVariantChange.bind(this)
+          this.handleBundleLoaded = this.handleBundleLoaded.bind(this)
+          this.handleBundleSelectionChange = this.handleBundleSelectionChange.bind(this)
+          this.handleQuantityInputChange = this.handleQuantityInputChange.bind(this)
+          this.handleQuantityButtonClick = this.handleQuantityButtonClick.bind(this)
+          this.handleBundledSaleDomChange = this.handleBundledSaleDomChange.bind(this)
+          this.handlePageRestore = this.handlePageRestore.bind(this)
+
+          this.handleQuantityLimit()
+          this.updatePackageSummaryQuantity()
+          this.syncQuantityHiddenInput()
+        }
+        connectedCallback() {
+          this.form?.addEventListener('submit', this.handleFormSubmit)
+          this.buyItNowButton?.addEventListener('click', this.handleBuyNowClick)
+          document.addEventListener('variantChangeEvent', this.handleVariantChange)
+          document.addEventListener('bundleLoadedEvent', this.handleBundleLoaded)
+          document.addEventListener('bundleSelectionChangeEvent', this.handleBundleSelectionChange)
+          this.quantityInputEl?.addEventListener('input', this.handleQuantityInputChange)
+          this.quantityInputEl?.addEventListener('change', this.handleQuantityInputChange)
+          this.quantityButtons.forEach((button) => {
+            button.addEventListener('click', this.handleQuantityButtonClick)
+          })
+          document.addEventListener('change', this.handleBundledSaleDomChange, true)
+          document.addEventListener('click', this.handleBundledSaleDomChange, true)
+          document.addEventListener('input', this.handleBundledSaleDomChange, true)
+          window.addEventListener('pageshow', this.handlePageRestore)
+          document.addEventListener('visibilitychange', this.handlePageRestore)
+          document.addEventListener('memberPriceReady', this.handlePageRestore)
+          this.initBundledSaleObserver()
+          this.queueBundledSaleDomSync()
+          this.queuePackageSummaryQuantityUpdate()
+        }
+        disconnectedCallback() {
+          this.form?.removeEventListener('submit', this.handleFormSubmit)
+          this.buyItNowButton?.removeEventListener('click', this.handleBuyNowClick)
+          document.removeEventListener('variantChangeEvent', this.handleVariantChange)
+          document.removeEventListener('bundleLoadedEvent', this.handleBundleLoaded)
+          document.removeEventListener('bundleSelectionChangeEvent', this.handleBundleSelectionChange)
+          this.quantityInputEl?.removeEventListener('input', this.handleQuantityInputChange)
+          this.quantityInputEl?.removeEventListener('change', this.handleQuantityInputChange)
+          this.quantityButtons.forEach((button) => {
+            button.removeEventListener('click', this.handleQuantityButtonClick)
+          })
+          document.removeEventListener('change', this.handleBundledSaleDomChange, true)
+          document.removeEventListener('click', this.handleBundledSaleDomChange, true)
+          document.removeEventListener('input', this.handleBundledSaleDomChange, true)
+          window.removeEventListener('pageshow', this.handlePageRestore)
+          document.removeEventListener('visibilitychange', this.handlePageRestore)
+          document.removeEventListener('memberPriceReady', this.handlePageRestore)
+          this.bundledSaleMutationObserver?.disconnect()
+          cancelAnimationFrame(this.quantityUpdateFrame)
+          cancelAnimationFrame(this.bundleDomSyncFrame)
+        }
+        handleFormSubmit(e) {
+          e?.preventDefault()
+          {% comment %} 变体需要免税弹窗确认 {% endcomment %}
+          if (this.currentVariant?.open_tax_free_popup_before_buy) {
+            try {
+              this.showTaxFreePopup(() => this.handleAddToCart())
+            } catch (err) {
+              this.handleAddToCart()
+            }
+          } else {
+            this.handleAddToCart()
+          }
+        }
+        handleBuyNowClick(e) {
+          e?.preventDefault()
+          {% comment %} 变体需要免税弹窗确认 {% endcomment %}
+          if (this.currentVariant?.open_tax_free_popup_before_buy) {
+            try {
+              this.showTaxFreePopup(() => this.handleBuy())
+            } catch (err) {
+              this.handleBuy()
+            }
+          } else {
+            this.handleBuy()
+          }
+        }
+        handleVariantChange(e) {
+          const currentVariant = e.detail?.variant
+          if (!currentVariant) return
+
+          this.currentVariant = currentVariant
+          this.syncProductWarrantyPropertyInput()
+          this.syncQuantityHiddenInput()
+          this.selectedBundles = []
+          this.normalizedSelectedBundles = []
+          this.updatePackageSummary(currentVariant)
+          // 检查会员价，避免普通价格 → 会员价的闪烁
+          this.updatePackageSummaryBasePriceWithMemberCheck(currentVariant)
+          this.renderPackageSummaryBundles()
+          this.queuePackageSummaryQuantityUpdate()
+          this.initBundledSaleObserver()
+          this.queueBundledSaleDomSync()
+        }
+        handleBundleLoaded() {
+          this.queueBundledSaleDomSync()
+        }
+        handleBundleSelectionChange(e) {
+          const eventVariantId = String(e.detail?.variantId || '')
+          const currentVariantId = String(this.currentVariant?.id || '')
+          if (eventVariantId && currentVariantId && eventVariantId !== currentVariantId) return
+          this.queueBundledSaleDomSync()
+        }
+        handleQuantityInputChange() {
+          this.updatePackageSummaryQuantity()
+          this.syncQuantityHiddenInput()
+        }
+        handleQuantityButtonClick() {
+          this.queuePackageSummaryQuantityUpdate()
+        }
+        handleBundledSaleDomChange(e) {
+          const target = e.target
+          if (!(target instanceof Element)) return
+          if (!target.closest('jky-v5-app-bundled-sale-plus')) return
+
+          const isRelevant = target.matches('input[type="checkbox"], [data-button-plus], [data-button-minus], [data-quantity-input]')
+            || target.closest('[data-button-plus], [data-button-minus]')
+          if (isRelevant) this.queueBundledSaleDomSync()
+        }
+        handlePageRestore() {
+          if (document.visibilityState && document.visibilityState !== 'visible') return
+
+          // 重新读取 base 价格，避免会员价优惠券更新过的 dataset 被旧内存值覆盖
+          this.baseSummaryPrice = Number(this.summaryRoot?.dataset?.packageSummaryBasePrice || this.baseSummaryPrice || 0)
+          this.baseSummaryComparePrice = Number(this.summaryRoot?.dataset?.packageSummaryBaseComparePrice || this.baseSummaryComparePrice || this.baseSummaryPrice || 0)
+
+          this.queuePackageSummaryQuantityUpdate()
+          this.queueBundledSaleDomSync()
+        }
+        {% comment %} 获取当前变体信息 {% endcomment %}
+        getSelectedVariant() {
+          if(!this.productInfoWrapper) return {};
+          if(this.productInfoWrapper.getAttribute("onlyVariant") === "true" && this.selectedVariantNode) {
+            const parsedVariantData = JSON.parse(this.selectedVariantNode.textContent);
+            if (Array.isArray(parsedVariantData)) {
+              return parsedVariantData[0] || null
+            }
+            return parsedVariantData
+          }
+        }
+        formatSummaryDiscount(cents) {
+          const discountCents = Math.max(0, Math.floor(Number(cents || 0) / 100) * 100)
+          const moneyFormat = formatNoDecimalsMoney?.() || window?.pageInfo?.currency?.money_format
+          return (this.dataset.discountFormat || 'Save ()').replace('()', formatMoney(discountCents, moneyFormat))
+        }
+        formatInstallmentAmount(cents, stripTrailingZeros = false) {
+          const formatted = formatMoney(Number(cents || 0), window?.pageInfo?.currency?.money_format)
+          return stripTrailingZeros ? formatted.replace(/([.,]00)(?=\s*[\p{Sc}]|$)/u, '') : formatted
+        }
+        getCustomInstallmentAmount(totalPrice) {
+          const amount = Number(totalPrice || 0)
+          if (!(amount > 0)) return 0
+
+          const dividend = amount < 20000
+            ? (amount / 100)
+            : ((amount * 1.1229) / 100)
+          const divisor = amount < 20000 ? 4 : 18
+
+          return Math.ceil(dividend / divisor) * 100
+        }
+        formatInstallmentProviderAmount(totalPrice) {
+          return (Number(totalPrice || 0) / 100).toFixed(2)
+        }
+        refreshPaypalInstallment(message, amount) {
+          if (!message || !window.paypal?.Messages) return
+
+          try {
+            message.innerHTML = ''
+            window.paypal.Messages({
+              amount,
+              placement: message.dataset.ppPlacement || 'product',
+              style: {
+                layout: message.dataset.ppStyleLayout || 'text',
+                logo: {
+                  type: message.dataset.ppStyleLogoType || 'primary',
+                  position: message.dataset.ppStyleLogoPosition || 'left',
+                }
+              }
+            }).render(message)
+          } catch (error) {
+            console.warn('paypal installment refresh error', error)
+          }
+        }
+        refreshKlarnaInstallment(placement) {
+          if (!placement) return
+
+          try {
+            if (typeof placement.refresh === 'function') {
+              placement.refresh()
+              return
+            }
+
+            if (window.Klarna?.OnsiteMessaging?.refresh) {
+              window.Klarna.OnsiteMessaging.refresh()
+              return
+            }
+
+            if (window.KlarnaOnsiteService?.push) {
+              window.KlarnaOnsiteService.push({ eventName: 'refresh-placements' })
+            }
+          } catch (error) {
+            console.warn('klarna placement refresh error', error)
+          }
+        }
+        updateInstallmentPayment(totalPrice) {
+          const installmentRoot = this.querySelector('[data-installment-payment]')
+          if (!installmentRoot) return
+
+          const type = installmentRoot.dataset.installmentType || ''
+
+          if (type === 'custom') {
+            const textNode = installmentRoot.querySelector('[data-installment-custom-text]')
+            const template = installmentRoot.dataset.installmentTextTemplate || ''
+            if (!textNode || !template) return
+
+            const installmentAmount = this.getCustomInstallmentAmount(totalPrice)
+            textNode.textContent = template.replace('{Installment_per}', this.formatInstallmentAmount(installmentAmount, true))
+            return
+          }
+
+          if (type === 'paypal') {
+            const message = installmentRoot.querySelector('[data-pp-message]')
+            if (!message) return
+
+            const providerAmount = this.formatInstallmentProviderAmount(totalPrice)
+            message.setAttribute('data-pp-amount', providerAmount)
+            this.refreshPaypalInstallment(message, providerAmount)
+            return
+          }
+
+          if (type === 'klarna') {
+            const placement = installmentRoot.querySelector('klarna-placement')
+            if (!placement) return
+
+            placement.setAttribute('data-purchase-amount', String(Number(totalPrice || 0)))
+            this.refreshKlarnaInstallment(placement)
+            return
+          }
+
+          if (type === 'splitit') {
+            const splititLine = installmentRoot.querySelector('spt-one-liner')
+            if (!splititLine) return
+
+            splititLine.setAttribute('amount', this.formatInstallmentProviderAmount(totalPrice))
+          }
+        }
+        getVariantSummaryPrices(variant) {
+          let price = Number(variant?.price || 0)
+          let compareAtPrice = Number(variant?.compare_at_price || price)
+
+          const autoDiscountPrice = Number(variant?.auto_discount_price || variant?.metafields?.custom?.auto_discount_price || 0)
+          if (autoDiscountPrice > 0 && autoDiscountPrice < price) {
+            price = autoDiscountPrice
+          }
+
+          if (compareAtPrice < Number(variant?.price || 0)) {
+            compareAtPrice = Number(variant?.price || 0)
+          }
+
+          return { price, compareAtPrice }
+        }
+        setPackageSummaryBasePrice(price, compareAtPrice) {
+          this.baseSummaryPrice = Number(price || 0)
+          this.baseSummaryComparePrice = Number(compareAtPrice || this.baseSummaryPrice || 0)
+          if (this.summaryRoot) {
+            this.summaryRoot.dataset.packageSummaryBasePrice = this.baseSummaryPrice
+            this.summaryRoot.dataset.packageSummaryBaseComparePrice = this.baseSummaryComparePrice
+          }
+        }
+        setPackageSummaryLinePrice(price, compareAtPrice) {
+          if (this.summaryBasePrice) {
+            this.summaryBasePrice.textContent = formatMoney(price)
+          }
+          if (this.summaryBaseOriginPrice) {
+            if (compareAtPrice > price) {
+              this.summaryBaseOriginPrice.textContent = formatMoney(compareAtPrice)
+              this.summaryBaseOriginPrice.classList.remove('hidden')
+            } else {
+              this.summaryBaseOriginPrice.textContent = ''
+              this.summaryBaseOriginPrice.classList.add('hidden')
+            }
+          }
+        }
+        getPackageSummaryBundles() {
+          if (!Array.isArray(this.selectedBundles)) {
+            this.normalizedSelectedBundles = []
+            return this.normalizedSelectedBundles
+          }
+
+          if (!this.normalizedSelectedBundles.length && this.selectedBundles.length) {
+            this.normalizedSelectedBundles = this.selectedBundles
+              .map((bundle) => this.normalizeSummaryBundle(bundle))
+              .filter((bundle) => bundle.skuId && bundle.quantity > 0)
+          }
+
+          return this.normalizedSelectedBundles
+        }
+        getPackageSummaryQuantity() {
+          const quantity = Number(this.quantityInputEl?.value || 1)
+          return Number.isFinite(quantity) && quantity > 0 ? quantity : 1
+        }
+        togglePackageSummaryBundles(hasBundles) {
+          this.summaryBundlesWrapper?.classList.toggle('hidden', !hasBundles)
+        }
+        getPackageSummaryImageData(variant) {
+          const featuredImage = variant?.featured_image
+          const previewImage = variant?.featured_media?.preview_image
+          const featuredMedia = variant?.featured_media
+
+          const src = typeof featuredImage === 'string'
+            ? featuredImage
+            : featuredImage?.src || featuredImage?.url || previewImage?.src || previewImage?.url || featuredMedia?.src || featuredMedia?.url || ''
+
+          const alt = typeof featuredImage === 'object' && featuredImage
+            ? featuredImage.alt
+            : previewImage?.alt || featuredMedia?.alt || ''
+
+          return {
+            src: src || this.summaryImage?.dataset?.fallbackSrc || '',
+            alt: alt || this.summaryImage?.dataset?.fallbackAlt || this.getAttribute('product-title') || ''
+          }
+        }
+        updatePackageSummary(variant) {
+          if (this.summaryTitle) {
+            const title = !variant?.title || variant.title === 'Default Title'
+              ? (this.getAttribute('product-title') || '')
+              : variant.title
+            this.summaryTitle.textContent = title
+          }
+          if (this.summaryImage) {
+            const image = this.getPackageSummaryImageData(variant)
+            this.summaryImage.src = image.src
+            this.summaryImage.alt = image.alt
+          }
+        }
+        updatePackageSummaryBasePrice(variant) {
+          if (!variant) return
+
+          const { price, compareAtPrice } = this.getVariantSummaryPrices(variant)
+          this.setPackageSummaryBasePrice(price, compareAtPrice)
+          this.updatePackageSummaryQuantity()
+        }
+        updatePackageSummaryBasePriceWithMemberCheck(variant) {
+          if (!variant) return
+
+          const member = window.productMemberPriceInfo?.find(item => item.id.toString() === variant.id.toString())
+          const showAutoDiscount = this.dataset?.displayAutoDiscountPriceInStickyCart === 'true'
+          const compared = member ? (showAutoDiscount ? member.membership_price < member.price : member.membership_price < member.shopify_price) : false
+
+          const price = compared ? member.membership_price : variant.price
+          const compareAtPrice = compared ? member.compare_at_price : variant.compare_at_price
+          this.setPackageSummaryBasePrice(price, compareAtPrice)
+          this.updatePackageSummaryQuantity()
+        }
+        normalizeSummaryBundle(bundle) {
+          const title = String(bundle?.displayTitle || bundle?.title || '').trim()
+          return {
+            skuId: String(bundle?.skuId || ''),
+            title,
+            image: String(bundle?.image || '').replace(/`/g, '').trim(),
+            quantity: Number(bundle?.quantity || 1),
+            price: Number(bundle?.price || 0),
+            originPrice: Number(bundle?.originPrice || 0),
+          }
+        }
+        getBundledSaleRoot() {
+          const root = document.querySelector('jky-v5-app-bundled-sale-plus')
+          if (root) {
+            this.bundledSaleRoot = root
+          }
+          return this.bundledSaleRoot
+        }
+        initBundledSaleObserver() {
+          this.bundledSaleMutationObserver?.disconnect()
+
+          const bundledSaleRoot = this.getBundledSaleRoot()
+          if (!bundledSaleRoot || typeof MutationObserver === 'undefined') return
+
+          this.bundledSaleMutationObserver = new MutationObserver(() => {
+            this.queueBundledSaleDomSync()
+          })
+
+          this.bundledSaleMutationObserver.observe(bundledSaleRoot, {
+            childList: true,
+            subtree: true,
+          })
+        }
+        getSelectedBundlesFromDom() {
+          const bundledSaleRoot = this.getBundledSaleRoot()
+          if (!bundledSaleRoot) return []
+
+          const checkedInputs = [...bundledSaleRoot.querySelectorAll('input[type="checkbox"][data-bundle-sku-id]:checked')]
+          return checkedInputs.map((input) => {
+            const label = input.closest('label')
+            const quantityInput = label?.querySelector('[data-quantity-input]')
+            const title = input.dataset.bundleDisplayTitle || input.dataset.bundleTitle || input.getAttribute('title') || ''
+
+            return this.normalizeSummaryBundle({
+              skuId: input.dataset.bundleSkuId || quantityInput?.dataset?.skuId || '',
+              displayTitle: title,
+              image: input.dataset.bundleImage || label?.querySelector('img')?.getAttribute('src') || '',
+              quantity: Number(quantityInput?.value || 1),
+              price: Number(input.dataset.bundlePrice || 0),
+              originPrice: Number(input.dataset.bundleOriginPrice || 0),
+            })
+          }).filter((bundle) => bundle.skuId && bundle.quantity > 0)
+        }
+        queueBundledSaleDomSync() {
+          cancelAnimationFrame(this.bundleDomSyncFrame)
+          this.bundleDomSyncFrame = requestAnimationFrame(() => {
+            this.syncSelectedBundlesFromDom()
+          })
+        }
+        syncSelectedBundlesFromDom() {
+          const domBundles = this.getSelectedBundlesFromDom()
+          const domBundlesSnapshot = JSON.stringify(domBundles)
+          const currentBundlesSnapshot = JSON.stringify(this.getPackageSummaryBundles())
+
+          if (domBundlesSnapshot === currentBundlesSnapshot) {
+            return
+          }
+
+          this.selectedBundles = domBundles
+          this.normalizedSelectedBundles = domBundles
+          this.renderPackageSummaryBundles()
+        }
+        renderPackageSummaryBundles() {
+          if (!this.summaryBundles || !this.summaryBundlesWrapper) return
+
+          const bundles = this.getPackageSummaryBundles()
+
+          if (!bundles.length) {
+            this.summaryBundles.innerHTML = ''
+            this.togglePackageSummaryBundles(false)
+            this.updatePackageSummaryTotals()
+            return
+          }
+
+          const bundleLines = bundles.map((bundle) => {
+            const originPriceHTML = bundle.originPrice > bundle.price
+              ? `<span class="line-through font-normal text-[#777] text-sm lg:text-base">${formatMoney(bundle.originPrice * 100 * bundle.quantity)}</span>`
+              : ''
+
+            return `
+              <div class="flex items-start gap-x-3 py-5 lg:gap-x-6 lg:py-6 border-t border-solid border-[#E6E6E6] relative" data-package-summary-bundle-line data-sku-id="${bundle.skuId}">
+                ${bundle.image ? `<img class="w-12 h-12 lg:w-[3.75rem] lg:h-[3.75rem] object-contain" src="${bundle.image}${bundle.image.includes('?') ? '&' : '?'}width=64" alt="${bundle.title}" width="64" height="64" loading="lazy">` : ''}
+                <div class="flex-1 flex flex-col gap-y-3">
+                  <span class="text-[#242F20] font-semibold text-sm lg:text-xl">${bundle.title}</span>
+                  <div class="flex items-center gap-x-4 lg:gap-x-8">
+                    <span class="text-[#242F20] font-medium text-sm lg:text-[1.125rem]">x${bundle.quantity}</span>
+                    <div class="flex items-center gap-x-1">
+                      <span class="font-medium text-[#242F20] text-sm lg:text-base">${formatMoney(bundle.price * 100 * bundle.quantity)}</span>
+                      ${originPriceHTML}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `
+          }).join('')
+
+          this.summaryBundles.innerHTML = bundleLines
+          this.togglePackageSummaryBundles(true)
+          this.selectedBundles = bundles
+          this.updatePackageSummaryTotals()
+        }
+        updatePackageSummaryTotals() {
+          const selectedBundles = this.getPackageSummaryBundles()
+          const baseQuantity = this.getPackageSummaryQuantity()
+          let totalPrice = Number(this.baseSummaryPrice || 0) * baseQuantity
+          let totalOriginPrice = Number(this.baseSummaryComparePrice || this.baseSummaryPrice || 0) * baseQuantity
+
+          selectedBundles.forEach((bundle) => {
+            const quantity = Number(bundle.quantity || 1)
+            totalPrice += Number(bundle.price || 0) * 100 * quantity
+            totalOriginPrice += Number(bundle.originPrice || 0) * 100 * quantity
+          })
+
+          if (this.summaryTotalPrice) {
+            this.summaryTotalPrice.textContent = formatMoney(totalPrice)
+          }
+
+          if (this.summaryTotalOriginPrice) {
+            if (totalOriginPrice > totalPrice) {
+              this.summaryTotalOriginPrice.textContent = formatMoney(totalOriginPrice)
+              this.summaryTotalOriginPrice.classList.remove('hidden')
+            } else {
+              this.summaryTotalOriginPrice.textContent = ''
+              this.summaryTotalOriginPrice.classList.add('hidden')
+            }
+          }
+
+          if (this.summaryTotalDiscount) {
+            const totalDiscount = totalOriginPrice - totalPrice
+            if (totalDiscount > 0) {
+              this.summaryTotalDiscount.textContent = this.formatSummaryDiscount(totalDiscount)
+              this.summaryTotalDiscount.classList.remove('hidden')
+            } else {
+              this.summaryTotalDiscount.textContent = ''
+              this.summaryTotalDiscount.classList.add('hidden')
+            }
+          }
+
+          this.updateInstallmentPayment(totalPrice)
+        }
+        queuePackageSummaryQuantityUpdate() {
+          cancelAnimationFrame(this.quantityUpdateFrame)
+          this.quantityUpdateFrame = requestAnimationFrame(() => {
+            this.updatePackageSummaryQuantity()
+          })
+        }
+        updatePackageSummaryQuantity() {
+          const quantity = this.getPackageSummaryQuantity()
+
+          if (this.summaryQuantity) {
+            this.summaryQuantity.textContent = `x${quantity}`
+          }
+
+          this.setPackageSummaryLinePrice(
+            Number(this.baseSummaryPrice || 0) * quantity,
+            Number(this.baseSummaryComparePrice || this.baseSummaryPrice || 0) * quantity
+          )
+          this.updatePackageSummaryTotals()
+        }
+        parseProductWarrantyInfo(info) {
+          const normalized = String(info || '').trim().replace(/：/g, ':')
+          const separatorIndex = normalized.indexOf(':')
+          if (separatorIndex < 0) return { key: '', value: '', properties: {} }
+          const key = normalized.slice(0, separatorIndex).trim()
+          const value = normalized.slice(separatorIndex + 1).trim()
+          if (!key || !value) return { key: '', value: '', properties: {} }
+          return {
+            key,
+            value,
+            properties: { [key]: value }
+          }
+        }
+        getCurrentProductWarrantyInfo() {
+          return this.currentVariant?.sku_warranty_info || this.variantInput?.dataset.productWarrantyInfo || ''
+        }
+        syncProductWarrantyPropertyInput() {
+          const idInput = this.variantInput
+          const currentWarrantyInfo = this.getCurrentProductWarrantyInfo()
+          if (idInput) {
+            if (currentWarrantyInfo) {
+              idInput.setAttribute('data-product-warranty-info', currentWarrantyInfo)
+            } else {
+              idInput.removeAttribute('data-product-warranty-info')
+            }
+          }
+          this.form.querySelectorAll('[data-product-warranty-property]').forEach((input) => input.remove())
+          const { key, value } = this.parseProductWarrantyInfo(currentWarrantyInfo)
+          if (!key || !value) return
+          const hiddenInput = document.createElement('input')
+          hiddenInput.type = 'hidden'
+          hiddenInput.name = `properties[${key}]`
+          hiddenInput.value = value
+          hiddenInput.setAttribute('data-product-warranty-property', 'true')
+          this.form.appendChild(hiddenInput)
+        }
+        getProductWarrantyProperties() {
+          return this.parseProductWarrantyInfo(this.getCurrentProductWarrantyInfo()).properties
+        }
+        syncQuantityHiddenInput() {
+          const hiddenQty = this.form.querySelector('.product-form-quantity-hidden')
+          const externalQtyInput = this.quantityInputEl
+          if (!hiddenQty) return
+          if (!externalQtyInput) return
+          hiddenQty.value = externalQtyInput.value || externalQtyInput.getAttribute('min') || 1
+        }
+        getBundleActionProperties() {
+          if (this.bundledTag) {
+            return { Action: this.bundledTag.replace('_', ' ') }
+          }
+
+          if (this.recommendedTag) {
+            return { Action: this.recommendedTag }
+          }
+
+          return { Action: 'bundled sale' }
+        }
+        buildBundledItems(variantId, quantity) {
+          const items = [{
+            id: Number(variantId),
+            quantity: Number(quantity || 1),
+            properties: {
+              ...this.getProductWarrantyProperties(),
+              ...this.getBundleActionProperties()
+            }
+          }]
+          const bundles = this.getPackageSummaryBundles()
+
+          bundles.forEach((bundle) => {
+            if (!bundle?.skuId) return
+
+            items.push({
+              id: Number(bundle.skuId),
+              quantity: Number(bundle.quantity || 1),
+              properties: this.getBundleActionProperties()
+            })
+          })
+
+          return items
+        }
+        {% comment %} 处理数量限制 {% endcomment %}
+        handleQuantityLimit() {
+          if(!this.currentVariant) this.currentVariant = this.getSelectedVariant()
+          const quantityField = this.quantityInputEl
+          if (!quantityField) return
+          const max = this.currentVariant?.inventory_quantity || 1
+          quantityField.setAttribute("data-max", max)
+          quantityField.setAttribute("max", max)
+          if (max > 1) this.plusQuantityButton?.removeAttribute("disabled")
+        }
+        {% comment %} 处理错误信息 {% endcomment %}
+        handleErrorMsg(msg) {
+          if(!this.errorWrapper) return
+          this.errorWrapper.toggleAttribute('hidden', !msg);
+          this.errorWrapper.textContent = msg
+        }
+        handleAddToCart() {
+          if (this.submitButton.getAttribute('aria-disabled') === 'true') return;
+          this.handleErrorMsg()
+          this.submitButton.setAttribute('aria-disabled', true);
+          this.submitButton.classList.add('loading');
+
+          const formData = new FormData(this.form);
+          const id = formData.get('id');
+          const quantity = this.getPackageSummaryQuantity();
+
+          const addItems = this.buildBundledItems(id, quantity)
+
+          fetch('/cart/add.js', {
+            credentials: 'same-origin',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/json;',
+            },
+            method: 'POST',
+            body: JSON.stringify({ items: addItems }),
+          }).then((r) => {
+            let { status, statusText } = r;
+            if (status === 422) {
+              r.json().then(errorData => {
+                const message = errorData.message || statusText;
+                pushErrorMessage(message);
+              })
+            } else {
+              {% comment %}  只要状态码是以2或者3开始的，才是真正的获取成功 {% endcomment %}
+
+              if(this.cart) {
+                this.cart.renderContents(r)
+              } else {
+                window.location.href = '/cart'
+              }
+  
+              gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                product_spu_name: this.getAttribute('product-title'),
+                module: "Product Selection",
+                position: this.currentVariant?.title, 
+                button_name: this.submitButtonLabel?.textContent?.trim(),
+                quantity: quantity
+              })
+            }
+          }).catch(err => {
+            this.handleErrorMsg(err.statusText)
+          }).finally(() => {
+            this.submitButton.classList.remove('loading');
+            this.submitButton.removeAttribute('aria-disabled');
+            if (this.cart && this.cart.classList.contains('is-empty')) this.cart.classList.remove('is-empty');
+          })
+        }
+
+        {% comment %} 立即购买 {% endcomment %}
+        async handleBuy() {
+          {% comment %} loading {% endcomment %}
+          this.buyItNowButton.classList.add('loading')
+
+          try {
+            {% comment %} 数据埋码 主体产品加购数量 {% endcomment %}
+            const quantity = this.getPackageSummaryQuantity()
+            {% comment %} 当前商品变体 ID {% endcomment %}
+            const variantId = this.variantInput.value
+            
+            const items = this.buildBundledItems(variantId, quantity)
+
+            {% comment %} 创建购物车并返回 checkout url 并跳转，方法内部已做容错处理，一定会返回 checkout url {% endcomment %}
+            const checkoutUrl = await createCartAndCheckout(items) 
+            window.location.href = checkoutUrl
+
+            gaPushDataLayer('5.0_products_details_page_user_clicks', {
+              {% comment %} 识别页面产品spu标题名称text {% endcomment %}
+              product_spu_name: this.getAttribute('product-title'),
+              {% comment %} 固定模块命名Product Selection {% endcomment %}
+              module: "Product Selection",
+              position: this.currentVariant?.title,
+              button_name: this.buyItNowButton?.textContent?.trim(),
+              quantity: quantity
+            })
+          } finally {
+            this.buyItNowButton.classList.remove('loading')
+          }
+        }
+        {% comment %} 渲染免税弹窗DOM {% endcomment %}
+        renderTaxFreePopup(data) {
+          const { title, content, checkbox_text, checkbox_text_color, button_text } = data
+          return `
+            <h4>${title}</h4>
+            <div class="content rte">${content}</div>
+            <div class="footer">
+              <label>
+                <input type="checkbox" ${checkbox_text_color ? `style="border-color:${checkbox_text_color}"` : ""} />
+                <span ${checkbox_text_color ? `style="color:${checkbox_text_color}"` : ""}>${checkbox_text}</span>
+              </label>
+              <button disabled="disabled" data-submit-button>${button_text}</button>
+            </div>
+          `
+        }
+
+        {% comment %} 显示免税弹窗 {% endcomment %}
+        showTaxFreePopup(callback) {
+          const scriptTag = this.taxFreePopupScript;
+          if (scriptTag) {
+            const data = JSON.parse(scriptTag.textContent)
+            const isEmpty = p => p?.trim() == ''
+
+            {% comment %} 所有配置项都有值，才弹窗 {% endcomment %}
+            if (!isEmpty(data?.title) && !isEmpty(data?.content) && !isEmpty(data?.checkbox_text) && !isEmpty(data?.button_text)) {
+              this.modalInstance = ZModle.getInstance(this.renderTaxFreePopup(data), {
+                id: "product-detail-tax-free-dialog",
+                class: "product-detail-tax-free-dialog",
+                destroyOnClose: true,
+                cb: (modal) => {
+                  modal.style.zIndex = '{{ settings.tax_free_popup_z_index | default: 9999999999 }}'
+                  const submitButton = modal.querySelector('[data-submit-button]')
+                  const checkbox = modal.querySelector('input[type="checkbox"]')
+                  const closeBtn = modal.querySelector('.close')    
+
+                  {% comment %} 替换关闭按钮的SVG为纯黑色图标 {% endcomment %}
+                  closeBtn.innerHTML = `
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>`
+              
+                  {% comment %} 复选框变更事件 {% endcomment %}
+                  checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) {
+                      submitButton.removeAttribute('disabled')
+                    } else {
+                      submitButton.setAttribute('disabled', 'disabled')
+                    }
+                  })
+
+                  {% comment %} 提交按钮事件 {% endcomment %}
+                  submitButton.onclick = () => {
+                    if (!checkbox.checked) return
+                    this.modalInstance?.closeModal()
+                    callback && callback()
+                  }
+                }
+              })
+            } else {
+              callback && callback()
+            }
+          } else {
+            callback && callback()
+          }
+        }
+      })
+    }
+  </script>
+</div>

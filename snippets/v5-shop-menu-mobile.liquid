@@ -1,0 +1,487 @@
+{% capture arrow_svg %}
+  <svg class="rotate-90 w-3 h-3" viewBox="0 0 1024 1024" width="14" height="14"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="var(--color-text-main)"></path></svg>
+{% endcapture %}
+
+{%-liquid
+    assign default_nums_block = 7
+    assign default_nums_allblock = 5
+    
+    if settings.shop_collection_default == '2'
+        assign default_nums_block = 11
+        assign default_nums_allblock = 10
+    endif
+
+    assign text_back = section.settings.text_back
+
+    assign menu_list_links = settings.menu_list.links
+    assign has_menu_list_links = false
+    if menu_list_links.size > 0
+        assign has_menu_list_links = true
+    endif
+-%}
+<style>
+    .v5-shop-menu-mobile__dialog section-container-lg > :first-child.shop-menu-cate--group {margin-top: 0;}
+    .v5-shop-grid--mb:not(.v5-shop-grid--mb.show-all) .v5-shop-card--mobile:nth-child(n+{{ default_nums_block }}){display: none;}
+</style>
+
+<drawer-dialog class="v5-shop-menu-mobile__dialog" style="--drawer-top: var(--header-pos-bottom);" id="Drawer__shop-menu--{{ id }}" placement="right">
+    <div class="drawer__overlay"></div>
+    <div class="drawer__content overflow-y-auto">
+        <div class="section-container-lg">
+            <div class="v5-menu-back drawer__close-btn flex items-center gap-x-1 py-4 sticky top-0 bg-white z-10">
+                <div class="w-5 h-5 flex items-center justify-center">
+                    {%- render "icon-arrow", class: 'w-3 h-3 rotate-180', clor: 'var(--color-text-info)' -%}
+                </div>
+                <span class="color-text-info text-base font-normal line-clamp-1">{{ text_back }}</span>
+            </div>
+
+            <div class="v5-pictext-menu-mobile__content pb-4">
+                {%- if has_menu_list_links -%}
+                    {%- for link in menu_list_links -%}
+                        {%- assign link_index = forloop.index -%}
+                        {% comment %} 判断menu URL值【#category为分类】 {% endcomment %}
+                         {%- if link.url == '#category' -%}
+                            <div class="shop-menu-cate--group mt-6">
+                                <div class="color-text-weak shop-menu-cate-item font-normal text-sm mb-2">{{ link.title }}</div>
+                            </div>
+                            <div class="pl-3 mb-6">
+                                {%- for link_v2 in link.links -%}
+                                    {%- assign col_handle = link_v2.url | split: '/' | last -%}
+                                    {%- if link_v2.links.size > 0 -%}
+                                        <div>
+                                            <drawer-opener 
+                                                data-drawer="#Drawer__shop-menu-cate--{{link_index}}-{{  forloop.index }}--{{link_v2.levels}}-{{ id }}" class="lg:hidden block"
+                                            >
+                                                <div 
+                                                    data-modal-lazy-image class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+                                                    data-ga-event="5.0_top_nav_user_clicks"
+                                                    data-ga-action="click"
+                                                    data-ga-params-module="Shop Menu"
+                                                    data-ga-params-position="{{ link_v2.title | escape }}" 
+                                                    data-ga-params-link="NULL" 
+                                                >
+                                                    <div class="flex items-center flex-nowrap gap-x-2 flex-1">
+                                                        <span class="color-text-main text-base font-normal line-clamp-2 flex-1">
+                                                            {{ link_v2.title }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="w-8 h-8 flex items-center justify-center">
+                                                        {%- render "icon-arrow", class: 'w-3 h-3', color: 'var(--color-text-main)' -%}
+                                                    </div>
+                                                </div>
+                                            </drawer-opener>
+                                        </div>
+                                    {%- elsif link_v2.url contains "/collections/" and col_handle != 'all' -%}
+                                        <div>
+                                            <drawer-opener 
+                                                data-drawer="#Drawer__shop-menu-cate--{{link_index}}-{{  forloop.index }}--{{link_v2.levels}}-{{ id }}" class="lg:hidden block"
+                                            >
+                                                <div 
+                                                    data-modal-lazy-image 
+                                                    class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+                                                    data-ga-event="5.0_top_nav_user_clicks"
+                                                    data-ga-action="click"
+                                                    data-ga-params-module="Shop Menu"
+                                                    data-ga-params-position="{{ link_v2.title | escape }}" 
+                                                    data-ga-params-link="NULL" 
+                                                >
+                                                    <div class="flex items-center flex-nowrap gap-x-2 flex-1">
+                                                        <span class="color-text-main text-base font-normal line-clamp-2 flex-1">
+                                                            {{ link_v2.title }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="w-8 h-8 flex items-center justify-center">
+                                                        {%- render "icon-arrow", class: 'w-3 h-3', color: 'var(--color-text-main)' -%}
+                                                    </div>
+                                                </div>
+                                            </drawer-opener>
+                                        </div>
+                                    {%- else -%}
+                                        <a class="color-text-main text-base font-normal items-center flex gap-x-2" href="{{ link_v2.url }}">
+                                            <span class="flex-1 line-clamp-2">{{ link_v2.title }}</span>
+                                            <div class="flex items-center justify-center h-8 w-8">
+                                                <svg class="w-3 h-3" viewBox="0 0 1024 1024" width="10" height="10"><path d="M604.17061386 93.0426665l402.19903979 402.1990398-402.19903979 410.57818814L512 813.64928061l259.66975621-259.75354784H9.2511995V428.208533h754.03940987L512 176.83413201l92.17061386-83.79146551z" fill="var(--color-text-main)"></path></svg>
+                                            </div>
+                                        </a>
+                                    {%- endif -%}
+                                {%- endfor -%}
+                            </div>
+                         {%- else -%}
+                            {%- assign col_handle = link.url | split: '/' | last -%}
+                            {%- if link.links.size > 0 -%}
+                                <div>
+                                    <drawer-opener 
+                                        data-drawer="#Drawer__shop-menu-cate--{{ link_index }}-{{  forloop.index }}--{{link.levels}}-{{ id }}" class="lg:hidden block"
+                                    >
+                                        <div 
+                                            data-modal-lazy-image 
+                                            class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+                                            data-ga-event="5.0_top_nav_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="Shop Menu"
+                                            data-ga-params-position="{{ link.title | escape }}" 
+                                            data-ga-params-link="NULL" 
+                                        >
+                                            <div class="flex items-center flex-nowrap gap-x-2 flex-1">
+                                                <span class="color-text-main text-base font-normal line-clamp-2 flex-1">
+                                                    {{ link.title }}
+                                                </span>
+                                            </div>
+                                            <div class="w-8 h-8 flex items-center justify-center">
+                                                {%- render "icon-arrow", class: 'w-3 h-3', color: 'var(--color-text-main)' -%}
+                                            </div>
+                                        </div>
+                                    </drawer-opener>
+                                </div>
+                            {%- elsif link.url contains "/collections/" and col_handle != 'all' -%}
+                                <div>
+                                    <drawer-opener 
+                                        data-drawer="#Drawer__shop-menu-cate--{{link_index}}-{{  forloop.index }}--{{link.levels}}-{{ id }}" class="lg:hidden block"
+                                    >
+                                        <div 
+                                            data-modal-lazy-image 
+                                            class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+                                            data-ga-event="5.0_top_nav_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="Shop Menu"
+                                            data-ga-params-position="{{ link.title | escape }}" 
+                                            data-ga-params-link="NULL" 
+                                        >
+                                            <div class="flex items-center flex-nowrap gap-x-2 flex-1">
+                                                <span class="color-text-main text-base font-normal line-clamp-2 flex-1">
+                                                    {{ link.title }}
+                                                </span>
+                                            </div>
+                                            <div class="w-8 h-8 flex items-center justify-center">
+                                                {%- render "icon-arrow", class: 'w-3 h-3', color: 'var(--color-text-main)' -%}
+                                            </div>
+                                        </div>
+                                    </drawer-opener>
+                                </div>
+                            {%- else -%}
+                                <a style="padding-right: 0.65rem;" class="color-text-main flex items-center font-normal text-base py-1 gap-x-2" href="{{ link.url }}">
+                                    <span class="flex-1 line-clamp-2">{{ link.title }}</span>
+                                    <svg class="w-3 h-3" viewBox="0 0 1024 1024" width="10" height="10"><path d="M604.17061386 93.0426665l402.19903979 402.1990398-402.19903979 410.57818814L512 813.64928061l259.66975621-259.75354784H9.2511995V428.208533h754.03940987L512 176.83413201l92.17061386-83.79146551z" fill="var(--color-text-main)"></path>
+                                    </svg>
+                                </a>
+                            {%- endif -%}
+                         {%- endif -%}
+                    {%- endfor -%}
+                {%- endif  -%}
+
+                {%- if btn_block != blank -%}
+                    {%- if btn_block.settings.help_label != blank -%}
+                        <div class="h-6"></div>
+                        <a class="background-text-main inline-block background-text-main font-semibold header-v5-btn text-white text-base px-4 py-2" href="{{ btn_block.settings.help_link }}">
+                            {{ btn_block.settings.help_label | escape }}
+                        </a>
+                    {%- endif -%}
+                {%- endif -%}
+            </div>
+        </div>
+    </div>
+</drawer-dialog>
+
+{% comment %} 三级shop菜单 {% endcomment %}
+{%- if has_menu_list_links -%}
+    {%- for link in menu_list_links -%}
+        {%- assign link_index = forloop.index -%}
+        {% comment %} 判断menu URL值【#category为分类】 {% endcomment %}
+        {%- if link.url == '#category' -%}
+            {%- for link_v2 in link.links -%}
+                {%- assign col_handle = link_v2.url | split: '/' | last -%}
+                {%- if link_v2.links.size > 0 -%}
+                    <drawer-dialog data-lazy-image style="--drawer-top: var(--header-pos-bottom);" id="Drawer__shop-menu-cate--{{ link_index }}-{{  forloop.index }}--{{link_v2.levels}}-{{ id }}" placement="right">
+                        <div class="drawer__overlay"></div>
+                        <div class="drawer__content">
+                            <div class="section-container-lg">
+                                <div class="v5-menu-back drawer__close-btn flex items-center gap-x-1 py-4 sticky top-0 bg-white z-10">
+                                    <div class="w-5 h-5 flex items-center justify-center">
+                                        {%- render "icon-arrow", class: 'w-3 h-3 rotate-180', color: 'var(--color-text-info)' -%}
+                                    </div>
+                                    <span class="color-text-info text-base font-normal line-clamp-1">{{ text_back }}</span>
+                                </div>
+
+                                <div class="v5-pictext-menu-mobile__content">
+                                    <div class="flex gap-x-3 items-center mb-6">
+                                        <span class="color-text-main font-semibold line-clamp-2 text-xl flex-1">{{ link_v2.title }}</span>
+
+                                        {%- if section.settings.text_shop_all != blank -%}
+                                            <a 
+                                                href="{{ link_v2.url }}" 
+                                                class="flex gap-x-2 items-center h-8 color-text-accent text-base font-semibold"
+                                                data-ga-event="5.0_top_nav_user_clicks"
+                                                data-ga-action="click"
+                                                data-ga-params-module="Shop Menu"
+                                                data-ga-params-position="{{ link_v2.title | escape }}"
+                                                data-ga-params-button_name="{{ section.settings.text_shop_all | escape }}"
+                                                data-ga-params-link="{{ link_v2.url }}"
+                                            >
+                                                <span>{{ section.settings.text_shop_all }}</span>
+                                                <svg class="w-4 h-4" viewBox="0 0 1024 1024" width="10" height="10"><path d="M604.17061386 93.0426665l402.19903979 402.1990398-402.19903979 410.57818814L512 813.64928061l259.66975621-259.75354784H9.2511995V428.208533h754.03940987L512 176.83413201l92.17061386-83.79146551z" fill="var(--brand-color)"></path></svg>
+                                            </a>
+                                        {%- endif -%}
+                                    </div>
+
+                                    {%- for childlink in link_v2.links -%}
+                                        <menu-toggle data-scroll-anchor {% if forloop.first %}class="active"{% endif %}>
+                                            <div 
+                                                style="min-height: 2rem;line-height: 1.5rem;top: 3.4rem;z-index: 2;" class="v5-header-main__shop-item text-base font-semibold flex items-center justify-between w-full cursor-pointer sticky bg-white mb-1"
+                                            >
+                                                <span class="color-text-main line-clamp-1 flex-1">{{ childlink.title }}</span>
+                                                {{ arrow_svg }}
+                                            </div>
+
+                                            <div class="menu-toggle-content invisible overflow-hidden">
+                                                <div class="v5-shop-grid--mb grid grid-cols-2 gap-3 pb-3">
+                                                    {%-liquid
+                                                        assign show_allblock = false
+
+                                                        assign collection_limit = settings.shop_collection_max
+                                                        if settings.shop_collection_max > childlink.object.products.size
+                                                            assign collection_limit = childlink.object.products.size
+                                                        endif
+                                
+                                                        if default_nums_allblock < childlink.object.products.size and default_nums_allblock < settings.shop_collection_max
+                                                            assign show_allblock = true
+                                                        endif
+                                                    -%}
+                                                    {%- for variant in childlink.object.products limit: collection_limit -%}
+                                                        {%- 
+                                                            render 'v5-shop-menu-grid-mobile', 
+                                                            variant: variant,
+                                                            ga_position: childlink.title,
+                                                            ga_title: variant.title
+                                                        -%}
+                                                    {%- endfor -%}
+                                                </div>
+
+                                                {%- if show_allblock == true -%}
+                                                <div 
+                                                    class="w-full justify-center mb-3 flex" 
+                                                    data-shop_collection_max="{{settings.shop_collection_max}}"
+                                                    data-default_nums_allblock="{{default_nums_allblock}}"
+                                                >
+                                                        <svg class="w-10 h-10 rounded-full py-3 pl-2 pr-1 v5-shop-view_more" viewBox="0 0 1024 1024" width="16" height="16"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#1a1a1a"></path></svg>
+                                                </div>
+                                                {%- endif -%}
+                                            </div>
+                                        </menu-toggle>
+                                    {%- endfor -%}
+                                </div>
+                            </div>
+                        </div>
+                    </drawer-dialog>
+                {%- elsif link_v2.url contains "/collections/" and col_handle != 'all' -%}
+                    <drawer-dialog 
+                        data-lazy-image
+                        style="--drawer-top: var(--header-pos-bottom);" 
+                        id="Drawer__shop-menu-cate--{{ link_index }}-{{  forloop.index }}--{{link_v2.levels}}-{{ id }}" 
+                        placement="right"
+                    > 
+                        <div class="drawer__overlay"></div>
+                        <div class="drawer__content">
+                            <div class="section-container-lg">
+                                <div class="v5-menu-back drawer__close-btn flex items-center gap-x-1 py-4 sticky top-0 bg-white z-10">
+                                    <div class="w-5 h-5 flex items-center justify-center">
+                                        {%- render "icon-arrow", class: 'w-3 h-3 rotate-180' -%}
+                                    </div>
+                                    <span class="text-base font-normal line-clamp-1">{{ text_back }}</span>
+                                </div>
+
+                                <div class="v5-pictext-menu-mobile__content">
+                                    <div style="top: 3.5rem;z-index:9;" class="color-text-main font-semibold text-xl mb-6 bg-white sticky">{{ link_v2.title }}</div>
+                                    <div class="grid grid-cols-2 gap-3 pb-3 v5-shop-grid--mb">
+                                        {%-liquid
+                                            assign show_allblock = false
+                    
+                                            assign collection_limit = settings.shop_collection_max
+                                            if settings.shop_collection_max > link_v2.object.products.size
+                                                assign collection_limit = link_v2.object.products.size
+                                            endif
+                    
+                                            if default_nums_allblock < link_v2.object.products.size and default_nums_allblock < settings.shop_collection_max
+                                                assign show_allblock = true
+                                            endif
+                                        -%}
+                                        {%- for variant in link_v2.object.products limit: collection_limit -%}
+                                            {%- 
+                                                render 'v5-shop-menu-grid-mobile', 
+                                                variant: variant,
+                                                ga_position: link_v2.title,
+                                                ga_title: variant.title
+                                            -%}
+                                        {%- endfor -%}
+                                    </div>
+
+                                    {%- if show_allblock == true -%}
+                                        <div 
+                                            class="w-full justify-center mb-3 flex"
+                                            data-shop_collection_max="{{settings.shop_collection_max}}"
+                                            data-default_nums_allblock="{{default_nums_allblock}}"
+                                        >
+                                                <svg class="w-10 h-10 rounded-full py-3 pl-2 pr-1 v5-shop-view_more" viewBox="0 0 1024 1024" width="16" height="16"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#1a1a1a"></path></svg>
+                                        </div>
+                                    {%- endif -%}
+                                </div>
+                            </div>
+                        </div>
+                    </drawer-dialog>
+                {%- endif -%}
+            {%- endfor -%}
+        {%- else -%}
+            {%- assign col_handle = link.url | split: '/' | last -%}
+            {%- if link.links.size > 0 -%}
+                <drawer-dialog 
+                    data-lazy-image
+                    style="--drawer-top: var(--header-pos-bottom);" 
+                    id="Drawer__shop-menu-cate--{{link_index}}-{{  forloop.index }}--{{link.levels}}-{{ id }}" 
+                    placement="right"
+                >
+                    <div class="drawer__overlay"></div>
+                    <div class="drawer__content">
+                        <div class="section-container-lg">
+                            <div class="v5-menu-back drawer__close-btn flex items-center gap-x-1 py-4 sticky top-0 bg-white z-10">
+                                <div class="w-5 h-5 flex items-center justify-center">
+                                    {%- render "icon-arrow", class: 'w-3 h-3 rotate-180' -%}
+                                </div>
+                                <span class="text-base font-normal line-clamp-1">{{ text_back }}</span>
+                            </div>
+
+                            <div class="v5-pictext-menu-mobile__content">
+                                <div class="flex gap-x-3 items-center mb-6">
+                                    <span class="color-text-main font-semibold line-clamp-2 text-xl flex-1">{{ link.title }}</span>
+
+                                    {%- if section.settings.text_shop_all != blank -%}
+                                        <a 
+                                            href="{{ link.url }}"
+                                            class="flex gap-x-2 items-center h-8 text-primary text-base font-semibold"
+                                            data-ga-event="5.0_top_nav_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="Shop Menu"
+                                            data-ga-params-position="{{ link.title | escape }}"
+                                            data-ga-params-button_name="{{ section.settings.text_shop_all | escape }}"
+                                            data-ga-params-link="{{ link.url }}"
+                                        >
+                                            <span>{{ section.settings.text_shop_all }}</span>
+                                            <svg class="w-4 h-4" viewBox="0 0 1024 1024" width="10" height="10"><path d="M604.17061386 93.0426665l402.19903979 402.1990398-402.19903979 410.57818814L512 813.64928061l259.66975621-259.75354784H9.2511995V428.208533h754.03940987L512 176.83413201l92.17061386-83.79146551z" fill="var(--brand-color)"></path></svg>
+                                        </a>
+                                    {%- endif -%}
+                                </div>
+
+                                {%- for childlink in link.links -%}
+                                    <menu-toggle {% if forloop.first %}class="active"{% endif %}>
+                                        <div 
+                                            style="min-height: 2rem;line-height: 1.5rem;top: 3.4rem;z-index: 2;" class="v5-header-main__shop-item text-base font-semibold flex items-center justify-between w-full cursor-pointer sticky bg-white mb-1"
+                                        >
+                                            <span class="color-text-main line-clamp-1 flex-1">{{ childlink.title }}</span>
+                                            {{ arrow_svg }}
+                                        </div>
+
+                                        <div class="menu-toggle-content invisible overflow-hidden">
+                                            {%-liquid
+                                                assign collection_limit = settings.shop_collection_max
+                                                if settings.shop_collection_max > childlink.object.products.size
+                                                    assign collection_limit = childlink.object.products.size
+                                                endif
+                                            -%}
+                                            <div class="v5-shop-grid--mb grid grid-cols-2 gap-3 pb-3">
+                                                {%-liquid
+                                                    assign show_allblock = false
+                                
+                                                    assign collection_limit = settings.shop_collection_max
+                                                    if settings.shop_collection_max > childlink.object.products.size
+                                                        assign collection_limit = childlink.object.products.size
+                                                    endif
+                            
+                                                    if default_nums_allblock < childlink.object.products.size and default_nums_allblock < settings.shop_collection_max
+                                                        assign show_allblock = true
+                                                    endif
+                                                -%}
+                                                {%- for variant in childlink.object.products limit: collection_limit -%}
+                                                    {%- 
+                                                        render 'v5-shop-menu-grid-mobile', 
+                                                        variant: variant,
+                                                        ga_position: childlink.title,
+                                                        ga_title: variant.title | escape
+                                                    -%}
+                                                {%- endfor -%}
+                                            </div>
+
+                                            {%- if show_allblock == true -%}
+                                                <div 
+                                                    class="w-full justify-center mb-3 flex"
+                                                    data-shop_collection_max="{{settings.shop_collection_max}}"
+                                                    data-default_nums_allblock="{{default_nums_allblock}}"
+                                                >
+                                                        <svg class="w-10 h-10 rounded-full py-3 pl-2 pr-1 v5-shop-view_more" viewBox="0 0 1024 1024" width="16" height="16"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#1a1a1a"></path></svg>
+                                                </div>
+                                            {%- endif -%}
+                                        </div>
+                                    </menu-toggle>
+                                {%- endfor -%}
+                            </div>
+                        </div>
+                    </div>
+                </drawer-dialog>
+            {%- elsif link.url contains "/collections/" and col_handle != 'all' -%}
+                <drawer-dialog 
+                    data-lazy-image
+                    style="--drawer-top: var(--header-pos-bottom);" 
+                    id="Drawer__shop-menu-cate--{{ link_index }}-{{  forloop.index }}--{{link.levels}}-{{ id }}" 
+                    placement="right"
+                > 
+                    <div class="drawer__overlay"></div>
+                    <div class="drawer__content">
+                        <div class="section-container-lg">
+                            <div class="v5-menu-back drawer__close-btn flex items-center gap-x-1 py-4 sticky top-0 bg-white z-10">
+                                <div class="w-5 h-5 flex items-center justify-center">
+                                    {%- render "icon-arrow", class: 'w-3 h-3 rotate-180' -%}
+                                </div>
+                                <span class="text-base font-normal line-clamp-1">{{ text_back }}</span>
+                            </div>
+
+                            <div class="v5-pictext-menu-mobile__content">
+                                <div class="color-text-main font-semibold text-xl mb-6">{{ link.title }}</div>
+                                <div class="grid grid-cols-2 gap-3 pb-3 v5-shop-grid--mb">
+                                    {%-liquid
+                                        assign show_allblock = false
+                    
+                                        assign collection_limit = settings.shop_collection_max
+                                        if settings.shop_collection_max > link.object.products.size
+                                            assign collection_limit = link.object.products.size
+                                        endif
+                
+                                        if default_nums_allblock < link.object.products.size and default_nums_allblock < settings.shop_collection_max
+                                            assign show_allblock = true
+                                        endif
+                                    -%}
+                                    {%- for variant in link.object.products limit: collection_limit -%}
+                                        {%- 
+                                            render 'v5-shop-menu-grid-mobile', 
+                                            variant: variant,
+                                            ga_position: link.title,
+                                            ga_title: variant.title | escape
+                                        -%}
+                                    {%- endfor -%}
+                                </div>
+
+                                {%- if show_allblock == true -%}
+                                    <div 
+                                        class="w-full justify-center mb-3 flex"
+                                        data-shop_collection_max="{{settings.shop_collection_max}}"
+                                        data-default_nums_allblock="{{default_nums_allblock}}"
+                                    >
+                                            <svg class="w-10 h-10 rounded-full py-3 pl-2 pr-1 v5-shop-view_more" viewBox="0 0 1024 1024" width="16" height="16"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#1a1a1a"></path></svg>
+                                    </div>
+                                {%- endif -%}
+                            </div>
+                        </div>
+                    </div>
+                </drawer-dialog>
+            {%- else -%}
+
+            {%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endif  -%}

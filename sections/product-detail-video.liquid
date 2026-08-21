@@ -1,0 +1,97 @@
+{% schema %}
+{
+  "name": "product video",
+  "class": "product-detail-video product-section-block",
+  "tag": "section",
+  "enabled_on": {
+      "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Auto Play",
+      "default": false,
+      "info": "开启后，自动播放"
+    },
+    {
+      "type": "checkbox",
+      "id": "control_video",
+      "label": "Whether To Control",
+      "default": false,
+      "info": "开启后，显示控件"
+    },
+    {
+      "type": "checkbox",
+      "id": "section_type",
+      "default": true,
+      "label": "是否为大版块？",
+      "info": "大版块与上一个模块之间间距大，小版块与上一模块间距较小"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_image_pc",
+      "label": "video Image (PC)"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_image_mb",
+      "label": "video Image (Mobile)"
+    },
+    {
+      "type": "url", "id": "product_video_pc", "label": "PC video of product detail"
+    },
+    {
+      "type": "url", "id": "product_video_mb", "label": "Mobile video of product detail"
+    }
+  ],
+  "presets": [{
+    "name": "product detail video"
+  }]
+}
+{% endschema %}
+{% if section.settings.product_video_pc != blank or section.settings.product_video_mb != blank %}
+<div class="product-video section-container {% if section.settings.section_type %} product-p-t{% endif %}">
+  <div class="product-video-detail pc-block">
+      {%-
+              render 'jky-video',
+              video_url: section.settings.product_video_pc,
+              autoplay: section.settings.autoplay,
+              loop: true,
+              poster: section.settings.video_image_pc,
+              controls: section.settings.control_video
+      -%}
+  </div>
+  <div class="product-video-detail mobile-block">
+      {%-
+              render 'jky-video',
+              video_url: section.settings.product_video_mb,
+              autoplay: section.settings.autoplay,
+              loop: true,
+              poster: section.settings.video_image_mb,
+              controls: section.settings.control_video
+      -%}
+  </div>
+</div>
+{% endif %}
+<style>
+  .product-detail-video .product-video-detail,
+  .product-detail-video .jky-video-poster_container .loaded_img,
+  .product-detail-video .jky-video_media{
+    height: 600px;
+  }
+  .product-detail-video .product-p-t{
+    padding-top: 120px;
+  }
+  @media screen and (max-width: 1023.98px){
+    .product-detail-video .product-video,
+    .product-detail-video .jky-video_media,
+    .product-detail-video .product-video-detail jky-video,
+    .product-detail-video .jky-video-poster_container .loaded_img {
+      height: calc(872vw / 750  * 100);
+    }
+    .product-detail-video .product-p-t{
+      padding-top: 55px;
+    }
+  }
+</style>

@@ -1,0 +1,300 @@
+{%- comment -%}
+  结构化数据主入口：集中管理九个独立开关，并调用页面对应的新版 JSON-LD snippet。
+{%- endcomment -%}
+{%- liquid
+  assign site_url = request.origin | append: routes.root_url
+  assign site_url_last_character = site_url | slice: -1, 1
+  if site_url_last_character != '/'
+    assign site_url = site_url | append: '/'
+  endif
+
+  assign organization_id = site_url | append: '#organization'
+  assign website_id = site_url | append: '#website'
+  assign organization_logo = shop.brand.logo
+  assign organization_description = shop.brand.short_description | default: shop.description | strip_html | strip
+  assign organization_phone = shop.address.phone | strip
+  assign organization_street = shop.address.street | strip
+  assign organization_city = shop.address.city | strip
+  assign organization_region = shop.address.province_code | default: shop.address.province | strip
+  assign organization_postal_code = shop.address.zip | strip
+  assign organization_country = shop.address.country_code | default: shop.address.country | strip
+
+  assign has_organization_address = false
+  if organization_street != blank or organization_city != blank or organization_region != blank or organization_postal_code != blank or organization_country != blank
+    assign has_organization_address = true
+  endif
+
+  assign social_platforms = 'facebook,instagram,twitter,youtube,tiktok,pinterest,linkedin,reddit,vimeo,tumblr,snapchat' | split: ','
+  capture same_as_json
+    assign first_social_link = true
+    for social_platform in social_platforms
+      assign social_link = shop.brand.metafields.social_links[social_platform].value
+      if social_link != blank
+        unless first_social_link
+          echo ','
+        endunless
+        echo social_link | json | replace: '\/', '/'
+        assign first_social_link = false
+      endif
+    endfor
+  endcapture
+  assign same_as_json = same_as_json | strip
+
+  if organization_logo != blank
+    assign organization_logo_width = organization_logo.width | default: 600
+    assign organization_logo_url = organization_logo | image_url: width: organization_logo_width
+    assign logo_url_prefix = organization_logo_url | slice: 0, 2
+    assign logo_url_first_character = organization_logo_url | slice: 0, 1
+
+    if logo_url_prefix == '//'
+      assign organization_logo_url = organization_logo_url | prepend: 'https:'
+    elsif logo_url_first_character == '/'
+      assign organization_logo_url = organization_logo_url | prepend: request.origin
+    endif
+  endif
+
+  assign use_new_product_schema = false
+  if request.page_type == 'product' and settings.enable_product_schema
+    assign product_schema_config = product.metafields.schema.config.value
+    if product_schema_config != blank and product_schema_config.use_new_schema.value == true
+      assign use_new_product_schema = true
+    endif
+  endif
+
+  assign collection_schema_resource_enabled = false
+  assign output_collection_page_schema = false
+  assign output_collection_itemlist_schema = false
+  if request.page_type == 'collection'
+    assign collection_schema_config = collection.metafields.schema.config.value
+    if collection_schema_config != blank and collection_schema_config.use_new_schema.value == true
+      assign collection_schema_resource_enabled = true
+    endif
+    if collection_schema_resource_enabled and settings.enable_collection_page_schema
+      assign output_collection_page_schema = true
+    endif
+    if collection_schema_resource_enabled and settings.enable_collection_itemlist_schema
+      assign output_collection_itemlist_schema = true
+    endif
+  endif
+
+  assign show_organization_schema = false
+  assign show_website_schema = false
+  assign show_primary_breadcrumb_schema = false
+  assign is_blog_posts_entry = false
+
+  if schema_entry == 'blog_posts'
+    assign is_blog_posts_entry = true
+  endif
+
+  if is_blog_posts_entry
+    comment
+      Common blog entities are owned by the global entry. This section-scoped
+      route only emits the current page's BlogPosting nodes.
+    endcomment
+  elsif request.page_type == 'blog'
+    if settings.enable_organization_schema
+      assign show_organization_schema = true
+    endif
+    if settings.enable_breadcrumb_schema
+      assign show_primary_breadcrumb_schema = true
+    endif
+  elsif request.page_type == 'index'
+    if settings.enable_organization_schema
+      assign show_organization_schema = true
+    endif
+    if settings.enable_website_schema
+      assign show_website_schema = true
+    endif
+  elsif request.page_type == 'article'
+    if settings.enable_organization_schema
+      assign show_organization_schema = true
+    endif
+    if settings.enable_breadcrumb_schema
+      assign show_primary_breadcrumb_schema = true
+    endif
+  elsif request.page_type == 'product' or request.page_type == 'collection'
+    if settings.enable_organization_schema
+      assign show_organization_schema = true
+    endif
+    if settings.enable_breadcrumb_schema
+      assign show_primary_breadcrumb_schema = true
+    endif
+  endif
+
+  assign show_breadcrumb_schema = true
+  assign breadcrumb_schema_id = canonical_url | append: '#breadcrumb'
+  assign breadcrumb_current_name = page_title | strip
+  assign breadcrumb_current_url = canonical_url
+  assign breadcrumb_parent_name = blank
+  assign breadcrumb_parent_url = blank
+  assign breadcrumb_current_position = 2
+
+  case request.page_type
+    when 'index'
+      assign show_breadcrumb_schema = false
+    when '404'
+      assign show_breadcrumb_schema = false
+    when 'product'
+      assign breadcrumb_current_name = product.title | strip
+    when 'collection'
+      assign breadcrumb_current_name = collection.title | strip
+    when 'blog'
+      assign breadcrumb_current_name = blog.title | strip
+    when 'article'
+      assign breadcrumb_parent_name = blog.title | strip
+      assign breadcrumb_parent_url = request.origin | append: blog.url
+      assign breadcrumb_current_name = article.title | strip
+      assign breadcrumb_current_position = 3
+    when 'page'
+      assign breadcrumb_current_name = page.title | strip
+    when 'search'
+      assign breadcrumb_current_name = 'Search'
+    when 'cart'
+      assign breadcrumb_current_name = 'Cart'
+    when 'list-collections'
+      assign breadcrumb_current_name = 'Collections'
+  endcase
+
+  if breadcrumb_current_name == blank or breadcrumb_current_url == blank
+    assign show_breadcrumb_schema = false
+  endif
+
+  assign show_legacy_breadcrumb_schema = false
+  if show_primary_breadcrumb_schema == false
+    case request.page_type
+      when 'product', 'collection', 'article'
+        assign show_legacy_breadcrumb_schema = true
+    endcase
+  endif
+
+-%}
+
+{% if show_organization_schema %}
+<script id="organization-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+        "@id": {{ organization_id | json | replace: '\/', '/' }},
+        "name": {{ shop.name | json }},
+        "url": {{ site_url | json | replace: '\/', '/' }}{% if organization_description != blank %},
+        "description": {{ organization_description | json }}{% endif %}{% if organization_logo_url != blank %},
+        "logo": {
+          "@type": "ImageObject",
+          "url": {{ organization_logo_url | json | replace: '\/', '/' }}{% if organization_logo.width != blank and organization_logo.height != blank %},
+          "width": {{ organization_logo.width | json }},
+          "height": {{ organization_logo.height | json }}{% endif %}
+        },
+        "image": {{ organization_logo_url | json | replace: '\/', '/' }}{% endif %}{% if organization_phone != blank %},
+        "telephone": {{ organization_phone | json }}{% endif %}{% if same_as_json != blank %},
+        "sameAs": [{{ same_as_json }}]{% endif %}{% if has_organization_address %},
+        "address": {
+          "@type": "PostalAddress"{% if organization_street != blank %},
+          "streetAddress": {{ organization_street | json }}{% endif %}{% if organization_city != blank %},
+          "addressLocality": {{ organization_city | json }}{% endif %}{% if organization_region != blank %},
+          "addressRegion": {{ organization_region | json }}{% endif %}{% if organization_postal_code != blank %},
+          "postalCode": {{ organization_postal_code | json }}{% endif %}{% if organization_country != blank %},
+          "addressCountry": {{ organization_country | json }}{% endif %}
+        }{% endif %}
+  }
+</script>
+{% endif %}
+
+{% if show_website_schema %}
+<script id="website-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+        "@id": {{ website_id | json | replace: '\/', '/' }},
+        "url": {{ site_url | json | replace: '\/', '/' }},
+        "name": {{ shop.name | json }}{% if organization_description != blank %},
+        "description": {{ organization_description | json }}{% endif %},
+        "inLanguage": {{ request.locale.iso_code | json }}{% if settings.enable_organization_schema %},
+        "publisher": {
+          "@id": {{ organization_id | json | replace: '\/', '/' }}
+        }{% endif %}
+  }
+</script>
+{% endif %}
+
+{% if show_primary_breadcrumb_schema and show_breadcrumb_schema %}
+<script id="breadcrumb-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": {{ breadcrumb_schema_id | json | replace: '\/', '/' }},
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": {{ site_url | json | replace: '\/', '/' }}
+      }{% if breadcrumb_parent_name != blank and breadcrumb_parent_url != blank %},
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": {{ breadcrumb_parent_name | json }},
+        "item": {{ breadcrumb_parent_url | json | replace: '\/', '/' }}
+      }{% endif %},
+      {
+        "@type": "ListItem",
+        "position": {{ breadcrumb_current_position }},
+        "name": {{ breadcrumb_current_name | json }},
+        "item": {{ breadcrumb_current_url | json | replace: '\/', '/' }}
+      }
+    ]
+  }
+</script>
+{% endif %}
+
+{% if show_legacy_breadcrumb_schema %}
+  {% render 'structure-data-breadcrumblist-legacy' %}
+{% endif %}
+
+{% if request.page_type == 'blog' and schema_entry != 'blog_posts' and settings.enable_blog_schema %}
+  {% render 'structure-data-blog',
+    organization_id: organization_id,
+    include_organization_reference: settings.enable_organization_schema
+  %}
+{% endif %}
+
+{% if schema_entry == 'blog_posts' and settings.enable_blog_schema %}
+  {% render 'structure-data-blog-posts',
+    articles: articles,
+    paginate: paginate,
+    organization_id: organization_id,
+    include_organization_reference: settings.enable_organization_schema
+  %}
+{% endif %}
+
+{% if request.page_type == 'article' and settings.enable_article_schema %}
+  {% render 'structure-data-article',
+    organization_id: organization_id,
+    include_organization_reference: settings.enable_organization_schema
+  %}
+{% endif %}
+
+{% if request.page_type == 'product' %}
+  {% if use_new_product_schema %}
+    {% render 'structure-data-product',
+      product_schema_config: product_schema_config,
+      organization_id: organization_id
+    %}
+  {% else %}
+    {% render 'structure-data-product-legacy' %}
+  {% endif %}
+{% endif %}
+
+{% if request.page_type == 'collection' %}
+  {% render 'structure-data-collection',
+    organization_id: organization_id,
+    website_id: website_id,
+    output_collection_page_schema: output_collection_page_schema,
+    output_collection_itemlist_schema: output_collection_itemlist_schema,
+    include_organization_reference: settings.enable_organization_schema,
+    include_website_reference: settings.enable_website_schema,
+    include_itemlist_reference: output_collection_itemlist_schema
+  %}
+  {% unless output_collection_itemlist_schema %}
+    {% render 'structure-data-collection-legacy' %}
+  {% endunless %}
+{% endif %}

@@ -1,0 +1,105 @@
+
+{% assign textItems = section.blocks | where: 'type', 'item_text' %}
+
+<section
+  class="
+    w-full flex flex-col flex-center bg-white px-40 mt-40 mb-30
+    lg:j-px-0 lg:j-mt-32 lg:j-mb-50 xl:a-px-0 xl:a-mt-32 xl:a-mb-50
+    balcony-scale-img-wrap
+  "
+>
+  <h2 class="
+    w-full lg:j-w-1280 xl:a-w-1280 text-left font-600 text-black text-48 leading-68
+    lg:j-text-40 lg:j-leading-48 lg:j-pt-32 xl:a-text-40 xl:a-leading-48 xl:a-pt-32
+  ">{{ section.settings.title | newline_to_br }}</h2>
+  <p class="
+    w-full lg:j-w-1280 xl:a-w-1280 text-left font-400 text-black text-36 leading-48 py-30
+    lg:j-text-24 lg:j-leading-34 lg:j-py-18 xl:a-text-24 xl:a-leading-34 xl:a-py-18
+  ">{{ section.settings.sub_title | newline_to_br }}</p>
+  <div class="relative w-full h-auto flex-center flex-col lg:flex-row collection-animation" data-animation="{{ section.settings.animation_play }}">
+    {% comment %} image {% endcomment %}
+    {% render 'responsive-image',
+      image: section.settings.pc_img,
+      mimage: section.settings.mb_img,
+      image_class: 'balcony-scale-img origin-bottom scale-100 w-full h-900 rounded-24 lg:j-w-1280 lg:j-h-650 lg:j-rounded-12 xl:a-w-1280 xl:a-h-650 xl:a-rounded-12 object-cover'
+    %}
+    {% if textItems.size > 0 %}
+      <div class="text-item-list lg:j-w-1280 xl:a-w-1280">
+        <ul class="text-item-content
+          w-full flex flex-col lg:flex-row justify-center items-start lg:items-stretch text-#1A1A1A static pt-40
+          lg:pt-0 lg:absolute lg:j-left-0 lg:j-bottom-0 lg:text-white lg:j-gap-40 xl:a-gap-40 lg:j-bottom-30 xl:a-bottom-30
+        ">
+          {% for block in textItems %}
+            {% if block.settings.text != blank %}
+              <li class="balcony-why-choose-item">
+                <span class="
+                  text-32 leading-48 pl-24 lg:line-clamp-3
+                  lg:j-w-265 lg:j-text-20 lg:j-leading-26 lg:j-pl-0
+                  xl:a-w-265 xl:a-text-20 xl:a-leading-26 xl:a-pl-0
+                ">{{ block.settings.text | newline_to_br }}</span>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% comment %} 如果开启了滚动动画，则加载 gsap 资源 {% endcomment %}
+{%- if section.settings.animation_play -%}
+  <script src="{{ 'gsap.js' | asset_url }}" defer></script>
+  <script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "photovolatic DIY For Home",
+    "class": "section-photovolatic section-photovolatic-for-home",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "animation_play",
+        "label": "Animation Switch",
+        "default": false,
+        "info": "开启后，滚动动画生效。"
+      },
+      {
+        "type": "textarea",
+        "id": "title",
+        "label": "Title",
+        "default": "What is Jackery \n DIY Solar Generator for Home?"
+      },
+      {
+        "type": "textarea",
+        "id": "sub_title",
+        "label": "Sub Title",
+        "default": "Jackery DIY Solar Generator for Home is a Mini Home Energy Storage System, composed of solar panels, and all in one integration of micro-inverter and energy storage system."
+      },
+      {
+        "type": "image_picker",
+        "id": "pc_img",
+        "label": "PC Image"
+      },
+      {
+        "type": "image_picker",
+        "id": "mb_img",
+        "label": "Mobile Image"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "item_text",
+        "name": "item_text",
+        "limit": 4,
+        "settings": [
+          {
+            "type": "textarea",
+            "id": "text",
+            "label": "Text"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

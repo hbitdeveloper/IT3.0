@@ -1,0 +1,368 @@
+{% style %}
+
+.benefits-collection-activity-offers .swiper-pagination-bullet {
+    height: 0.1875rem;
+    width: 0.75rem;
+    background: #CCCCCC;
+    border-radius: 0.25rem;
+    opacity: 1;
+    transition: all .25s ease;
+}
+
+.benefits-collection-activity-offers .swiper-pagination-bullet-active {
+    width: 4rem;
+    background: var(--jds-color-primary);
+}
+
+.benefits-collection-activity-offers .swiper-pagination {
+    bottom: 2rem;
+}
+
+.benefits-collection-activity-offers .swiper-button {
+    width: 3rem;
+    height: 3rem;
+    background: rgba(102,102,102,0.3);
+    color: white;
+    margin-top: 0;
+    position: static;
+    display: inline-block;
+    border-radius: 50%;
+}
+
+.benefits-collection-activity-offers .swiper-button::after {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.benefits-collection-activity-offers .swiper-button-lock.swiper-button-disabled {
+    display:none;
+}
+
+.benefits-collection-activity-offers .not.swiper .swiper-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.benefits-collection-activity-offers .not.swiper .navigation {
+    display: none !important;
+}
+
+@media screen and (min-width:1023.98px) {
+    .benefits-collection-activity-offers .swiper-pagination-bullet {
+        height: 0.25rem;
+        width: 1rem;
+    }
+    .benefits-collection-activity-offers .swiper-pagination-bullet-active {
+        width: 5.5rem;
+    }
+}
+
+@media screen and (max-width:1024px) {
+    .benefits-collection-activity-offers .swiper-pagination {
+        bottom: 0;
+    }
+}
+
+{% endstyle %}
+
+{% if section.settings.use_type == "standalone" %}
+    <style>
+        #shopify-section-{{ section.id }} {
+            background-color: {{ section.settings.bg_color }};
+        }
+    </style>
+{% endif %}
+
+{% liquid
+    assign class = "section-container-lg benefits-collection-activity-offers"
+    assign attributes = ""
+    if section.settings.use_type == "embed"
+        assign class = class | append: " pt-[1.5rem] lg:pt-11"
+        assign attributes = "belongs-to-target=" | append: section.settings.belongs_to | append: " "
+    endif
+%}
+
+<section  anchor-target="{{ section.settings.anchor | escape }}" class="{{ class }}" {{ attributes }}>
+
+    <div class="swiper pb-[1.56rem] lg:pb-[4.5rem]">
+        <div class="swiper-wrapper">
+
+            {% liquid
+                assign lg_block_width = "lg:w-[26.5rem]"
+            %}
+
+            {% for block in section.blocks %}
+                {%- if block.type == "activity-offer" -%}
+
+                    {% if block.settings.link %}
+                        <a href="{{ block.settings.link }}"
+                    {% else %}
+                        <article
+                    {% endif %}
+
+                     {{ block.shopify_attributes }} class="swiper-slide w-[13.75rem] relative rounded-xl bg-white
+                       px-[1rem] pt-[2.5rem] lg:pt-16 lg:pb-10 lg:px-8 text-center lg:h-[23.125rem] h-[18.125rem] {{ lg_block_width }}">
+                        {% if block.settings.image == blank %}
+                            <div class="h-[4rem] lg:h-[5.5rem] mb-[2rem] lg:mb-8"></div>
+                        {% else %}
+                            <img class="blur-up mb-[2rem] lg:mb-8 w-[4rem] lg:w-[5.5rem] h-[4rem] lg:h-[5.5rem]" src="{{ block.settings.image | image_url: width: 256 }}" alt="{{ block.settings.title }}" loading="lazy" />
+                        {% endif %}
+                        <h3 class="mb-[0.5rem] lg:mb-4 font-semibold lg:text-2xl lg:leading-[2.5rem] text-[1rem] text-[#1A1A1A] leading-[1.25rem] line-clamp-1">
+                            {{  block.settings.title }}
+                        </h3>
+                        <div class="description font-medium lg:font-normal text-[0.875rem] lg:text-base text-[#666666] leading-[1.375rem] lg:leading-6 line-clamp-3">
+                            {% assign color = '<em style="color: ' | append: block.settings.color | append: '">' %}
+                            {{  block.settings.description | replace: '<em>', color }}
+                        </div>
+
+                    {% if block.settings.link %}
+                        </a>
+                    {% else %}
+                        </article>
+                    {% endif %}
+
+                {% endif %}
+            {% endfor %}
+
+        </div>
+
+        <div class="swiper-pagination flex justify-center gap-[0.375rem]"></div>
+        <div class="navigation hidden lg:block absolute lg:mt-4 right-0">
+            <button class="swiper-button swiper-button-prev lg:mr-3"></button>
+            <button class="swiper-button swiper-button-next"></button>
+        </div>
+    </div>
+
+</section>
+
+<script type="module">
+(function (){
+    "use strict";
+
+    const sectionSelector = ".benefits-collection-activity-offers";
+    const eventNamespace = ".benefitsActivityOffers";
+    const documentEventsBoundKey = "__benefitsCollectionActivityOffersEventsBound";
+
+    $(document)
+        .off("click" + eventNamespace, sectionSelector + " a")
+        .on("click" + eventNamespace, sectionSelector + " a", function (e) {
+        const $this = $(this);
+        const link = location.origin + $this.attr("href");
+        const buttonName = $this.find("h3").text().trim();
+
+        const $tabsNav = $this.closest("jky-v-tabs-content").prev();
+        let position = "";
+        let module = "ActivityBasedOffers"
+        if ($tabsNav.length) {
+            position = $tabsNav.find(".navigation-item.active").text().trim();
+            module = $tabsNav.prev().find(".blocks-content-heading").find("div:first-child").text().trim();
+        }
+
+        window.dataLayer.push({event_parameters: null});
+        window.dataLayer.push({
+            event: "ga4Event",
+            event_name: "promo_collection_user_clicks",
+            event_parameters: {
+                current_page: window.location.href,
+                module: module,
+                position: position,
+                button_name: buttonName,
+                link: link
+            }
+        });
+    });
+
+    const initSwiper = (swiper) => {
+        if (swiper.dataset.benefitsActivityOffersSwiperInitialized === "true" || swiper.swiper) return;
+        swiper.dataset.benefitsActivityOffersSwiperInitialized = "true";
+
+        new Swiper(swiper, {
+            slidesPerView: 'auto',
+            pagination: {el: sectionSelector + ' .swiper-pagination', clickable: true},
+            spaceBetween: 24,
+            navigation: {
+                nextEl: sectionSelector + ' .swiper-button-next',
+                prevEl: sectionSelector + ' .swiper-button-prev',
+            },
+            breakpoints: {
+                1400: {
+                    spaceBetween: 20,
+                },
+                1024: {
+                    spaceBetween: 15,
+                }
+            }
+        });
+    };
+
+    const init = () => {
+        const url = "/osadminapi/v1/old-invite-new/get-coupon-info?shopifyShopId=" + window.shopId;
+        window.Jackery.Utils.get(url).then(function (res) {
+            if (res && res.code === 200) {
+                const data = res.data;
+                document.querySelectorAll(sectionSelector + ' .swiper').forEach(swiper =>  {
+                    const $swiper = $(swiper);
+                    $swiper.find(".description").each(function() {
+                        const newHtml = $(this).html()
+                            .replace("{new_subscribe_welfare}", data.newSubscribeTitle)
+                            .replace("{old_subscribe_welfare}", data.newSubscribeToOldTitle)
+                            .replace("{old_purchase_welfare}", data.newPurchaseToOldTitle);
+                        $(this).html(newHtml);
+                    });
+                    let slidesCond = 3;
+                    if (window.Jackery.Utils.isLessThan1024Screen()) {
+                        slidesCond = 1;
+                    }
+                    if ($swiper.find(".swiper-slide").length > slidesCond) {
+                        initSwiper(swiper);
+                    } else {
+                        $swiper.addClass("not");
+                    }
+                });
+            }
+        }).catch(function (err) {
+            console.error("Get titles failed:", err);
+        });
+    };
+
+    if (!window[documentEventsBoundKey]) {
+        window[documentEventsBoundKey] = true;
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init, {once: true});
+        }
+
+        document.addEventListener("shopify:section:load", init);
+    }
+
+    if (document.readyState !== "loading") {
+        init();
+    }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "BC Activity Offers",
+  "presets": [
+    {
+      "name": "优惠集合-活动优惠",
+      "category": "优惠信息集合页",
+      "blocks": [
+        {
+          "type": "activity-offer",
+          "settings": {
+            "title": "标题",
+            "description": "<p>描述</p>",
+            "image": "shopify://shop_images/Welcome_Gift.png"
+          }
+        },
+        {
+          "type": "activity-offer",
+          "settings": {
+            "title": "标题",
+            "description": "<p>电小二诞生于2012年，它的创立始于一个坚定的信念——让绿色能源无处不在。2016年，电小二推出品牌首款户外便携储能电源，2018年研发出品牌首款便携太阳能板，将电小二光充户外电源引入户外生活，为全球用户的户外生活带来超越以往的革新体验。电小二秉承“让绿色能源无处不在”的使命，鼓励人们以可持续的方式享受户外生活，共筑绿色地球梦。</p>",
+            "image": "shopify://shop_images/Welcome_Gift.png"
+          }
+        },
+        {
+          "type": "activity-offer",
+          "settings": {
+            "title": "标题",
+            "description": "<p>描述</p>",
+            "image": "shopify://shop_images/Welcome_Gift.png"
+          }
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "select",
+      "id": "use_type",
+      "options": [
+        {
+          "value": "embed",
+          "label": "在Tab中使用"
+        },
+        {
+          "value": "standalone",
+          "label": "独立使用"
+        }
+      ],
+      "default": "embed",
+      "label": "使用方式"
+    },
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "visible_if": "{{ section.settings.use_type == 'embed' }}",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "visible_if": "{{ section.settings.use_type == 'standalone' }}",
+      "default": "#fcedda",
+      "label": "背景颜色"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "标题",
+      "visible_if": "{{ section.settings.use_type == 'standalone' }}",
+      "default": "标题默认内容"
+    },
+    {
+      "type": "text",
+      "id": "sub_title",
+      "label": "副标题",
+      "visible_if": "{{ section.settings.use_type == 'standalone' }}",
+      "default": "副标题默认内容"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "activity-offer",
+      "name": "活动优惠",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "标题",
+          "default": "标题"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "描述",
+          "default": "<p>描述</p>"
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "描述高亮颜色",
+          "default": "#fd5000"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "图标"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "跳转链接"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

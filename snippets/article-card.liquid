@@ -1,0 +1,75 @@
+{% comment %} main == 'undhwjvnscwfgw' ===  main == 'undhwjvnscwfgw'12333 {% endcomment %}
+{% liquid
+    assign article_image = article.image
+    assign article_alt = article.image.alt | default: article.title | escape
+    assign article_loading = 'lazy'
+    assign article_fetchpriority = fetchpriority | default: ''
+
+    if lazy_load == false
+        assign article_loading = 'eager'
+    endif
+%}
+<div class="{% if main == 'undhwjvnscwfgw' %}blog-cate-first{% else %}article-card{% endif %} blog-card focus-zoom-container flex flex-col justify-between">
+    <div class="blog-img">
+        {% if article_image != blank %}
+            {% if article_fetchpriority != blank %}
+                {{ article_image | image_url: width: 776 | image_tag:
+                    class: 'object-cover focus-zoom',
+                    widths: '480, 640, 776, 960, 1280',
+                    sizes: '(max-width: 768px) 100vw, 33vw',
+                    alt: article_alt,
+                    loading: article_loading,
+                    decoding: 'async',
+                    fetchpriority: article_fetchpriority
+                }}
+            {% else %}
+                {{ article_image | image_url: width: 776 | image_tag:
+                    class: 'object-cover focus-zoom',
+                    widths: '480, 640, 776, 960, 1280',
+                    sizes: '(max-width: 768px) 100vw, 33vw',
+                    alt: article_alt,
+                    loading: article_loading,
+                    decoding: 'async'
+                }}
+            {% endif %}
+        {% endif %}
+    </div>
+    <div class="blog-info-card flex flex-col justify-between" style="flex:1;">
+        <div>
+            {% if article.tags.size > 0 %}
+                <div class="blog-tags flex">
+                    {% for tag in article.tags %}
+                        <div class="blog-tag jky-text-xs">{{tag}}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="blog-content">
+                {% if article.url %}
+                    <div class="blog-item-title {% if main == 'undhwjvnscwfgw' %}jky-text-xl{% else %}jky-text-base{% endif %} font-bold">
+                        <a class="text-black" href="{{article.url}}">{{article.title}}</a>
+                    </div>
+                {% else %}
+                    <div class="blog-item-title {% if main == 'undhwjvnscwfgw' %}jky-text-xl{% else %}jky-text-base{% endif %} font-bold">{{article.title}}</div>
+                {% endif %}
+                
+
+                {% if main == 'undhwjvnscwfgw' %}
+                    <div class="blog-item-text text-overflow-2 jky-text-base">
+                        {%- if article.excerpt.size > 0 -%}
+                            {{ article.excerpt | strip_html | truncatewords: 30 }}
+                        {%- else -%}
+                            {{ article.content | strip_html | truncatewords: 30 }}
+                        {%- endif -%}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="blog-item-detail flex justify-between items-center">
+            <div class="blog-item-date {% if main == 'undhwjvnscwfgw' %}jky-text-base{% else %}jky-text-xs{% endif %}">{{- article.published_at | time_tag: format: 'date' -}}</div>
+            <a class="z-button-fill-middle" href="{{article.url}}" data-analytics-title="{{ article.title }}">
+                {{ 'general.action_text.view_more' | t }}
+                <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+            </a>
+        </div>
+    </div>
+</div>

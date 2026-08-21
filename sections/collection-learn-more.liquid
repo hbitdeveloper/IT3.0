@@ -1,0 +1,61 @@
+<style>
+@media screen and (min-width: 1488px) {
+    .a-learn-more-btn {
+        font-size: 20px;
+    }
+}
+</style>
+
+{% comment %} Learn More Product {% endcomment %}
+<div class="pt-90 pb-50 lg:j-py-120 bg-white">
+    <h2 class="collection-title">{{section.settings.learn_more_title | newline_to_br}}</h2>
+    <ul class="w-full lg:j-w-1200 mx-auto grid grid-cols-1 lg:grid-cols-3 gap-y-40 lg:j-gap-x-14">
+        {% for block in section.blocks %}
+            <li class="relative px-25 lg:j-px-0">
+                <div class="w-full flex-center flex-col text-black absolute left-1/2 -translate-x-1/2 top-100 lg:j-top-56 px-75 lg:j-px-50">
+                    {% if block.settings.learn_more_url %}
+                        <h3 class="text-36 leading-54 lg:j-text-24 lg:j-leading-36 font-500 text-center mb-18 lg:j-mb-12">
+                            <a class="text-black font-500" href="{{block.settings.learn_more_url}}">{{block.settings.title | newline_to_br}}</a>
+                        </h3>
+                    {% else %}
+                        <h3 class="text-36 leading-54 lg:j-text-24 lg:j-leading-36 font-500 text-center mb-18 lg:j-mb-12">{{block.settings.title | newline_to_br}}</h3>
+                    {% endif %}
+                    <p class="text-26 leading-39 lg:j-text-14 lg:j-leading-21 font-400 text-center mb-45 lg:j-mb-20">{{block.settings.subtitle | newline_to_br}}</p>
+                    <a class="z-button-fill-middle a-learn-more-btn" href="{{block.settings.learn_more_url}}" data-analytics-title="{{ block.settings.title | replace: '/n', '' }}">{{ 'general.action_text.learn_more' | t}} 
+                        <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                    </a>
+                </div>
+
+                {%- 
+                    render 'responsive-image', 
+                    image: block.settings.product_type_img,
+                    width: 434,
+                    image_class: "w-full h-1162 lg:j-h-557 object-cover"
+                -%}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% schema %}
+{
+    "name": "Learn More",
+    "class": "section section-collection-learn-more section-sp-pps-sg-collection",
+    "settings": [
+        {"type": "textarea", "id": "learn_more_title", "label": "Learn More Section title", "default": "Learn More About Jackery's Products"}
+    ],
+    "max_blocks": 3,
+    "blocks": [
+        {
+            "type": "learn-more",
+            "name": "Learn More",
+            "settings": [
+                {"type": "textarea", "id": "title", "label": "Product Type title"},
+                {"type": "textarea", "id": "subtitle", "label": "Product Type description"},
+                {"type": "url", "id": "learn_more_url", "label": "Learn More Link"},
+                {"type": "image_picker", "id": "product_type_img", "label": "Product Type image"}
+            ]
+        }
+    ]
+}
+{% endschema %}

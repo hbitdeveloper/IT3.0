@@ -1,0 +1,115 @@
+{% schema %}
+{
+  "name": "Banner Carousel Component",
+  "tag": "section",
+  "class": "banner-carousel-component",
+  "settings": [
+    {
+      "type": "select",
+      "id": "contentAlign",
+      "label": "Content Align(Only For PC)",
+      "default": "right",
+      "options": [
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "sectionTitle",
+      "label": "Section Title",
+      "default": "Banner Carousel"
+    },
+    {
+      "type": "text",
+      "id": "viewMoreText",
+      "label": "View More Text",
+      "default": "VIEW MORE"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Product Image",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "pcProductImg",
+          "label": "PC Product Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbProductImg",
+          "label": "Mobile Product Image"
+        },
+        {
+          "type": "html",
+          "id": "sloganTitle",
+          "label": "Slogan Title"
+        },
+        {
+          "type": "html",
+          "id": "sloganContent",
+          "label": "Slogan Content"
+        },
+        {
+          "type": "url",
+          "id": "viewMoreLink",
+          "label": "View More Link"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<style>
+  .banner-carousel-component .banner-carousel .swiper-img {
+    display: block;
+  }
+</style>
+<h2 class="section-title">{{ section.settings.sectionTitle }}</h2>
+{% assign total = section.blocks | size %}
+<div class="swiper banner-carousel type-{{ section.settings.contentAlign }} {% if total > 1 %} more-banner {% else %} single-banner{% endif %}"
+     data-total="{{ total }}">
+  <div class="swiper-wrapper">
+    {% for block in section.blocks %}
+      <div class="swiper-slide">
+        <div class="slide-box">
+          {%- 
+            render 'responsive-image', 
+            image: block.settings.pcProductImg, 
+            mimage: block.settings.mbProductImg,
+            image_class: "swiper-img" 
+          -%}
+          <div class="content-box">
+            <div class="item-title">{{ block.settings.sloganTitle }}</div>
+            <div class="item-content">{{ block.settings.sloganContent }}</div>
+            {% if block.settings.viewMoreLink != blank %}
+              <a href="{{ block.settings.viewMoreLink }}"
+                 class="btn-view-more">{{ section.settings.viewMoreText }}</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if total > 1 %}
+    <div class="swiper-arrow swiper-button-next"></div>
+    <div class="swiper-arrow swiper-button-prev"></div>
+    <div class="swiper-pagination slideshow-pagination"></div>
+  {% endif %}
+
+</div>
+

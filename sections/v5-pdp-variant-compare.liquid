@@ -1,0 +1,97 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+
+{% comment %} 判断有几个有效的变体 {% endcomment %}
+{%- assign variants = product.variants -%}
+{%- assign size = variants | size -%}
+
+{% style %}
+    .v5-pdp-variant-compare-swiper-button-prev.swiper-button-disabled,
+    .v5-pdp-variant-compare-swiper-button-next.swiper-button-disabled{
+        opacity: 0.6;
+        pointer-events: none;
+    }
+{% endstyle %}
+
+<div
+    {{ section.shopify_attributes }}
+    class="section-padding section-v5-pdp-variant-compare"
+    {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %} 
+    style="background: {{section.settings.bg_color}};{{style}}"
+>
+    <v5-pdp-variant-compare data-size="{{ size }}">
+        <div class="w-full lg:w-[90rem] mx-auto">
+            <div class="px-[1rem] lg:px-0 text-center mb-6 lg:mb-10 font-semibold">
+                {% if section.settings.title != blank %}
+                    <h2 class="text-[1.5rem] lg:text-[3rem] text-[#242F20]">{{ section.settings.title | escape}}</h2> 
+                {% endif %}
+
+                {% if section.settings.desc != blank %}
+                    <div class="hidden lg:block lg:mt-6 text-[1.25rem] text-[#000000]/65">{{ section.settings.desc | escape}}</div>
+                {% endif %}
+            </div>
+            <div class="pl-[1rem] lg:pl-[3.75rem]">
+                <div class="swiper v5-pdp-variant-compare-swiper">
+                    <div class="swiper-wrapper items-stretch">
+                        {% for variant in variants %}
+                            <div class="w-[17.5rem] lg:w-[26.5rem] swiper-slide bg-white h-auto flex mr-[24px]">
+                                {% render 'v5-pdp-variant-compare-card', product: product, variant: variant, title: product.title | escape %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {%- if section.settings.tip != blank -%}
+                <div class="pl-[1rem] mt-3 lg:pl-0 lg:mt-10 lg:mb-10 text-left lg:text-center text-[0.75rem] font-normal text-[#242F20E5]/90">{{ section.settings.tip | escape }}</div>
+            {%- endif -%}
+            {% comment %} 如果需要导航按钮 {% endcomment %}
+            {% if size > 3 %} 
+                <div class="hidden lg:flex items-center justify-center gap-[1.5rem] mt-4 lg:mt-8">
+                    <div class="v5-pdp-variant-compare-swiper-button-prev cursor-pointer w-10 h-10">
+                        {% render 'v5-icon-arrow-left', class: 'text-[#242F20]' %}
+                    </div>
+                    <div class="v5-pdp-variant-compare-swiper-button-next cursor-pointer w-10 h-10">
+                        {% render 'v5-icon-arrow-right', class: 'text-[#242F20]' %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </v5-pdp-variant-compare>
+</div>
+
+<script src="{{ 'section-v5-pdp-variant-compare.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "V5-变体对比2",
+        "enabled_on": {
+            "templates": [ "product" ]
+        },
+        "settings": [
+            { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+            { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#F5F5F3" },
+            { "type": "header", "content": "PC边距" },
+            { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 96},
+            { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 96},
+            { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0},
+            { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0},
+            { "type": "header", "content": "MB边距" },
+            { "type": "select", "id": "mb_padding_type","label": "MB边距", "options": [ { "value": "default", "label": "默认" }, { "value": "custom", "label": "自定义" } ], "default": "custom"},
+            { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "text", "id": "title", "label": "对比标题", "default": "Choose Your Homepower" },
+            { "type": "text", "id": "desc", "label": "对比描述", "default": "All of Jackery 1000 series UPS ≤10ms" },
+            { "type": "text", "id": "tip", "label": "提示", "default": "*Figures shown are estimates; actual usage varies." },
+        ],
+        "presets": [
+            {
+                "name": "V5-变体对比2",
+                "category": "V5.0"
+            }
+        ]
+    }
+{% endschema %}

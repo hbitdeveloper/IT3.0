@@ -1,0 +1,174 @@
+{% doc %}
+  V5 基础产品卡片
+
+  @description 做可复用的产品卡片
+
+  @param {product} product - 产品对象
+  @param {string} variant_id - 产品变体Id
+  @param {object} block_settings - 区块设置
+  @param {boolean} link_target - 是否新标签页打开
+  @param {number} product_show_num - 产品显示数量
+  @param {boolean} show_compare - 是否显示Compare按钮
+{% enddoc %}
+
+{% liquid
+  # 产品变体 未配置时取第一个可用变体的id
+  assign did = product.selected_or_first_available_variant.id
+  assign vid = variant_id | default: did
+  if variant_id == 0
+    assign vid = did
+  endif
+  assign variant = product.variants | where: 'id', vid | first
+  
+  # 标题
+  assign default_title = variant.title  | escape | strip | replace: 'Jackery', ''
+  assign title = variant.metafields.custom.shortname | default: default_title
+  if title == 'Default Title'
+    assign title = product.title | escape | strip | replace: 'Jackery', ''
+  endif
+
+  # 产品图片
+  assign product_img = variant.featured_image | default: product.featured_image
+
+  # 价格
+  assign current_price = blank
+  if settings.open_auto_discount_price
+    assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1
+    if auto_discount_price > 0
+      assign current_price = variant.price
+      if auto_discount_price < variant.price
+        assign current_price = auto_discount_price
+      endif
+    else
+      assign current_price = variant.price
+    endif
+  else
+    assign current_price = variant.price
+  endif
+
+  # 划线价
+  if variant.compare_at_price > current_price
+    assign compare_at_price = variant.compare_at_price
+  else
+    if variant.price > current_price
+      assign compare_at_price = variant.price
+    else
+      assign compare_at_price = blank
+    endif
+  endif
+%}
+
+{% liquid
+  # 卡片大小 这里还需要抽离出去，此产品卡片才可能尽可能复用
+  if product_show_num >= 3
+    assign card_size_class = ' lg:w-[26.5rem] lg:h-[43.1875rem]'
+    assign image_size_class = 'lg:w-[26.5rem] lg:h-[26.5rem]'
+    assign pc_info_padding = 'lg:p-4'
+    assign pc_image_width = 424
+    assign product_info_img_pc_width = 392
+  else
+    assign card_size_class = 'lg:w-[40.5rem] lg:h-[44.25rem]'
+    assign image_size_class = 'lg:w-[40.5rem] lg:h-[26.5rem]'
+    assign pc_info_padding = 'lg:p-5'
+    assign pc_image_width = 648
+    assign product_info_img_pc_width = 608
+  endif
+%}
+
+<div class="mx-4 lg:mx-0 w-full {{ card_size_class }} flex flex-col items-center bg-white relative">
+  {% render 'v5-all-product-tag',
+    show_spu_tag: false,
+    show_variant_tag: false,
+    show_promotion: true,
+    show_tag_img: false,
+    product: product,
+    variant_id: vid
+  %}
+
+  <div class="w-full h-[16.125rem] {{ image_size_class }} flex items-center justify-center">
+    <a
+      class="block w-full h-full cursor-pointer group"
+      href="{{ product.url }}{% if vid != blank %}?variant={{ vid }}{% endif %}"
+      {% if link_target %} target="_blank"{% unless product.url %} rel="noopener noreferrer" {% endunless %}{% endif %}
+    >
+      <div class="relative w-full h-[16.125rem] lg:h-[26.5rem] overflow-hidden">
+        {% comment %} 产品图片 {% endcomment %}
+        {% render 'diff-end-img',
+          picture_class: '',
+          class: 'object-cover focus-zoom w-full h-auto',
+          pc_img: product_img,
+          mb_img: product_img,
+          pc_img_width: pc_image_width,
+          mb_img_width: 686,
+          placeholder_name: 'jackery',
+          alt: product_img.alt | default: title
+        %}
+
+        {% comment %} 产品场景图片 {% endcomment %}
+        {% if block_settings.product_scene_img != blank %}
+          {% render 'diff-end-img',
+            picture_class: 'hidden w-full h-full lg:block absolute inset-0 transition-opacity duration-300 opacity-100 group-hover:opacity-0',
+            class: 'object-cover w-full h-full',
+            pc_img: block_settings.product_scene_img,
+            mb_img: '',
+            pc_img_width: pc_image_width,
+            mb_img_width: 686,
+            placeholder_name: 'hero-apparel-1',
+            alt: block_settings.product_scene_img.alt | default: 'Product Scene Image'
+          %}
+        {% endif %}
+      </div>
+    </a>
+  </div>
+
+  <div class="base-product-card-info w-full p-3 {{ pc_info_padding }}">
+    <div class="v5-base-product-title w-full font-semibold line-clamp-2 text-[rgba(0,0,0,0.9)] text-base lg:text-xl !leading-[1.21] h-10 lg:h-12 mb-4 {% if title == nil or title == '' %}skeleton{% endif %}">
+      {{ title | escape }}
+    </div>
+
+    <div class="mb-[0.625rem]">
+      <span class="font-semibold leading-none text-[#242F20] text-base lg:text-[1.25rem] lg:text-xl lg:leading-[1.21]  {% if current_price == blank %}skeleton inline-block w-20 h-4{% endif %}">
+        {{- current_price | money -}}
+      </span>
+
+      {% if compare_at_price != blank %}
+        <span class="leading-none pl-1 line-through text-[rgba(0,0,0,0.6)] text-[0.75rem] lg:text-[0.875rem] lg:leading-[0.875rem]">
+          {{- compare_at_price | money -}}
+        </span>
+      {% endif %}
+    </div>
+
+    <div class="mb-4 pb-4 border-b-[1px] border-solid border-[#C6C7C8] flex items-center justify-between">
+      <a
+        class="v5-base-product-link flex items-center cursor-pointer text-[var(--jds-color-primary)] font-semibold"
+        href="{{ product.url }}{% if vid != blank %}?variant={{ vid }}{% endif %}"
+        {% if link_target %}
+          target="_blank"
+          {% unless product.url %}
+            rel="noopener noreferrer"
+          {% endunless %}
+        {% endif %}
+      >
+        <span class="leading-none text-[1rem] lg:text-[1.25rem] lg:leading-[1.21] underline underline-offset-[0.375rem] lg:no-underline">{{ 'products.product.shop_now' | t | default: 'Shop Now' | escape }}</span>
+        <jds-icon class="ml-1 text-[1rem]" name="arrow-right-long"></jds-icon>
+      </a>
+
+      {% if show_compare %}
+        <jds-checkbox class="v5-compare-checkbox" label="{{ 'sections.collection_template.compare_button_text' | t | default: 'Compare' }}" value="true" data-sku="{{ vid }}" data-image="{{ product_img | image_url:width:134 }}" data-title="{{ title }}"></jds-checkbox>
+      {% endif %}
+    </div>
+
+    {% comment %} 产品信息图片 {% endcomment %}
+    {% render 'diff-end-img',
+      picture_class: 'relative w-full h-[4.3125rem] lg:h-[5.125rem]',
+      class: 'object-cover focus-zoom w-full h-[4.3125rem] lg:h-[5.125rem]',
+      pc_img: block_settings.product_info_img_pc,
+      mb_img: block_settings.product_info_img_mb,
+      pc_img_width: product_info_img_pc_width,
+      mb_img_width: 640,
+      placeholder_name: 'jackery',
+      placeholder_pc_font_size: '2.5rem',
+      alt: block_settings.product_info_img_pc.alt | block_settings.product_info_img_mb.alt | default: 'Product Features'
+    %}
+  </div>
+</div>

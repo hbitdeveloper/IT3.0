@@ -1,0 +1,262 @@
+{% doc %}
+  V5 产品对比 - 产品卡片
+  @description 适用于 v5-pdp-compare.liquid 主题区块
+  @param { string } variant_id - 产品变体Id
+  @param { product } product - 产品
+  @param { object } setting - 主题区块设置
+  @param { string } style - mb端样式
+  @param { boolean } link_target - 是否新标签页打开
+{% enddoc %}
+
+{% liquid
+  assign variant = product.variants | where: "id", variant_id | where: "available", true | first | default: product.selected_or_first_available_variant
+    # 标题
+  assign title = variant.metafields.custom.shortname | default: variant.title
+  if title == 'Default Title'
+    assign title = product.title | escape | strip | replace: 'Jackery', ''
+  endif
+    # 产品标签
+  assign tag = variant.metafields.custom.variant_tag
+    # 产品折扣
+  assign discount = variant.metafields.custom.component_discount
+    # 产品图片
+  assign product_img = variant.featured_image | default: product.featured_image
+
+    # 价格
+  if settings.open_auto_discount_price
+    assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1
+    if auto_discount_price > 0
+      assign current_price = variant.price
+      if auto_discount_price < variant.price
+        assign current_price = auto_discount_price
+      endif
+    else
+      assign current_price = variant.price
+    endif
+  else
+    assign current_price = variant.price
+  endif
+
+    # 划线价
+  if variant.compare_at_price > current_price
+    assign compare_at_price = variant.compare_at_price
+  else
+    if variant.price > current_price
+      assign compare_at_price = variant.price
+    else
+      assign compare_at_price = blank
+    endif
+  endif
+
+
+  
+  if num > 3
+    assign card_size_class = 'lg:w-[19.5rem]'
+    assign image_size_class = 'lg:w-[19.5rem] lg:h-[19.5rem]'
+    assign image_width = 312
+  else
+    assign card_size_class = 'lg:w-[26.5rem]'
+    assign image_size_class = 'lg:w-[26.5rem] lg:h-[26.5rem]'
+    assign image_width = 424
+  endif
+
+  if style == 'card_custom'
+    assign main_img_size_class = 'w-[9.71875rem] h-[9.71875rem]'
+    assign title_size_class = 'line-clamp-3 text-base h-[4.2rem]'
+  else
+    assign main_img_size_class = 'w-full aspect-square'
+    assign title_size_class = 'line-clamp-2 text-base h-[2.9rem]'
+  endif
+%}
+<div class="{{ card_size_class }} h-full lg:pt-0 {% if style == 'card_custom' %} pt-[0.75rem] {% endif %}flex flex-col items-center bg-white relative">
+  <div class="top-tag absolute lg:top-4 top-[0.75rem] left-4 z-[1] flex items-center">
+    {%- if tag != blank -%}
+      <div class="lg:p-[0.5rem] bg-[#242F20] font-semibold lg:text-[1rem] lg:leading-[1rem] text-[0.75rem] leading-[0.75rem] p-[0.5rem] text-[#fff] tracking-[-0.02rem] tag mr-[1rem]">{{ tag | escape }}</div>
+    {%- endif -%}
+    {%- liquid
+      assign info = blank
+      if variant != blank
+        assign variant_promotion = variant.metafields.custom.promotion
+        if variant_promotion != blank and variant_promotion contains '__label_text:'
+          assign info = variant_promotion | replace_first: '__label_text:'
+        else
+          for tag in product.tags
+            if tag contains '__label_text:'
+              assign info = tag | replace_first: '__label_text:'
+              break
+            endif
+          endfor
+        endif
+      else
+        assign first_variant = product.variants | first
+        assign variant_promotion = first_variant.metafields.custom.promotion
+        if variant_promotion != blank and variant_promotion contains '__label_text:'
+          assign info = variant_promotion | replace_first: '__label_text:'
+        else
+          for tag in product.tags
+            if tag contains '__label_text:'
+              assign info = tag | replace_first: '__label_text:'
+              break
+            endif
+          endfor
+        endif
+      endif
+
+      # 如果 info 为空，则走兜底的自动计算折扣价逻辑
+      if info == blank and settings.open_auto_discount_price
+        # 折扣角标展示形式
+        assign discount_tag_display_style = settings.discount_tag_display_style
+        assign discount_amount = settings.discount_amount_display_style
+        assign discount_percent = settings.discount_percent_display_style
+
+        # 优惠金额
+        if discount_tag_display_style == 'amount'
+          if discount_amount != blank
+            if variant != blank
+              assign discount_amount_value = variant.metafields.custom.auto_discount_amount | times: 1
+              if discount_amount_value > 0
+                assign money_string = discount_amount_value | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros
+                assign info = discount_amount | replace: '()', money_string
+              endif
+            else
+              assign first_variant = product.variants | first
+              assign discount_amount_value = first_variant.metafields.custom.auto_discount_amount | times: 1
+              if discount_amount_value > 0
+                assign money_string = discount_amount_value | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros
+                assign info = discount_amount | replace: '()', money_string
+              endif
+            endif
+          endif
+        else
+          # 折扣百分比
+          if discount_percent != blank
+            if variant != blank
+              assign discount_percentage_value = variant.metafields.custom.auto_discount_percentage | times: 1
+              if discount_percentage_value > 0
+                assign info = discount_percent | replace: '()', discount_percentage_value
+              endif
+            else
+              assign first_variant = product.variants | first
+              assign discount_percentage_value = first_variant.metafields.custom.auto_discount_percentage | times: 1
+              if discount_percentage_value > 0
+                assign info = discount_percent | replace: '()', discount_percentage_value
+              endif
+            endif
+          endif
+        endif
+      endif
+    -%}
+    {% if info != blank %}
+      <div class="lg:p-[0.5rem] bg-[var(--jds-color-primary)] font-semibold lg:text-[1rem] lg:leading-[1rem] text-[0.75rem] leading-[0.75rem] p-[0.5rem] text-[#fff] tracking-[-0.02rem] tag {% if style != 'card_swiper' %} hidden lg:block {% endif %}">{{ info }}</div>
+    {% endif %}
+  </div>
+  {% assign vid = variant_id | default: product.selected_or_first_available_variant.id %}
+  <div class="{{ image_size_class }} {{ main_img_size_class }} flex items-center justify-center">
+    <a class="block w-full h-full cursor-pointer group" href="{{ product.url }}?variant={{ vid }}"
+        data-ga-event="5.0_homepage_user_clicks"
+        data-ga-action="click"
+        data-ga-params-position="{{ title | escape }}"
+        data-ga-params-module="Product Recommendations"
+        data-ga-params-link="{{ product.url }}"
+        data-ga-params-button_name="pic"
+      {% if link_target %}
+        target="_blank"
+        {% unless product.url %}
+          rel="noopener noreferrer"
+        {% endunless %}
+      {% endif %}>
+      <div class=" lg:block hidden relative w-full h-full overflow-hidden">
+        {% render 'diff-end-img', pc_img: product_img, mb_img: product_img, pc_img_width: image_width, mb_img_width: 272, class: 'object-cover focus-zoom w-full h-full' %}
+        {% if setting.scene_compare_image != blank %}
+          {% render 'diff-end-img', pc_img: setting.scene_compare_image, mb_img: setting.scene_compare_image, pc_img_width: image_width, mb_img_width: 272, class: 'object-cover w-full h-full absolute inset-0 transition-opacity duration-300 opacity-100 group-hover:opacity-0' %}
+        {% endif %}
+      </div>
+      <div class="lg:hidden block relative w-full h-full">
+        {% if setting.scene_compare_image != blank %}
+          {% render 'diff-end-img', pc_img: setting.scene_compare_image, mb_img: setting.scene_compare_image, pc_img_width: image_width, mb_img_width: 272, class: 'object-cover w-full h-full absolute' %}
+        {% else %}
+          {% render 'diff-end-img', pc_img: product_img, mb_img: product_img, pc_img_width: image_width, mb_img_width: 272, class: 'object-cover focus-zoom w-full h-full' %}
+        {% endif %}
+      </div>
+    </a>
+  </div>
+  {% if style != 'card_swiper' %}
+    <div class="line-bottom mx-auto my-0 w-[10.1875rem] mt-[0.5rem] h-[1px] bg-[#D9D9D9] block lg:hidden"></div>
+  {% endif %}
+  <div class="life-product-card-bottom w-full lg:p-[1rem] p-[0.75rem] flex flex-1 flex-col justify-between">
+    <div class="life-product-card-title lg:line-clamp-2 w-full lg:h-[3.375rem] {{ title_size_class }} font-semibold lg:text-xl mb-4" style="color: rgba(0,0,0,0.9);">{{ title | escape }}</div>
+    <div class="lg:block hidden">
+        <div class="font-normal mb-4">
+          <span class="font-semibold lg:text-[1.25rem] lg:leading-[1.25rem] text-[1rem] leading-[1rem] text-[var(--jds-color-primary)] lg:text-[#242F20]">{{ current_price | money }}</span>
+          {% if compare_at_price != blank %}
+            <span class="lg:text-[0.875rem] lg:leading-[0.875rem] text-[0.75rem] leading-[0.75rem] pl-1 line-through" style="color: rgba(0,0,0,0.65);">{{ compare_at_price | money }}</span>
+          {% endif %}
+        </div>
+        <div class="pb-4 lg:mb-4 mb-0 font-semibold lg:border-b-[1px] lg:border-solid lg:border-[#D9D9D9] lg:text-[1.25rem] lg:leading-[1.25rem] text-[1rem] leading-[1rem] text-[var(--jds-color-primary)] flex items-center"><a class="flex items-center cursor-pointer" href="{{ product.url }}?variant={{ vid }}"
+          data-ga-event="5.0_homepage_user_clicks"
+          data-ga-action="click"
+          data-ga-params-position="{{ title | escape }}"
+          data-ga-params-module="Product Recommendations"
+          data-ga-params-link="{{ product.url }}"
+          data-ga-params-button_name="{{ 'general.action_text.shop_now' | t }}"
+          {% if link_target %}
+            target="_blank"
+            {% unless product.url %}
+              rel="noopener noreferrer"
+            {% endunless %}
+          {% endif %}><span class="underline lg:no-underline">{{ 'general.action_text.shop_now' | t }}</span>&nbsp;<jds-icon name="arrow-right-long"></jds-icon></a></div>
+    </div>
+    <div class="lg:hidden flex flex-1 flex-col w-full">
+      {% if style == 'card_swiper' %}
+        <div class="w-full pb-4 mb-4 border-b-[1px] border-solid border-[#D9D9D9] flex flex-1 items-center justify-between">
+          <div class="font-normal flex flex-wrap items-center gap-1">
+            <span class="font-semibold lg:text-[1.25rem] lg:leading-[1.25rem] text-[1rem] leading-[1rem] text-[#242F20]">{{ current_price | money }}</span>
+            {% if compare_at_price != blank %}
+              <span class="lg:text-[0.875rem] lg:leading-[0.875rem] text-[0.75rem] leading-[0.75rem] line-through" style="color: rgba(0,0,0,0.65);">{{ compare_at_price | money }}</span>
+            {% endif %}
+          </div>
+          <div class="shop-now-btn font-semibold lg:text-[1.25rem] lg:leading-[1.25rem] text-[1rem] leading-[1rem] text-[var(--jds-color-primary)] flex items-center shrink-0">
+            <a class="flex items-center cursor-pointer" href="{{ product.url }}?variant={{ vid }}"
+              data-ga-event="5.0_homepage_user_clicks"
+              data-ga-action="click"
+              data-ga-params-position="{{ title | escape }}"
+              data-ga-params-module="Product Recommendations"
+              data-ga-params-link="{{ product.url }}"
+              data-ga-params-button_name="{{ 'general.action_text.shop_now' | t }}"
+              {% if link_target %}
+                target="_blank"
+                  {% unless product.url %}
+                    rel="noopener noreferrer"
+                  {% endunless %}
+              {% endif %}><span class="underline lg:no-underline">{{ 'general.action_text.shop_now' | t }}</span>&nbsp;<jds-icon name="arrow-right-long"></jds-icon></a>
+          </div>
+        </div>
+      {% else %}
+        <div class="w-full font-normal mb-4 flex flex-wrap items-center gap-1">
+          <span class="font-semibold lg:text-[1.25rem] lg:leading-[1.25rem] text-[1rem] leading-[1rem] text-[var(--jds-color-primary)] lg:text-[#242F20]">{{ current_price | money }}</span>
+          {% if compare_at_price != blank %}
+            <span class="lg:text-[0.875rem] lg:leading-[0.875rem] text-[0.75rem] leading-[0.75rem] line-through" style="color: rgba(0,0,0,0.65);">{{ compare_at_price | money }}</span>
+          {% endif %}
+        </div>
+        <div class="pb-4 lg:mb-4 mb-0 font-semibold lg:border-b-[1px] lg:border-solid lg:border-[#D9D9D9] lg:text-[1.25rem] lg:leading-[1.25rem] text-[1rem] leading-[1rem] text-[var(--jds-color-primary)] flex items-center"><a class="flex items-center cursor-pointer" href="{{ product.url }}?variant={{ vid }}"
+          data-ga-event="5.0_homepage_user_clicks"
+          data-ga-action="click"
+          data-ga-params-position="{{ title | escape }}"
+          data-ga-params-module="Product Recommendations"
+          data-ga-params-link="{{ product.url }}"
+          data-ga-params-button_name="{{ 'general.action_text.shop_now' | t }}"
+          {% if link_target %}
+            target="_blank"
+            {% unless product.url %}
+              rel="noopener noreferrer"
+            {% endunless %}
+          {% endif %}><span class="underline lg:no-underline">{{ 'general.action_text.shop_now' | t }}</span>&nbsp;<jds-icon name="arrow-right-long"></jds-icon></a></div>
+      {% endif %}
+    </div>
+    {% if setting.info_compare_image != blank and setting.info_compare_image_mb != blank %}
+      <div class="w-full lg:h-[5.125rem] h-[4.125rem] {% if style != 'card_swiper' %} hidden lg:block {% endif %}">
+        {% render 'diff-end-img', pc_img: setting.info_compare_image, mb_img: setting.info_compare_image_mb, pc_img_width: 392, mb_img_width: 392, class: 'object-cover focus-zoom w-full lg:h-[5.125rem] h-[4.125rem]' %}
+      </div>
+    {% endif %}
+  </div>
+</div>

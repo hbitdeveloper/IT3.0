@@ -1,0 +1,94 @@
+{% doc %}
+  Renders initial search pagination markup for hydration reuse.
+
+  @param {number} current_page - Current page number
+  @param {number} total_pages - Total page count
+  @param {number} total_items - Total result count
+
+  @example
+  {% render 'v5-search-pagination', current_page: 1, total_pages: 3, total_items: 18 %}
+{% enddoc %}
+
+{%- liquid
+  assign current_page = current_page | plus: 0
+  assign total_pages = total_pages | plus: 0
+  assign total_items = total_items | plus: 0
+-%}
+{%- if total_items < 1 -%}
+{%- elsif total_pages <= 1 -%}
+  <div class="pt-8 lg:pt-10"></div>
+{%- else -%}
+  <div class="pagination-wrapper flex justify-center items-center pt-8 gap-4 lg:pt-10 text-base" data-pagination="v5" data-current-page="{{ current_page }}" data-total-pages="{{ total_pages }}" data-total-items="{{ total_items }}">
+    <nav class="pagination py-2 lg:py-3" aria-label="Pagination">
+      <ul class="flex items-center justify-center gap-6 lg:gap-4">
+        {%- assign prev_disabled = false -%}
+        {%- if current_page <= 1 -%}
+          {%- assign prev_disabled = true -%}
+        {%- endif -%}
+        <li class="flex items-center justify-center">
+          <a class="flex {% if prev_disabled %}opacity-35 pointer-events-none{% endif %}" href="#" {% if prev_disabled %}aria-disabled="true" tabindex="-1"{% endif %} aria-label="Previous" data-page="{{ current_page | minus: 1 }}">
+            <svg class="v5-icon-left-arrow w-[1.875rem] h-[1.875rem] lg:w-10 lg:h-10" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect class="icon-bg" x="0.5" y="0.5" width="38" height="38" rx="19" fill="white" fill-opacity="0.5"/><rect x="-0.5" y="0.5" width="38" height="38" rx="19" transform="matrix(-1 0 0 1 38 0)" stroke="black" /><g clip-path="url(#v5-icon-left-arrow-clip-ssr)"><path d="M28.5 20.25H16.2578" stroke="#242F20" stroke-width="1.6" /><path d="M19.0078 14L12.7581 20.2498L19.0078 26.4995" stroke="#242F20" stroke-width="1.6" /></g><defs><clipPath id="v5-icon-left-arrow-clip-ssr"><rect width="17" height="16" fill="white" transform="matrix(-1 0 0 1 28.5 12)" /></clipPath></defs></svg>
+          </a>
+        </li>
+
+        <li class="block lg:hidden text-base text-[#242F20] font-normal">Page {{ current_page }} of {{ total_pages }}</li>
+
+        {%- assign item_class = 'w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base' -%}
+        {%- assign active_class = 'text-[#242F20]' -%}
+        {%- assign inactive_class = 'text-[#A9AAAC] hover:text-[#8A8A8A]' -%}
+
+        {%- if total_pages > 5 -%}
+          {%- assign start = 2 -%}
+          {%- assign ending = total_pages | minus: 1 -%}
+          {%- if current_page <= 2 -%}
+            {%- assign ending = total_pages | minus: 1 -%}
+            {%- if ending > 4 -%}
+              {%- assign ending = 4 -%}
+            {%- endif -%}
+          {%- else -%}
+            {%- assign total_pages_minus_one = total_pages | minus: 1 -%}
+            {%- if current_page >= total_pages_minus_one -%}
+              {%- assign start = total_pages | minus: 3 -%}
+              {%- if start < 2 -%}
+                {%- assign start = 2 -%}
+              {%- endif -%}
+            {%- else -%}
+              {%- assign start = current_page | minus: 1 -%}
+              {%- assign ending = current_page | plus: 1 -%}
+            {%- endif -%}
+          {%- endif -%}
+
+          {%- assign total_pages_minus_one = total_pages | minus: 1 -%}
+
+          <li class="hidden lg:block"><a href="#" {% if current_page == 1 %}role="link" aria-disabled="true" aria-current="page"{% endif %} class="{{ item_class }} {% if current_page == 1 %}{{ active_class }}{% else %}{{ inactive_class }}{% endif %}" data-page="1">1</a></li>
+          {%- if start > 2 -%}
+            <li class="hidden lg:block"><span class="{{ item_class }} text-[#A9AAAC]">...</span></li>
+          {%- endif -%}
+          {%- for i in (2..total_pages) -%}
+            {%- if i >= start and i <= ending and i < total_pages -%}
+              <li class="hidden lg:block"><a href="#" {% if i == current_page %}role="link" aria-disabled="true" aria-current="page"{% endif %} class="{{ item_class }} {% if i == current_page %}{{ active_class }}{% else %}{{ inactive_class }}{% endif %}" data-page="{{ i }}">{{ i }}</a></li>
+            {%- endif -%}
+          {%- endfor -%}
+          {%- if ending < total_pages_minus_one -%}
+            <li class="hidden lg:block"><span class="{{ item_class }} text-[#A9AAAC]">...</span></li>
+          {%- endif -%}
+          <li class="hidden lg:block"><a href="#" {% if current_page == total_pages %}role="link" aria-disabled="true" aria-current="page"{% endif %} class="{{ item_class }} {% if current_page == total_pages %}{{ active_class }}{% else %}{{ inactive_class }}{% endif %}" data-page="{{ total_pages }}">{{ total_pages }}</a></li>
+        {%- else -%}
+          {%- for i in (1..total_pages) -%}
+            <li class="hidden lg:block"><a href="#" {% if i == current_page %}role="link" aria-disabled="true" aria-current="page"{% endif %} class="{{ item_class }} {% if i == current_page %}{{ active_class }}{% else %}{{ inactive_class }}{% endif %}" data-page="{{ i }}">{{ i }}</a></li>
+          {%- endfor -%}
+        {%- endif -%}
+
+        {%- assign next_disabled = false -%}
+        {%- if current_page >= total_pages -%}
+          {%- assign next_disabled = true -%}
+        {%- endif -%}
+        <li class="flex items-center justify-center">
+          <a class="flex {% if next_disabled %}opacity-35 pointer-events-none{% endif %}" href="#" {% if next_disabled %}aria-disabled="true" tabindex="-1"{% endif %} aria-label="Next" data-page="{{ current_page | plus: 1 }}">
+            <svg class="v5-icon-right-arrow w-[1.875rem] h-[1.875rem] lg:w-10 lg:h-10" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect class="icon-bg" x="0.5" y="0.5" width="38" height="38" rx="19" fill="white" fill-opacity="0.5"/><rect x="0.5" y="0.5" width="38" height="38" rx="19" stroke="black"/><g clip-path="url(#v5-icon-right-arrow-clip-ssr)"><path d="M11.5 20.25H23.7422" stroke="#242F20" stroke-width="1.6"/><path d="M20.9922 14L27.2419 20.2498L20.9922 26.4995" stroke="#242F20" stroke-width="1.6"/></g><defs><clipPath id="v5-icon-right-arrow-clip-ssr"><rect width="17" height="16" fill="white" transform="translate(11.5 12)"/></clipPath></defs></svg>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+{%- endif -%}

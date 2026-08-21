@@ -1,0 +1,132 @@
+    <div class="image-banner-container">
+        <div class="section-container">
+            <h2 class="image-banner-container-title jky-text-xl text-center font-500">{{section.settings.page_title | newline_to_br}}</h2>
+
+            <div class="image-banner-brand-content relative">
+                <img class="absolute left-0 top-0"
+                    src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/1_d4621f27-b474-43ea-902e-f00f790cf09b.png?v=1670915016"
+                    alt="jackery" loading="lazy">
+                <img class="absolute bottom-0 right-0"
+                    src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/2_55109115-cdac-4786-9031-e7168f04d355.png?v=1670915016"
+                    alt="jackery" loading="lazy">
+
+                <div class="jky-text-sm text-center">{{section.settings.page_sub_title | newline_to_br}}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buy-guide section-container">
+        {% for block in section.blocks %}
+            {% case block.type %}
+                {% when 'guide_step' %}
+                <div class="buy-guide-step flex">
+                    <div class="step-icon">
+                        <img src="{{block.settings.icon_image | image_url: width: 146}}" alt="{{block.settings.icon_image.alt}}" loading="lazy">
+                    </div>
+
+                    <div class="step-content">
+                        <h3 class="step-title jky-text-xl font-bold gs_reveal">{{block.settings.title | newline_to_br}}</h3>
+                        <div class="step-subtitle jky-text-sm gs_reveal">{{block.settings.subtitle}}</div>
+
+                        {% render 'responsive-image', image: block.settings.image, mimage: block.settings.m_image, image_class: 'gs_reveal', nolazy:'no' %}
+
+                        {% if block.settings.m_image_extra %}
+                            {% render 'responsive-image', image: block.settings.m_image_extra, mimage: block.settings.m_image_extra, image_class: 'gs_reveal mobile-block', nolazy:'no' %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endcase %}
+        {% endfor %}   
+    </div>
+
+    <div class="faq-container flex justify-center">
+        <img class="faq-banner" src="{{section.settings.faq_image | image_url: width: 1920}}" alt="{{section.settings.faq_image.alt}}" loading="lazy">
+
+
+        {% assign options = '' %}
+        <div class="faq-main section-container">
+            <h2 class="text-center jky-text-2xl font-bold main-title">FAQ</h2>
+            <div class="swiper swiper-thumbs">
+                <div class="swiper-wrapper">
+                    {% for block in section.blocks %}
+                        {% case block.type %}
+                            {% when 'faq_item' %}
+                                {% assign options = options | append: ',' | append: block.settings.faq_cate %}
+                        {% endcase %}
+                    {% endfor %}  
+                    {% assign options = options | remove_first: ',' | split: ',' | uniq %}
+
+                    {% for option in options %}
+                        <div class="swiper-slide">
+                            <div class="jky-text-lg underlines-btn">{{option}}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="swiper faq-swiper-main">
+                <div class="swiper-wrapper">
+                    {% for option in options %}
+                        <div class="swiper-slide">
+                            <ul class="accordion-menu">
+                            {% for block in section.blocks %}
+                                {% case block.type %}
+                                    {% when 'faq_item' %}
+                                    {% if block.settings.faq_cate == option %}
+                                        <li>
+                                            <h3 class="dropdownlink jky-text-lg flex justify-between items-center">
+                                                {{block.settings.title | newline_to_br}}
+                                                <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-base"></jds-icon>
+                                            </h3>
+                                            <ul class="submenuItems">
+                                                <div class="submenu-content jky-text-base">{{block.settings.faq_content | newline_to_br}}</div>
+                                            </ul>
+                                        </li>
+                                    {% endif %}
+                                {% endcase %}
+                            {% endfor %} 
+                            </ul>
+                        </div> 
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="z-button-fill-middle">
+                {{'general.action_text.view_more' | t}}
+                <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-base"></jds-icon>
+            </div>
+        </div>
+    </div>
+
+    {% schema %}
+    {
+        "name": "Page howToBuy main",
+        "class": "section section-howToBuy-main",
+        "settings": [
+            {"type": "textarea", "id": "page_title", "label": "Page Title", "default": "Thanks for your visiting"},
+            {"type": "textarea", "id": "page_sub_title", "label": "Page subtitle", "default": "Here 's the flow of purchasing on Jackery's official website.\nWish you a good experience of shopping. "},
+            {"type": "image_picker", "id": "faq_image", "label": "FAQ Banner Image"}
+        ],
+        "blocks": [
+            {
+                "type": "guide_step", "name": "Guide Step",
+                "settings": [
+                    {"type": "textarea", "id": "title", "label": "Guide Step title"},
+                    {"type": "richtext", "id": "subtitle", "label": "Guide Step description"},
+                    {"type": "image_picker", "id": "icon_image", "label": "Guide Step Icon"},
+                    {"type": "image_picker", "id": "m_image", "label": "Guide Step Mobile Image"},
+                    {"type": "image_picker", "id": "m_image_extra", "label": "Guide Step Mobile extra Image"},
+                    {"type": "image_picker", "id": "image", "label": "Guide Step PC Image"}
+                ]
+            },
+            {
+                "type": "faq_item", "name": "FAQ item",
+                "settings": [
+                    {"type": "textarea", "id": "title", "label": "FAQ title"},
+                    {"type": "textarea", "id": "faq_content", "label": "FAQ Answer"},
+                    {"type": "text", "id": "faq_cate", "label": "FAQ category name"}
+                ]
+            }
+        ]
+    }
+    {% endschema %}

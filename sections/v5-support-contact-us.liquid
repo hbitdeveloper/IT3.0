@@ -1,0 +1,160 @@
+
+{{ 'sections-v5-support-service-policy.css' | asset_url | stylesheet_tag }}
+{{ 'sections-v5-support-contact-us.css' | asset_url | stylesheet_tag }}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="v5-support-contact-us v5-support-service-policy section-padding active section-container-lg"
+  id="v5-support-service-policy-{{ section.id }}"
+  style="{{ style }}"
+>
+  <div class="v5-support-service-policy__title">{{ section.settings.title }}</div>
+  {% if section.settings.description != blank %}
+    <div class="-mt-3 text-sm mb-6 text-center font-medium lg:-mt-4 lg:mb-12 lg:text-xl">{{ section.settings.description }}</div>
+  {% endif %}
+  <div class="v5-support-service-policy__list">
+    {%- for block in section.blocks -%}
+
+        <div
+          class="v5-support-service-policy__item has-description"
+
+          {{ block.shopify_attributes }}
+        >
+          <div class="desc-container">
+
+            {%- if block.settings.icon_image != blank -%}
+              <img class="v5-support-service-policy__icon-image" src="{{ block.settings.icon_image | image_url }}" alt="{{ block.settings.title | escape }}">
+            {%- else -%}
+              {{ 'product-1' | placeholder_svg_tag: 'v5-support-service-policy__icon-image' }}
+            {%- endif -%}
+
+            <div class="text-container">
+              <div class="v5-support-service-policy__item-title">{{ block.settings.title }}</div>
+              <div class="v5-support-service-policy__item-desc">{{ block.settings.content }}</div>
+              <div class="v5-support-service-policy__button-wrap">
+              <jds-button
+                  data-contact-type="{{ block.settings.contact_type }}"
+                  data-ai-chat-href="{{ block.settings.ai_chat_href }}"
+                  data-email-href="{{ block.settings.email_href }}"
+                  data-phone-href="{{ block.settings.phone_href }}"
+                  href="{{ block.settings.link }}"
+                size="medium" variant="text" icon="arrow-right">
+                {% if block.settings.contact_type == 'email' %}
+                  {{ block.settings.email_href }}
+                {% elsif block.settings.contact_type == 'phone' %}
+                  {{ block.settings.phone_text }}
+                {% elsif block.settings.contact_type == 'link' %}
+                  {{ block.settings.link_text }}
+                {% else %}
+                  {{ block.settings.ai_chat_text }}
+                {% endif %}
+                </jds-button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+    {%- endfor -%}
+  </div>
+
+
+  <div class="v5-support-contact-us__chat-modal" data-contact-chat-modal>
+    <iframe
+      class="v5-support-contact-us__chat-iframe"
+      data-contact-chat-iframe
+      frameborder="0"
+      allowfullscreen
+      loading="lazy">
+    </iframe>
+  </div>
+</div>
+
+<script src="{{ 'sections-v5-support-contact-us.js' | asset_url }}" defer></script>
+
+
+{% schema %}
+{
+  "name": "V5-Support Contact Us",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "PC padding" },
+    { "type": "number", "id": "padding_top", "label": "Padding top", "default": 64 },
+    { "type": "number", "id": "padding_bottom", "label": "Padding bottom", "default": 64 },
+    { "type": "header", "content": "MB padding" },
+    { "type": "text", "id": "mb_padding_type", "default": "custom", "label": "MB padding", "visible_if": "{{ false }}" },
+    { "type": "number", "id": "padding_top_mb", "label": "Padding top", "default": 48 },
+    { "type": "number", "id": "padding_bottom_mb", "label": "Padding bottom", "default": 48 },
+    { "type": "text", "id": "title", "label": "Title", "default": "Contact Us" },
+    { "type": "richtext", "id": "description", "label": "Description" }
+  ],
+  "blocks": [
+    {
+      "type": "contact_item",
+      "name": "Contact item",
+      "limit": 3,
+      "settings": [
+        { "type": "image_picker", "id": "icon_image", "label": "Icon image" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Email" },
+        { "type": "richtext", "id": "content", "label": "Content", "default": "<p>hello@jackery.com</p><p>(US/CA)</p><p>9AM to 5PM PST (Weekdays)</p>" },
+        {
+          "type": "select",
+          "id": "contact_type",
+          "label": "Contact type",
+          "default": "email",
+          "options": [
+            { "value": "ai_chat", "label": "AI Chat" },
+            { "value": "email", "label": "Email" },
+            { "value": "phone", "label": "Phone" },
+            { "value": "link", "label": "Link" }
+          ]
+        },
+        { "type": "text", "id": "ai_chat_href", "label": "AI chat link", "default": "https://app.zipchat.ai/iframe/?widget_token=EQIwdkSH2VCT4gFBZiTG", "visible_if": "{{ block.settings.contact_type == 'ai_chat' }}" },
+        { "type": "text", "id": "ai_chat_text", "label": "AI chat Text", "default": "Start chat", "visible_if": "{{ block.settings.contact_type == 'ai_chat' }}" },
+        { "type": "text", "id": "email_href", "label": "Email", "visible_if": "{{ block.settings.contact_type == 'email' }}" },
+        { "type": "text", "id": "phone_href", "label": "Phone", "visible_if": "{{ block.settings.contact_type == 'phone' }}" },
+        { "type": "text", "id": "phone_text", "label": "Call Now Text", "visible_if": "{{ block.settings.contact_type == 'phone' }}" },
+        { "type": "text", "id": "link_text", "label": "Link Text", "visible_if": "{{ block.settings.contact_type == 'link' }}" },
+        { "type": "url", "id": "link", "label": "Link", "visible_if": "{{ block.settings.contact_type == 'link' }}" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-Support Contact Us",
+      "category": "V5.0 Support",
+      "blocks": [
+        {
+          "type": "contact_item",
+          "settings": {
+            "title": "Pre-Sale AI Chat",
+            "content": "<p>Chat Now</p><p>(24/7 Support)</p>",
+            "contact_type": "ai_chat",
+            "ai_chat_href": "https://app.zipchat.ai/iframe/?widget_token=EQIwdkSH2VCT4gFBZiTG"
+          }
+        },
+        {
+          "type": "contact_item",
+          "settings": {
+            "title": "Email",
+            "content": "<p>(US/CA)</p><p>9AM to 5PM PST (Weekdays)</p>",
+            "contact_type": "email",
+            "email_href": "hello@jackery.com"
+          }
+        },
+        {
+          "type": "contact_item",
+          "settings": {
+            "title": "Call & SMS",
+            "content": "<p>(US/CA)</p><p>9AM to 5PM PST (Weekdays)</p>",
+            "contact_type": "phone",
+            "phone_href": "18885022236"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

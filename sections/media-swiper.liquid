@@ -1,0 +1,223 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<style>
+    section#shopify-section-{{section.id}} {
+        background:{{section.settings.bg_color | default: 'transparent'}};
+    }
+
+    .blocks-media-swiper .swiper-pagination {
+        --pb: calc(var(--section-padding-bottom, 36) / 16 * 1rem - 2rem);
+        display: flex;
+        justify-content: center;
+        height: 0.25rem;
+        bottom: max(var(--pb), 0.2rem);
+    }
+    .blocks-media-swiper .swiper-pagination {
+        --swiper-theme-color: var(--brand-color);
+    }
+    .blocks-media-swiper .swiper-pagination .swiper-pagination-bullet {
+        width: 1rem;
+        height: 0.25rem;
+        border-radius: 0.125rem;
+        margin: 0 0.375rem;
+        transition: all ease .24s;
+    }
+    .blocks-media-swiper .swiper-pagination .swiper-pagination-bullet.swiper-pagination-bullet-active {
+        width: 5.5rem;
+    }
+    @media screen and (max-width: 1024px) {
+        .blocks-media-swiper .swiper-pagination .swiper-pagination-bullet {
+            width: 0.75rem;
+            height: 0.1875rem;
+            margin: 0 0.28rem;
+        }
+        .blocks-media-swiper .swiper-pagination .swiper-pagination-bullet.swiper-pagination-bullet-active {
+            width: 4rem;
+        }
+    }
+</style>
+
+{%- content_for "block", type: "v-heading-content", id: "heading_content" -%}
+
+<jky-media-swiper
+    {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %}
+    {% if section.settings.autoplay == true %}data-autoplay{% endif %}
+    {% if section.settings.swiperloop == true %}data-loop{% endif %}
+    {% if section.settings.swiperauto == true %}autoplay{% endif %}
+    data-delay="{{section.settings.delay}}"
+    class="blocks-media-swiper block {{section.settings.page_width}} section-padding relative {% if settings.enable_animations_scroll %}scroll-trigger animate--slide-in{% endif %}"
+    style="{{ style }}" 
+>
+    <div class="group swiper">
+        <div class="swiper-wrapper responsive-h" style="--desktop-height:{{section.settings.desktop_height | divided_by: 16.0}}rem;--mobile-height:{{section.settings.mobile_height | divided_by: 32.0}}rem;">
+            {%- content_for 'blocks' -%}
+        </div>
+        <div class="swiper-button-prev hidden lg:flex after:content-['prev'] after:pr-0.5
+        h-12 w-12 transition-transform ease-linear origin-center
+        after:text-white after:text-lg after:font-bold after:transition-transform after:ease-linear after:z-[1]
+        before:absolute before:w-full before:h-full before:border-2 before:border-[rgba(255,255,255,0.4)] before:rounded-full before:bg-[rgba(102,102,102,0.2)] before:border-solid before:transition-all hover:before:bg-[rgba(102,102,102,0.4)] hover:before:scale-110"></div>
+
+        <div class="swiper-button-next hidden lg:flex after:content-['next'] after:pl-0.5
+        h-12 w-12 transition-transform ease-linear origin-center
+        after:text-white after:text-lg after:font-bold after:transition-transform after:ease-linear after:z-[1]
+        before:absolute before:w-full before:h-full before:border-2 before:border-[rgba(255,255,255,0.4)] before:rounded-full before:bg-[rgba(102,102,102,0.2)] before:border-solid before:transition-all hover:before:bg-[rgba(102,102,102,0.4)] hover:before:scale-110"></div>
+    </div>
+
+    <div class="swiper-pagination"></div>
+</jky-media-swiper>
+
+{% # theme-check-enable ValidBlockTarget %}
+{% schema %}
+{
+  "name": "V-图片视频轮播",
+  "class": "section-media-swiper",
+  "tag": "section",
+   "settings": [
+        {
+            "type": "color_background",
+            "id": "bg_color",
+            "label": "背景颜色"
+        },
+        { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" }, 
+        {
+            "type": "select",
+            "id": "page_width",
+            "options": [
+                {
+                    "value": "section-container-lg",
+                    "label": "版心/1312px"
+                },
+                {
+                    "value": "w-full",
+                    "label": "铺满/100%"
+                }
+            ],
+            "default": "w-full",
+            "label": "PC的组件宽度",
+            "info": "MB端组件宽度固定和设计稿一致，不可修改"
+        },
+        { "type": "header", "content": "内边距" },
+        {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 36
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 36
+        },
+        {
+            "type": "range",
+            "id": "padding_left",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "左边距",
+            "default": 0
+        },
+        {
+            "type": "range",
+            "id": "padding_right",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "右边距",
+            "default": 0
+        },
+        { "type": "header", "content": "PC配置" },
+        { "type": "number", "id": "desktop_width", "label": "宽度", "default": 360, "info": "设置范围：310-1920" },
+        { "type": "number", "id": "desktop_height", "label": "高度", "default": 180, "info": "设置范围：160-680" },
+        {
+            "type": "range",
+            "id": "desktop_radius",
+            "min": 0,
+            "max": 36,
+            "step": 2,
+            "unit": "px",
+            "label": "圆角",
+            "default": 12
+        },
+        { "type": "header", "content": "MB配置" },
+        { "type": "number", "id": "mobile_width", "label": "宽度", "default": 440, "info": "300-622" },
+        { "type": "number", "id": "mobile_height", "label": "高度", "default": 544, "info": "300-750" },
+        {
+            "type": "range",
+            "id": "mobile_radius",
+            "min": 0,
+            "max": 36,
+            "step": 2,
+            "unit": "px",
+            "label": "圆角",
+            "default": 10
+        },
+        { "type": "header", "content": "播放设置" },
+        { "type": "checkbox", "id": "autoplay", "label": "自动播放", "default": false, "info": "仅有一个视频时生效" },
+        { "type": "checkbox", "id": "loop", "label": "循环播放？", "default": true },
+        { "type": "checkbox", "id": "controls", "label": "显示播放控件", "default": true },
+        { "type": "header", "content": "轮播设置" },
+        { "type": "checkbox", "id": "swiperloop", "label": "无限循环", "default": true },
+        { "type": "checkbox", "id": "swiperauto", "label": "自动轮播", "default": true },
+        {
+            "type": "range",
+            "id": "delay",
+            "min": 5,
+            "max": 12,
+            "step": 1,
+            "unit": "s",
+            "label": "轮播间隔",
+            "default": 6,
+            "visible_if": "{{ section.settings.swiperauto == true }}"
+        }
+    ],
+   "blocks": [
+    {
+      "type": "_media-swiper-slide"
+    }],
+   "presets": [ 
+       {
+           "name": "V-图片视频轮播",
+           "blocks": [
+               {
+                    "type": "v-heading-content",
+                    "static": true,
+                    "id": "heading_content",
+                    "settings": {
+                        "padding_top": 0,
+                        "padding_bottom": 0,
+                        "padding_left": 0,
+                        "padding_right": 0
+                    }
+               },
+               { "type": "_media-swiper-slide" },
+               { "type": "_media-swiper-slide" },
+               { "type": "_media-swiper-slide" },
+               { "type": "_media-swiper-slide" },
+               { "type": "_media-swiper-slide" },
+               { "type": "_media-swiper-slide" },
+               { "type": "_media-swiper-slide" },
+               { "type": "_media-swiper-slide" }
+           ],
+           "settings": {
+               "page_width": "section-container-lg",
+               "padding_bottom": 48
+           }
+       }
+   ]
+}
+{% endschema %}
+{% # theme-check-enable ValidBlockTarget %}

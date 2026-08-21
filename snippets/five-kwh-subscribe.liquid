@@ -1,0 +1,244 @@
+<style>
+  .bottom-box{
+      background-image: url({{ subscribe.subscribe_bg_img | image_url }}) !important;
+      background-position: 50%;
+      background-repeat: no-repeat;
+      background-size: cover;
+  }
+  @media screen and (max-width: 1024px) {
+      .bottom-box{
+          background-image: url({{ subscribe.subscribe_bg_imgmb | image_url }}) !important;
+      }
+  }
+
+  @media screen and (max-width: 1024px) {
+    .five-kwh-subscribe-box .newbee-form .form-row .field_error-tips {
+      line-height: 1.2!important;
+      -webkit-line-clamp: 2;
+    }
+  }
+
+</style>
+
+<div
+  class="five-kwh-subscribe-box"
+  anchor="{{ subscribe.anchor_id  | url_decode | strip | replace: ' ', ''}}"
+  style="background: {{ subscribe.bgColor }};"
+  {{ attributes }}
+>
+  <div class="five-main-container">
+    {% assign titleColor = '<em style="color: ' | append: subscribe.title_color | append: '">' %}
+    <div class="title" data-title="{{ subscribe.title | strip_html }}">
+      {{ subscribe.title | replace: '<em>', titleColor }}
+    </div>
+    {% assign subTitleColor = '<em style="color: ' | append: subscribe.subtitle_color | append: '">' %}
+    <div class="sub-title">
+      {{ subscribe.subtitle | replace: '<em>', subTitleColor }}
+    </div>
+    <div class="top-box {{ subscribe.column }}">
+      {% for i in (0..3) %}
+        {% assign bgcolor_index = 'bgColor_' | append: forloop.index %}
+        {% assign icon_index = 'icon_' | append: forloop.index %}
+        {% assign title_index = 'title_' | append: forloop.index %}
+        {% assign title_color_index = 'title_color_' | append: forloop.index %}
+        {% assign sub_title_index = 'sub_title_' | append: forloop.index %}
+        {%- if subscribe[icon_index] -%}
+          <div class="item-box" style="background: {{ subscribe[bgcolor_index] }}">
+            <div
+              class="svg-box"
+              data-ga-event="5000plus_page_user_clicks"
+              data-ga-action="mouseenter"
+              data-ga-params-module="Subscribe"
+              data-ga-params-title="{{ subscribe.title | strip_html }}"
+              data-ga-params-position="{{ subscribe[title_index] | strip_html }}"
+            >
+              {% if subscribe[sub_title_index] != blank %}
+                <div class="svg-relative">
+                  <svg width="33" height="33" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 16.0313C0 24.8852 7.18439 32.0626 16.0468 32.0626C24.9092 32.0626 32.0936 24.8852 32.0936 16.0313C32.0936 7.17747 24.9092 0 16.0468 0C7.18439 0 0 7.17747 0 16.0313ZM13.1283 12.3369C13.1283 12.9406 12.6385 13.43 12.0342 13.43C11.4299 13.43 10.9401 12.9406 10.9401 12.3369C10.9401 9.16526 13.8536 6.7707 17.0567 7.38385C19.0574 7.76739 20.6628 9.35071 21.0528 11.3321C21.5254 13.7316 20.2554 16.0376 18.0745 16.9721C17.5126 17.2128 17.1402 17.8061 17.1402 18.4678V19.3107C17.1402 19.9143 16.6504 20.4037 16.0461 20.4037C15.4418 20.4037 14.952 19.9143 14.952 19.3107V18.4678C14.952 16.9506 15.8273 15.5562 17.212 14.963C18.4586 14.4288 19.176 13.1262 18.9058 11.754C18.6886 10.6506 17.7724 9.74702 16.6447 9.53083C14.7885 9.17552 13.1283 10.54 13.1283 12.3369ZM16.0453 22.5898C15.2396 22.5898 14.5865 23.2424 14.5865 24.0472C14.5865 24.8521 15.2396 25.5046 16.0453 25.5046C16.8509 25.5046 17.5041 24.8521 17.5041 24.0472C17.5041 23.2424 16.8509 22.5898 16.0453 22.5898Z" fill="#868686"/>
+                  </svg>
+                  <div class="tooltip-text {{ subscribe.tooltip }}">{{ subscribe[sub_title_index] }}</div>
+                  <i class="overlay"></i>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="img-box">
+              <img
+                src="{{ subscribe[icon_index] | image_url: width: 85}}"
+                alt="{{ subscribe[icon_index].alt }}"
+                class="show-image"
+                loading="lazy"
+              >
+            </div>
+
+            {% assign textColor = '<em style="color: ' | append: subscribe[title_color_index] | append: '">' %}
+            <div class="text">
+              {{ subscribe[title_index] | replace: '<em>', textColor }}
+            </div>
+          </div>
+        {%- endif -%}
+      {% endfor %}
+    </div>
+    <div class="bottom-box" style="background: {{ subscribe.subscribe_bgd }}">
+      {% assign subColor = '<em style="color: ' | append: subscribe.subscribe_title_color | append: '">' %}
+      <div class="subscribe-title">
+        {{ subscribe.subscribe_title | replace: '<em>', subColor }}
+      </div>
+
+      <div class="subscribe-main">
+        <jky-form
+          onsubmitcall="(e)=>toFiveGA(e)"
+          jky-form-id="5000 plus"
+          class="subscribe-email footer-subscribe-box"
+        >
+          <form data-action="/osconsumerapi/v1/notice/subscribe">
+            <div class="form-container newbee-form newbee-form_{{section.id}}">
+              {% comment %} 邮箱 {% endcomment %}
+              <div class="input-btn">
+                <div class="form-row flex  full">
+                  <div class="form-item required" data-field="input">
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="{{'newsletter.email_placeholder' | t}}"
+                      data-error="{{'newsletter.email_empty_info' | t}}"
+                      data-value="email"
+                      data-reg="email"
+                      data-regerror="{{'newsletter.email_error_info' | t}}"
+                    >
+                    {% comment %}
+                      <div class="required-box">
+                        <div class="required-star">*</div>
+                      </div>
+                    {% endcomment %}
+                  </div>
+                </div>
+
+                <div class="newbee-form_submit flex full" data-loading="{{ subscribe.subscribe_loading_btn }}">
+                  <button class="form_sub_btn z-button-middle" data-success="{{'newsletter.success' | t}}">
+                    {{ subscribe.subscribe_btn }}
+                  </button>
+                </div>
+              </div>
+
+              {% comment %} 隐私协议 {% endcomment %}
+              <div class="form-row privacy form-row_check_box flex full">
+                <div
+                  class="form-item required five-kwh-privacy"
+                  data-field="check_box"
+                  data-error="{{'newsletter.policy_empty_info' | t}}"
+                  data-color="{{ subscribe.subscribe_privacy_color }}"
+                >
+                  {% render 'jky-formField-checkbox', key: subscribe.subscribe_privacy, value: 'agree_recevie' %}
+                </div>
+              </div>
+
+              <div style="display: none;" class="form-row flex  full">
+                <div class="form-item form-item_const" data-field="input">
+                  <input
+                    type="text"
+                    id="tags"
+                    name="tags"
+                    data-error=""
+                    data-value="tags"
+                    data-reg=""
+                    value="{{ subscribe.tags }}"
+                    data-regerror=""
+                  >
+                </div>
+              </div>
+
+              <div style="display: none;" class="form-row flex  full">
+                <div class="form-item form-item_const" data-field="input">
+                  <input
+                    type="text"
+                    id="componentName"
+                    name="componentName"
+                    data-value="componentName"
+                    value="利益点订阅"
+                  >
+                </div>
+              </div>
+
+              <div style="display: none;" class="form-row flex full page-url">
+                <div class="form-item form-item_const" data-field="input">
+                  <input
+                    type="text"
+                    id="pageUrl"
+                    name="pageUrl"
+                    data-value="pageUrl"
+                    value=""
+                  >
+                </div>
+              </div>
+            </div>
+          </form>
+        </jky-form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script defer>
+  (function () {
+    function onReady(fn) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+        return;
+      }
+      fn();
+    }
+
+    function ensureStyleEl(id) {
+      var el = document.getElementById(id);
+      if (el) return el;
+      el = document.createElement('style');
+      el.id = id;
+      document.head.appendChild(el);
+      return el;
+    }
+
+    onReady(function () {
+      document.querySelectorAll('.five-kwh-subscribe-box').forEach(function (boxEl) {
+        boxEl.querySelectorAll('.page-url input').forEach(function (input) {
+          input.value = window.location.href;
+        });
+
+        var loadingHolder = boxEl.querySelector('.newbee-form_submit');
+        var loadingBtnText = (loadingHolder && loadingHolder.getAttribute('data-loading')) || 'LOADING';
+        var className = 'loading-' + Math.random().toString(36).slice(2, 11);
+
+        var btnEl = boxEl.querySelector('button');
+        if (btnEl) btnEl.classList.add(className);
+
+        var styleEl = ensureStyleEl('five-kwh-subscribe-loading-style');
+        styleEl.textContent += '.' + className + '.loading::after { content: ' + JSON.stringify(loadingBtnText) + '; }\n';
+
+        var privacyEl = boxEl.querySelector('.newbee-form .form-row .five-kwh-privacy');
+        var color = (privacyEl && privacyEl.getAttribute('data-color')) || '';
+        if (color) {
+          boxEl.querySelectorAll('.newbee-form .form-row .form-item label .jky-agree, .newbee-form .form-row .form-item label .jky-agree a').forEach(function (el) {
+            el.style.color = color;
+          });
+        }
+      });
+    });
+  })();
+  function toFiveGA(data) {
+    if (data.response && data.response.code === 200) {
+      const btnEl = document.querySelector('.five-kwh-subscribe-box .newbee-form_submit button');
+      const msg = (btnEl && btnEl.getAttribute('data-success')) || data.response.message;
+      pushSuccessMessage(msg);
+      const title = document.querySelector('.five-kwh-subscribe-box .title')?.getAttribute('data-title') || '';
+      const buttonName = (btnEl && btnEl.textContent ? btnEl.textContent.trim() : '');
+      let params = {
+        module: 'Subscribe',
+        title: title,
+        button_name: buttonName,
+      };
+      gaPushDataLayer('5000plus_page_user_clicks', params);
+    }
+  }
+</script>

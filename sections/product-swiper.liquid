@@ -1,0 +1,98 @@
+<style>
+    @media screen and (max-width: 750px) {
+        .index-product-container .product-label-tag {transform: scale(0.65);transform-origin: right top;}
+        .swiper-slide .swiper-slide__without_m {padding: 38px 8px;}
+    }
+</style>
+
+<h2 class="index-product-title jky-text-2xl font-bold text-center index-container">
+    {{ section.settings.title | escape }}
+</h2>
+
+<div class="index-product-container relative swiper">
+    <div class="swiper-wrapper">
+
+        {% for block in section.blocks %}
+            {% assign product = block.settings.product %}
+            {% assign target = block.settings.product.selected_or_first_available_variant %}
+            {% assign compare_at_price = target.compare_at_price %}
+            {% assign price = target.price | default: 1999 %}
+            {% assign available = target.available | default: false %}
+            {% assign money_price = price | money %}
+            {% if target == product and product.price_varies %}
+                {% assign money_price = 'products.product.price.from_price_html' | t: price: money_price %}
+            {% endif %}
+
+            <div class="swiper-slide flex flex-col relative">
+
+                    <div class="index-product-slide-content flex flex-col items-center {% if section.settings.p_more == blank %} swiper-slide__without_m{% endif %}">
+                        {% if product.url %}
+                            <a class="jky-text-lg font-500 product-title text-overflow-3 text-center" title="{{ product.title | escape }}" href="{{ product.url }}">{{ product.title | escape }}</a>
+                        {% else %}
+                            <div class="jky-text-lg font-500 product-title text-overflow-3 text-center" title="{{ product.title | escape }}">{{ product.title | escape }}</div>
+                        {% endif %}
+                        {% if block.settings.subtitle != blank %}
+                        <div style="margin-top: 6px;" class="jky-text-sm font-400 product-title text-overflow-3 text-center" title="{{ block.settings.subtitle | escape }}">{{ block.settings.subtitle | escape }}</div>
+                        {% endif %}
+
+                        <a class="slide-link z-button-fill-middle font-300" href="{{ product.url }}" data-analytics-title="{{ product.title | escape }}">
+                            {{ 'general.action_text.view_more' | t }}
+                            <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                        </a>
+                        <div class="relative">
+                            {% render 'product-tag', product: product, uid: product.id %}
+                            {% render 'responsive-image', image: block.settings.pimg, image_class: "", mimage: block.settings.pimg %}
+                        </div>
+                        
+                        {% render 'product-sale-price', product: block.settings.product %}
+                    
+                    </div>
+                    
+                    {% if section.settings.p_more != blank %}
+                    <a class="index-product-compare underlines-btn jky-text-sm font-300" href="/pages/compare">
+                        {{ section.settings.p_more | escape }}
+                        <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-sm"></jds-icon>
+                    </a>
+                    {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="slideshow-pagination"></div>
+    <div class="index-container absolute slideshow-navigation">
+        <div class="slideshow-navigation-button prev">
+            {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+        </div>
+        <div class="slideshow-navigation-button next">
+            {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+        </div>
+    </div>
+</div>
+<div class="product-swiper-bg"></div>
+{% schema %}
+{
+  "name": "Product swiper",
+  "tag": "section",
+  "class": "section page-section-swiper index-product",
+  "enabled_on": {
+        "templates": ["index","product"]
+    },
+  "settings": [
+      {"type": "textarea", "id": "title", "label": "Section title", "default": "Featured Products"},
+      {"type": "text", "id": "p_more", "label": "Button Compare text", "default": "Product Compare"},
+      { "type": "range", "id": "products_to_show", "min": 3, "max": 12, "step": 1, "default": 4, "label": "Products show number" }
+  ],
+  "blocks": [{
+      "type": "product",
+      "name": "Index Product Swiper Item",
+      "settings": [
+          {"type": "product", "id": "product", "label": "Product"},
+          {"type": "image_picker", "id": "pimg", "label": "Product Image"},
+          {"type": "textarea", "id": "subtitle", "label": "Product SubHeading"}
+      ]
+  }],
+  "presets": [{
+       "name": "product pps charge scene"
+  }]
+}
+{% endschema %}

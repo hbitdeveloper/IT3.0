@@ -1,0 +1,176 @@
+<div class="jky-12th-scene {%if section.settings.is_gift_block == true%} gift-anchor gift-anchor--mb{%endif%}" anchor="{{ section.settings.anchor | escape }}">
+    {% render 'new-title', class: 'sence-title',  title: section.settings.title, type: section.settings.type, bgColor: '#FDF3E6' %}
+    <div class="jky-12th-tabs">
+        <div class="jky-12th-container">
+            <div class="tab-contain">
+                {%- for item in section.blocks -%}
+                    <div
+                        class="tab-item {% if forloop.first %}is-active{% endif %}"
+                        data-index="{{ forloop.index }}"
+                        data-name="{{item.settings.title | escape}}"
+                    >{{item.settings.title | escape}}</div>
+                {%- endfor -%}
+            </div>
+        </div>
+    </div>
+
+    <div class="jky-12th-container">
+        <div class="tabs-content">
+            {%- for item in section.blocks -%}
+                <div class="tab-pane tab-pane-{{ forloop.index }} {% if forloop.first %}tab-pane-active{% endif %}" data-name="{{item.settings.title | escape}}">
+                    {%
+                        render 'responsive-image',
+                        image_class: 'jky-up scene-img',
+                        image: item.settings.pc_image,
+                        mimage: item.settings.mb_image
+                    %}
+                    <div class="jky-up scene-container">
+                        <div class="scene-contain">
+                            <div class="scene-title">{{ item.settings.scene_title | escape}}</div>
+                            <div class="scene-description" > {{ item.settings.description | replace: '<em>', '<em style="color: var(--jds-color-primary);">' }} </div>
+                        </div>
+                        <div class="scene-line"></div>
+                        <div class="scene-msg">
+                        <div class="scene-text">
+                            <div class="scene-text-content scene-text-content-{{ forloop.index }}"> {{ item.settings.copy_writing | replace: '<em>', '<em style="color: var(--jds-color-primary);">' }} </div>
+                            <div class="scene-tooltip">
+                                <div> {{ item.settings.copy_writing | replace: '<em>', '<em style="color: var(--jds-color-primary);">' }} </div>
+                            </div>
+                            <div class="scene-view-more scene-view-more-{{ forloop.index }}" data-index={{ forloop.index }}>
+                                <span>{{ section.settings.more | escape }}</span>
+                                <svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="14" height="14"><path d="M512 818.07039273L1000.12067353 329.94971923l-101.69180708-111.86098796L512 604.51759771 125.57113355 218.08873127 13.71014559 329.94971923z" fill="var(--jds-color-primary)"></path></svg>
+                            </div>
+                            <div class="scene-view-collapse scene-view-collapse-{{ forloop.index }}"  data-index={{ forloop.index }}>
+                                <span >{{ section.settings.collapse | escape }}</span>
+                                <svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="14" height="14"><path d="M512 818.07039273L1000.12067353 329.94971923l-101.69180708-111.86098796L512 604.51759771 125.57113355 218.08873127 13.71014559 329.94971923z" fill="var(--jds-color-primary)"></path></svg>
+                            </div>
+                        </div>
+                        <div class="scene-person">
+                            {%  render 'responsive-image', image_class: 'avatar', image: item.settings.avatar  %}
+                            <span class="name">{{ item.settings.name | escape }}</span>
+                        </div>
+                        </div>
+                    </div>
+
+                    {%- assign productList = '' | split: ',' -%}
+                    {% for i in (1..3) %}
+                        {%- assign str = 'product' | append: i -%}
+                        {%- assign product = item.settings[str] -%}
+                        {%- if product.available -%}
+                            {% assign list = product | split: ',' %}
+                            {%- assign productList = productList | concat: list -%}
+                        {%- endif -%}
+                    {% endfor %}
+
+                    {%- if productList.size > 0 -%}
+                        <div class="jky-up scene-products">
+                            {% for i in (1..3) %}
+                                {%- assign str = 'product' | append: i -%}
+                                {%- assign product = item.settings[str] -%}
+                                {%- if product.available -%}
+                                <div class="product-item">
+                                    {%- assign first_variant = product.variants | first -%}
+                                    {%- if first_variant.featured_image != blank -%}
+                                        {%- assign p_img = first_variant.featured_image -%}
+                                    {%- else -%}
+                                        {%- assign p_img = product.featured_image -%}
+                                    {%- endif -%}
+                                    {% render 'responsive-image', image_class: 'product-img', image: p_img %}
+
+                                    <div class="product-msg">
+                                        <div class="title">
+                                            {%- assign title = '' -%}
+                                            {%- if product.metafields.custom.shortname != blank -%}
+                                                {%- assign title = product.metafields.custom.shortname -%}
+                                            {%- elsif first_variant.title != 'Default Title' -%}
+                                                {%- assign title = first_variant.title | escape | strip | replace: 'Jackery', '' -%}
+                                            {%- else -%}
+                                                {%- assign title = product.title | escape | strip | replace: 'Jackery', '' -%}
+                                            {%- endif -%}
+                                            {{title}}
+                                        </div>
+                                        <div class="sub-title">
+                                            {%- if product.metafields.custom.product_features_info != blank -%}
+                                                {{product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                            {%- endif -%}
+                                        </div>
+
+                                        <div class="price-bottom">
+                                            <div>
+                                            <span class="price">{{ first_variant.price | money }}</span>
+                                            {%- if first_variant.compare_at_price > first_variant.price -%}
+                                                <span class="origin-price">{{ first_variant.compare_at_price | money }}</span>
+                                            {%- endif -%}
+                                            </div>
+                                            <a
+                                                 target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                                                 href="{{ product.url | append: '?variant=' | append: first_variant.id }}"
+                                                 data-ga-event="12anniversary_page_user_clicks"
+                                                 data-ga-action="click"
+                                                 data-ga-params-module="{{ section.settings.title | escape }}"
+                                                 data-ga-params-content="{{ item.settings.title | escape }}"
+                                                 data-ga-params-position="{{ title }}"
+                                                 data-ga-params-button_name="button"
+                                                 data-ga-params-link="{{ product.url | append: '?variant=' | append: first_variant.id }}"
+                                            >
+                                                <div class="link">
+                                                    <svg class="line" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                        <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                                            <g transform="translate(672.000000, 286.000000)">
+                                                                <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                                            </g>
+                                                        </g>
+                                                    </g>
+                                                    </svg>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {%- endif -%}
+                            {% endfor %}
+                        </div>
+                    {%- endif -%}
+                </div>
+            {%- endfor -%}
+        </div>
+    </div>
+</div>
+{% schema %}
+    {
+        "name": "十二周年-应用场景",
+        "settings": [
+            { "type": "checkbox", "id": "is_gift_block", "label": "是否为礼盒模块", "default": false, "info": "该模块的顺序请保持：KV-滚动介绍-品牌介绍-获奖Swiper" },
+            { "type": "text",  "id": "anchor", "label": "二级标题定位锚点" },
+            { "type": "text",  "id": "title", "label": "标题" },
+            { "type": "checkbox", "id": "new_window", "label": "新开标签页", "default": false },
+            { "type": "select", "id": "type", "label": "标题类型", "options": [
+                { "value": "1", "label": "小档" },
+                { "value": "2", "label": "大档" }
+            ], "default": "1"},
+            { "type": "text",  "id": "more", "label": "展开", "default": "More" },
+            { "type": "text",  "id": "collapse", "label": "收起", "default": "collapse" }
+        ],
+        "blocks": [
+            {
+                "type": "block",
+                "name": "应用场景",
+                "limit": 5,
+                "settings": [
+                    { "type": "text",  "id": "title", "label": "Tab 标题" },
+                    { "type": "image_picker", "id": "pc_image", "label": "PC场景图片(必填)", "info": "大小: 1280x400"},
+                    { "type": "image_picker", "id": "mb_image", "label": "MB场景图片(必填)", "info": "大小: 654x480"},
+                    { "type": "text",  "id": "scene_title", "label": "场景标题" },
+                    { "type": "richtext",  "id": "description", "label": "场景描述" },
+                    { "type": "image_picker", "id": "avatar", "label": "红人头像(必填)", "info": "大小: 80x80"},
+                    { "type": "text",  "id": "name", "label": "红人名称" },
+                    { "type": "richtext",  "id": "copy_writing", "label": "推荐文案" },
+                    { "type": "product", "id": "product1", "label": "推荐产品1" },
+                    { "type": "product", "id": "product2", "label": "推荐产品2" },
+                    { "type": "product", "id": "product3", "label": "推荐产品3" }
+                ]
+            }
+        ]
+    }
+{% endschema %}

@@ -1,0 +1,111 @@
+{% comment %} 4.0商详页内容组件（Product Detail Page V4 Content） - 单张上文下图 {% endcomment %}
+ {{ 'snippet-pdp-single-text-img.min.css' | asset_url | stylesheet_tag }}
+
+{% assign pdp_single_class = '' %}
+{% if settings.title == blank and settings.subtitle == blank %}
+  {% if settings.pcImg == blank and settings.mbImg == blank %}
+    {% assign pdp_single_class = 'empty-content' %}
+  {% elsif settings.pcImg != blank and settings.mbImg == blank %}
+    {% assign pdp_single_class = 'only-pc-img' %}
+  {% elsif settings.pcImg == blank and settings.mbImg != blank %}
+    {% assign pdp_single_class = 'only-mb-img' %}
+  {% else %}
+    {% assign pdp_single_class = 'only-img' %}
+  {% endif %}
+{% endif %}
+
+<div class="pdp-single-text-img pdp-single-text-img-{{ index }} {{ pdp_single_class }} {% if settings.text_position == 'bottom' %}text-bottom{% endif %}">
+  {% if settings.title != blank or settings.subtitle != blank %}
+    <div class="info-box pdp-container">
+      {% assign brand_color = '<em style="color: var(--jds-color-primary)">' %}
+      {% if settings.title != blank %}
+        <h3 class="title info-text">
+          {{ settings.title | replace: '<em>', brand_color }}
+        </h3>
+      {% endif %}
+      {% if settings.subtitle != blank %}
+        <div class="subtitle info-text">
+          {{ settings.subtitle | replace: '<em>', brand_color }}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% comment %} 视频展示 {% endcomment %}
+  {% if settings.videoSrc != blank %}
+    {%- render 'jky-video',
+      video_url: settings.videoSrc,
+      poster: settings.poster,
+      isHidePauseBtn: false,
+      class: 'single-video-box pc-show',
+      autoplay: settings.autoplay,
+      controls: settings.controls,
+      loop: settings.loop,
+    -%}
+  {% else %}
+    <div class="pc-show">
+      {% render 'pdp-picture-card',
+        cardTitle: settings.title,
+        pcEmptyShowBlank: false,
+        pcImg: settings.pcImg,
+        pcWidth: 1312,
+        pcHeight: 560,
+        mbEmptyShowBlank: false,
+        mbImg: settings.mbImg,
+        mbWidth: 750,
+        mbHeight: 800
+      %}
+    </div>
+  {% endif %}
+
+  {% if settings.videoSrcMB != blank %}
+    {%- render 'jky-video',
+      video_url: settings.videoSrcMB,
+      poster: settings.posterMB,
+      isHidePauseBtn: false,
+      class: 'single-video-box mb-show',
+      autoplay: settings.autoplay,
+      controls: settings.controls,
+      loop: settings.loop,
+    -%}
+  {% else %}
+    <div class="mb-show">
+      {% render 'pdp-picture-card',
+        cardTitle: settings.title,
+        pcEmptyShowBlank: false,
+        pcImg: settings.pcImg,
+        pcWidth: 1312,
+        pcHeight: 560,
+        mbEmptyShowBlank: false,
+        mbImg: settings.mbImg,
+        mbWidth: 750,
+        mbHeight: settings.mb_img_h
+      %}
+    </div>
+  {% endif %}
+</div>
+<style>
+  .pdp-single-text-img-{{ index }}.text-bottom{
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .pdp-single-text-img-{{ index }}.text-bottom .single-video-box{
+    margin-top: 0;
+  }
+  .pdp-single-text-img-{{ index }}.text-bottom .info-box{
+    margin-top: 32px;
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+    .pdp-single-text-img-{{ index }}.text-bottom .info-box{
+      margin-top: 2.222222vw;
+    }
+  }
+  @media screen and (max-width: 1023.98px){
+    .pdp-single-text-img-{{ index }} .single-video-box{
+        height: calc({{ settings.mb_img_h }}  * 100vw / 750);
+    }
+    .pdp-single-text-img-{{ index }}.text-bottom .info-box{
+      margin-top: 6.4vw;
+    }
+  }
+</style>

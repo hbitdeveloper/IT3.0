@@ -1,0 +1,167 @@
+<style>
+    .bottom-box{
+        background-image: url({{ section.settings.subscribe_bg_img | image_url }}) !important;
+        background-position: 50%;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+    @media screen and (max-width: 1024px) {
+        .bottom-box{
+            background-image: url({{ section.settings.subscribe_bg_imgmb | image_url }}) !important;
+        }
+    }
+</style>
+
+<div
+  class="jky-ces-subscribe-box"
+  style="background: {{ section.settings.bgColor }};"
+>
+  <div class="five-main-container">
+    <div class="bottom-box" style="background: {{ section.settings.subscribe_bgd }}">
+      {% assign subColor = '<em style="color: ' | append: section.settings.subscribe_title_color | append: '">' %}
+      <div class="subscribe-title">
+        {{ section.settings.subscribe_title | replace: '<em>', subColor }}
+      </div>
+
+      <div class="subscribe-main">
+        <jky-form
+          onsubmitcall="(e)=>toCesGA(e)"
+          jky-form-id="ces-2024"
+          class="subscribe-email footer-subscribe-box"
+          style="display: block;"
+        >
+          <form data-action="/osconsumerapi/v1/notice/subscribe">
+            <div class="form-container newbee-form newbee-form_{{section.id}}">
+              {% comment %} 邮箱 {% endcomment %}
+              <div class="input-btn">
+                <div class="form-row flex  full">
+                  <div class="form-item bg-white required" data-field="input">
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="{{'newsletter.email_placeholder' | t}}"
+                      data-error="{{'newsletter.email_empty_info' | t}}"
+                      data-value="email"
+                      data-reg="email"
+                      data-regerror="{{'newsletter.email_error_info' | t}}"
+                    >
+                  </div>
+                </div>
+
+                <div class="newbee-form_submit flex full" data-loading="{{ section.settings.subscribe_loading_btn }}">
+                  <button class="form_sub_btn z-button-middle" data-success="{{'newsletter.success' | t}}">
+                    {{ section.settings.subscribe_btn }}
+                  </button>
+                </div>
+              </div>
+
+              {% comment %} 隐私协议 {% endcomment %}
+              <div class="form-row privacy form-row_check_box flex full">
+                <div
+                  class="form-item required five-kwh-privacy"
+                  data-field="check_box"
+                  data-error="{{'newsletter.policy_empty_info' | t}}"
+                  data-color="{{ section.settings.subscribe_privacy_color }}"
+                >
+                  {% render 'jky-formField-checkbox', key: section.settings.subscribe_privacy, value: 'agree_recevie' %}
+                </div>
+              </div>
+
+              <div style="display: none;" class="form-row flex  full">
+                <div class="form-item form-item_const" data-field="input">
+                  <input
+                    type="text"
+                    id="tags"
+                    name="tags"
+                    data-error=""
+                    data-value="tags"
+                    data-reg=""
+                    value="CES-2026"
+                    data-regerror=""
+                  >
+                </div>
+              </div>
+            </div>
+          </form>
+        </jky-form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script defer>
+  (function () {
+    function initCesSubscribe() {
+      // 动态修改提交loading的文案
+      document.querySelectorAll('.jky-ces-subscribe-box').forEach(function (box) {
+      let loading_btn = box.querySelector('.newbee-form_submit')?.dataset?.loading || 'LOADING';
+      const styleSheet = document.styleSheets[0];
+      const className = `loading-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Add a unique class to the button
+      const button = box.querySelector('button');
+      if (button) button.classList.add(className);
+
+      // Insert the CSS rule for this specific button
+      styleSheet.insertRule(`.${className}.loading::after { content: "${loading_btn}"; }`, styleSheet.cssRules.length);
+
+      // 获取当前 .jky-ces-subscribe-box 中的 data-color 属性
+      let color = box.querySelector('.newbee-form .form-row .five-kwh-privacy')?.dataset?.color;
+
+      // 设置当前 .jky-ces-subscribe-box 中 .jky-agree 和 .jky-agree a 的颜色
+      const agree = box.querySelector('.newbee-form .form-row .form-item label .jky-agree');
+      const agreeLink = box.querySelector('.newbee-form .form-row .form-item label .jky-agree a');
+      if (agree) agree.style.color = color || '';
+      if (agreeLink) agreeLink.style.color = color || '';
+    });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCesSubscribe);
+    } else {
+      initCesSubscribe();
+    }
+  })();
+    function toCesGA(data) {
+      if (data.response && data.response.code === 200) {
+        const submitButton = document.querySelector('.jky-ces-subscribe-box .newbee-form_submit button');
+        const msg = submitButton?.dataset?.success || data.response.message;
+        pushSuccessMessage(msg);
+        const title = document.querySelector('.jky-ces-subscribe-box .title')?.dataset?.title || '';
+        const buttonName = submitButton?.textContent?.trim() || '';
+        let params = {
+          module: 'Subscribe',
+          title: title,
+          button_name: buttonName,
+        };
+
+        window.dataLayer.push({ event_parameters: null });
+        window.dataLayer.push({
+          event: 'ga4Event',
+          event_name: 'ces_2025_user_clicks',
+          event_parameters: {
+            current_page: window.location.href, // current page url
+            ...params,
+          },
+        });
+      }
+    }
+</script>
+
+{% schema %}
+{
+    "name": "JKY CES Subscribe",
+    "settings": [
+      { "type": "color_background","id":"bgColor","label":"版块背景色"},
+      {"type":"richtext","id":"subscribe_title","label":"订阅标题【斜线=文案突出】"},
+      {"type":"color","id":"subscribe_title_color","label":"订阅标题突出颜色"},
+      {"type":"color_background","id":"subscribe_bgd","label":"订阅区域背景色","default":"#26292C"},
+      {"type":"image_picker","id":"subscribe_bg_img","label":"订阅区域背景图(PC)"},
+      {"type":"image_picker","id":"subscribe_bg_imgmb","label":"订阅区域背景图(MB)"},
+      {"type":"text","id":"subscribe_btn","label":"订阅按钮文案"},
+      {"type":"text","id":"subscribe_loading_btn","label":"订阅按钮Loading文案"},
+      {"type":"richtext","id":"subscribe_privacy", "label":"订阅隐私协议"},
+      {"type":"color","id":"subscribe_privacy_color", "label":"订阅隐私协议颜色"}
+    ]
+  }
+{% endschema %}

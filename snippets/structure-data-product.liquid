@@ -1,0 +1,445 @@
+{%- comment -%}
+  新版产品结构化数据：单变体输出 Product，多变体输出 ProductGroup 和 hasVariant。
+  数据来自 Shopify 产品/变体、Schema 配置元对象及 Judge.me 元字段，并输出美国配送和退货政策。
+{%- endcomment -%}
+{%- liquid
+  assign product_url = request.origin | append: product.url
+  assign product_schema_id = product_url | append: '#product'
+  assign product_group_schema_id = product_url | append: '#product-group'
+  assign shipping_policy_id = product_url | append: '#shipping-policy'
+  assign return_policy_id = product_url | append: '#return-policy'
+  assign product_group_identifier = product.id | append: ''
+  assign product_description = product.description | strip_html | strip
+  assign product_brand = product.vendor | default: shop.name
+  assign product_category = product.type | strip
+  assign product_currency = cart.currency.iso_code | default: shop.currency
+  assign price_valid_until_seconds = 'now' | date: '%s' | plus: 604800
+  assign price_valid_until = price_valid_until_seconds | date: '%Y-%m-%d'
+  assign current_variant = product.selected_or_first_available_variant
+  assign product_material = product_schema_config.material.value | strip
+  assign product_additional_properties = product_schema_config.additional_property.value
+
+  assign shipping_handling_min = 0
+  assign shipping_handling_max = 1
+  assign shipping_transit_min = 2
+  assign shipping_transit_max = 5
+
+  assign judge_me_review_data = product.metafields.judgeme.review_widget_data.value
+  assign judge_me_rating_value = judge_me_review_data.average_rating
+  assign judge_me_review_count = judge_me_review_data.number_of_reviews | default: 0
+  assign judge_me_reviews = judge_me_review_data.reviews
+  assign has_judge_me_rating = false
+  if judge_me_rating_value != blank and judge_me_review_count > 0
+    assign has_judge_me_rating = true
+  endif
+
+  assign single_product_color = blank
+  assign single_product_size = blank
+  assign single_product_pattern = blank
+  assign product_varies_by_material = false
+
+  for product_option_name in product.options
+    assign normalized_option_name = product_option_name | downcase | strip
+    if normalized_option_name contains 'material'
+      assign product_varies_by_material = true
+    endif
+  endfor
+
+  if product.variants.size == 1
+    for option_value in current_variant.options
+      assign option_index = forloop.index0
+      assign normalized_option_name = product.options[option_index] | downcase | strip
+      if normalized_option_name contains 'color' or normalized_option_name contains 'colour'
+        assign single_product_color = option_value
+      elsif normalized_option_name contains 'size'
+        assign single_product_size = option_value
+      elsif normalized_option_name contains 'material'
+        assign product_material = option_value
+      elsif normalized_option_name contains 'pattern'
+        assign single_product_pattern = option_value
+      endif
+    endfor
+  endif
+
+-%}
+
+{%- capture product_images_json -%}
+  {%- assign first_product_image = true -%}
+  {%- for product_image in product.images limit: 10 -%}
+    {%- assign product_image_url = product_image | image_url: width: 1600 -%}
+    {%- assign product_image_prefix = product_image_url | slice: 0, 2 -%}
+    {%- assign product_image_first_character = product_image_url | slice: 0, 1 -%}
+    {%- if product_image_prefix == '//' -%}
+      {%- assign product_image_url = product_image_url | prepend: 'https:' -%}
+    {%- elsif product_image_first_character == '/' -%}
+      {%- assign product_image_url = product_image_url | prepend: request.origin -%}
+    {%- endif -%}
+    {%- unless first_product_image -%},{%- endunless -%}
+      {{- product_image_url | json | replace: '\/', '/' -}}
+    {%- assign first_product_image = false -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- assign product_images_json = product_images_json | strip -%}
+
+{%- capture product_varies_by_json -%}
+  {%- if product.variants.size > 1 -%}
+    {%- assign first_varies_by = true -%}
+    {%- for product_option_name in product.options -%}
+      {%- assign normalized_option_name = product_option_name | downcase | strip -%}
+      {%- assign varies_by_url = blank -%}
+      {%- if normalized_option_name contains 'color' or normalized_option_name contains 'colour' -%}
+        {%- assign varies_by_url = 'https://schema.org/color' -%}
+      {%- elsif normalized_option_name contains 'size' -%}
+        {%- assign varies_by_url = 'https://schema.org/size' -%}
+      {%- elsif normalized_option_name contains 'material' -%}
+        {%- assign varies_by_url = 'https://schema.org/material' -%}
+      {%- elsif normalized_option_name contains 'pattern' -%}
+        {%- assign varies_by_url = 'https://schema.org/pattern' -%}
+      {%- elsif normalized_option_name contains 'age' -%}
+        {%- assign varies_by_url = 'https://schema.org/suggestedAge' -%}
+      {%- elsif normalized_option_name contains 'gender' -%}
+        {%- assign varies_by_url = 'https://schema.org/suggestedGender' -%}
+      {%- endif -%}
+      {%- if varies_by_url != blank -%}
+        {%- unless first_varies_by -%},{%- endunless -%}
+        {{- varies_by_url | json | replace: '\/', '/' -}}
+        {%- assign first_varies_by = false -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- assign product_varies_by_json = product_varies_by_json | strip -%}
+
+{%- capture product_additional_property_json -%}
+  {%- if product_additional_properties != blank -%}
+    {%- assign first_product_property = true -%}
+    {%- for schema_property in product_additional_properties -%}
+      {%- assign property_name = schema_property['name'].value -%}
+      {%- assign property_value_field = schema_property['value'] -%}
+      {%- assign property_value = property_value_field.value -%}
+      {%- assign property_min_value = schema_property['minValue'].value -%}
+      {%- assign property_max_value = schema_property['maxValue'].value -%}
+      {%- assign property_unit_code = schema_property['unitCode'].value -%}
+      {%- assign property_unit_text = schema_property['unitText'].value -%}
+      {%- if property_name != blank -%}
+        {%- unless first_product_property -%},{%- endunless -%}
+        {
+          "@type": "PropertyValue",
+          "name": {{ property_name | json }}{% if property_value_field != blank and property_value != blank or property_value == false %},
+          "value": {{ property_value | json }}{% endif %}{% if property_min_value != blank %},
+          "minValue": {{ property_min_value | json }}{% endif %}{% if property_max_value != blank %},
+          "maxValue": {{ property_max_value | json }}{% endif %}{% if property_unit_code != blank %},
+          "unitCode": {{ property_unit_code | json }}{% endif %}{% if property_unit_text != blank %},
+          "unitText": {{ property_unit_text | json }}{% endif %}
+        }
+        {%- assign first_product_property = false -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- assign product_additional_property_json = product_additional_property_json | strip -%}
+
+{%- capture product_reviews_json -%}
+  {%- assign first_product_review = true -%}
+  {%- for judge_me_review in judge_me_reviews limit: 20 -%}
+    {%- assign review_rating = judge_me_review.rating -%}
+    {%- assign review_title = judge_me_review.title | strip -%}
+    {%- assign review_body = judge_me_review.body | default: judge_me_review.body_html | strip_html | strip -%}
+    {%- assign review_author = judge_me_review.reviewer_name | default: 'Anonymous' | strip -%}
+    {%- assign review_published_at = judge_me_review.created_at | strip -%}
+    {%- assign review_uuid = judge_me_review.uuid | strip -%}
+    {%- assign review_pictures = judge_me_review.pictures_urls -%}
+    {%- capture review_images_json -%}
+      {%- assign first_review_image = true -%}
+      {%- for review_picture in review_pictures -%}
+        {%- assign review_image_url = review_picture.original | default: review_picture.huge | strip -%}
+        {%- if review_image_url != blank -%}
+          {%- unless first_review_image -%},{%- endunless -%}
+              {{- review_image_url | json | replace: '\/', '/' -}}
+          {%- assign first_review_image = false -%}
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endcapture -%}
+    {%- assign review_images_json = review_images_json | strip -%}
+    {%- if review_rating != blank and review_body != blank and review_author != blank -%}
+      {%- unless first_product_review -%},{%- endunless -%}
+      {
+        "@type": "Review"{% if review_uuid != blank %},
+          "@id": {{ product_url | append: '#review-' | append: review_uuid | json | replace: '\/', '/' }}{% endif %}{% if review_title != blank %},
+        "name": {{ review_title | json }}{% endif %},
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": {{ review_rating | plus: 0 | json }},
+          "bestRating": 5,
+          "worstRating": 1
+        },
+        "author": {
+          "@type": "Person",
+          "name": {{ review_author | json }}
+        },
+        "reviewBody": {{ review_body | json }}{% if review_published_at != blank %},
+        "datePublished": {{ review_published_at | json }}{% endif %}{% if review_images_json != blank %},
+        "image": [{{ review_images_json }}]{% endif %}
+      }
+      {%- assign first_product_review = false -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endcapture -%}
+{%- assign product_reviews_json = product_reviews_json | strip -%}
+
+{% if product.variants.size == 1 %}
+        {%- assign single_barcode = current_variant.barcode | strip | remove: ' ' -%}
+        {%- assign single_barcode_length = single_barcode | size -%}
+<script id="product-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+        "@type": "Product",
+    "@id": {{ product_schema_id | json | replace: '\/', '/' }},
+        "name": {{ product.title | json }},
+    "url": {{ product_url | json | replace: '\/', '/' }}{% if product_description != blank %},
+        "description": {{ product_description | json }}{% endif %}{% if product_images_json != blank %},
+        "image": [{{ product_images_json }}]{% endif %},
+        "brand": {
+          "@type": "Brand",
+          "name": {{ product_brand | json }}
+        }{% if product_category != blank %},
+        "category": {{ product_category | json }}{% endif %}{% if current_variant.sku != blank %},
+        "sku": {{ current_variant.sku | json }}{% endif %}{% if single_barcode_length == 8 %},
+        "gtin8": {{ single_barcode | json }}{% elsif single_barcode_length == 12 %},
+        "gtin12": {{ single_barcode | json }}{% elsif single_barcode_length == 13 %},
+        "gtin13": {{ single_barcode | json }}{% elsif single_barcode_length == 14 %},
+        "gtin14": {{ single_barcode | json }}{% elsif single_barcode != blank %},
+        "gtin": {{ single_barcode | json }}{% endif %}{% if single_product_color != blank %},
+        "color": {{ single_product_color | json }}{% endif %}{% if single_product_size != blank %},
+        "size": {{ single_product_size | json }}{% endif %}{% if product_material != blank %},
+        "material": {{ product_material | json }}{% endif %}{% if single_product_pattern != blank %},
+        "pattern": {{ single_product_pattern | json }}{% endif %}{% if has_judge_me_rating %},
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": {{ judge_me_rating_value | plus: 0 | json }},
+          "reviewCount": {{ judge_me_review_count | plus: 0 | json }},
+          "bestRating": 5,
+          "worstRating": 1
+        }{% endif %}{% if product_reviews_json != blank %},
+        "review": [{{ product_reviews_json }}]{% endif %}{% if product_additional_property_json != blank %},
+        "additionalProperty": [{{ product_additional_property_json }}]{% endif %},
+        "offers": {
+          "@type": "Offer",
+        "@id": {{ current_variant.url | prepend: request.origin | append: '#offer' | json | replace: '\/', '/' }},
+        "url": {{ current_variant.url | prepend: request.origin | json | replace: '\/', '/' }}{% if current_variant.sku != blank %},
+          "sku": {{ current_variant.sku | json }}{% endif %},
+          "price": {{ current_variant.price | divided_by: 100.0 | json }},
+          "priceCurrency": {{ product_currency | json }},
+          "priceValidUntil": {{ price_valid_until | json }},
+          "availability": "https://schema.org/{% if current_variant.available %}InStock{% else %}OutOfStock{% endif %}",
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+          "@id": {{ shipping_policy_id | json | replace: '\/', '/' }},
+            "shippingRate": {
+              "@type": "MonetaryAmount",
+              "value": 0,
+              "currency": {{ product_currency | json }}
+            },
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": "US"
+            },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "handlingTime": {
+                "@type": "QuantitativeValue",
+                "minValue": {{ shipping_handling_min | json }},
+                "maxValue": {{ shipping_handling_max | json }},
+                "unitCode": "DAY"
+              },
+              "transitTime": {
+                "@type": "QuantitativeValue",
+                "minValue": {{ shipping_transit_min | json }},
+                "maxValue": {{ shipping_transit_max | json }},
+                "unitCode": "DAY"
+              }
+            }
+          },
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+          "@id": {{ return_policy_id | json | replace: '\/', '/' }},
+            "applicableCountry": "US",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 30,
+            "returnFees": "https://schema.org/FreeReturn",
+            "returnMethod": "https://schema.org/ReturnByMail"
+          },
+          "seller": {
+            "@type": "Organization",
+          "@id": {{ organization_id | json | replace: '\/', '/' }},
+            "name": {{ shop.name | json }}
+          }
+        }
+  }
+</script>
+{% else %}
+<script id="product-group-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+        "@type": "ProductGroup",
+    "@id": {{ product_group_schema_id | json | replace: '\/', '/' }},
+        "productGroupID": {{ product_group_identifier | json }},
+        "name": {{ product.title | json }},
+    "url": {{ product_url | json | replace: '\/', '/' }}{% if product_description != blank %},
+        "description": {{ product_description | json }}{% endif %}{% if product_images_json != blank %},
+        "image": [{{ product_images_json }}]{% endif %},
+        "brand": {
+          "@type": "Brand",
+          "name": {{ product_brand | json }}
+        }{% if product_category != blank %},
+        "category": {{ product_category | json }}{% endif %}{% if product_material != blank and product_varies_by_material == false %},
+        "material": {{ product_material | json }}{% endif %}{% if product_varies_by_json != blank %},
+        "variesBy": [{{ product_varies_by_json }}]{% endif %}{% if has_judge_me_rating %},
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": {{ judge_me_rating_value | plus: 0 | json }},
+          "reviewCount": {{ judge_me_review_count | plus: 0 | json }},
+          "bestRating": 5,
+          "worstRating": 1
+        }{% endif %}{% if product_reviews_json != blank %},
+        "review": [{{ product_reviews_json }}]{% endif %}{% if product_additional_property_json != blank %},
+        "additionalProperty": [{{ product_additional_property_json }}]{% endif %},
+        "hasVariant": [
+          {%- for variant in product.variants -%}
+            {%- assign is_first_variant = forloop.first -%}
+            {%- assign variant_url = variant.url | prepend: request.origin -%}
+            {%- assign variant_schema_id = variant_url | append: '#product' -%}
+            {%- assign variant_offer_id = variant_url | append: '#offer' -%}
+            {%- assign variant_name = product.title -%}
+            {%- unless variant.title == 'Default Title' -%}
+              {%- assign variant_name = product.title | append: ' - ' | append: variant.title -%}
+            {%- endunless -%}
+            {%- assign variant_image = variant.featured_image | default: product.featured_image -%}
+            {%- assign variant_image_url = blank -%}
+            {%- if variant_image != blank -%}
+              {%- assign variant_image_url = variant_image | image_url: width: 1600 -%}
+              {%- assign variant_image_prefix = variant_image_url | slice: 0, 2 -%}
+              {%- assign variant_image_first_character = variant_image_url | slice: 0, 1 -%}
+              {%- if variant_image_prefix == '//' -%}
+                {%- assign variant_image_url = variant_image_url | prepend: 'https:' -%}
+              {%- elsif variant_image_first_character == '/' -%}
+                {%- assign variant_image_url = variant_image_url | prepend: request.origin -%}
+              {%- endif -%}
+            {%- endif -%}
+            {%- assign variant_barcode = variant.barcode | strip | remove: ' ' -%}
+            {%- assign variant_barcode_length = variant_barcode | size -%}
+            {%- assign variant_schema_config = variant.metafields.schema.config.value -%}
+            {%- assign variant_additional_properties = variant_schema_config.additional_property.value -%}
+            {%- capture variant_additional_property_json -%}
+              {%- assign first_variant_property = true -%}
+              {%- for schema_property in variant_additional_properties -%}
+                {%- assign property_name = schema_property['name'].value -%}
+                {%- assign property_value_field = schema_property['value'] -%}
+                {%- assign property_value = property_value_field.value -%}
+                {%- assign property_min_value = schema_property['minValue'].value -%}
+                {%- assign property_max_value = schema_property['maxValue'].value -%}
+                {%- assign property_unit_code = schema_property['unitCode'].value -%}
+                {%- assign property_unit_text = schema_property['unitText'].value -%}
+                {%- if property_name != blank -%}
+                  {%- unless first_variant_property -%},{%- endunless -%}
+                  {
+                    "@type": "PropertyValue",
+                    "name": {{ property_name | json }}{% if property_value_field != blank and property_value != blank or property_value == false %},
+                    "value": {{ property_value | json }}{% endif %}{% if property_min_value != blank %},
+                    "minValue": {{ property_min_value | json }}{% endif %}{% if property_max_value != blank %},
+                    "maxValue": {{ property_max_value | json }}{% endif %}{% if property_unit_code != blank %},
+                    "unitCode": {{ property_unit_code | json }}{% endif %}{% if property_unit_text != blank %},
+                    "unitText": {{ property_unit_text | json }}{% endif %}
+                  }
+                  {%- assign first_variant_property = false -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endcapture -%}
+            {%- assign variant_additional_property_json = variant_additional_property_json | strip -%}
+            {
+              "@type": "Product",
+        "@id": {{ variant_schema_id | json | replace: '\/', '/' }},
+              "name": {{ variant_name | json }},
+        "url": {{ variant_url | json | replace: '\/', '/' }}{% if variant_image_url != blank %},
+        "image": {{ variant_image_url | json | replace: '\/', '/' }}{% endif %}{% if variant.sku != blank %},
+              "sku": {{ variant.sku | json }}{% endif %}{% if variant_barcode_length == 8 %},
+              "gtin8": {{ variant_barcode | json }}{% elsif variant_barcode_length == 12 %},
+              "gtin12": {{ variant_barcode | json }}{% elsif variant_barcode_length == 13 %},
+              "gtin13": {{ variant_barcode | json }}{% elsif variant_barcode_length == 14 %},
+              "gtin14": {{ variant_barcode | json }}{% elsif variant_barcode != blank %},
+              "gtin": {{ variant_barcode | json }}{% endif %}
+              {%- for option_value in variant.options -%}
+                {%- assign option_index = forloop.index0 -%}
+                {%- assign normalized_option_name = product.options[option_index] | downcase | strip -%}
+                {%- if normalized_option_name contains 'color' or normalized_option_name contains 'colour' -%},
+              "color": {{ option_value | json }}
+                {%- elsif normalized_option_name contains 'size' -%},
+              "size": {{ option_value | json }}
+                {%- elsif normalized_option_name contains 'material' -%},
+              "material": {{ option_value | json }}
+                {%- elsif normalized_option_name contains 'pattern' -%},
+              "pattern": {{ option_value | json }}
+                {%- endif -%}
+              {%- endfor -%},
+              "isVariantOf": {
+          "@id": {{ product_group_schema_id | json | replace: '\/', '/' }}
+              }{% if variant_additional_property_json != blank %},
+              "additionalProperty": [{{ variant_additional_property_json }}]{% endif %},
+              "offers": {
+                "@type": "Offer",
+          "@id": {{ variant_offer_id | json | replace: '\/', '/' }},
+          "url": {{ variant_url | json | replace: '\/', '/' }}{% if variant.sku != blank %},
+                "sku": {{ variant.sku | json }}{% endif %},
+                "price": {{ variant.price | divided_by: 100.0 | json }},
+                "priceCurrency": {{ product_currency | json }},
+                "priceValidUntil": {{ price_valid_until | json }},
+                "availability": "https://schema.org/{% if variant.available %}InStock{% else %}OutOfStock{% endif %}",
+                "shippingDetails": {% if is_first_variant %}{
+                  "@type": "OfferShippingDetails",
+            "@id": {{ shipping_policy_id | json | replace: '\/', '/' }},
+                  "shippingRate": {
+                    "@type": "MonetaryAmount",
+                    "value": 0,
+                    "currency": {{ product_currency | json }}
+                  },
+                  "shippingDestination": {
+                    "@type": "DefinedRegion",
+                    "addressCountry": "US"
+                  },
+                  "deliveryTime": {
+                    "@type": "ShippingDeliveryTime",
+                    "handlingTime": {
+                      "@type": "QuantitativeValue",
+                      "minValue": {{ shipping_handling_min | json }},
+                      "maxValue": {{ shipping_handling_max | json }},
+                      "unitCode": "DAY"
+                    },
+                    "transitTime": {
+                      "@type": "QuantitativeValue",
+                      "minValue": {{ shipping_transit_min | json }},
+                      "maxValue": {{ shipping_transit_max | json }},
+                      "unitCode": "DAY"
+                    }
+                  }
+            }{% else %}{ "@id": {{ shipping_policy_id | json | replace: '\/', '/' }} }{% endif %},
+                "hasMerchantReturnPolicy": {% if is_first_variant %}{
+                  "@type": "MerchantReturnPolicy",
+            "@id": {{ return_policy_id | json | replace: '\/', '/' }},
+                  "applicableCountry": "US",
+                  "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                  "merchantReturnDays": 30,
+                  "returnFees": "https://schema.org/FreeReturn",
+                  "returnMethod": "https://schema.org/ReturnByMail"
+            }{% else %}{ "@id": {{ return_policy_id | json | replace: '\/', '/' }} }{% endif %},
+                "seller": {
+                  "@type": "Organization",
+            "@id": {{ organization_id | json | replace: '\/', '/' }},
+                  "name": {{ shop.name | json }}
+                }
+              }
+            }{% unless forloop.last %},{% endunless %}
+          {%- endfor -%}
+        ]
+  }
+</script>
+{% endif %}

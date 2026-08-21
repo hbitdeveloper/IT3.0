@@ -1,0 +1,299 @@
+{%- liquid
+    assign time_now = 'now' | date: '%s'
+    assign is_show = false
+    assign begin_time = 0
+    if block.settings.begin_time != blank
+      assign begin_time = block.settings.begin_time | date: '%s'
+    endif
+
+    assign end_time = 0
+    if block.settings.end_time != blank
+      assign end_time = block.settings.end_time | date: '%s'
+    endif
+
+    if begin_time == 0 and end_time == 0
+      assign is_show = true
+    endif
+
+    if begin_time != 0 and end_time == 0 and begin_time < time_now
+      assign is_show = true
+    endif
+
+    if begin_time == 0 and end_time != 0 and end_time > time_now
+      assign is_show = true
+    endif
+
+    if begin_time != 0 and end_time != 0 and end_time > time_now and begin_time < time_now
+      assign is_show = true
+    endif
+-%}
+
+{%- if is_show == true -%}
+  {% style %}
+    .blocks-subscribe-banner .field_error-tips {
+      position: absolute;
+      top: calc(100% + 1px);font-size: 12px;font-weight: 400;color: var(--error-color);
+    }
+
+    .blocks-subscribe-banner jky-checkbox {
+      flex: unset;
+    }
+
+    @media screen and (max-width: 1024px) {
+      .subscribe-banner-content .blocks-heading-content:not(.blocks-subscribe-banner-form .blocks-heading-content) .blocks-content-subheading, .subscribe-banner-content .blocks-heading-content:not(.blocks-subscribe-banner-form .blocks-heading-content) .blocks-content-heading {
+        text-align: center;
+      }
+    }
+
+    {%- if block.settings.align_right == 'right' -%}
+      @media screen and (min-width: 1024px) {
+        .subscribe-banner-content.subs-banner-right-group .blocks-heading-content:not(.blocks-subscribe-banner-form .blocks-heading-content) .blocks-content-subheading,.subscribe-banner-content.subs-banner-right-group .blocks-heading-content:not(.blocks-subscribe-banner-form .blocks-heading-content) .blocks-content-heading {
+          text-align: right;
+        }
+      }
+    {%- endif -%}
+
+    .type-subs_mode_pic .subs_mode_pic--show {
+      display: block;
+    }
+  {% endstyle %}
+
+  {%- capture style -%}
+    {% render 'spacing-padding', settings: block.settings %}
+  {%- endcapture -%}
+  <div
+      {% if block.settings.anchor != blank %}anchor-target="{{block.settings.anchor | escape}}"{% endif %}
+      class="group blocks-subscribe-banner section-padding responsive-h w-full type-subs_mode_pic-{{section.id}} type-subs_mode_pic
+      relative flex justify-center items-center {% if settings.enable_animations_scroll %}scroll-trigger animate--slide-in{% endif %}"
+      style="--desktop-height:{{block.settings.pc_height | divided_by: 16.0}}rem;--mobile-height:{{block.settings.mb_height | divided_by: 32.0}}rem;{{style}}"
+      {{ block.shopify_attributes }}
+  >
+
+    {%- if block.settings.img_pc != blank -%}
+      {%- assign mimage = block.settings.img_pc -%}
+      {%- if block.settings.img_mb != blank -%}
+          {%- assign mimage = block.settings.img_mb -%}
+      {%- endif -%}
+      {% render 'responsive-image', image: block.settings.img_pc, image_class: 'blocks-image-pic w-full h-full inset-0 absolute object-cover', mimage: mimage %}
+    {%- else -%}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full inset-0 absolute object-cover' }}
+    {%- endif -%}
+
+    <div class="subscribe-banner-content section-container-lg relative z-2
+    {% if block.settings.align_right == 'right' %}subs-banner-right-group items-end{% endif %}
+    h-full lg:h-fit pt-14 lg:pt-0 pb-16 lg:pb-0 lg:justify-between flex flex-col {% if block.settings.align_top_mb == 'top' %}subs-banner-top_mb justify-start{% else %}justify-between{% endif %}
+    "
+    >
+        {% content_for 'blocks' %}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "V-订阅Banner",
+  "blocks": [{"type": "v-heading-content"}, {"type": "_subscribe-banner-form"}],
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { 
+      "type": "select", 
+      "id": "align_right", 
+      "label": "PC端内容位置", 
+      "options": [
+        {
+          "value": "left",
+          "label": "左"
+        },
+        {
+          "value": "right",
+          "label": "右"
+        }
+      ],
+      "default": "left",
+      "info": "PC端指所有文案+订阅模块位置"
+    },
+    { 
+      "type": "select", 
+      "id": "align_top_mb", 
+      "label": "MB端内容位置", 
+      "options": [
+        {
+          "value": "top",
+          "label": "上"
+        },
+        {
+          "value": "bottom",
+          "label": "下"
+        }
+      ],
+      "default": "top",
+      "info": "MB端指订阅模块位置"
+    },
+    { "type": "header", "content": "组件有效期", "info": "开始时间和结束时间都不配置则永久生效" },
+    {
+        "type": "text", "id": "begin_time", "label": "开始时间",
+        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+    },
+    {
+        "type": "text", "id": "end_time", "label": "结束时间",
+        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+    },
+    {
+      "type": "header",
+      "content": "PC图片"
+    },
+    { "type": "image_picker", "id": "img_pc", "label": "图片地址", "info": "推荐尺寸：1920 * 800二倍图"},
+    {
+      "type": "number",
+      "id": "pc_height",
+      "label": "PC图片高度",
+      "default": 800
+    },
+
+    {
+      "type": "header",
+      "content": "MB图片"
+    },
+    { "type": "image_picker", "id": "img_mb", "label": "图片地址", "info": "推荐尺寸：750 * 1200"},
+    {
+      "type": "number",
+      "id": "mb_height",
+      "label": "MB图片高度",
+      "default": 1200
+    },
+    { "type": "header", "content": "内边距",
+      "visible_if": "{{ block.settings.pc_height == 9995210 }}" 
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36,
+      "visible_if": "{{ block.settings.pc_height == 9995210 }}" 
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36,
+      "visible_if": "{{ block.settings.pc_height == 9995210 }}" 
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ block.settings.pc_height == 9995210 }}" 
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ block.settings.pc_height == 9995210 }}" 
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-订阅Banner",
+      "category": "功能业务",
+      "blocks": [
+          {
+              "type": "v-heading-content",
+              "blocks": [
+                  {
+                      "type": "_v-heading-content-des",
+                      "blocks": [],
+                      "settings": {
+                          "heading": "<p>Jackery Essential Home Backup</p>",
+                          "mb_heading": "<p>Jackery Essential Home Backup</p>",
+                          "text_color": "#FFFFFF",
+                          "heading_size": "text_b1",
+                          "padding_top": 0,
+                          "padding_bottom": 0,
+                          "alignment": "left"
+                      }
+                  },
+                  {
+                      "type": "_v-heading-content-heading",
+                      "settings": {
+                          "heading": "<p>Up to 43% Off</p>",
+                          "mb_heading": "<p>Up to 43% Off</p>",
+                          "text_color": "#FFFFFF",
+                          "heading_size": "heading_2",
+                          "padding_top": 0,
+                          "padding_bottom": 14,
+                          "alignment": "left"
+                      }
+                  },
+                  {
+                      "type": "_v-heading-content-subheading",
+                      "settings": {
+                          "heading": "<p>April 28th - May 5th</p>",
+                          "mb_heading": "<p>April 28th - May 5th</p>",
+                          "text_color": "#FFFFFF",
+                          "heading_size": "heading_5",
+                          "padding_top": 0,
+                          "padding_bottom": 0,
+                          "alignment": "left"
+                      }
+                  }
+              ],
+              "settings": {
+                  "page_width": "w-full",
+                  "padding_top": 0,
+                  "padding_bottom": 16
+              }
+          },
+          {
+              "type": "_subscribe-banner-form",
+              "blocks": [
+                  {
+                      "type": "v-heading-content",
+                      "blocks": [
+                          {
+                              "type": "_v-heading-content-subheading",
+                              "settings": {
+                                  "heading": "<p>Subscribe now for sales updates!</p>",
+                                  "mb_heading": "<p>Subscribe now for sales updates!</p>",
+                                  "text_color": "#FFFFFF",
+                                  "heading_size": "heading_6",
+                                  "padding_top": 0,
+                                  "padding_bottom": 16,
+                                  "alignment": "left"
+                              }
+                          }
+                      ],
+                      "settings": {
+                          "page_width": "w-full",
+                          "padding_top": 0,
+                          "padding_bottom": 0
+                      }
+                  }
+              ],
+              "settings": {
+                  "bg_color": "linear-gradient(180deg, rgba(188, 187, 187, 0.3) 0%, rgba(101, 95, 84, 0.3) 100%)",
+                  "component_name": "V-订阅Banner"
+              }
+          }
+      ]
+    }
+  ]
+}
+{% endschema %}

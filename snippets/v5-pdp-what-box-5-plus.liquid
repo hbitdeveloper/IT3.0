@@ -1,0 +1,347 @@
+
+<style>
+    .specs-v5-accordion .specs-v5-content {
+        padding: 2.5rem 0;
+        display: flex;
+        justify-content: center;
+    }
+    what-is-in-the-box {
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+        width: 100%;
+    }
+
+    what-is-in-the-box .mb-show {
+        display: block;
+    }
+    what-is-in-the-box .pc-show-flex {
+        display: none;
+    }
+    @media (min-width: 1024px) {
+        what-is-in-the-box .mb-show {
+            display: none;
+        }
+        what-is-in-the-box .pc-show-flex {
+            display: flex;
+            padding-bottom: 2rem;
+        }
+    }
+
+
+    what-is-in-the-box .sku-box-wrap {
+        width: 100%;
+    }
+
+    what-is-in-the-box .sku-wrap {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 5.333333333333333vw;
+        gap: 2.6666666666666665vw;
+    }
+
+    what-is-in-the-box .sku-wrap.sku-wrap-no-margin {
+        margin-top: 0;
+    }
+
+    what-is-in-the-box .sku-wrap .sku-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background-color: rgb(247 249 250 / 1);
+        width: 44.4vw;
+        height: 46.666666666666664vw;
+        padding: 2.6666666666666665vw 3.2vw;
+    }
+
+    what-is-in-the-box .sku-wrap .sku-item h4 {
+        color: rgb(26 26 26 / 1);
+        font-weight: 500;
+        font-size: 3.466666666666667vw;
+        line-height: 4.8vw;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        {% comment %} DE/FR/NL/ES {% endcomment %}
+        {% if shop.id == 57272172741 or shop.id == 69511053598 or shop.id == 65060929623 or shop.id == 69013700929 %}
+          hyphens: auto;
+        {% endif %}
+    }
+
+    what-is-in-the-box .sku-wrap .sku-item img {
+        margin-left: auto;
+        margin-right: auto;
+        object-fit: contain;
+        width: 26.666666666666668vw;
+        height: 26.666666666666668vw;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box .single-sku-wrap {
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: wrap;
+            padding-left: 0vw;
+            padding-right: 0vw;
+            margin-top: 1rem;
+            gap: 1.5rem;
+        }
+        what-is-in-the-box .single-sku-wrap .sku-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: rgb(247 249 250 / 1);
+            width: 18.375rem;
+            height: 16.875rem;
+            padding: 1rem 1.25rem;
+        }
+        what-is-in-the-box .single-sku-wrap .sku-item h4 {
+            color: rgb(26 26 26 / 1);
+            font-weight: 500;
+            font-size: 1.125rem;
+            line-height: 1.5rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+        what-is-in-the-box .single-sku-wrap .sku-item img {
+            margin-left: auto;
+            margin-right: auto;
+            object-fit: contain;
+            width: 10.625rem;
+            height: 10.625rem;
+        }
+    }
+    @media screen and (max-width: 1023px) {
+        .accordion-ul .accordion-content {
+            padding: 6.8vw 4vw;
+            flex-direction: column;
+        }
+    }
+</style>
+{% comment %} 加电包信息（specs-v5 命名避免冲突） {% endcomment %}
+<div class="specs-v5-accordion w-full specs-v5-whats-in-box {% if settings.part_3_heading == blank %} hidden{% endif %}" style="{% if settings.part_3_heading == blank %}display: none;{% endif %}">
+  {% comment %} 如果仅有一个变体，则不显示对比文案 {% endcomment %}
+  {% if product.has_only_default_variant != true %}
+     <div class="flex justify-end items-center gap-2 mt-5 mb-4 lg:my-4 text-primary font-medium text-sm lg:text-base cursor-pointer" compare-what-in-box>
+      {% render 'icon-vector', width: 16, height: 16, color: '#fd5000' %}
+      <span>{{settings.compare_text | default: 'Compare all variants'}}</span>
+    </div>
+  {% endif %}  
+  <div class="specs-v5-content" style="flex-direction: column;padding: 0;">
+    {%- liquid
+      comment
+        统一构建所有变体的数据源，首屏只渲染当前选中变体，
+        后续切换时由下方 JS 基于这份 JSON 做刷新。
+      endcomment
+      assign variants_json = ""
+      assign product_json = ""
+      assign selected_variant = product.selected_or_first_available_variant
+      assign selected_what_box = ""
+      assign has_what_box_data = false
+    -%}
+
+    {%- for variant in product.variants -%}
+      {% comment %} 变体数据优先取变体级配置，缺失时回退商品级配置 {% endcomment %}
+      {%- assign what_value = '' -%}
+      {%- if variant.metafields.custom.what_in_the_box_list_4_0.value != blank -%}
+        {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+      {%- elsif product.metafields.custom.what_is_in_the_box_4_0 != blank -%}
+        {%- assign what_value = product.metafields.custom.what_is_in_the_box_4_0.value -%}
+      {%- endif -%}
+
+      {%- if what_value != blank -%}
+        {%- assign has_what_box_data = true -%}
+      {%- endif -%}
+
+      {%- if variant.id == selected_variant.id -%}
+        {%- assign selected_what_box = what_value -%}
+      {%- endif -%}
+
+      {% comment %} variants_json: 当前变体的基础信息，用于名称和主图刷新 {% endcomment %}
+      {%- if variants_json != "" -%}
+        {%- assign variants_json = variants_json | append: "," -%}
+      {%- endif -%}
+      {%- assign variant_img = product.featured_image | image_url: width: 360, height: 360 | json -%}
+      {%- if variant.featured_image -%}
+        {%- assign variant_img = variant.featured_image | image_url: width: 360, height: 360 | json -%}
+      {%- endif -%}
+      {%- assign variant_name = variant.title | json -%}
+      {%- assign variant_short_name = variant.metafields.custom.shortname | json -%}
+      {%- assign variant_data = '{' | append: '"skuId":' | append: variant.id | append: ',' | append: '"name":' | append: variant_name | append: ',' | append: '"shortname":' | append: variant_short_name | append: ',' | append: '"img":' | append: variant_img | append: '}' -%}
+      {%- assign variants_json = variants_json | append: variant_data -%}
+
+      {% comment %} product_json: 当前变体对应的 what in the box 明细列表 {% endcomment %}
+      {%- if product_json != "" -%}
+        {%- assign product_json = product_json | append: "," -%}
+      {%- endif -%}
+
+      {%- assign what_box_data = "" -%}
+      {%- if what_value -%}
+        {%- for what_box in what_value -%}
+          {%- if what_box_data != "" -%}
+            {%- assign what_box_data = what_box_data | append: "," -%}
+          {%- endif -%}
+          {%- assign img = what_box.img | image_url: width: 360, height: 360 | json -%}
+          {%- assign name = what_box.name | json -%}
+          {%- assign box_data = '{' | append: '"img":' | append: img | append: ',' | append: '"name":' | append: name | append: '}' -%}
+          {%- assign what_box_data = what_box_data | append: box_data -%}
+        {%- endfor -%}
+        {%- assign what_box_data = "[" | append: what_box_data | append: "]" -%}
+      {%- else -%}
+        {%- assign what_box_data = "[]" -%}
+      {%- endif -%}
+
+      {%- assign product_data = '{' | append: '"skuId":' | append: variant.id | append: ',' | append: '"list":' | append: what_box_data | append: '}' -%}
+      {%- assign product_json = product_json | append: product_data -%}
+    {%- endfor -%}
+
+    {%- assign variants_json = "[" | append: variants_json | append: "]" -%}
+    {%- assign product_json = "[" | append: product_json | append: "]" -%}
+
+    {%- if has_what_box_data -%}
+      <what-is-in-the-box data-current-variant-id="{{ selected_variant.id }}">
+        <div class="pc-show-flex single-sku-wrap" data-pc-sku-wrap>
+          {%- for list_item_4_0 in selected_what_box -%}
+            {%- assign name = list_item_4_0.name | split: '*' | first -%}
+            {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+            <div class="sku-item">
+              <div>
+                <h4>{{ name | strip }} (X{{ quantity | strip }})</h4>
+              </div>
+              <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" width="170" height="170" alt="" loading="lazy">
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {% comment %} Mobile 端保留单变体样式，只更新当前变体的名称、图片和明细 {% endcomment %}
+        <div class="mb-show sku-box-wrap">
+          <div class="sku-wrap {% if selected_what_box == blank %}sku-wrap-no-margin{% endif %}" data-mobile-sku-wrap>
+            {%- for list_item_4_0 in selected_what_box -%}
+              {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+              {%- assign name = list_item_4_0.name | split: '*' | first -%}
+              <div class="sku-item">
+                <div>
+                  <h4>{{ name | strip }} (X{{ quantity | strip }})</h4>
+                </div>
+                <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" width="170" height="170" alt="" loading="lazy">
+              </div>
+            {%- endfor -%}
+          </div>
+        </div>
+
+        {% comment %} 底部说明文案 {% endcomment %}
+        <div class="text-sm text-black/65 lg:text-base whats-in-box-desc mt-4 lg:mt-0 pb-4">{{ settings.what_box_desc | strip }}</div>
+
+        <script id="variant-what-in-box-4-0" type="application/json">{{ variants_json }}</script>
+        <script id="product-what-in-box-4-0" type="application/json">{{ product_json }}</script>
+      </what-is-in-the-box>
+    {%- endif -%}
+  </div>
+</div>
+
+{% render 'v5-pdp-what-box-compare-plugin' %}
+
+<script>
+  if (!customElements.get("what-is-in-the-box")) {
+    customElements.define("what-is-in-the-box", class WhatIsInTheBoxElement extends HTMLElement {
+      constructor() {
+        super()
+
+        this.currentVariantId = String(this.dataset.currentVariantId || '')
+        // 缓存需要频繁刷新的节点，切换变体时只更新必要 DOM。
+        this.whatsBox = this.closest('.specs-v5-whats-in-box')
+        this.mobileSkuWrap = this.querySelector('[data-mobile-sku-wrap]')
+        this.pcSkuWrap = this.querySelector('[data-pc-sku-wrap]')
+
+        const skuJsonString = this.querySelector('#variant-what-in-box-4-0')?.innerText || '[]'
+        const spuJsonString = this.querySelector('#product-what-in-box-4-0')?.innerText || '[]'
+        this.skuData = JSON.parse(skuJsonString).map(item => ({
+          ...item,
+          skuId: String(item.skuId)
+        }))
+        this.productData = JSON.parse(spuJsonString).map(item => ({
+          skuId: String(item.skuId),
+          list: this.normalizeList(item.list || [])
+        }))
+        // 预先转成 Map，避免每次切换都遍历数组查找。
+        this.variantMap = new Map(this.skuData.map(item => [String(item.skuId), item]))
+        this.productMap = new Map(this.productData.map(item => [item.skuId, item.list]))
+
+        this.init()
+      }
+      init() {
+        if (!this.skuData.length || !this.productData.length) {
+          this.toggleBox(false)
+          return
+        }
+
+        // 首屏按服务端选中的变体渲染一次，保证 SSR 和客户端状态一致。
+        this.renderVariant(this.currentVariantId)
+
+        document.addEventListener('variantChangeEvent', e => {
+          const currentVariant = e.detail?.variant
+          if (currentVariant?.id) {
+            this.renderVariant(currentVariant.id)
+          }
+        })
+      }
+      toggleBox(visible) {
+        if (!this.whatsBox) return
+        this.whatsBox.classList.toggle('hidden', !visible)
+      }
+      normalizeList(list = []) {
+        // 将 "名称*数量" 拆成前端渲染用的结构。
+        return list.map(({ img, name }) => {
+          const [title = '', quantity = ''] = String(name || '').split('*')
+          return {
+            img,
+            name: title.trim(),
+            quantity: quantity.trim()
+          }
+        })
+      }
+      renderSkuItems(container, list, isMobile = false) {
+        if (!container) return
+
+        if (isMobile) {
+          container.classList.toggle('sku-wrap-no-margin', list.length === 0)
+        }
+
+        container.innerHTML = list.map(item => `
+          <div class="sku-item">
+            <div>
+              <h4>${this.escapeHTML(item.name)} (X${this.escapeHTML(item.quantity)})</h4>
+            </div>
+            <img src="${this.escapeHTML(item.img)}" width="170" height="170" alt="" loading="lazy">
+          </div>
+        `).join('')
+      }
+      renderVariant(variantId) {
+        const currentId = String(variantId || this.currentVariantId || '')
+        const variantData = this.variantMap.get(currentId)
+        const currentList = this.productMap.get(currentId) || []
+        const hasData = Boolean(variantData && currentList.length)
+
+        this.currentVariantId = currentId
+        this.toggleBox(hasData)
+
+        if (!hasData) return
+
+        // 统一刷新单变体 UI：PC 列表、移动端列表都以当前变体为准。
+        this.renderSkuItems(this.pcSkuWrap, currentList)
+        this.renderSkuItems(this.mobileSkuWrap, currentList, true)
+      }
+      escapeHTML(value = '') {
+        const div = document.createElement('div')
+        div.textContent = value
+        return div.innerHTML
+      }
+    })
+  }
+</script>

@@ -1,0 +1,124 @@
+{% comment %} 产品角标 {% endcomment %}
+
+{% comment %}  
+  params: 
+    1: variant---> 产品变体信息
+    2: product ---> 当前的产品信息
+    3：hide_left： 隐藏左侧图片角标
+{% endcomment %}
+{% comment %} 
+  权重-右侧标签： 先取变体promotion的__label_text:，如果没有取spu的tag __label_text:
+  权重-左侧图片角标：产品 (tag_img)metafields tag
+  product.metafields.custom.product_tag_image
+{% endcomment %}
+
+{% comment %} 
+  1、如果设置了变体，则取变体中的promotion
+  2、如果没有设置变体, 直接取产品第一个变体的promotion
+  3、如果以上均没有满足，则取产品的tag下的__label_text 
+{% endcomment %}
+{%- assign info = blank -%}
+{%- if variant != blank -%}
+  {% assign variant_promotion = variant.metafields.custom.promotion %}
+  {% if variant_promotion != blank and variant_promotion contains '__label_text:' %}
+      {% assign info = variant_promotion | replace_first: '__label_text:' %}
+  {% else %}
+    {% for tag in product.tags %}
+      {%- if tag contains '__label_text:' -%}
+        {%- assign info = tag | replace_first: '__label_text:' -%}
+        {% break %}
+      {%- endif -%}
+    {% endfor %}
+  {%- endif -%}
+{% else %}
+  {%- assign first_variant = product.variants | first -%}
+  {%- assign variant_promotion = first_variant.metafields.custom.promotion -%}
+  {% if variant_promotion != blank and variant_promotion contains '__label_text:' %}
+    {% assign info = variant_promotion | replace_first: '__label_text:' %}
+  {% else %}
+    {% for tag in product.tags %}
+      {%- if tag contains '__label_text:' -%}
+        {%- assign info = tag | replace_first: '__label_text:' -%}
+        {% break %}
+      {%- endif -%}
+    {% endfor %}
+  {% endif %}
+{%- endif -%}
+
+{% comment %} 如果 info 为空，则走兜底的自动计算折扣价逻辑 {% endcomment %}
+{%- if info == blank and settings.open_auto_discount_price -%}
+  {% comment %} 折扣角标展示形式 {% endcomment %}
+  {%- assign discount_tag_display_style = settings.discount_tag_display_style -%}
+  {%- assign discount_amount = settings.discount_amount_display_style -%}
+  {%- assign discount_percent = settings.discount_percent_display_style -%}
+
+  {% comment %} 优惠金额 {% endcomment %}
+  {%- if discount_tag_display_style == 'amount' -%}
+    {%- if discount_amount != blank -%}
+      {%- if variant != blank -%}
+        {%- assign discount_amount_value = variant.metafields.custom.auto_discount_amount | times: 1 -%}
+        {%- if discount_amount_value > 0 -%}
+          {%- assign money_string = discount_amount_value | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+          {%- assign info = discount_amount | replace: '()', money_string -%}
+        {%- endif -%}
+      {%- else -%}
+        {%- assign first_variant = product.variants | first -%}
+        {%- assign discount_amount_value = first_variant.metafields.custom.auto_discount_amount | times: 1 -%}
+        {%- if discount_amount_value > 0 -%}
+          {%- assign money_string = discount_amount_value | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+          {%- assign info = discount_amount | replace: '()', money_string -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- else -%}
+    {% comment %} 折扣百分比 {% endcomment %}
+    {%- if discount_percent != blank -%}
+      {%- if variant != blank -%}
+        {%- assign discount_percentage_value = variant.metafields.custom.auto_discount_percentage | times: 1 -%}
+        {%- if discount_percentage_value > 0 -%}
+          {%- assign info = discount_percent | replace: '()', discount_percentage_value -%}
+        {%- endif -%}
+      {%- else -%}
+        {%- assign first_variant = product.variants | first -%}
+        {%- assign discount_percentage_value = first_variant.metafields.custom.auto_discount_percentage | times: 1 -%}
+        {%- if discount_percentage_value > 0 -%}
+          {%- assign info = discount_percent | replace: '()', discount_percentage_value -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endif -%}
+
+{% comment %} 右侧文案角标 {% endcomment %}
+ <div class="left-4 right-4 top-4 lg:left-6 lg:right-6 lg:top-6 absolute">
+  {% comment %} {%- if info != blank and is_diy != true -%} {% endcomment %}
+  {%- if info != blank -%}
+    <div class="py-1 px-2 lg:py-1.5 lg:px-3 bg-[#F5F5F3] flex flex-col gap-y-0.5 lg:gap-y-1 items-start z-[2] w-fit">
+      <span class="font-semibold text-lg lg:text-2xl text-primary"> {{ info}} </span>
+      {%- if template contains 'product' and variant.metafields.custom.discount_tag_time != blank -%}
+        <span class="font-semibold text-base lg:text-xl text-primary">{{variant.metafields.custom.discount_tag_time}}</span>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {% comment %} {%- if request.page_type == 'product' and is_diy == true and variant.metafields.custom.gllary_accessory_img != blank -%} {% endcomment %}
+  {%- if request.page_type == 'product' and variant.metafields.custom.gllary_accessory_img != blank -%}
+    {%- assign img_width_pc = img_product_tag_width_pc | times: 2 -%}
+    {%- assign img_width_mb = img_product_tag_width_mb | times: 2 -%}
+    
+    {%- assign tag_width_pc = img_product_tag_width_pc | divided_by: 16.0 | append: 'rem' -%}
+    {%- assign tag_width_mb = img_product_tag_width_mb | divided_by: 16.0 | append: 'rem' -%}
+
+    <div style="--img-tag-pc-width:{{ tag_width_pc }};--img-tag-mb-width:{{ tag_width_mb }};" class="w-[var(--img-tag-mb-width)] max-h-[var(--img-tag-mb-width)] absolute top-0 right-0 overflow-hidden {% if img_product_tag_position_pc == 'left' %} lg:static lg:mt-2 {% endif %} lg:w-[var(--img-tag-pc-width)] lg:max-h-fit">
+      {%- 
+        render 'responsive-image', 
+        image: variant.metafields.custom.gllary_accessory_img, 
+        width: img_width_pc, 
+        mwidth: img_width_mb,
+        picture_class: "w-full h-full",
+        image_class: "w-full h-full",
+        fcp: true
+      -%}
+    </div>
+  {%- endif -%}
+</div>

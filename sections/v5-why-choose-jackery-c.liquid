@@ -1,0 +1,209 @@
+{%- style -%}
+  .v5-why-choose-jackery-c .hover-text ul li,
+  .v5-why-choose-jackery-c .hover-text ol li {
+    list-style-type: disc;
+  }
+  .v5-why-choose-jackery-c .hover-text ul,
+  .v5-why-choose-jackery-c .hover-text ol {
+    padding-left: 1rem;
+  }
+  .v5-why-choose-jackery-c .jackery-c-pic picture{
+    height: auto;
+  }
+
+{%- endstyle -%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="v5-why-choose-jackery-c section-padding"
+  {{ section.shopify_attributes }}
+  style="background: {{section.settings.bg_color | default: '#FFFFFF' }};{{style}}"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+>
+  <div class="lg:w-[82.5rem] w-[21.4375rem] mx-auto">
+    <h2 class="lg:text-[3rem] text-[1.5rem] font-semibold text-center lg:mb-[6.5rem] mb-[3.5rem] text-[#242F20]">
+      {{section.settings.title}}
+    </h2>
+
+    {% comment %} Grid Container {% endcomment %}
+    <div class="grid grid-cols-1 md:grid-cols-4 lg:gap-6 gap-3">
+      {% comment %} Card 1 (Odd: Image Top on PC & Mobile) {% endcomment %}
+
+      {% for block in section.blocks %}
+        {%- if block.settings.title != blank -%}
+          <div class="flex flex-col bg-[#F5F5F3]">
+            {% comment %} Image Section {% endcomment %}
+            <div class="{% if block.settings.position == 'top' %} lg:order-1 {% else %} lg:order-2 {% endif %} order-1 relative group overflow-hidden jackery-c-pic">
+               {%- render 'diff-end-img',
+                  pc_img: block.settings.img_pc,
+                  mb_img: block.settings.img_mb,
+                  class: 'lg:w-[19.5rem] w-[21.4375rem] h-[19.5rem] object-cover',
+                  pc_img_width: 312,
+                  mb_img_width: 343
+                -%}
+
+              {% comment %} PC Hover Overlay {% endcomment %}
+              <div class="hidden md:flex absolute inset-0 bg-black/60 text-white lg:text-[0.875rem] leading-[1.57] p-6 flex-col justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 lg:w-[19.5rem] lg:h-[19.5rem] hover-text">
+                {{ block.settings.tip }}
+              </div>
+            </div>
+
+            {% comment %} Text Section {% endcomment %}
+            <div class="{% if block.settings.position == 'top' %} lg:order-2 {% else %} lg:order-1 {% endif %} order-2 px-6 py-6 lg:py-7 flex-1 flex flex-col justify-center">
+              <h3 class="lg:text-[1.25rem] text-[0.875rem] font-semibold text-[#1f3325] lg:mb-0 mb-4 lg:line-clamp-2">
+                {{ block.settings.title }}
+              </h3>
+
+              {% comment %} Mobile Static Content {% endcomment %}
+              <div class="md:hidden text-gray-700 text-sm space-y-2 hover-text">
+                {{ block.settings.tip }}
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "V5-场景页-why-choose",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#FFFFFF" },
+    { "type": "text", "id": "title", "label": "标题", "default": "Why Choose Jackery" },
+    { "type": "header", "content": "PC边距" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "label": "MB边距",
+      "options": [
+        { "value": "default", "label": "与PC一致" },
+        { "value": "custom", "label": "单独配置" }
+      ],
+      "default": "custom"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "图文",
+      "settings": [
+        {
+          "type": "select",
+          "id": "position",
+          "label": "图文布局",
+          "default": "top",
+          "options": [
+            { "value": "top", "label": "上图下文" },
+            { "value": "bottom", "label": "下图上文" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "图文标题" },
+        { "type": "image_picker", "id": "img_pc", "label": "封面图PC", "info": "图片推荐尺寸：312*312" },
+        { "type": "image_picker", "id": "img_mb", "label": "封面图MB", "info": "图片推荐尺寸：343*312" },
+        { "type": "richtext", "id": "tip", "label": "hover文案" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-场景页-why-choose",
+      "category": "内容展示",
+      "settings": {}
+    }
+  ]
+}
+{% endschema %}

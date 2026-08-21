@@ -1,0 +1,336 @@
+
+
+<style>
+    .popular-title{
+        line-height: 3.125rem;
+        font-size: 2.5rem;
+    }
+    .popular-swiper-products .swiper-slide {
+        width: 312px;
+    }
+    .mian-top{
+       background-color: #FF864E;
+    }
+    .mian-top span{
+        line-height: 40px!important;
+        box-sizing: border-box;
+    }
+    .mian-top-ranking{
+        padding-left: 27px;
+        width: 110px;
+        background-color: #FD5102;
+        clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
+    }
+    .mian-top-capacity {
+        padding-right: 16px;
+        font-size: 18px
+    }
+    .popular-main-image{
+        w1dth: 272px;
+        height: 272px;
+    }
+    .popular-products-group .product-tag-text{
+        top: 56px;
+    }
+    .popular-products-group .product-tag-text .product-label-tag-text{
+        font-size: 18px;
+    }
+    .popular-products-group .product-tag-img{
+        top: 45px;
+        width: 176px;
+    }
+    .popular-content-info .title{
+        height: 46px;
+        line-height: 23px!important;
+        font-size: 16px;
+    }
+    .popular-current-price{
+        margin-right: 2px;
+        line-height: 28px;
+        font-size: 20px;
+    }
+    /*.popular-origin-price{
+        margin-left: 9px
+    }*/
+    .popular-current-price,
+    .suffix-text{
+        color: var(--primary-color)
+    }
+    .suffix-text{
+        margin-right: 9px;
+    }
+    .popular-swiper-navigation{
+        position: absolute;
+        top: 158px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 48px;
+        height: 48px;
+        border: 2px solid rgba(255,255,255,0.4);
+        background: rgba(102, 102, 102, 0.2);
+        border-radius: 50%;
+        box-sizing: border-box;
+        z-index: 1;
+        cursor: pointer;
+    }
+    .popular-product-prev{
+        left: 0;
+    }
+    .popular-product-next{
+        right: 0;
+    }
+    .icon-arrow{
+        width: 16px;
+        height: 16px;
+        color: #fff;
+    }
+    @media (max-width: 1399.99px) { 
+        .popular-main-image{
+            width: 100%;
+        }
+    }
+    @media (max-width: 1024px) {
+         .popular-title{
+            line-height: 1.5625rem;
+            font-size: 1.25rem;
+        }
+        .popular-swiper-products .swiper-slide {
+            width: 9.75rem
+        }
+        .mian-top span{
+            line-height: 1.75rem!important
+        }
+        .mian-top-ranking{
+            padding-left: 1.25rem;
+            width: 3.9375rem;
+        }
+        .mian-top-capacity {
+            padding-right: 0.53125rem;
+            font-size: 0.875rem
+        }
+        .popular-main-image{
+            width: 8.5rem;
+            height: 8.5rem;
+        }
+        .popular-image{
+            padding:  0 0.625rem 0.75rem;
+        }
+        .popular-products-group .product-tag-text{
+            top: 1.75rem!important;
+        }
+        .popular-products-group .product-tag-img{
+            transform-origin: left top!important;
+            top: 1.75rem!important;
+        }
+        .popular-content-info .title{
+            height: 3.1875rem;
+            line-height: 1.0625rem!important;
+            font-size: 0.875rem;
+        }
+        .popular-current-price{
+            margin-right: 3px;
+            line-height: 1.5625rem;
+            font-size: 1rem;
+        }
+        /*.popular-origin-price{
+            margin-left: 3px
+        }*/
+        .suffix-text{
+            margin-right: 3px;
+        }
+        .popular-swiper-navigation{
+            display: none;
+        }
+    }
+</style>
+
+<div class="popular-products-group w-full mx-auto">
+    <div class="section-container-lg my-8 lg:my-12 mx-auto">
+        <div class="popular-title mb-4 font-semibold lg:mb-8 lg:font-medium">{{ section.settings.module_title | escape}}</div> 
+        <div class="popular-swiper-products w-full relative">
+            <div class="swiper w-full swiper--{{ section.id }}">
+                <div class="swiper-wrapper">
+                    {% for item in section.blocks %}
+
+
+                        {% liquid
+                            assign product = item.settings.product
+
+                            assign variants = item.settings.product.variants
+                            
+                            assign skus = variants | map: 'id' | join: ','
+
+                            for variant in variants
+                                if variant.sku == item.settings.pro_sku
+                                    assign current_variant = variant
+                                    break
+                                endif
+                            endfor
+                            unless current_variant
+                                assign current_variant = item.settings.product.variants | first
+                            endunless
+
+                            if settings.open_auto_discount_price
+                                assign auto_discount_price = current_variant.metafields.custom.auto_discount_price | times: 1
+                                if auto_discount_price > 0
+                                    assign current_price = current_variant.price
+                                    if auto_discount_price < current_variant.price
+                                        assign current_price = auto_discount_price
+                                    endif 
+                                else
+                                    assign current_price = current_variant.price 
+                                endif
+                            else
+                                assign current_price = current_variant.price
+                            endif 
+                            assign compare_at_price = current_variant.compare_at_price | default: current_price
+
+                            assign title = item.settings.title | default: current_variant.title
+                            if title == blank or title == "Default Title"
+                                 assign title = product.title
+                            endif 
+                            assign img = item.settings.image | default: current_variant.featured_image | default: product.featured_image
+
+                        %}
+
+                        <div class="swiper-slide rounded-md lg:rounded-lg overflow-hidden">
+                            <a class="w-full"
+                                target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ product.url }}">
+                                <div class="mian-top flex w-full h-7 lg:h-10 text-white rounded-t-md lg:rounded-t-lg">
+                                    <span class="mian-top-ranking h-full font-semibold text-sm lg:text-xl">{{ item.settings.ranking }}</span>
+                                    <span class="hidden lg:block mian-top-capacity flex-1 h-full font-medium text-right">{{ item.settings.pc_capacity }}</span>
+                                    <span class="block lg:hidden mian-top-capacity flex-1 h-full font-medium text-right">{{ item.settings.mb_capacity }}</span>
+                                </div>
+                                <div class="popular-image w-full lg:px-5 lg:pb-6" style="background: {{ section.settings.bg_color }};">
+                                    <div class="popular-main-image">
+                                        {% if img != blank %}
+                                            {% render 'diff-end-img',
+                                                class: 'w-full h-full max-w-none object-cover object-center block',
+                                                pc_img: img,
+                                                mb_img: img,
+                                                alt: title
+                                            %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="icons">
+                                        {% render 'product-tag', product: product, variant: current_variant %}
+                                    </div>
+                                    <div class="popular-content-info mt-1 lg:mt-3">
+                                        <div class="title mb-1 lg:mb-3 font-medium lg:font-semibold line-clamp-3 lg:line-clamp-2">
+                                            {{ title  }}
+                                        </div>
+                                        <div class="flex justify-start items-center flex-wrap">
+                                            <span class="popular-current-price font-semibold">{{ current_price | money }}</span>
+                                            {%- if suffix_text != blank -%}
+                                                <span class="suffix-text font-medium text-xs lg:text-sm">{{ section.settings.suffix | escape }}</span>
+                                            {%- endif -%}
+                                            {%- if compare_at_price > current_price -%}
+                                                <span class="popular-origin-price font-medium text-xs lg:text-base text-gray-60 line-through">{{ compare_at_price | money }}</span>
+                                            {%- else -%}
+                                                {%- if current_variant.price > current_price -%}
+                                                    <span class="popular-origin-price font-medium text-xs lg:text-base text-gray-60 line-through">{{ compare_at_price | money }}</span>
+                                                {%- endif -%}
+                                            {%- endif -%}
+                                        </div>
+                                    </div>
+                                    <div class="hidden">{{ skus }}</div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% if section.blocks.size > 4 %}
+                <div class="popular-swiper-operate flex justify-between align-center" >
+                    <div class="popular-swiper-navigation popular-product-prev"> 
+                        {% render 'icon-arrow-left-default', class: 'icon-arrow icon-arrow-left-default' %}
+                    </div>
+                    <div class="popular-swiper-navigation popular-product-next">
+                        {% render 'icon-arrow-right-default', class: 'icon-arrow icon-arrow-right-default' %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script type="module">
+ // 在 theme.js 或单独的 JS 文件里（非 section inline）
+  document.addEventListener('DOMContentLoaded', () => {
+    initAllGeneralCardSwipers();
+  });
+
+  // 监听 section 动态加载（编辑器 + AJAX）
+  document.addEventListener('shopify:section:load', (e) => {
+    if (e.target.querySelector('.popular-products-group')) {
+      initAllGeneralCardSwipers();
+    }
+  });
+
+  function initAllGeneralCardSwipers() {
+    document.querySelectorAll('.popular-products-group .swiper:not(.swiper-initialized)').forEach(container => {
+      if (container.swiper) container.swiper.destroy(true, true);
+
+      const section = container.closest('[id^="shopify-section-"]');
+      const sectionId = section ? section.id.replace('shopify-section-', '') : '';
+      const blocksSize = parseInt(container.dataset.blocksSize || '0');
+
+      const options = {
+        slidesPerView: 'auto',
+        spaceBetween: 10,
+        breakpoints: {
+          750: { spaceBetween: 10 },
+          1024: { slidesPerView: 4, spaceBetween: 24 }
+        },
+        loop: blocksSize > 3,
+        lazy: { loadPrevNext: true, loadPrevNextAmount: 2 },
+        observer: true,
+        observeParents: true,
+        pagination: { el: '.popular-product-pagination' },
+        navigation: {
+            nextEl: '.popular-product-prev',
+            prevEl: '.popular-product-next',
+        },
+      };
+
+      new Swiper(container, options);
+      container.classList.add('swiper-initialized'); // 标记已初始化，避免重复
+    });
+  }
+</script>
+{% schema %}
+    {
+        "name": "人气推荐产品",
+        "settings": [
+            { "type": "text", "id": "module_title", "label": "模块标题(必填)" },
+            { "type": "color_background", "id": "bg_color", "label": "产品背景颜色", "default": "#fff", },
+            { "type": "checkbox", "id": "new_window", "label": "打开产品是否新开标签", "default": false },
+            { "type": "text", "id": "suffix", "label": "含税文案" }
+        ],
+        "blocks": [
+            {
+                "type": "block",
+                "name": "产品",
+                "settings": [
+                    { "type": "product", "id": "product", "label": "选择产品(必填)" },
+                    { "type": "text", "id": "pro_sku", "label": "产品Sku" },
+                    { "type": "text", "id": "ranking", "label": "销售排名" },
+                    { "type": "text", "id": "pc_capacity", "label": "产品容量(PC展示)" },
+                    { "type": "text", "id": "mb_capacity", "label": "产品容量(MB展示)" },
+                    { "type": "text", "id": "title", "label": "产品标题" },
+                    { "type": "image_picker", "id": "image", "label": "产品图片", "info": "大小: 300x300" },
+                ]
+            }
+        ],
+        "max_blocks": 5,
+        "presets": [
+            {
+                "name": "人气推荐产品",
+                "settings": {
+                    "module_title": "人気売れ筋ランキング",
+                    "new_window": false
+                }
+            }
+        ]
+    }
+{% endschema %}

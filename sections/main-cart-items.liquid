@@ -1,0 +1,243 @@
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+
+    --heading-color: #333;
+    --subheading-color: rgba(51, 51, 51, 0.6);
+  }
+
+  .section-{{ section.id }}-padding .subheading-color {
+    color: var(--subheading-color);
+  }
+
+  .is-empty .main-cart-header {
+    margin: 200px 0;
+  }
+
+  .discounts__discount svg {width: 0.75rem;}
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .section-{{ section.id }}-padding .quantity {
+    min-width: 80px;
+    max-width: 120px;
+    height: 32px;
+  }
+  .section-{{ section.id }}-padding .quantity__button {
+    width: 32px;
+  }
+{%- endstyle -%}
+<link rel="stylesheet" href="{{ 'cart-drawer.css' | asset_url }}">
+<cart-items class="section-container {% if cart == empty %} is-empty{% else %} section-{{ section.id }}-padding{% endif %}">
+  <div class="text-center main-cart-header">
+    <h2 class="font-bold jky-text-2xl">
+      {% if cart == empty %}
+        {{ 'cart.empty' | t }}
+      {% else %}
+        {{ 'cart.title' | t }}
+      {% endif %}
+    </h2>
+    <a href="{{ routes.all_products_collection_url }}" class="underlines-btn jky-text-base font-500">{{ 'general.continue_shopping' | t }}</a>
+  </div>
+
+  <form action="{{ routes.cart_url }}" class="cart__contents critical-hidden" method="post" id="cart">
+    <div class="cart__items" id="main-cart-items" data-id="{{ section.id }}">
+      <div class="js-contents">
+        {%- if cart != empty -%}
+          <div class="cart-items">
+            <div class="cart-item cart-item-header" style="padding-bottom: 0px;">
+                <div class="cart__item--details gap-x-1">
+                  <div class="cart-item__qunantity py-4">{{ 'cart.headings.quantity' | t }}</div>
+                  <div class="cart-item__total right py-4">{{ 'cart.headings.total' | t }}</div>
+                </div>
+            </div>
+
+              {%- for item in cart.items -%}
+                <div class="cart-item pt-2" id="CartItem-{{ item.index | plus: 1 }}">
+                  <div class="cart-item__media flex items-center">
+                    {% if item.image %}
+                      {% comment %} Leave empty space due to a:empty CSS display: none rule {% endcomment %}
+                      <a href="{{ item.url }}" class="cart-item__link" aria-hidden="true" tabindex="-1"> </a>
+                        <div class="cart-item__image-container gradient global-media-settings">
+                          <img src="{{ item.image | image_url: width: 300 }}"
+                            class="cart-item__image w-full h-auto"
+                            alt="{{ item.image.alt | escape }}"
+                            loading="lazy"
+                            width="150"
+                            height="{{ 150 | divided_by: item.image.aspect_ratio | ceil }}"
+                          >
+                        </div>
+                    {% endif %}
+                  </div>
+
+                  <div class="cart-item__details gap-x-1">
+                      <div class="cart-item__pinfo">
+                        {%- if settings.show_vendor -%}
+                          <p class="caption-with-letter-spacing">{{ item.product.vendor }}</p>
+                        {%- endif -%}
+
+                        <a href="{{ item.url }}" class="cart-item__name text-base font-semibold mb-1">{{ item.product.title | escape }}</a>
+
+                        {%- if item.product.has_only_default_variant == false or item.properties.size != 0 or item.selling_plan_allocation != nil -%}
+
+                            {%- if item.product.has_only_default_variant == false -%}
+                              {%- for option in item.options_with_values -%}
+                                <div class="product-option text-sm font-normal subheading-color mb-1">{{ option.name }}: {{ option.value }}</div>
+                              {%- endfor -%}
+                            {%- endif -%}
+
+                          {%- for property in item.properties -%}
+                            {%- assign property_first_char = property.first | slice: 0 -%}
+                            {%- if property.last != blank and property_first_char != '_' -%}
+                              <div class="product-option product-option-proprties text-sm font-normal subheading-color mb-1">
+                                {{ property.first }}: &nbsp{{ property.last }}
+                              </div>
+                            {%- endif -%}
+                          {%- endfor -%}
+
+                          <p class="product-option mb-1">{{ item.selling_plan_allocation.selling_plan.name }}</p>
+                        {%- endif -%}
+
+                        <ul class="discounts list-unstyled" aria-label="{{ 'customer.order.discount' | t }}">
+                          {%- for discount in item.discounts -%}
+                            <li class="discounts__discount text-primary text-sm font-normal flex gap-x-1 items-center">
+                              {%- render 'icon-discount', class: 'w-3 inline-block' -%}
+                              {{ discount.title }}
+                            </li>
+                          {%- endfor -%}
+                        </ul>
+                      </div>
+
+                      <div class="cart-item__quantity">
+                        <div class="cart-item__quantity-wrapper flex items-center">
+                          <label class="visually-hidden" for="Quantity-{{ item.index | plus: 1 }}">
+                            {{ 'products.product.quantity.label' | t }}
+                          </label>
+                          <quantity-input class="quantity">
+                            <button class="quantity__button no-js-hidden" name="minus" type="button">
+                              <span class="visually-hidden">{{ 'products.product.quantity.decrease' | t: product: item.product.title | escape }}</span>
+                              {% render 'icon-minus' %}
+                            </button>
+                            <input class="quantity__input w-full"
+                              type="number"
+                              name="updates[]"
+                              value="{{ item.quantity }}"
+                              min="0"
+                              aria-label="{{ 'products.product.quantity.input_label' | t: product: item.product.title | escape }}"
+                              id="Quantity-{{ item.index | plus: 1 }}"
+                              data-index="{{ item.index | plus: 1 }}"
+                            >
+                            <button class="quantity__button no-js-hidden" name="plus" type="button">
+                              <span class="visually-hidden">{{ 'products.product.quantity.increase' | t: product: item.product.title | escape }}</span>
+                              {% render 'icon-plus' %}
+                            </button>
+                          </quantity-input>
+
+                          <cart-remove-button class="visually-hidden"  id="Remove-{{ item.index | plus: 1 }}" data-index="{{ item.index | plus: 1 }}">
+                            <a href="{{ item.url_to_remove }}" class="button button--tertiary" aria-label="{{ 'cart.remove_title' | t: title: item.title }}">
+                              <jds-icon name="delete-line" class="icon-delete"></jds-icon>
+                            </a>
+                          </cart-remove-button>
+                        </div>
+                        <div class="cart-item__error flex items-start" id="Line-item-error-{{ item.index | plus: 1 }}" role="alert">
+                          <small class="cart-item__error-text text-xs order-1"></small>
+                          <svg aria-hidden="true" focusable="false" role="presentation" class="icon icon-error" viewBox="0 0 13 13">
+                            <circle cx="6.5" cy="6.50049" r="5.5" stroke="white" stroke-width="2"/>
+                            <circle cx="6.5" cy="6.5" r="5.5" fill="#EB001B" stroke="#EB001B" stroke-width="0.7"/>
+                            <path d="M5.87413 3.52832L5.97439 7.57216H7.02713L7.12739 3.52832H5.87413ZM6.50076 9.66091C6.88091 9.66091 7.18169 9.37267 7.18169 9.00504C7.18169 8.63742 6.88091 8.34917 6.50076 8.34917C6.12061 8.34917 5.81982 8.63742 5.81982 9.00504C5.81982 9.37267 6.12061 9.66091 6.50076 9.66091Z" fill="white"/>
+                            <path d="M5.87413 3.17832H5.51535L5.52424 3.537L5.6245 7.58083L5.63296 7.92216H5.97439H7.02713H7.36856L7.37702 7.58083L7.47728 3.537L7.48617 3.17832H7.12739H5.87413ZM6.50076 10.0109C7.06121 10.0109 7.5317 9.57872 7.5317 9.00504C7.5317 8.43137 7.06121 7.99918 6.50076 7.99918C5.94031 7.99918 5.46982 8.43137 5.46982 9.00504C5.46982 9.57872 5.94031 10.0109 6.50076 10.0109Z" fill="white" stroke="#EB001B" stroke-width="0.7">
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div class="cart-item__totals right small-hide pointer-events-none flex items-start justify-end">
+                        <div class="cart-item__price-wrapper">
+                          {%- if item.original_line_price != item.final_line_price -%}
+                            <dl class="cart-item__discounted-prices">
+                              <dt class="visually-hidden">
+                                {{ 'products.product.price.regular_price' | t }}
+                              </dt>
+                              <dd>
+                                <s class="cart-item__old-price price price--end subheading-color">
+                                  {{ item.original_line_price | money }}
+                                </s>
+                              </dd>
+                              <dt class="visually-hidden">
+                                {{ 'products.product.price.sale_price' | t }}
+                              </dt>
+                              <dd class="price price--end">
+                                {{ item.final_line_price | money }}
+                              </dd>
+                            </dl>
+                          {%- else -%}
+                            <span class="price price--end">
+                              {{ item.original_line_price | money }}
+                            </span>
+                          {%- endif -%}
+
+                          {%- if item.variant.available and item.unit_price_measurement -%}
+                            <div class="unit-price caption">
+                              <span class="visually-hidden">{{ 'products.product.price.unit_price' | t }}</span>
+                              {{ item.variant.unit_price | money }}
+                              <span aria-hidden="true">/</span>
+                              <span class="visually-hidden">&nbsp;{{ 'accessibility.unit_price_separator' | t }}&nbsp;</span>
+                              {%- if item.variant.unit_price_measurement.reference_value != 1 -%}
+                                {{- item.variant.unit_price_measurement.reference_value -}}
+                              {%- endif -%}
+                              {{ item.variant.unit_price_measurement.reference_unit }}
+                            </div>
+                          {%- endif -%}
+                        </div>
+                      </div>
+                  </div>
+                </div>
+              {%- endfor -%}
+            </div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <p class="visually-hidden" id="cart-live-region-text" aria-live="polite" role="status"></p>
+    <p class="visually-hidden" id="shopping-cart-line-item-status" aria-live="polite" aria-hidden="true" role="status">{{ 'accessibility.loading' | t }}</p>
+  </form>
+</cart-items>
+
+<script src="{{ 'cart.js' | asset_url }}"></script>
+
+{% schema %}
+{
+  "name": "t:sections.main-cart-items.name",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 36
+    }
+  ]
+}
+{% endschema %}

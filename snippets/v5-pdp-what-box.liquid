@@ -1,0 +1,948 @@
+{% comment %} 加电包信息（specs-v5 命名避免冲突） {% endcomment %}
+<div class="specs-v5-accordion w-full specs-v5-whats-in-box {% if settings.part_3_heading == blank %} hidden{% endif %}" style="{% if settings.part_3_heading == blank %}display: none;{% endif %}">
+  <div class="specs-v5-content" style="flex-direction: column;padding: 0;">
+    {% comment %} 单品-无变体，或者有且只有1个变体 {% endcomment %}
+    {%- if product.has_only_default_variant == true or product.variants.size == 1 -%}
+      {%- liquid
+        assign what_box = ''
+        if product.variants[0].metafields.custom.what_in_the_box_list_4_0 != blank
+          assign what_box = product.variants[0].metafields.custom.what_in_the_box_list_4_0.value
+        elsif product.metafields.custom.what_is_in_the_box_4_0 != blank
+          assign what_box = product.metafields.custom.what_is_in_the_box_4_0.value
+        endif
+      -%}
+
+      {%- if what_box != blank -%}
+        <what-is-in-the-box only-default-variant data-current-variant-id="{{ product.selected_or_first_available_variant.id }}">
+          {% comment %} PC 端 {% endcomment %}
+          <div class="pc-show-flex single-sku-wrap">
+            {%- for list_item_4_0 in what_box -%}
+              {%- assign name = list_item_4_0.name | split: '*' | first -%}
+              {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+              <div class="sku-item">
+                <div>
+                  <h4>{{ name | strip }}</h4>
+                  <span>X{{ quantity | strip }}</span>
+                </div>
+                <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" width="170" height="170" alt="" loading="lazy">
+              </div>
+            {%- endfor -%}
+          </div>
+
+          {% comment %} Mobile 端 {% endcomment %}
+          <div class="mb-show sku-box-wrap">
+            {% comment %} 单品图片 {% endcomment %}
+            {%- assign current_f_img = product.selected_or_first_available_variant.featured_image -%}
+            {%- if product.selected_or_first_available_variant.featured_image == blank -%}
+              {%- assign current_f_img = product.featured_image -%}
+            {%- endif -%}
+            <img class="sku-img" src="{{ current_f_img | image_url: width: 400, height: 400 }}" width="200" height="200" alt="" loading="lazy">
+            <div class="select-sku-variant-name-wrap">
+              <select name="select-sku-variant-name">
+                <option value="{{ product.title | escape }}">{{ product.title | escape }}</option>
+              </select>
+              <svg class="iconfont" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#00000099"></path></svg>
+            </div>
+            <div class="sku-wrap">
+              {%- for list_item_4_0 in what_box -%}
+                {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+                {%- assign name = list_item_4_0.name | split: '*' | first -%}
+                <div class="sku-item">
+                  <div>
+                    <h4>{{ name | strip }}</h4>
+                    <span>X{{ quantity | strip }}</span>
+                  </div>
+                  <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" width="170" height="170" alt="" loading="lazy">
+                </div>
+              {%- endfor -%}
+            </div>
+          </div>
+        </what-is-in-the-box>
+      {%- endif -%}
+    {%- else -%}
+      {% comment %} 多变体（>=2） {% endcomment %}
+      {% assign variants_json = "" %}
+      {% assign product_json = "" %}
+
+      {%- for variant in product.variants -%}
+        {%- assign what_value = '' -%}
+        {%- if variant.metafields.custom.what_in_the_box_list_4_0.value != blank -%}
+          {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+        {%- elsif product.metafields.custom.what_is_in_the_box_4_0 != blank -%}
+          {%- assign what_value = product.metafields.custom.what_is_in_the_box_4_0.value -%}
+        {%- endif -%}
+        {% comment %} 收集sku数据 {% endcomment %}
+        {%- if variants_json != "" -%}
+          {%- assign variants_json = variants_json | append: "," -%}
+        {%- endif -%}
+        {%- assign variant_img = product.featured_image | image_url: width: 360, height: 360 | json -%}
+        {%- if variant.featured_image -%}
+          {%- assign variant_img = variant.featured_image | image_url: width: 360, height: 360 | json -%}
+        {%- endif -%}
+        {%- assign variant_name = variant.title | json -%}
+        {%- assign variant_short_name = variant.metafields.custom.shortname | json -%}
+        {%- assign variant_data = '{' | append: '"skuId":' | append: variant.id | append: ',' | append: '"name":' | append: variant_name | append: ',' | append: '"shortname":' | append: variant_short_name | append: ',' | append: '"img":' | append: variant_img | append: '}' -%}
+        {%- assign variants_json = variants_json | append: variant_data -%}
+
+        {% comment %} 收集spu数据 {% endcomment %}
+        {%- if product_json != "" -%}
+          {%- assign product_json = product_json | append: "," -%}
+        {%- endif -%}
+
+        {% comment %} 处理 加电包单个类目 {% endcomment %}
+        {%- assign what_box_data = "" -%}
+        {%- if what_value -%}
+          {%- for what_box in what_value -%}
+            {%- if what_box_data != "" -%}
+              {%- assign what_box_data = what_box_data | append: "," -%}
+            {%- endif %}
+            {%- assign img = what_box.img | image_url: width: 360, height: 360 | json -%}
+            {%- assign name = what_box.name | json -%}
+            {%- assign box_data = '{' | append: '"img":' | append: img | append: ',' | append: '"name":' | append: name | append: '}' -%}
+            {%- assign what_box_data = what_box_data | append: box_data -%}
+          {%- endfor -%}
+          {%- assign what_box_data = "[" | append: what_box_data | append: "]" -%}
+        {%- else -%}
+          {%- assign what_box_data = "[]" -%}
+        {%- endif -%}
+
+        {%- assign product_data = '{' | append: '"skuId":' | append: variant.id | append: ',' | append: '"list":' | append: what_box_data | append: '}' -%}
+        {%- assign product_json = product_json | append: product_data -%}
+      {%- endfor -%}
+
+      {%- assign variants_json = "[" | append: variants_json | append: "]" -%}
+      {%- assign product_json = "[" | append: product_json | append: "]" -%}
+
+      <what-is-in-the-box data-current-variant-id="{{ product.selected_or_first_available_variant.id }}">
+        {% comment %} PC 端 {% endcomment %}
+        <div class="pc-show-flex" style="flex-direction: column;">
+          <div class="table-container" tabindex="0" role="region" aria-label="What's in the box comparison table"></div>
+          <div class="table-arrow-wrap" style="display:none">
+            <button class="table-arrow table-left-arrow" type="button" aria-label="Scroll table left" disabled></button>
+            <button class="table-arrow table-right-arrow" type="button" aria-label="Scroll table right"></button>
+          </div>
+        </div>
+
+        {% comment %} Mobile 端 {% endcomment %}
+        <div class="mb-show sku-box-wrap">
+          {% comment %} sku图片 {% endcomment %}
+          {%- assign current_f_img = product.selected_or_first_available_variant.featured_image -%}
+          {%- if product.selected_or_first_available_variant.featured_image == blank -%}
+            {%- assign current_f_img = product.featured_image -%}
+          {%- endif -%}
+          <img class="sku-img" src="{{ current_f_img | image_url: width: 400, height: 400 }}" width="200" height="200" alt="" loading="lazy">
+          <div class="select-sku-variant-name-wrap">
+            <select name="select-sku-variant-name">
+              {%- for variant in product.variants -%}
+                {%- assign title = variant.title | escape -%}
+                {% comment %} 如果是欧洲站点则取shortname {% endcomment %}
+                {% if shop.id == 57272172741 or shop.id == 69511053598 or shop.id == 65060929623 or shop.id == 69013700929 %}
+                  {% assign shortname = variant.metafields.custom.shortname | escape -%}
+                  {% if shortname != blank %}
+                    {% assign title = shortname -%}
+                  {% endif %}
+                {% endif %}
+                <option
+                  name="{{ title | escape }}"
+                  value="{{ variant.id }}"
+                  {% if product.selected_or_first_available_variant.id == variant.id %}selected{% endif %}
+                >{{ title | escape}}</option>
+              {%- endfor -%}
+            </select>
+            <svg class="iconfont" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#00000099"></path></svg>
+          </div>
+          {%- for variant in product.variants -%}
+            {%- assign what_value = '' -%}
+            {%- if variant.metafields.custom.what_in_the_box_list_4_0.value != blank -%}
+              {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+            {%- elsif product.metafields.custom.what_is_in_the_box_4_0 != blank -%}
+              {%- assign what_value = product.metafields.custom.what_is_in_the_box_4_0.value -%}
+            {%- endif -%}
+            {%- assign what_box_list = what_value -%}
+            <div
+              class="sku-wrap {% if what_box_list == blank %}sku-wrap-no-margin{% endif %}"
+              style="display:{% if product.selected_or_first_available_variant.id == variant.id %}flex{% else %}none{% endif %}"
+              data-sku-id="{{ variant.id }}"
+            >
+              {%- for list_item_4_0 in what_box_list -%}
+                {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+                {%- assign name = list_item_4_0.name | split: '*' | first -%}
+                <div class="sku-item">
+                  <div>
+                    <h4>{{ name | strip }}</h4>
+                    <span>X{{ quantity | strip }}</span>
+                  </div>
+                  <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" width="170" height="170" alt="" loading="lazy">
+                </div>
+              {%- endfor -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        <script id="variant-what-in-box-4-0" type="application/json">{{ variants_json }}</script>
+        <script id="product-what-in-box-4-0" type="application/json">{{ product_json }}</script>
+      </what-is-in-the-box>
+    {%- endif -%}
+  </div>
+</div>
+
+<script>
+  if (!customElements.get("what-is-in-the-box")) {
+    customElements.define("what-is-in-the-box", class WhatIsInTheBoxElement extends HTMLElement {
+      constructor() {
+        super()
+
+        this.currentVariantId = this.dataset.currentVariantId
+
+        // PC端最多显示4个，下标为3
+        this.INIT_COLUMN_INDEX = 3
+        this.tableContainer = this.querySelector(".table-container")
+        this.leftArrow = this.querySelector(".table-left-arrow")
+        this.rightArrow = this.querySelector(".table-right-arrow")
+        this.currentIndex = this.INIT_COLUMN_INDEX
+
+        // 观察与测量相关属性
+        this._resizeObserver = null
+        this._mediaQuery = window.matchMedia('(min-width: 1024px)')
+        this._onMediaChange = (e) => {
+          if (e.matches) {
+            // 进入桌面视口后再进行宽度测量
+            this._ensureTableWidths(true)
+          }
+        }
+        this._mediaQuery.addEventListener?.('change', this._onMediaChange)
+
+        const skuJsonString = this.querySelector('#variant-what-in-box-4-0')?.innerText || '[]'
+        const spuJsonString = this.querySelector('#product-what-in-box-4-0')?.innerText || '[]'
+        const skuData = JSON.parse(skuJsonString)
+        const spuData = JSON.parse(spuJsonString)
+
+        // 过滤掉 list 为空、null、undefined 或长度为 0 的项
+        const validData = spuData.filter(item => item.list && item.list.length > 0)
+        this.validSkuIds = validData.map(item => item.skuId).map(String)
+
+        // 扁平化数据，得到加电包配置的所有数据列
+        this.allData = validData.map(({ skuId, list }) => list.map(({ img, name }) => {
+            const [title, quantity] = name.split('*')
+            return {
+              skuId,
+              img,
+              name: title?.trim(),
+              quantity: quantity?.trim()
+            }
+          })).flat()
+
+        this.skuData = skuData.filter(item => this.validSkuIds.includes(String(item.skuId)))
+
+        // 总变体数量
+        this.totalSkuLength = this.skuData.length
+
+        this.init()
+      }
+      init() {
+        const whatsBox = document.querySelector(".specs-v5-whats-in-box")
+        const isOnly = this.hasAttribute("only-default-variant")
+        // 只有配置了数据才初始化
+        if (this.allData.length > 0) {
+          whatsBox && !isOnly && whatsBox.classList.remove("hidden")
+
+          this.initPC()
+          this.initMobile()
+
+          // 监听变体切换
+          document.addEventListener('variantChangeEvent', e => {
+            const currentVariant = e.detail.variant
+            if (currentVariant) {
+              this.variantAutoScroll(currentVariant.id)
+
+              if (this.mobileSkuBox) {
+                // 更新 sku 图片
+                const curTarget = this.skuData.find(item => item.skuId == currentVariant.id)
+                if (curTarget) {
+                  this.mobileSkuBox.querySelector('.sku-img').src = curTarget.img
+
+                  // 更新 配件显示
+                  this.mobileSkuBox.querySelectorAll('.sku-wrap[data-sku-id]').forEach(t => t.style.display = 'none')
+                  this.mobileSkuBox.querySelector(`.sku-wrap[data-sku-id="${currentVariant.id}"]`).style.display = 'flex'
+                  // 更新 select 显示
+                  this.mobileSkuBox.querySelector('select').value = currentVariant.id
+                }
+              }
+            }
+          })
+        } else { // 无数据 - 整个whats in box不显示
+          whatsBox && !isOnly && whatsBox.classList.add("hidden")
+        }
+      }
+      // Mobile 端切换
+      initMobile() {
+        this.mobileSkuBox = this.querySelector('.sku-box-wrap')
+        const selectEl = this.mobileSkuBox?.querySelector('select')
+        if (!selectEl) return
+
+        // 过滤无效变体
+        selectEl.querySelectorAll('option').forEach(t => {
+          if (!this.validSkuIds.includes(String(t.value))) {
+            selectEl.removeChild(t)
+          }
+        })
+
+        selectEl.addEventListener('change', (e) => {
+          const selectedIndex = e.target.selectedIndex || 0
+          const skuId = e.target.options[selectedIndex].value
+
+          // 更新 sku 图片
+          const curTarget = this.skuData.find(item => item.skuId == skuId)
+          if (curTarget) {
+            this.mobileSkuBox.querySelector('.sku-img').src = curTarget.img
+
+            // 更新 配件显示
+            this.mobileSkuBox.querySelectorAll('.sku-wrap[data-sku-id]').forEach(t => t.style.display = 'none')
+            this.mobileSkuBox.querySelector(`.sku-wrap[data-sku-id="${skuId}"]`).style.display = 'flex'
+          }
+        })
+      }
+      // PC 端
+      initPC() {
+        if (!this.tableContainer) return
+        const theadData = [null, ...this.skuData]
+
+        // 数据分组
+        const groupedData = this.allData.reduce((arr, item) => {
+          if (!arr[item.name]) {
+            arr[item.name] = []
+          }
+          arr[item.name].push(item)
+          return arr
+        }, {})
+
+        // 数组去重
+        const uniqueData = [...new Map(this.allData.map(item => [item.name, item])).values()]
+
+        const tbodyData = uniqueData.map(({ img, name, }) => {
+          const rowSku = groupedData[name]
+          const length = Math.max(this.totalSkuLength - rowSku.length, 0)
+          const data = rowSku.concat(Array(length).fill(null))
+          return { img, name, data }
+        })
+        this.renderTable(theadData, tbodyData)
+      }
+      renderTable(theadData, tbodyData) {
+        // 创建表格
+        let tableHTML = "<table><thead><tr>"
+
+        // 获取并添加表头
+        theadData.forEach((item, index) => {
+          tableHTML += index === 0 ? `<th></th>` : `
+              <th data-sku-id="${item?.skuId}">
+                <div>
+                  <img src="${item?.img}" alt="" loading="lazy">
+                  ${
+                    // DE/FR/NL/ES 欧洲站点
+                    ['57272172741', '69511053598', '65060929623', '69013700929'].includes(window.shopId) && item?.shortname ? 
+                      `<h4 class="shortname" title="${item?.shortname}">${item?.shortname}</h4>` : 
+                      `<h4 class="name" title="${item?.name}">${item?.name}</h4>`
+                  }
+                </div>
+              </th>
+            `
+        })
+        tableHTML += "</tr></thead><tbody>"
+
+        // 添加数据行
+        tbodyData.forEach(item => {
+          tableHTML += '<tr>'
+          theadData.forEach((header, index) => {
+            const quantity = item.data.find(row => header?.skuId == row?.skuId)?.quantity
+            tableHTML += index === 0 ? `
+                <td>
+                  <div>
+                    <img src="${item?.img}" alt="" loading="lazy">
+                    <span title="${item?.name}">${item?.name}</span>
+                  </div>
+                </td>
+              ` : `<td data-sku-id="${header?.skuId}"><div>${quantity ? `X${quantity}` : '-'}</div></td>`
+          })
+          tableHTML += '</tr>'
+        })
+
+        tableHTML += "</tbody></table>"
+        this.tableContainer.innerHTML = tableHTML
+        this.initTable()
+      }
+      initTable() {
+        this.table = this.tableContainer.querySelector('table')
+        if (!this.table) return
+
+        // 收集宽度并建立累计滚动距离
+        this._ensureTableWidths(false)
+
+        this.variantAutoScroll(this.currentVariantId)
+
+        // 变体数量超过 4 个，才显示左右箭头
+        if (this.totalSkuLength > 4) {
+          this.initTableArrowEvent()
+        }
+      }
+      // 高亮当前变体列
+      initTableHighlight(variantId) {
+        if (!variantId || !this.table) return
+        // 移除全部
+        this.table.querySelectorAll('[data-sku-id]').forEach(t => t.classList.remove('active-column'))
+        this.table.querySelectorAll(`[data-sku-id="${variantId}"]`).forEach(t => t.classList.add('active-column'))
+      }
+      // 采集表头宽度
+      _collectCellWidths() {
+        this.tableCell = []
+        const headRow = this.table?.tHead?.rows?.[0]
+        if (!headRow) return
+        for (let cell of headRow.cells) {
+          if (cell.cellIndex !== 0) {
+            const rect = cell.getBoundingClientRect()
+            this.tableCell.push(rect.width || 0)
+          }
+        }
+        // 构建累计宽度数组（索引与 sku 列对齐）
+        this.cumulativeWidths = new Array(this.tableCell.length).fill(0)
+        for (let i = this.INIT_COLUMN_INDEX + 1; i < this.tableCell.length; i++) {
+          this.cumulativeWidths[i] = this.cumulativeWidths[i - 1] + this.tableCell[i]
+        }
+      }
+      // 确保宽度在可见时测量；必要时延迟直到非零
+      _ensureTableWidths(force) {
+        const visible = this._mediaQuery.matches
+        if (!visible && !force) {
+          // 移动端不需要表格滚动，直接跳过
+          return
+        }
+        this._collectCellWidths()
+        const hasNonZero = this.tableCell?.some(w => w > 0)
+        if (!hasNonZero) {
+          // 使用 RAF 轮询一小段时间，等待可见或样式应用
+          let tries = 0
+          const maxTries = 30 // ~500ms 左右
+          const tick = () => {
+            this._collectCellWidths()
+            if (this.tableCell?.some(w => w > 0) || tries++ > maxTries) {
+              return
+            }
+            requestAnimationFrame(tick)
+          }
+          requestAnimationFrame(tick)
+        }
+        // 监听尺寸变化，动态更新
+        if (!this._resizeObserver && this.table) {
+          this._resizeObserver = new ResizeObserver(() => {
+            this._collectCellWidths()
+          })
+          this._resizeObserver.observe(this.table)
+        }
+      }
+      // 左右箭头
+      initTableArrowEvent() {
+        if (!this.leftArrow || !this.rightArrow) return
+        this.leftArrow.parentElement.style.display = 'flex'
+
+        // 左箭头
+        this.leftArrow.onclick = (e) => {
+          this.currentIndex = Math.max(this.INIT_COLUMN_INDEX, this.currentIndex - 1)
+          const targetLeft = this.cumulativeWidths?.[this.currentIndex] ?? 0
+          const scrollXWidth = Math.max(0, targetLeft)
+
+          this.tableContainer.scrollTo({
+            left: scrollXWidth,
+            behavior: "smooth"
+          })
+          this.rightArrow.removeAttribute("disabled")
+          if (this.currentIndex === this.INIT_COLUMN_INDEX) {
+            this.leftArrow.setAttribute("disabled", "disabled")
+          }
+        }
+
+        // 右箭头
+        this.rightArrow.onclick = (e) => {
+          this.currentIndex = Math.min(this.totalSkuLength - 1, this.currentIndex + 1)
+          const targetLeft = this.cumulativeWidths?.[this.currentIndex] ?? 0
+          const scrollXWidth = Math.max(0, targetLeft)
+          this.tableContainer.scrollTo({
+            left: scrollXWidth,
+            behavior: "smooth"
+          })
+          this.leftArrow.removeAttribute("disabled")
+          if (this.currentIndex === this.totalSkuLength - 1) {
+            this.rightArrow.setAttribute("disabled", "disabled")
+          } else {
+            this.rightArrow.removeAttribute("disabled")
+          }
+        }
+      }
+
+      // 切换变体，自动滚动到对应位置并高亮
+      variantAutoScroll(variantId) {
+        // 高亮当前sku
+        this.initTableHighlight(variantId)
+
+        // 变体数量超过 4 个，才自动滚动
+        if (this.totalSkuLength > 4) {
+          // 当前变体索引
+          const index = this.skuData.findIndex(item => item.skuId == variantId)
+          if (index === -1) return
+  
+          // 索引间隔
+          const indexGap = Math.max(0, index - this.INIT_COLUMN_INDEX)
+
+          // 需要滚动的距离（使用累计宽度，已考虑不等宽的情况）
+          const scrollXWidth = indexGap === 0 ? 0 : (this.cumulativeWidths?.[index] ?? 0)
+
+          this.tableContainer.scrollTo({
+            left: scrollXWidth,
+            behavior: "smooth"
+          })
+
+          // 更新按钮状态
+          if (scrollXWidth > 0) {
+            this.leftArrow.removeAttribute("disabled")
+            if (index === this.totalSkuLength - 1) {
+              this.rightArrow.setAttribute("disabled", "disabled")
+            } else {
+              this.rightArrow.removeAttribute("disabled")
+            }
+          } else {
+            this.leftArrow.setAttribute("disabled", "disabled")
+            this.rightArrow.removeAttribute("disabled")
+          }
+        }
+      }
+    })
+  }
+</script>
+
+<style>
+    .specs-v5-accordion .specs-v5-content {
+        padding: 2.5rem 0;
+        display: flex;
+        justify-content: center;
+    }
+    what-is-in-the-box {
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+        width: 100%;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box {
+            width: fit-content;
+            max-width: 75rem;
+        }
+    }
+
+    what-is-in-the-box .mb-show {
+        display: block;
+    }
+    what-is-in-the-box .pc-show-flex {
+        display: none;
+    }
+    @media (min-width: 1024px) {
+        what-is-in-the-box .mb-show {
+            display: none;
+        }
+        what-is-in-the-box .pc-show-flex {
+            display: flex;
+            padding-bottom: 2rem;
+        }
+    }
+
+
+    what-is-in-the-box .sku-box-wrap {
+        width: 100%;
+    }
+
+    what-is-in-the-box .sku-box-wrap .sku-img {
+        width: 100%;
+        object-fit: contain;
+        height: 64.8vw;
+        margin-top: 2.1333333333333333vw;
+    }
+
+    what-is-in-the-box .sku-box-wrap .select-sku-variant-name-wrap {
+        position: relative;
+    }
+    what-is-in-the-box .sku-box-wrap .select-sku-variant-name-wrap select {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+        width: 100%;
+        -webkit-appearance: none;
+        appearance: none;
+        overflow: hidden;
+        overflow: hidden !important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        border-color: rgb(0 0 0 / 0.1);
+        border-style: solid;
+        background-color: transparent;
+        color: rgb(51 51 51 / 1);
+        font-weight: 500;
+        min-height: 12.8vw;
+        margin-top: 0.8vw;
+        padding-top: 3.7333333333333334vw;
+        padding-bottom: 3.7333333333333334vw;
+        padding-left: 4.266666666666667vw;
+        padding-right: 12vw;
+        border-width: 0.26666666666666666vw;
+        border-radius: 1.6vw;
+        font-size: 4.266666666666667vw;
+        line-height: 5.333333333333333vw;
+    }
+
+    what-is-in-the-box .sku-box-wrap .select-sku-variant-name-wrap svg {
+        position: absolute;
+        right: 4vw;
+        top: 50%;
+        transform: translateY(-50%) rotate(90deg);
+        width: 3.7333333333333334vw;
+        height: 3.7333333333333334vw;
+    }
+
+    what-is-in-the-box .sku-box-wrap select option {
+        border-color: rgb(0 0 0 / 0.1);
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    what-is-in-the-box .sku-wrap {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 5.333333333333333vw;
+        gap: 2.6666666666666665vw;
+    }
+
+    what-is-in-the-box .sku-wrap.sku-wrap-no-margin {
+        margin-top: 0;
+    }
+
+    what-is-in-the-box .sku-wrap .sku-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background-color: rgb(247 249 250 / 1);
+        width: 44.4vw;
+        height: 46.666666666666664vw;
+        padding-left: 3.2vw;
+        padding-right: 3.2vw;
+        padding-top: 2.6666666666666665vw;
+        padding-bottom: 0vw;
+    }
+
+    what-is-in-the-box .sku-wrap .sku-item h4 {
+        color: rgb(26 26 26 / 1);
+        font-weight: 500;
+        font-size: 3.466666666666667vw;
+        line-height: 4.8vw;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        {% comment %} DE/FR/NL/ES {% endcomment %}
+        {% if shop.id == 57272172741 or shop.id == 69511053598 or shop.id == 65060929623 or shop.id == 69013700929 %}
+          hyphens: auto;
+        {% endif %}
+    }
+
+    what-is-in-the-box .sku-wrap .sku-item span {
+        color: rgb(102 102 102 / 1);
+        font-weight: 500;
+        font-size: 3.7333333333333334vw;
+    }
+
+    what-is-in-the-box .sku-wrap .sku-item img {
+        margin-left: auto;
+        margin-right: auto;
+        object-fit: contain;
+        width: 26.666666666666668vw;
+        height: 26.666666666666668vw;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box .single-sku-wrap {
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: wrap;
+            padding-left: 0vw;
+            padding-right: 0vw;
+            margin-top: 1rem;
+            gap: 0.5rem;
+        }
+        what-is-in-the-box .single-sku-wrap .sku-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background-color: rgb(247 249 250 / 1);
+            width: 18.375rem;
+            height: 16.875rem;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            padding-top: 1rem;
+            padding-bottom: 0.625rem;
+        }
+        what-is-in-the-box .single-sku-wrap .sku-item h4 {
+            color: rgb(26 26 26 / 1);
+            font-weight: 500;
+            font-size: 1.125rem;
+            line-height: 1.5rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+        what-is-in-the-box .single-sku-wrap .sku-item span {
+            line-height: 1.5rem;
+            color: rgb(102 102 102 / 1);
+            font-weight: 500;
+        }
+        what-is-in-the-box .single-sku-wrap .sku-item img {
+            margin-left: auto;
+            margin-right: auto;
+            object-fit: contain;
+            width: 10.625rem;
+            height: 10.625rem;
+        }
+    }
+
+    what-is-in-the-box .table-container {
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box .table-container {
+            width: fit-content;
+            max-width: 75rem;
+            margin-top: 2.5rem;
+        }
+    }
+
+    what-is-in-the-box .table-container::-webkit-scrollbar {
+        height: 0vw;
+    }
+
+    what-is-in-the-box table {
+        width: 100%;
+        background-color: rgb(255 255 255 / 1);
+        border-spacing: 0;
+    }
+
+    what-is-in-the-box table thead th,
+    what-is-in-the-box table tbody td {
+        border: 0;
+        box-sizing: border-box;
+        border-color: rgb(221 221 221 / 1);
+        border-style: none;
+        border-style: solid;
+        background-color: rgb(255 255 255 / 1);
+        text-align: center;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box table thead th {
+            border-right-width: 1px;
+            width: 14.375rem;
+            padding: 0 1.5625rem 1.5625rem;
+        }
+        what-is-in-the-box table tbody td {
+            border-right-width: 1px;
+            width: 14.375rem;
+            padding: 1.5625rem;
+        }
+    }
+
+    what-is-in-the-box table thead th.active-column,
+    what-is-in-the-box table tbody td.active-column {
+        background-color: rgb(247 249 250 / 1);
+    }
+
+    what-is-in-the-box table thead tr th:first-of-type,
+    what-is-in-the-box table tbody tr td:first-of-type {
+        position: sticky;
+        z-index: 1;
+        text-align: left;
+        left: 0vw;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box table thead tr th:first-of-type,
+        what-is-in-the-box table tbody tr td:first-of-type {
+            padding-left: 0vw;
+            width: 17.1875rem;
+            min-width: 17.1875rem;
+        }
+    }
+
+    what-is-in-the-box table thead tr th {
+        vertical-align: top;
+    }
+
+    what-is-in-the-box table thead tr th div {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        flex-direction: column;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box table thead tr th div {
+            width: 11.25rem;
+        }
+    }
+
+    what-is-in-the-box table thead tr th img {
+        width: 100%;
+        object-fit: contain;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box table thead tr th img {
+            height: 11.25rem;
+        }
+    }
+
+    what-is-in-the-box table thead tr th div h4 {
+        color: rgb(26 26 26 / 1);
+        font-weight: 500;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box table thead tr th div h4 {
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box table tbody tr td {
+            padding-top: 0.625rem;
+            padding-bottom: 0.625rem;
+        }
+    }
+
+    what-is-in-the-box table tbody tr td div {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgb(26 26 26 / 1);
+        font-weight: 500;
+    }
+
+    what-is-in-the-box table tbody tr td div span {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        line-height: 1.25;
+        {% comment %} DE/FR/NL/ES {% endcomment %}
+        {% if shop.id == 57272172741 or shop.id == 69511053598 or shop.id == 65060929623 or shop.id == 69013700929 %}
+          hyphens: auto;
+        {% endif %}
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box table tbody tr td:not(:first-of-type) div {
+            width: 11.25rem;
+            height: 5rem;
+            column-gap: 1.25rem;
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+    }
+
+    what-is-in-the-box table tbody tr td:first-of-type div {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        font-weight: 400;
+    }
+
+    what-is-in-the-box table tbody tr td img {
+        object-fit: contain;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box table tbody tr td img {
+            width: 4rem;
+            height: 4rem;
+            margin-left: 0.5rem;
+            margin-right: 1rem;
+        }
+    }
+
+    what-is-in-the-box .table-arrow-wrap {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box .table-arrow-wrap {
+            padding-top: 1.25rem;
+            column-gap: 1rem;
+        }
+    }
+
+    what-is-in-the-box .table-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 9999px;
+        background-color: rgb(26 26 26 / 0.4);
+        transition: background-color .3s;
+    }
+
+    what-is-in-the-box .table-arrow:disabled {
+        background-color: rgb(26 26 26 / 0.1);
+    }
+
+    @media (min-width: 1024px) {
+        what-is-in-the-box .table-arrow {
+            width: 2.5rem;
+            height: 2.5rem;
+            position: relative;
+        }
+        what-is-in-the-box .table-arrow::after {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            display: block;
+            transform: translate(-50%, -50%) rotate(90deg);
+            background-size: 1.0625rem 0.625rem;
+            background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAYCAYAAACWTY9zAAAAAXNSR0IArs4c6QAAAoJJREFUSEvNl8urTlEYxn8Pyj233EVuxyUUuZWBIp2BlESJJBkYHAORXFKHciLJpTCRpFDCQLnfjiMG/gYzE3NF7o/e0z6n72x7f9/e33eKd7IH63mf97fXXutda4v/NNQbXLYHA/OAD5I+9oZnw2C21wA3gNHAb+C4pNZG4RoCs90M3AP6p0DOStrbCFzdYLZXA/eBATkApyQdqBeuLjDbK4GHwKAahdskHakHrjSY7RXAY2BIwYJHJR0rqO2WlQKzvRx4CgwtWeiwpBNlcgqD2V4MPAeGZRT4BGwE2oAlOQD7JZ0uClcIzPZC4AUwIsP4M9As6a3tGA9d6LNij6TzReBqgtleALwERmUYfgHWSnrVNWY7dO3A/ByAFkmXasFVBbM9F4ii0TzT8RVYJyk+b4+wPSbJm5ORZ2CXpMvV4HLBbM8COoCxGQbfgfWSHuWZ2x6f5M/Mgdsp6WpefiaY7RmJ6YSMxB/AJknR8auG7UnAa2BqhjCOr+2SrmeZ/AVme1oCFabp+AVslnSnFlTFmpuSwE3O8dsq6VZ6rAeY7TCJzxfPdMQbbpN0syhUBdz0xHdiRu7P5GXvVo51g9WY9liwOyRdKwtVAdeUwI0rsjw6wWzHWoqZirWVjkK7qAhwjV0eG2qDpAfhJdvRyd8BsQuzYreki0UKF9EkfTH63MgM/bekWXcEWJxhB3NM90k6U6RgGY3tRckJMTwj772kpgC7nZxzac0hSSfLFCyjtb0MeJZxIYjNMDDAWoALKdO6riplwJK1HVeoJ0D8M3RFu6RVAdYHOBfNDgjaVklp0LI1C+ttLwWuALOBN8CW+KGpbBd9JUUD/Sdhu5+kmJjO+AOg9dIaBU/FTQAAAABJRU5ErkJggg==);
+            background-position: center;
+            background-repeat: no-repeat;
+            content: '';
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+        what-is-in-the-box .table-arrow.table-left-arrow::after{
+            transform: translate(-50%, -50%) rotate(-90deg);
+        }
+    }
+    @media screen and (max-width: 1023px) {
+        .accordion-ul .accordion-content {
+            padding: 6.8vw 4vw;
+            flex-direction: column;
+        }
+    }
+</style>

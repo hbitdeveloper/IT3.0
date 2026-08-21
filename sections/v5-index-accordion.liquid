@@ -1,0 +1,145 @@
+{% comment %} V5-首页-图文产品 {% endcomment %}
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{% assign curr_variant_id = nil %}
+{% assign block_id = nil %}
+{% assign block_variant_ids = ',' %}
+{% assign found_open_block = false %}
+{% assign accordion_images = '' %}
+
+{%- for block in section.blocks -%}
+  {%- assign block_product = block.settings.product -%}
+  {% if block_product and block_product.available %}
+
+    {% assign tmp_variant = block_product.variants
+      | where: "id", block.settings.variant_id
+      | where: "available", true
+      | first
+      | default: block_product.selected_or_first_available_variant
+    %}
+
+    {% assign block_variant_ids = block_variant_ids | append: tmp_variant.id | append: "," %}
+
+    {%- comment -%}
+      优先规则：
+      1. 如果是_open = true 且还没选过任何开启的 block（found_open_block = false）
+         → 选中这个 block
+         → 标记 found_open_block = true
+
+      2. 如果目前还未选中任何 block（curr_variant_id == nil）
+         → 先暂存为“默认第一个”
+    {%- endcomment -%}
+
+    {% if block.settings.is_open and found_open_block == false %}
+      {% assign curr_variant_id = tmp_variant.id %}
+      {% assign block_id = block.id %}
+      {% assign found_open_block = true %}
+    {% elsif curr_variant_id == nil %}
+      {% assign curr_variant_id = tmp_variant.id %}
+      {% assign block_id = block.id %}
+    {% endif %}
+
+    {% assign c_variant = block_product.variants | where: "id", block.settings.variant_id | where: "available", true | first | default: block_product.selected_or_first_available_variant %}
+    {% capture accordion_images %}
+      {{ accordion_images }}
+      <div class="accordion-image" data-index="{{ forloop.index }}" data-id="{{ c_variant.id }}">
+        {% render 'diff-end-img',
+          pc_img: block.settings.pc_scene_image,
+          mb_img: block.settings.mb_scene_image,
+          pc_img_width: 644,
+          mb_img_width: 343,
+          class: 'w-full object-cover'
+        %}
+      </div>
+    {% endcapture %}
+
+    {% capture accordion_cards %}
+        {{ accordion_cards }}
+        {% render 'v5-index-accordion-card', setting: block.settings, id: block.id %}
+    {% endcapture %}
+  {% endif %}
+{%- endfor -%}
+
+{{ 'sections-v5-index-accordion.css' | asset_url | stylesheet_tag }}
+<div
+    {{ section.shopify_attributes }}
+    class="section-padding section-v5-index-accordion"
+    {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %}
+    style="background: {{section.settings.bg_color}};{{style}}"
+>
+    <v5-index-accordion
+        data-curr_variant_id="{{curr_variant_id}}"
+        data-block_id="{{block_id}}"
+        data-str="{{block_variant_ids}}"
+    >
+      <div class="w-[19.375rem] lg:w-[90rem] mx-auto text-center">
+          <div class="font-semibold text-[1.25rem] text-[#242F20] lg:text-[2rem] mb-5 leading-[1.1] lg:mb-9">{{ section.settings.little_title | escape}}</div>
+          <div class="v5-font-oxm text-[#242F20] font-extrabold text-[2rem] mb-6 lg:mb-10 leading-[1.1] lg:text-[5.25rem]">{{ section.settings.title | escape}}</div>
+      </div>
+        <div class="w-full lg:w-[90rem] block lg:flex mx-auto">
+            <div class="relative w-full lg:w-[45rem] h-[17.625rem] lg:h-[33.75rem] overflow-hidden scence-images">{{ accordion_images }}</div>
+            <div class="w-[21.4375rem] lg:w-full mx-auto flex-1 lg:border-y border-solid border-[#C6C7C8] lg:pl-6 lg:pr-[3.75rem] accordion-cards">{{ accordion_cards }}</div>
+        </div>
+    </v5-index-accordion>
+</div>
+<script src="{{ 'section-v5-index-accordion.min.js' | asset_url }}" defer></script>
+{% schema %}
+    {
+        "name": "V5-首页-图文产品",
+        "limit": 1,
+        "enabled_on": {
+            "templates": ["page","index"]
+        },
+        "settings": [
+           { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+            { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#F5F5F3" },
+            { "type": "header", "content": "PC边距" },
+            { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 96},
+            { "type": "range", "id": "padding_bottom", "min": 0, "max":  100, "step": 1, "unit": "px", "label": "下边距", "default": 96},
+            { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0},
+            { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0},
+            { "type": "header", "content": "MB边距" },
+            { "type": "select", "id": "mb_padding_type","label": "MB边距", "options": [ { "value": "default", "label": "与PC一致" }, { "value": "custom", "label": "单独配置" } ], "default": "custom"},
+            { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "text", "id": "little_title", "label": "小标题", "default": "Essential Home Backup" },
+            { "type": "text", "id": "title", "label": "标题", "default": "keep life going" },
+
+        ],
+        "blocks": [
+            {
+                "type": "product",
+                "name": "产品",
+                "limit": 3,
+                "settings": [
+                    { "type": "checkbox", "id": "is_open", "label": "是否展开", "default": false, "info": "是否展开当前配置的产品，如果有多个配置的是展开，那么将会取第一个展开的" },
+                    { "type": "product", "id": "product", "label": "选择产品" },
+                    { "type": "number", "id": "variant_id", "label": "变体ID(必填)", "visible_if": "{{ block.settings.product != blank }}" , "info": "相同商品，变体ID不能重复"},
+                    { "type": "select", "id": "btn_type", "label": "按钮类型", "options": [
+                      { "value": "add_to_cart", "label": "Add To Cart" }, { "value": "shop_now", "label": "Shop Now" }],
+                      "default": "shop_now", "visible_if": "{{ block.settings.product != blank }}"
+                    },
+                    { "type": "text", "id": "tag", "label": "产品标签", "visible_if": "{{ block.settings.product != blank }}" },
+                    { "type": "header", "content": "PC端设置" }, 
+                    { "type": "image_picker", "id": "pc_scene_image", "label": "场景图PC", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度720, 高度540" },
+                    { "type": "number", "id": "pc_scene_image_height", "label": "场景图PC显示高度(单位px)", "default": 540, "visible_if": "{{ block.settings.product != blank and block.settings.pc_scene_image != blank }}" },
+                    { "type": "image_picker", "id": "pc_power_image", "label": "供电图PC", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度612, 高度128" },
+                     { "type": "header", "content": "MB端设置" },
+                    { "type": "image_picker", "id": "mb_scene_image", "label": "场景图MB", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度375, 高度282"  },
+                    { "type": "number", "id": "mb_scene_image_height", "label": "场景图MB显示高度", "default": 282, "visible_if": "{{ block.settings.product != blank and block.settings.mb_scene_image != blank }}" },
+                    { "type": "image_picker", "id": "mb_power_image", "label": "供电图MB", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度343, 高度158 " },
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "V5-首页-图文产品",
+                "category": "V5.0"
+            }
+        ]
+    }
+{% endschema %}

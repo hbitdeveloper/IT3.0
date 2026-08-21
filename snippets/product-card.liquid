@@ -1,0 +1,153 @@
+{% comment %} 新版product card {% endcomment %}
+{% comment %} 
+
+
+{% endcomment %}
+{% if cardClick %}
+    <a  
+        href="{{product.url}}"
+        class="product-card relative focus-zoom-container flex flex-col"
+        data-ga-event="product_collection_user_clicks"
+        data-ga-action="click"
+        data-ga-params-title="{% if sectionTitle != blank %}{{ sectionTitle }}{% else %}Collection{% endif %}"
+        data-ga-params-module="{{product.title | escape}}"
+        data-ga-params-position="{{position}}"
+        data-ga-params-button_name="{% if product.available %}{{ 'sections.collection_template.shop_button_text' | t }}{% else %}{{ 'sections.collection_template.shop_sold_out_text' | t }}{% endif %}"
+        data-ga-params-type="picture"
+        data-ga-params-link="{{ request.origin | append: product.url }}"
+        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+    >
+{% else %}
+    <div class="product-card relative focus-zoom-container flex flex-col">
+{% endif %}
+    {%- assign first_variant = product.variants | first -%}
+    {%- assign image = product.featured_image -%}
+    {%- if first_variant.featured_image != blank -%}
+         {%- assign image = first_variant.featured_image  -%}
+   {%- endif -%}
+      
+    <div class="product-img">
+        {%-
+            render 'responsive-image',
+            image: image,
+            image_class: 'object-cover focus-zoom',
+            width: 300,
+            mwidth: 180,
+            fcp: fcp,
+        -%}
+    </div>
+
+    <div class="product-content text-center flex flex-col justify-between items-center">
+        <div class="product-content-main flex flex-col justify-between">
+            {% comment %} 
+                1、取第一个SKU图片
+                2、取第一个SKU的名称，自动去掉Jackery
+                3、第一个SKU的价格
+            {% endcomment %}
+            
+            <div class="product-title font-bold text-overflow-2 text-center lg:!text-left text-[#333333]" style="color: #333;">
+                {%- if product.metafields.custom.shortname != blank -%}
+                    {{product.metafields.custom.shortname | strip_html}}
+                {%- else -%}
+                    {%- assign title = product.title  -%}
+                    {%- if first_variant.title != 'Default Title' -%}
+                        {%- assign title = first_variant.title  -%}
+                    {%- endif -%}
+                    {{title | escape}}
+                {%- endif -%}
+            </div>
+            {% if product.metafields.custom.product_features_info != blank %}
+            <div class="product-subheading font-400 text-overflow-2 leading-[1.5] lg:leading-[1.15]">{{product.metafields.custom.product_features_info | metafield_tag | strip_html}}</div>
+            {% endif %}
+
+            <div class="product-prices flex" style="align-items: baseline;width: 100%;gap:4px;">
+                {%- assign fk_promo_active = false -%}
+                {%- assign time_now = 'now' | date: '%s' -%}
+                {%- assign time_start = collection.metafields.custom.promotions_start_time | date: '%s' -%}
+                {%- assign time_end = collection.metafields.custom.promotions_end_time | date: '%s' -%}
+                {%- if time_start < time_now and time_now < time_end and first_variant.metafields.custom.promotional_price.value != blank -%}
+                    {%- assign fk_promo_active = true -%}
+                {%- endif -%}
+
+                {% comment %} 如果开启了自动计算折扣价 {% endcomment %}
+                {%- if settings.open_auto_discount_price -%}
+                    {% comment %} 自动计算 - 折后价格 {% endcomment %}
+                    {%- assign auto_discount_price = first_variant.metafields.custom.auto_discount_price | times: 1 -%}
+                    {%- if auto_discount_price > 0 -%}
+                        {% comment %} 当前价格 {% endcomment %}
+                        {% assign current_price = first_variant.price %}
+                        {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+                        {%- if auto_discount_price < first_variant.price -%}
+                            {% assign current_price = auto_discount_price %}
+                        {%- endif -%}
+                    {%- else -%}
+                        {% assign current_price = first_variant.price %}
+                    {%- endif -%}
+                {%- else -%}
+                    {% assign current_price = first_variant.price %}
+                {%- endif -%}
+
+                <div class="price price--on-sale">
+                    {%- if fk_promo_active == false -%}
+                        <div class="real-price">{{ current_price | money }}</div>
+                    {%- else -%}
+                        {%- if first_variant.metafields.custom.promotional_price.value != blank -%}
+                            <div class="promotiona-price">{{ first_variant.metafields.custom.promotional_price.value | times: 100 | money}}</div>
+                        {%- else -%}
+                            <div class="real-price">{{ current_price | money }}</div>
+                        {%- endif -%}
+                    {%- endif -%}
+                </div>
+
+                {%- assign promotional_price = first_variant.metafields.custom.promotional_price.value | times: 100  -%}
+                {%- if fk_promo_active == false -%}
+                    {%- if first_variant.compare_at_price > current_price  -%}
+                        <div class="origin-price font-400 origin-compare-price" fk_promo_active="{{fk_promo_active}}">{{ first_variant.compare_at_price | money }}</div>
+                    {%- else -%}
+                        {%- if first_variant.price > current_price  -%}
+                            <div class="origin-price font-400 origin-compare-price" fk_promo_active="{{fk_promo_active}}">{{ first_variant.price | money }}</div>
+                        {%- endif -%}
+                    {%- endif -%}
+                {%- else -%}
+                    {%- if first_variant.metafields.custom.promotional_price.value != blank and promotional_price < current_price -%}
+                        <div class="origin-price font-400 origin-compare-price" fk_promo_active="{{fk_promo_active}}">{{ current_price | money }}</div>
+                    {%- else -%}
+                        {% comment %} {%- if first_variant.compare_at_price > first_variant.metafields.custom.promotional_price.value  -%}
+                            <div class="origin-price font-400 origin-compare-price">{{ first_variant.compare_at_price | money }}</div>
+                        {%- endif -%} {% endcomment %}
+                    {%- endif -%}
+                {%- endif -%}
+            </div>
+        </div>
+
+        {% if cardClick %}
+            <span
+                class="zc_button product__button {% if product.available %}product__on_sale{% else %} disabled product__sold_out{% endif %}"
+            >
+                {% if product.available %}{{ 'sections.collection_template.shop_button_text' | t }}{% else %}{{ 'sections.collection_template.shop_sold_out_text' | t }}{% endif %}
+            </span>
+        {% else %}
+            <span
+                data-href="{{product.url}}"
+                class="zc_button product__button {% if product.available %}product__on_sale{% else %} disabled product__sold_out{% endif %}"
+                data-ga-event="product_collection_user_clicks"
+                data-ga-action="click"
+                data-ga-params-title="{% if sectionTitle != blank %}{{ sectionTitle }}{% else %}Collection{% endif %}"
+                data-ga-params-module="{{product.title | escape}}"
+                data-ga-params-position="{{position}}"
+                data-ga-params-button_name="{% if product.available %}{{ 'sections.collection_template.shop_button_text' | t }}{% else %}{{ 'sections.collection_template.shop_sold_out_text' | t }}{% endif %}"
+                data-ga-params-type="button"
+                data-ga-params-link="{{ request.origin | append: product.url }}"
+                data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+            >
+                {% if product.available %}{{ 'sections.collection_template.shop_button_text' | t }}{% else %}{{ 'sections.collection_template.shop_sold_out_text' | t }}{% endif %}
+            </span>
+        {% endif %}
+    </div>
+
+    {% render 'product-tag', product: product %}
+{% if cardClick %}
+    </a>
+{% else %}
+    </div>
+{% endif %}

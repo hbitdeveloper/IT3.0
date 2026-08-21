@@ -1,0 +1,159 @@
+{% comment %} 产品角标 {% endcomment %}
+
+{% comment %}
+  params:
+    1: variant---> 产品变体信息
+    2: product ---> 当前的产品信息
+    3：hide_left： 隐藏左侧图片角标
+    4: display_discount_tag_time: 是否展示折扣时间
+{% endcomment %}
+{% comment %}
+  权重-右侧标签： 先取变体promotion的__label_text:，如果没有取spu的tag __label_text:
+  权重-左侧图片角标：产品 (tag_img)metafields tag
+  product.metafields.custom.product_tag_image
+{% endcomment %}
+
+{% comment %}
+  1、如果设置了变体，则取变体中的promotion
+  2、如果没有设置变体, 直接取产品第一个变体的promotion
+  3、如果以上均没有满足，则取产品的tag下的__label_text
+
+
+  20260327新增：
+    如果传入了变体，并且变体设置了 product_tag_image 则直接返回变体的
+{% endcomment %}
+{%- assign info = blank -%}
+{%- if variant != blank -%}
+  {% assign variant_promotion = variant.metafields.custom.promotion %}
+  {% if variant_promotion != blank and variant_promotion contains '__label_text:' %}
+      {% assign info = variant_promotion | replace_first: '__label_text:' %}
+  {% else %}
+    {% for tag in product.tags %}
+      {%- if tag contains '__label_text:' -%}
+        {%- assign info = tag | replace_first: '__label_text:' -%}
+        {% break %}
+      {%- endif -%}
+    {% endfor %}
+  {%- endif -%}
+{% else %}
+  {%- assign first_variant = product.variants | first -%}
+  {%- assign variant_promotion = first_variant.metafields.custom.promotion -%}
+  {% if variant_promotion != blank and variant_promotion contains '__label_text:' %}
+    {% assign info = variant_promotion | replace_first: '__label_text:' %}
+  {% else %}
+    {% for tag in product.tags %}
+      {%- if tag contains '__label_text:' -%}
+        {%- assign info = tag | replace_first: '__label_text:' -%}
+        {% break %}
+      {%- endif -%}
+    {% endfor %}
+  {% endif %}
+{%- endif -%}
+
+{% comment %} 如果 info 为空，则走兜底的自动计算折扣价逻辑 {% endcomment %}
+{%- if info == blank and settings.open_auto_discount_price -%}
+  {% comment %} 折扣角标展示形式 {% endcomment %}
+  {%- assign discount_tag_display_style = settings.discount_tag_display_style -%}
+  {%- assign discount_amount = settings.discount_amount_display_style -%}
+  {%- assign discount_percent = settings.discount_percent_display_style -%}
+
+  {% comment %} 优惠金额 {% endcomment %}
+  {%- if discount_tag_display_style == 'amount' -%}
+    {%- if discount_amount != blank -%}
+      {%- if variant != blank -%}
+        {%- assign discount_amount_value = variant.metafields.custom.auto_discount_amount | times: 1 -%}
+        {%- if discount_amount_value > 0 -%}
+          {%- assign money_string = discount_amount_value | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+          {%- assign info = discount_amount | replace: '()', money_string -%}
+        {%- endif -%}
+      {%- else -%}
+        {%- assign first_variant = product.variants | first -%}
+        {%- assign discount_amount_value = first_variant.metafields.custom.auto_discount_amount | times: 1 -%}
+        {%- if discount_amount_value > 0 -%}
+          {%- assign money_string = discount_amount_value | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+          {%- assign info = discount_amount | replace: '()', money_string -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- else -%}
+    {% comment %} 折扣百分比 {% endcomment %}
+    {%- if discount_percent != blank -%}
+      {%- if variant != blank -%}
+        {%- assign discount_percentage_value = variant.metafields.custom.auto_discount_percentage | times: 1 -%}
+        {%- if discount_percentage_value > 0 -%}
+          {%- assign info = discount_percent | replace: '()', discount_percentage_value -%}
+        {%- endif -%}
+      {%- else -%}
+        {%- assign first_variant = product.variants | first -%}
+        {%- assign discount_percentage_value = first_variant.metafields.custom.auto_discount_percentage | times: 1 -%}
+        {%- if discount_percentage_value > 0 -%}
+          {%- assign info = discount_percent | replace: '()', discount_percentage_value -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endif -%}
+
+{% comment %} 右侧文案角标 {% endcomment %}
+{%- assign show_tag = true -%}
+{%- if from_header == true and product.metafields.custom.not_displayed_tag == true -%}
+    {%- assign show_tag = false -%}
+{%- endif -%}
+{%- if info != blank and show_tag -%}
+  <div class="product-label-tag product-tag-text" vid="{{ variant.id }}">
+    <span class="product-label-tag-text"> {{ info}} </span>
+
+    {%- assign should_show_discount_tag_time = false -%}
+    {%- if display_discount_tag_time or template contains 'product' -%}
+      {%- assign should_show_discount_tag_time = true -%}
+    {%- endif -%}
+
+    {%- if should_show_discount_tag_time and variant.metafields.custom.discount_tag_time != blank -%}
+      <span class="product-label-tag-text product-label-tag-text--p">{{variant.metafields.custom.discount_tag_time}}</span>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% comment %} 左侧图片角标 product tag img {% endcomment %}
+{%- assign hide_left = hide_left | default: false -%}
+{%- if hide_left == false -%}
+  {%- if variant != blank and variant.metafields.custom.product_tag_image != blank -%}
+    <div class="product-label-tag product-tag-img">
+      <img
+        {%if from_header == true and header_pc != true %}
+          class="image-lazy-loading header-p-tag-v4"
+        {%endif%}
+        sizes="(max-width: 1023.98px) 112px, 210px"
+        width="{{ variant.metafields.custom.product_tag_image.width }}"
+        height="{{ variant.metafields.custom.product_tag_image.height }}"
+        alt="jackery product" loading="lazy"
+        {%if from_header == true and header_pc != true %}
+          data-srcset="{{variant.metafields.custom.product_tag_image | image_url: width: 112 }} 112w, {{variant.metafields.custom.product_tag_image | image_url: width: 150 }} 150w, {{variant.metafields.custom.product_tag_image | image_url: width: 210 }} 210w, {{variant.metafields.custom.product_tag_image | image_url: width: 420 }} 420w"
+          data-src="{{variant.metafields.custom.product_tag_image | image_url: width: 112}}"
+        {%else %}
+          srcset="{{variant.metafields.custom.product_tag_image | image_url: width: 112 }} 112w, {{variant.metafields.custom.product_tag_image | image_url: width: 150 }} 150w, {{variant.metafields.custom.product_tag_image | image_url: width: 210 }} 210w, {{variant.metafields.custom.product_tag_image | image_url: width: 420 }} 420w"
+          src="{{variant.metafields.custom.product_tag_image | image_url: width: 112}}"
+        {%endif%}
+      >
+    </div>
+  {%- elsif product.metafields.custom.product_tag_image != blank -%}
+    <div class="product-label-tag product-tag-img">
+      <img
+        {%if from_header == true and header_pc != true %}
+          class="image-lazy-loading header-p-tag-v4"
+        {%endif%}
+        sizes="(max-width: 1023.98px) 112px, 210px"
+        width="{{ product.metafields.custom.product_tag_image.width }}"
+        height="{{ product.metafields.custom.product_tag_image.height }}"
+        alt="jackery product" loading="lazy"
+        {%if from_header == true and header_pc != true %}
+          data-srcset="{{product.metafields.custom.product_tag_image | image_url: width: 112 }} 112w, {{product.metafields.custom.product_tag_image | image_url: width: 150 }} 150w, {{product.metafields.custom.product_tag_image | image_url: width: 210 }} 210w, {{product.metafields.custom.product_tag_image | image_url: width: 420 }} 420w"
+          data-src="{{product.metafields.custom.product_tag_image | image_url: width: 112}}"
+        {%else %}
+          src="{{product.metafields.custom.product_tag_image | image_url: width: 112}}"
+          srcset="{{product.metafields.custom.product_tag_image | image_url: width: 112 }} 112w, {{product.metafields.custom.product_tag_image | image_url: width: 150 }} 150w, {{product.metafields.custom.product_tag_image | image_url: width: 210 }} 210w, {{product.metafields.custom.product_tag_image | image_url: width: 420 }} 420w"
+        {%endif%}
+      >
+    </div>
+  {%- endif -%}
+{%- endif -%}

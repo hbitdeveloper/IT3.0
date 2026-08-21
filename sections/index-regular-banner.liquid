@@ -1,0 +1,230 @@
+
+<div
+  class="index-regular-banner"
+  data-autoplay="{{section.settings.autoplay}}"
+  data-delay="{{section.settings.swiperInterval}}"
+>
+  <section class="w-screen">
+    <div class="swiper-container autoplay-{{section.settings.autoplay}}">
+      <div class="swiper-wrapper">
+        {% comment %} 遍历 {% endcomment %}
+        {% for block in section.blocks %}
+          {% if block.type == 'general' %}
+            <div class="swiper-slide overflow-hidden">
+              <div class="slide-inner flex ">
+                {% assign general = block | where: 'type', 'general' | first %}
+                {% render 'index-general-banner', general: general, new_window: section.settings.new_window, index: forloop.index %}
+              </div>
+            </div>
+          {% else %}
+            <div class="swiper-slide overflow-hidden">
+              <div class="slide-inner flex ">
+                {% assign activity = block | where: 'type', 'activity' | first %}
+                {% render 'index-activity-banner', activity: activity, new_window: section.settings.new_window, index: forloop.index%}
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {% if section.blocks.size > 1 %}
+        <div class="swiper-arrow swiper-button-next"></div>
+        <div class="swiper-arrow swiper-button-prev"></div>
+      {% endif %}
+      <div class="slideshow-pagination"></div>
+    </div>
+  </section>
+</div>
+
+{% schema %}
+{
+  "name": "首页-常规Banner",
+  "disabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Auto Play",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "swiperInterval",
+      "label": "Swiper Interval (Unit: s)",
+      "default": 5,
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "s"
+    },
+
+    { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "general",
+      "name": "普通",
+      "settings": [
+        { "type": "image_picker", "id": "pc_image", "label": "PC图片(必填)", "info": "大小: 1920*800" },
+        { "type": "image_picker", "id": "mb_image", "label": "MB图片(必填)", "info": "大小: 750x1000" },
+        {
+          "type": "header",
+          "content": "图片加载场景配置"
+        },
+        {
+          "type": "select",
+          "id": "load_scene",
+          "label": "图片加载场景",
+          "options": [
+            { "value": "lcp", "label": "首屏关键图（LCP）" },
+            { "value": "default", "label": "普通图（默认）" },
+            { "value": "defer", "label": "次要/延后图" }
+          ],
+          "default": "default",
+        },
+        {
+          "type": "paragraph",
+          "content": "1. 首屏关键图（LCP）:用于首页主 KV、首屏主图"
+        },
+        {
+          "type": "paragraph",
+          "content": "2. 普通图（默认）：用于绝大多数图片（列表、内容图）"
+        },
+        {
+          "type": "paragraph",
+          "content": "3. 次要/延后图（低优先级）：用于轮播非首张、备用图、装饰图"
+        },
+        {
+          "type": "header",
+          "content": "布局与内容配置"
+        },
+        {
+          "type": "select",
+          "id": "pc_position",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "url", "id": "link", "label": "跳转地址(必填)" },
+        { "type": "richtext", "id": "title", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "color", "id": "pc_main_color", "label": "PC主标题文案颜色", "default": "#FFFFFF"},
+        { "type": "richtext", "id": "title-mb", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "mb_main_color", "label": "MB主标题文案颜色", "default": "#FFFFFF"},
+        { "type": "color", "id": "title_main_color", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title", "label": "PC副标题【斜线=文案突出】"},
+        { "type": "color", "id": "pc_sub_main_color", "label": "PC副标题文案颜色", "default": "#FFFFFF" },
+        { "type": "richtext", "id": "mb_sub_title", "label": "MB副标题【斜线=文案突出】"},
+        { "type": "color", "id": "mb_sub_main_color", "label": "MB副标题文案颜色", "default": "#FFFFFF" },
+        { "type": "color", "id": "sub_title_main_color", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text", "label": "按钮文案" },
+        { "type": "color", "id": "button_color", "label": "按钮颜色", "default": "#fd5000" }
+      ]
+    },
+    {
+      "type": "activity",
+      "name": "活动",
+      "settings": [
+        { "type": "image_picker", "id": "pc_image", "label": "PC图片(必填)", "info": "大小: 1920*800" },
+        { "type": "image_picker", "id": "mb_image", "label": "MB图片(必填)", "info": "大小: 750x1000" },
+        {
+          "type": "header",
+          "content": "图片加载场景配置"
+        },
+        {
+          "type": "select",
+          "id": "load_scene",
+          "label": "图片加载场景",
+          "options": [
+            { "value": "lcp", "label": "首屏关键图（LCP）" },
+            { "value": "default", "label": "普通图（默认）" },
+            { "value": "defer", "label": "次要/延后图" }
+          ],
+          "default": "default",
+        },
+        {
+          "type": "paragraph",
+          "content": "1. 首屏关键图（LCP）:用于首页主 KV、首屏主图"
+        },
+        {
+          "type": "paragraph",
+          "content": "2. 普通图（默认）：用于绝大多数图片（列表、内容图）"
+        },
+        {
+          "type": "paragraph",
+          "content": "3. 次要/延后图（低优先级）：用于轮播非首张、备用图、装饰图"
+        },
+        {
+          "type": "header",
+          "content": "布局与内容配置"
+        },
+        {
+          "type": "select",
+          "id": "pc_position",
+          "label": "PC端位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position",
+          "label": "移动端位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "url", "id": "link", "label": "跳转地址(必填)" },
+        { "type": "richtext", "id": "activity_title", "label": "活动名称" },
+        { "type": "color", "id": "activity_title_color", "label": "活动名称颜色", "default": "#FFFFFF" },
+        { "type": "richtext", "id": "title", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "color", "id": "pc_main_color", "label": "PC主标题文案颜色", "default": "#FFFFFF"},
+        { "type": "richtext", "id": "title-mb", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "mb_main_color", "label": "MB主标题文案颜色", "default": "#FFFFFF"},
+        { "type": "color", "id": "title_main_color", "label": "主标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "richtext", "id": "sub_title", "label": "PC副标题【斜线=文案突出】"},
+        { "type": "color", "id": "pc_sub_main_color", "label": "PC副标题文案颜色", "default": "#FFFFFF" },
+        { "type": "richtext", "id": "mb_sub_title", "label": "MB副标题【斜线=文案突出】"},
+        { "type": "color", "id": "mb_sub_main_color", "label": "MB副标题文案颜色", "default": "#FFFFFF" },
+        { "type": "color", "id": "sub_title_main_color", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text", "label": "按钮文案" },
+        { "type": "color", "id": "button_color", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_front_text", "label": "活动文案【斜线=文案突出】"},
+        { "type": "color", "id": "button_front_text_color", "label": "活动文案突出颜色", "default": "#FFFFFF" },
+        { "type": "color_background", "id": "activity_button_color", "label": "活动按钮背景色", "default": "#FFFFFF" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "首页-常规Banner"
+    }
+  ]
+}
+{% endschema %}

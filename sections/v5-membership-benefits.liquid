@@ -1,0 +1,357 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign is_login = false
+  if customer
+    assign is_login = true
+  endif
+-%}
+
+<div
+  class="v5-membership-benefits section-container-lg section-padding flex flex-col lg:flex-row items-stretch gap-6"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  style="{{ style }}"
+>
+  <div class="module-box text-center lg:text-left">
+    <div class="w-[15.3125rem] h-[7.125rem] mx-auto mb-3 lg:mb-[1.375rem]">
+      {% if section.settings.module_img != blank %}
+        <img
+          src="{{ section.settings.module_img | image_url:width:245,height:114 }}"
+          alt="{{ section.settings.module_title }}"
+          width="245"
+          height="114"
+        >
+      {% else %}
+        {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full object-cover' }}
+      {% endif %}
+    </div>
+    <div class="jds-h2 mb-6 lg:mb-10">
+      {% if is_login %}
+        {{ section.settings.module_logined_title }}
+      {% else %}
+        {{ section.settings.module_unlogin_title }}
+      {% endif %}
+    </div>
+    <div class="jds-b2">
+      {% if is_login %}
+        {{ section.settings.module_logined_desc }}
+      {% else %}
+        {{ section.settings.module_unlogin_desc }}
+      {% endif %}
+    </div>
+  </div>
+  {% for item in section.blocks %}
+    <div class="benefits-box benefit-{{ forloop.index }} flex flex-row lg:flex-col items-center px-4 py-6 lg:p-4">
+      <div class="w-24 h-24 lg:w-[17.5rem] lg:h-[13.125rem] mx-auto lg:mb-6 flex-none">
+        {% assign img_alt = item.settings.title | strip_html | default: item.settings.pc_img.alt | default: 'image alt' %}
+        {% render 'diff-end-img',
+          picture_class: '',
+          class: 'benefit-img w-full h-full object-cover',
+          pc_img: item.settings.pc_img,
+          mb_img: item.settings.mb_img,
+          pc_img_width: 280,
+          mb_img_width: 192,
+          placeholder_name: 'hero-apparel-1',
+          alt: img_alt
+        %}
+      </div>
+      <div class="info-box">
+        <div class="jds-h6 mx-4 mb-4">{{ item.settings.title }}</div>
+        <div class="jds-b3 mx-4 lg:mb-6">{{ item.settings.desc }}</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<style>
+  @media (min-width: 1024px) {
+    {% for item in section.blocks %}
+    .v5-membership-benefits .benefit-{{ forloop.index }} {
+      --jds-rte-text-color: {{ item.settings.pc_text_color }};
+      background: {{ item.settings.pc_bg_color }};
+    }
+    {% endfor %}
+  }
+  @media (max-width: 1023.98px) {
+    {% for item in section.blocks %}
+    .v5-membership-benefits .benefit-{{ forloop.index }} {
+      --jds-rte-text-color: {{ item.settings.mb_text_color }};
+      background: {{ item.settings.mb_bg_color }};
+    }
+    {% endfor %}
+  }
+</style>
+
+{% schema %}
+{
+  "name": "V5-会员-权益清单",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "基础配置"
+    },
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "image_picker",
+      "id": "module_img",
+      "label": "图片(245x114)"
+    },
+    {
+      "type": "header",
+      "content": "登录前内容配置"
+    },
+    {
+      "type": "richtext",
+      "id": "module_unlogin_title",
+      "label": "模块标题",
+      "default": "<p>Join to enjoy exclusive benefits</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "module_unlogin_desc",
+      "label": "模块描述",
+      "default": "<p>Join to enjoy exclusive benefits Join to enjoy exclusive benefitsJoin to enjoy exclusive benefitsJoin to enjoy exclusive benefits</p>"
+    },
+    {
+      "type": "header",
+      "content": "登录后内容配置"
+    },
+    {
+      "type": "richtext",
+      "id": "module_logined_title",
+      "label": "模块标题",
+      "default": "<p>Welcome Back, Member!</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "module_logined_desc",
+      "label": "模块描述",
+      "default": "<p>Earn Jackery Points, redeem exclusive benefits. Do something meaningful with Jackery.</p>"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+    {
+      "type": "paragraph",
+      "content": "1. 数值以750px稿即2倍图值为标准进行配置与换算。",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 举例如48px在750px稿上为48px，在375px稿上则为24px。",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 72,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 128,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "会员权益",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "pc_img",
+          "label": "PC端图片(280x210)"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb_img",
+          "label": "移动端图片(192x192)"
+        },
+        {
+          "type": "richtext",
+          "id": "title",
+          "label": "标题"
+        },
+        {
+          "type": "richtext",
+          "id": "desc",
+          "label": "描述"
+        },
+        {
+          "type": "color",
+          "id": "pc_text_color",
+          "label": "PC端文字颜色",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "color_background",
+          "id": "pc_bg_color",
+          "label": "PC端背景颜色",
+          "default": "#242F20"
+        },
+        {
+          "type": "color",
+          "id": "mb_text_color",
+          "label": "移动端文字颜色",
+          "default": "#FFFFFF"
+        },
+        {
+          "type": "color_background",
+          "id": "mb_bg_color",
+          "label": "移动端背景颜色",
+          "default": "#242F20"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-会员-权益清单",
+      "category": "V5",
+      "blocks": [
+        {
+          "type": "benefit",
+          "settings": {
+            "title": "<p>Join Free & Get Rewards</p>",
+            "desc": "<p>Earn welcome points and coupons upon registration. Redeem for gifts, discounts, or gift cards.</p>",
+            "pc_text_color": "#ffffff",
+            "pc_bg_color": "#242F20",
+            "mb_text_color": "#ffffff",
+            "mb_bg_color": "#242F20"
+          }
+        },
+        {
+          "type": "benefit",
+          "settings": {
+            "title": "<p>Member-Only Access & Savings</p>",
+            "desc": "<p>Earn early product access, special pricing, and extra ways to earn and use points.</p>",
+            "pc_text_color": "#242f20",
+            "pc_bg_color": "linear-gradient(270deg, rgba(219, 179, 81, 1), rgba(254, 239, 146, 1) 52.4%, rgba(219, 179, 81, 1) 100%)",
+            "mb_text_color": "#242f20",
+            "mb_bg_color": "linear-gradient(180deg, rgba(223, 185, 88, 1), rgba(250, 232, 139, 1) 51.44%, rgba(223, 185, 88, 1) 100%)"
+          }
+        },
+        {
+          "type": "benefit",
+          "settings": {
+            "title": "<p>Worry-Free Purchase & Priority Care</p>",
+            "desc": "<p>Get enhanced protection, extended warranty, and faster service support.</p>",
+            "pc_text_color": "#ffffff",
+            "pc_bg_color": "#242F20",
+            "mb_text_color": "#ffffff",
+            "mb_bg_color": "#242F20"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

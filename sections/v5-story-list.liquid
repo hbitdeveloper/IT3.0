@@ -1,0 +1,191 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<section
+  class="w-full h-fit section-padding"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{ section.settings.anchor | escape }}"
+  {% endif %}
+  {% if section.settings.belongs_to != blank %}
+    belongs-to-target="{{ section.settings.belongs_to | escape }}"
+  {% endif %}
+  style="background-color: {{section.settings.bg_color | default: '#FFFFFF' }};{{ style }}"
+>
+  <ul class="section-container-lg flex flex-wrap gap-4 lg:gap-x-6 lg:gap-y-10">
+    {%- for block in section.blocks limit: 6 -%}
+      <li class="v5-stort-item focus-zoom-container flex flex-col w-full lg:w-[26.5rem] bg-[#F5F5F3]">
+        <a href="{{ block.settings.link }}">
+          {%- render 'diff-end-img',
+            picture_class: 'shrink-0 w-full h-[15.125rem] lg:h-[15.625rem] overflow-hidden',
+            class: 'w-full h-full focus-zoom object-cover',
+            pc_img: block.settings.pc_img,
+            mb_img: block.settings.mb_img,
+            pc_img_width: 450,
+            mb_img_width: 343
+          -%}
+        </a>
+        <div class="w-full flex-1 flex flex-col justify-between px-4 py-6 gap-y-6">
+          {% comment %} 标签 {% endcomment %}
+          {%- if block.settings.tags != blank -%}
+            <div class="w-full flex flex-wrap gap-4">
+              {% assign tags = block.settings.tags | split: ',' %}
+              {%- for tag in tags limit: 3 -%}
+                <span class="flex items-center justify-center w-fit px-2.5 border border-solid border-[#242F20] text-[#242F20] h-7 font-normal text-xs lg:text-base leading-[1.625rem]">{{ tag | escape }}</span>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+
+          <div class="flex flex-col gap-y-5">
+            {%- if block.settings.title != blank -%}
+              <a href="{{ block.settings.link }}" class="font-semibold text-[#242F20] line-clamp-2 text-base lg:text-xl">
+                {{ block.settings.title | newline_to_br }}
+              </a>
+            {%- endif -%}
+            {%- if block.settings.subtitle != blank -%}
+              <p class="font-normal text-[#242F20]/90 text-sm lg:text-base line-clamp-2">{{ block.settings.subtitle | newline_to_br }}</p>
+            {%- endif -%}
+          </div>
+
+          {%- liquid
+            assign show_read_btn = false
+            if block.settings.read_time != blank and block.settings.link != blank
+              assign show_read_btn = true
+            endif
+          -%}
+          {%- if block.settings.read_time != blank or show_read_btn -%}
+            <div class="w-full flex items-center justify-between mt-2 h-9">
+              {%- if block.settings.read_time != blank -%}
+                <span class="w-fit max-w-[30%] flex font-normal text-base text-[#818181] overflow-hidden">{{ block.settings.read_time | escape }}</span>
+              {%- endif -%}
+              {%- if show_read_btn -%}
+                <a href="{{ block.settings.link }}" class="w-fit max-w-[60%] flex items-center justify-center place-content-center place-content-center appearance-none bg-transparent border-[#242F20] border-solid border h-9 leading-[2.125rem] font-semibold text-[#242F20] text-base px-6 line-clamp-1 hover:text-white hover:bg-[#242F20] visited:text-[#242F20] visited:bg-transparent">{{ section.settings.read_btn_text | escape }}</a>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </li>
+    {%- endfor -%}
+  </ul>
+
+  {%- if section.settings.view_all_link != blank and section.settings.view_all_btn_text != blank -%}
+    <div class="w-full flex items-center justify-center mt-3 lg:mt-10">
+      <a href="{{ section.settings.view_all_link }}" class="w-fit flex items-baseline gap-x-1 lg:gap-x-2">
+        <span class="font-semibold text-primary text-xs lg:text-xl">{{ section.settings.view_all_btn_text | escape }}</span>
+        <svg class="text-primary w-3.5 h-3.5 lg:w-4 lg:h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g clip-path="url(#clip0_4559_7516)">
+            <path d="M-1 9.25H11.2422" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M8.49219 3L14.7419 9.24976L8.49219 15.4995" stroke="currentColor" stroke-width="1.6"/>
+          </g>
+          <defs>
+            <clipPath id="clip0_4559_7516">
+              <rect width="16" height="16" fill="white"/>
+            </clipPath>
+          </defs>
+        </svg>
+      </a>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "V5-推荐故事（集合）",
+  "enabled_on": {
+    "templates": ["product", "page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示"
+    },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 96 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 96 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#FFFFFF" },
+
+    { "type": "header", "content": "图文卡片通用设置" },
+    { "type": "text", "id": "read_btn_text", "label": "阅读按钮文案", "default": "Read" },
+
+    { "type": "header", "content": "View All配置" },
+    { "type": "text", "id": "view_all_btn_text", "label": "View All按钮文案", "default": "View All" },
+    { "type": "url", "id": "view_all_link", "label": "View All跳转链接"  }
+  ],
+  "blocks": [
+    {
+      "name": "图文卡片",
+      "type": "item",
+      "limit": 6,
+      "settings": [
+        { "type": "image_picker", "id": "pc_img", "label": "PC端图片", "info": "推荐尺寸: 424x250" },
+        { "type": "image_picker", "id": "mb_img", "label": "MB端图片", "info": "推荐尺寸: 686x484" },
+        { "type": "textarea", "id": "tags", "label": "标签", "default": "Tag1, Tag2, Tag3", "info": "多个标签之间用逗号隔开，最多支持3个" },  
+        { "type": "textarea", "id": "title", "label": "标题", "default": "How Sarah Secured His Home with Reliable Backup Power" },
+        { "type": "textarea", "id": "subtitle", "label": "副标题", "default": "Billy smiles when he talks about it. “It’s the best of both worlds,” " },
+        { "type": "text", "id": "read_time", "label": "阅读预估时长", "default": "10 min" },
+        { "type": "url", "id": "link", "label": "卡片跳转链接" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-推荐故事（集合）",
+      "category": "V5.0",
+      "blocks": [
+        { "type": "item" },
+        { "type": "item" },
+        { "type": "item" },
+        { "type": "item" },
+        { "type": "item" },
+        { "type": "item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

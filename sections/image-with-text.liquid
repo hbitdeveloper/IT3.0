@@ -1,0 +1,200 @@
+<style>
+  .image-banner {
+      overflow: hidden;
+  }
+  .image-banner-bg {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      animation-name: scale-in;
+      animation-duration: 2s;
+  }
+
+  .image-banner .image-banner-content {
+      left: 50%;
+      transform: translateX(-50%);
+      top: 140px;
+      bottom: 130px;
+  }
+  .image-banner-title {
+      color: #fff;
+  }
+  .image-banner-subtitle {
+      max-width: 800px;
+      color: #fff;
+      margin: 9px 0 15px 0;
+      font-weight: 400;
+  }
+  .image-banner-content.top-right {
+      align-items: flex-end;
+      text-align: right;
+  }
+  .image-banner-content.top-left {
+      align-items: flex-start;
+      text-align: left;
+  }
+  .image-banner-content.top-center {
+      align-items: center;
+      text-align: center;
+  }
+  .image-banner-content.middle-center {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+  }
+  .image-banner-content.middle-right {
+      align-items: flex-end;
+      justify-content: center;
+      text-align: right;
+  }
+  .image-banner-content.middle-left {
+      align-items: flex-start;
+      justify-content: center;
+      text-align: left;
+  }
+  .image-banner-content.bottom-center {
+      align-items: center;
+      justify-content: end;
+      text-align: center;
+  }
+  .image-banner-content.bottom-left {
+      align-items: flex-start;
+      justify-content: end;
+      text-align: left;
+  }
+  .image-banner-content.bottom-right {
+      align-items: flex-end;
+      justify-content: end;
+      text-align: right;
+  }
+
+
+  @media screen and (max-width: 1920px) {
+      .image-banner .image-banner-content {
+          top: 7.3vw;
+          bottom: 7.3vw;
+      }
+  }
+
+  @media screen and (max-width: 768px) {
+      .image-banner .image-banner-content {
+          top: 15vw;
+          bottom: 15vw;
+      }
+      .image-banner-subtitle {
+          max-width: 100%;
+          margin: 5.8vw 0 3.5vw;
+      }
+
+      .image-banner-content.top-right, .image-banner-content.top-left {
+          align-items: center;
+          text-align: center;
+      }
+
+      .image-banner-content.middle-right, .image-banner-content.middle-left {
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+      }
+
+      .image-banner-content.bottom-center, .image-banner-content.bottom-left, .image-banner-content.bottom-right {
+          align-items: center;
+          justify-content: end;
+          text-align: center;
+      }
+  }
+</style>
+<div class="image-banner relative">
+    {%-liquid
+        assign is_lcp = false
+        if section.index < 2
+            assign is_lcp = true
+        endif
+    -%}
+    {%- 
+      render 'responsive-image', 
+      image: section.settings.image, 
+      image_class: 'image-banner-bg', 
+      mimage: section.settings.m_image, 
+      fcp: is_lcp
+    -%}
+
+    <div class="section-container image-banner-content absolute flex flex-col {{ section.settings.desktop_content_position }}">
+        <div class="image-banner-title font-bold jky-text-3xl {% if settings.jky_theme_version != 'v4' %}v5-font-oxm{% endif %}" style="{% if section.settings.color != blank %}color: {{section.settings.color}} {% endif %}">{{section.settings.title | newline_to_br}}</div>
+
+        {% if section.settings.subtitle != blank %}
+            <div class="image-banner-subtitle jky-text-sm" style="{% if section.settings.color != blank %}color: {{section.settings.color}} {% endif %}">{{section.settings.subtitle | newline_to_br}}</div>
+        {% endif %}
+
+        {% if section.settings.banner_link != blank %}
+            <a class="a-button-fill active" href="{{section.settings.banner_link}}">{{section.settings.banner_link_text}} <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-base"></jds-icon></a>
+        {% endif %}
+    </div>
+</div>
+
+{% schema %}
+{
+  "name": "Image banner",
+  "tag": "section",
+  "class": "section image-banner-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "desktop_content_position",
+      "options": [
+        {
+          "value": "top-left",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__1.label"
+        },
+        {
+          "value": "top-center",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__2.label"
+        },
+        {
+          "value": "top-right",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__3.label"
+        },
+        {
+          "value": "middle-left",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__4.label"
+        },
+        {
+          "value": "middle-center",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__5.label"
+        },
+        {
+          "value": "middle-right",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__6.label"
+        },
+        {
+          "value": "bottom-left",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__7.label"
+        },
+        {
+          "value": "bottom-center",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__8.label"
+        },
+        {
+          "value": "bottom-right",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__9.label"
+        }
+      ],
+      "default": "top-right",
+      "label": "t:sections.image-banner.settings.desktop_content_position.label"
+    },
+    {"type": "image_picker", "id": "image", "label": "PC Image banner"},
+    {"type": "image_picker", "id": "m_image", "label": "Mobile Image banner"},
+    {"type": "textarea", "id": "title", "label": "Banner title", "default": "Indoor backup"},
+    {"type": "textarea", "id": "subtitle", "label": "Banner Heading", "default": "Adapters, cables, connectors, carrying case\nbags- all the Jackery accessories you want are here!"},
+    { "type": "color", "id": "color", "label": "Banner text color", "default": "#ffffff" },
+
+    {
+      "type": "url",
+      "id": "banner_link",
+      "label": "Banner Link"
+    },
+    {"type": "text", "id": "banner_link_text", "label": "Banner Link Text", "default": "VIEW MORE"}
+  ],
+  "blocks": []
+}
+{% endschema %}

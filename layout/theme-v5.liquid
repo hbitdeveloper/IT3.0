@@ -1,0 +1,47 @@
+<!doctype html>
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+  <head>
+    {% render 'head-title' %}
+    {% comment %} 公共head代码 {% endcomment %}
+    {% render 'common-head' %}
+    {{ content_for_header }}
+    <style>:root{--primary-color:#FD5000 !important;}
+      jds-button.disable-on-hover[variant="secondary"]:hover::part(button) {
+        background-color: transparent;
+      }</style>
+  </head>
+
+  {%- liquid
+    # 匹配主题类名
+    assign body_class = ''
+    assign jky_theme_version = settings.jky_theme_version | default: 'v4'
+    if jky_theme_version == 'v5-eu'
+      assign body_class = 'jky-v5 jky-v5-eu'
+    else
+      assign body_class = 'jky-' | append: jky_theme_version
+    endif
+  -%}
+  <body class="gradient {{body_class}}">
+    {% comment %} 全局公共 顶部内容区 {% endcomment %}
+    {% render 'v5-global-header-content' %}
+
+    {% comment %} 全局公共 顶部内容区 {% endcomment %}
+    {%- if settings.use_v5_header == true -%} 
+      <header-v5 style="z-index: 100;" class="block sticky top-0">
+        {% sections 'header-group' %}
+      </header-v5>
+    {%- endif -%}
+
+    <main
+      id="MainContent"
+      class="content-for-layout focus-none"
+      role="main"
+      tabindex="-1"
+    >
+      {{ content_for_layout }}
+    </main>
+
+    {% comment %} 全局公共 底部内容区 {% endcomment %}
+    {% render 'v5-global-footer-content' %}
+  </body>
+</html>

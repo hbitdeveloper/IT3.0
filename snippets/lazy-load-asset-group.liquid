@@ -1,0 +1,111 @@
+{%- liquid
+  assign lazy_script = script | default: blank
+  assign lazy_style = style | default: blank
+  assign lazy_root_selector = root_selector | default: blank
+  assign lazy_strategy = strategy | default: 'visible'
+  assign lazy_root_margin = root_margin | default: '200px 0px'
+  assign lazy_delay = delay | default: 1200
+-%}
+<script>
+  (function() {
+    if (!window.__jkyLazyAssetLoader) {
+      const scriptPromises = new Map();
+      const loadedStyles = new Set();
+
+      function loadStyle(href) {
+        if (!href || loadedStyles.has(href) || document.querySelector('link[href="' + href + '"]')) {
+          return;
+        }
+
+        loadedStyles.add(href);
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+      }
+
+      function loadScript(src) {
+        if (!src) return Promise.resolve();
+
+        if (scriptPromises.has(src)) {
+          return scriptPromises.get(src);
+        }
+
+        const existingScript = document.querySelector('script[src="' + src + '"]');
+        if (existingScript) {
+          const existingPromise = Promise.resolve();
+          scriptPromises.set(src, existingPromise);
+          return existingPromise;
+        }
+
+        const promise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load script: ' + src));
+          document.body.appendChild(script);
+        });
+
+        scriptPromises.set(src, promise);
+        return promise;
+      }
+
+      function runWhenIdle(callback, delay) {
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(callback, { timeout: delay || 1200 });
+          return;
+        }
+
+        const schedule = () => window.setTimeout(callback, delay || 1200);
+        if (document.readyState === 'complete') {
+          schedule();
+        } else {
+          window.addEventListener('load', schedule, { once: true });
+        }
+      }
+
+      function loadGroup(config) {
+        if (!config || config.loaded) return;
+        config.loaded = true;
+        loadStyle(config.styleHref);
+        loadScript(config.scriptSrc);
+      }
+
+      window.__jkyLazyAssetLoader = function(config) {
+        if (!config) return;
+
+        if (config.strategy === 'idle') {
+          runWhenIdle(() => loadGroup(config), config.delay);
+          return;
+        }
+
+        const target = config.rootSelector ? document.querySelector(config.rootSelector) : null;
+        if (!target || !('IntersectionObserver' in window)) {
+          runWhenIdle(() => loadGroup(config), config.delay);
+          return;
+        }
+
+        const observer = new IntersectionObserver((entries, obs) => {
+          const visibleEntry = entries.find((entry) => entry.isIntersecting);
+          if (!visibleEntry) return;
+          obs.disconnect();
+          loadGroup(config);
+        }, {
+          rootMargin: config.rootMargin || '200px 0px'
+        });
+
+        observer.observe(target);
+      };
+    }
+
+    window.__jkyLazyAssetLoader({
+      scriptSrc: {% if lazy_script != blank %}{{ lazy_script | asset_url | json }}{% else %}null{% endif %},
+      styleHref: {% if lazy_style != blank %}{{ lazy_style | asset_url | json }}{% else %}null{% endif %},
+      rootSelector: {% if lazy_root_selector != blank %}{{ lazy_root_selector | json }}{% else %}null{% endif %},
+      strategy: {{ lazy_strategy | json }},
+      rootMargin: {{ lazy_root_margin | json }},
+      delay: {{ lazy_delay | json }}
+    });
+  })();
+</script>

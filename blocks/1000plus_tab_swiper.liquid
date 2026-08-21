@@ -1,0 +1,116 @@
+<style>
+
+    @media screen and (min-width: 1024px) {
+        {% if block.settings.is_full_width %}
+            #shopify-block-{{ block.id }} .swiper-slide {
+                width: 82.5rem;
+            }
+
+        {% endif %}
+    }
+
+</style>
+
+{% liquid
+    assign swiper_arrow_class = 'swiper-arrow inline-block !w-[1.875rem] !h-[1.875rem] text-[#111111] lg:!w-[2.5rem] lg:!h-[2.5rem] lg:translate-y-[-50%]'
+    assign mb_left_arrow_class = 'mb-swiper-button-prev left-0 ' | append: swiper_arrow_class
+    assign mb_right_arrow_class = 'mb-swiper-button-next right-0 ' | append: swiper_arrow_class
+
+    assign pc_swiper_arrow_base_class = 'pc-arrow absolute top-2/4 z-10 '
+    assign pc_left_arrow_class = 'hidden lg:block pc-swiper-button-prev left-[6.25rem] ' | append: pc_swiper_arrow_base_class | append: swiper_arrow_class
+    assign pc_right_arrow_class = 'hidden lg:block pc-swiper-button-next right-[6.25rem] ' | append: pc_swiper_arrow_base_class | append: swiper_arrow_class
+
+
+    assign total = block.blocks.size
+%}
+
+<div class="full tab-swiper-1000plus mt-[1.5rem] lg:ml-0 {% if total > 1 %} ml-[0.5rem] {% endif %}"
+     id="{{ block.id }}">
+    <div class="swiper">
+        <div class="swiper-wrapper">
+            {% content_for 'blocks' %}
+        </div>
+
+        {% if total > 1 %}
+            {%- render 'v5-icon-arrow-left', class: pc_left_arrow_class -%}
+            {%- render 'v5-icon-arrow-right', class: pc_right_arrow_class -%}
+
+            <div class="slideshow-pagination !relative !bottom-0"></div>
+
+            <div class="flex justify-between lg:hidden mt-[1.5rem] w-[4.875rem] h-[2rem] mx-auto">
+                {%- render 'v5-icon-arrow-left', class: mb_left_arrow_class -%}
+                {%- render 'v5-icon-arrow-right', class: mb_right_arrow_class -%}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script type="module">
+    const areSlides = Number('{{ total }}') > 1;
+    const baseConfig = {
+        centeredSlides: true,
+        nextEl: `#{{ block.id }} .pc-swiper-button-next`,
+        prevEl: `#{{ block.id }} .pc-swiper-button-prev`,
+    };
+
+    if (window.innerWidth < 1024) {
+        baseConfig.centeredSlides = false;
+        baseConfig.nextEl = `#{{ block.id }} .mb-swiper-button-next`;
+        baseConfig.prevEl = `#{{ block.id }} .mb-swiper-button-prev`;
+    }
+
+    new Swiper("#{{ block.id }} .swiper", {
+        slidesPerView: 'auto',
+        lazy: {
+            loadPrevNext: true,
+            loadOnTransitionStart: true,
+            loadPrevNextAmount: 2
+        },
+        spaceBetween: 8,
+        loop: areSlides,
+        centeredSlides: !areSlides || baseConfig.centeredSlides,
+        breakpoints: {
+            768: {
+                spaceBetween: 16
+            },
+            1024: {
+                spaceBetween: 24
+            }
+        },
+        navigation: {
+            nextEl: baseConfig.nextEl,
+            prevEl: baseConfig.prevEl,
+        },
+    });
+</script>
+
+
+{% schema %}
+{
+  "name": "V5-1000plus Tab轮播",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "is_full_width",
+      "label": "是否铺满100%",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "_1000plus_tab_swiper_slide"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-1000plus Tab轮播",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "_1000plus_tab_swiper_slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

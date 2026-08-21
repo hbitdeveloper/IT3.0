@@ -1,0 +1,800 @@
+<style>
+  .content-for-layout {
+    padding-top: 0 !important;
+  }
+  .template-search .field{
+    display: flex;
+    border-radius: 0;
+    border: 1px solid #E8E8E5;
+  }
+  .template-search .search__input {
+    padding: 0.75rem 1rem 0.75rem 3.25rem;
+  }
+  .search__button {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    outline: none;
+    border: none;
+    padding: 0;
+    height: 1.5rem;
+  }
+  .search__button svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+  }
+  .v5-search-type-underlines {
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+    width: max-content;
+  }
+  .v5-search-type-underlines::after {
+    border-bottom: 3px solid #242F20;
+    bottom: -4px;
+    content: '';
+    left: 0;
+    position: absolute;
+    width: 0%;
+  }
+  .v5-search-type-underlines.active {
+    color: #242F20;
+  }
+  .v5-search-type-underlines.active::after {
+    width: 100%;
+  }
+  .template-search .recommend-search-list{
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background-color: #fff;
+    border: 1px solid #E8E8E5;
+    border-top: 0;
+  }
+  .template-search .v5-pii-warning {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: #f72626;
+  }
+  .template-search__results-ul[data-prepaginate='true'][data-initial-type='article'] > :nth-child(n + 5) {
+    display: none;
+  }
+  @media screen and (max-width: 1023.98px) {
+    .v5-search-support-wrap {
+      width: calc(100% + 2rem);
+      margin-left: -1rem;
+    }
+    .v5-search-support-wrap ul {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .v5-search-support-wrap ul::-webkit-scrollbar {
+      display: none;
+    }
+  }
+</style>
+
+{%- liquid
+  assign sort_by = search.sort_by | default: search.default_sort_by
+  assign terms = search.terms | escape
+  assign has_terms = false
+  if search.terms != blank
+    assign has_terms = true
+  endif
+  assign page_url_with_host = content_for_header | split:'"pageurl":"' | last | split:'"' | first | replace:'\/','/' | replace:'%20',' ' | replace:'\u0026','&'
+  assign page_query_string = ''
+  assign query_type = ''
+  assign query_p = ''
+  assign query_page = ''
+  if page_url_with_host contains '?'
+    assign page_query_string = page_url_with_host | split:'?' | last
+    assign page_query_parts = page_query_string | split:'&'
+    for query_part in page_query_parts
+      assign query_pair = query_part | split:'='
+      assign query_key = query_pair | first
+      assign query_value = query_pair | last
+      if query_key == 'type'
+        assign query_type = query_value
+      elsif query_key == 'p'
+        assign query_p = query_value
+      elsif query_key == 'page'
+        assign query_page = query_value
+      endif
+    endfor
+  endif
+  assign initial_type = query_type | default: request.params.type | default: 'product'
+
+  assign search_check_pii_enable = settings.search_check_pii_enable | default: false
+  assign search_pii_sensitive_info = settings.search_pii_sensitive_info | default: 'Sensitive information detected. Please search using product names or keywords.'
+  assign search_terms_sort_lc = search.terms | default: '' | downcase | strip
+  assign search_terms_sort_compact = search_terms_sort_lc | replace: '-', '' | replace: ' ', ''
+  assign search_terms_words = search_terms_sort_lc | split: ' '
+  assign search_terms_word_count = search_terms_words.size
+  assign search_terms_tail_compact = ''
+  if search_terms_word_count > 1
+    assign search_terms_second_last_index = search_terms_word_count | minus: 2
+    assign search_terms_second_last_word = search_terms_words[search_terms_second_last_index]
+    assign search_terms_last_word = search_terms_words | last
+    assign search_terms_tail_compact = search_terms_second_last_word | append: search_terms_last_word | replace: '-', '' | replace: ' ', ''
+  endif
+  assign product_page_size = 6
+  assign current_product_page = query_p | default: query_page | default: request.params.p | default: request.params.page | default: 1 | plus: 0
+  if current_product_page < 1
+    assign current_product_page = 1
+  endif
+  assign initial_current_page = current_product_page
+  assign product_render_start = current_product_page | minus: 1 | times: product_page_size | plus: 1
+  assign product_render_end = current_product_page | times: product_page_size
+  assign product_results_count = 0
+  assign article_results_count = 0
+  assign initial_count_total = search.results_count
+  assign initial_page_size = 4
+  assign initial_total_pages = 0
+
+  assign first_product_lcp_img = blank
+  assign first_product_sorted_lcp_img = blank
+  assign first_product_unsorted_lcp_img = blank
+  assign first_product_sorted_score = 999
+  assign first_article_lcp_img = blank
+  assign product_linear_handles = ''
+  assign product_rank_0_handles = ''
+  assign product_rank_1_handles = ''
+  assign product_rank_2_handles = ''
+  assign product_rank_3_handles = ''
+  assign product_rank_4_handles = ''
+  assign product_rank_5_handles = ''
+  assign product_rank_6_handles = ''
+  assign product_rank_7_handles = ''
+  assign product_rank_0_exact_handles = ''
+  assign product_rank_1_exact_handles = ''
+  assign product_rank_2_exact_handles = ''
+  assign product_rank_3_exact_handles = ''
+  assign product_rank_4_exact_handles = ''
+  assign product_rank_5_exact_handles = ''
+  assign product_rank_6_exact_handles = ''
+  assign product_rank_7_exact_handles = ''
+  assign product_rank_0_partial_handles = ''
+  assign product_rank_1_partial_handles = ''
+  assign product_rank_2_partial_handles = ''
+  assign product_rank_3_partial_handles = ''
+  assign product_rank_4_partial_handles = ''
+  assign product_rank_5_partial_handles = ''
+  assign product_rank_6_partial_handles = ''
+  assign product_rank_7_partial_handles = ''
+  assign product_rank_0_phrase_handles = ''
+  assign product_rank_1_phrase_handles = ''
+  assign product_rank_2_phrase_handles = ''
+  assign product_rank_3_phrase_handles = ''
+  assign product_rank_4_phrase_handles = ''
+  assign product_rank_5_phrase_handles = ''
+  assign product_rank_6_phrase_handles = ''
+  assign product_rank_7_phrase_handles = ''
+  assign product_results_json_entries = ''
+  assign current_page_product_handles_str = ''
+-%}
+{% paginate search.results by 250 %}
+  {%- if search.performed and has_terms and search.results_count > 0 -%}
+    {%- for item in search.results -%}
+      {%- if item.object_type == 'product' -%}
+        {%- assign product_results_count = product_results_count | plus: 1 -%}
+        {%- assign product_linear_handles = product_linear_handles | append: item.handle | append: ',' -%}
+        {%- assign product_title_lc = item.title | downcase -%}
+        {%- assign product_handle_lc = item.handle | downcase -%}
+        {%- assign product_title_compact = product_title_lc | replace: '-', '' | replace: ' ', '' -%}
+        {%- assign product_handle_compact = product_handle_lc | replace: '-', '' | replace: ' ', '' -%}
+
+        {%- assign current_product_is_kit = false -%}
+        {%- if product_title_lc contains 'solar generator' or product_title_lc contains 'solar-generator' -%}
+          {%- assign current_product_is_kit = true -%}
+        {%- endif -%}
+
+        {%- assign current_product_is_refurbished = false -%}
+        {%- if product_title_lc contains 'refurbished' or product_handle_lc contains 'refurbished' -%}
+          {%- assign current_product_is_refurbished = true -%}
+        {%- endif -%}
+
+        {%- assign current_product_is_add_on = false -%}
+        {%- if product_title_lc contains 'add-on' or product_title_lc contains 'addon' or product_title_lc contains 'add on' or product_handle_lc contains 'addon' or product_handle_lc contains 'add-on' -%}
+          {%- assign current_product_is_add_on = true -%}
+        {%- endif -%}
+
+        {%- assign current_product_is_series = false -%}
+        {%- if product_title_lc contains 'series' or product_handle_lc contains 'series' -%}
+          {%- assign current_product_is_series = true -%}
+        {%- endif -%}
+
+        {%- assign current_product_has_jackery = false -%}
+        {%- if product_title_lc contains 'jackery' or product_handle_lc contains 'jackery' -%}
+          {%- assign current_product_has_jackery = true -%}
+        {%- endif -%}
+
+        {%- assign current_product_sort_group = 1 -%}
+        {%- if current_product_is_kit -%}
+          {%- assign current_product_sort_group = 0 -%}
+        {%- elsif current_product_is_refurbished -%}
+          {%- assign current_product_sort_group = 2 -%}
+        {%- elsif current_product_is_add_on -%}
+          {%- assign current_product_sort_group = 3 -%}
+        {%- elsif current_product_is_series -%}
+          {%- assign current_product_sort_group = 4 -%}
+        {%- endif -%}
+
+        {%- assign current_product_sort_available = 1 -%}
+        {%- if item.available -%}
+          {%- assign current_product_sort_available = 0 -%}
+        {%- endif -%}
+
+        {%- assign current_product_sort_has_jackery = 1 -%}
+        {%- if current_product_has_jackery -%}
+          {%- assign current_product_sort_has_jackery = 0 -%}
+        {%- endif -%}
+
+        {%- if item.featured_media != blank -%}
+          {%- assign product_img_url = item.featured_media | image_url: width: 332 -%}
+          {%- if first_product_unsorted_lcp_img == blank -%}
+            {%- assign first_product_unsorted_lcp_img = product_img_url -%}
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- assign current_product_rank = 999 -%}
+        {%- if current_product_sort_group == 0 -%}
+          {%- assign current_product_rank = 0 -%}
+        {%- elsif current_product_sort_group == 1 -%}
+          {%- if current_product_sort_available == 0 -%}
+            {%- if current_product_sort_has_jackery == 0 -%}
+              {%- assign current_product_rank = 1 -%}
+            {%- else -%}
+              {%- assign current_product_rank = 2 -%}
+            {%- endif -%}
+          {%- elsif current_product_sort_has_jackery == 0 -%}
+            {%- assign current_product_rank = 3 -%}
+          {%- else -%}
+            {%- assign current_product_rank = 4 -%}
+          {%- endif -%}
+        {%- elsif current_product_sort_group == 2 -%}
+          {%- assign current_product_rank = 5 -%}
+        {%- elsif current_product_sort_group == 3 -%}
+          {%- assign current_product_rank = 6 -%}
+        {%- elsif current_product_sort_group == 4 -%}
+          {%- assign current_product_rank = 7 -%}
+        {%- endif -%}
+
+        {%- assign current_product_match_priority = 3 -%}
+        {%- if search_terms_sort_lc != blank -%}
+          {%- if search_terms_sort_compact != blank -%}
+            {%- if product_title_compact contains search_terms_sort_compact or product_handle_compact contains search_terms_sort_compact -%}
+              {%- assign current_product_match_priority = 0 -%}
+            {%- endif -%}
+          {%- endif -%}
+          {%- if current_product_match_priority != 0 -%}
+            {%- if search_terms_tail_compact != blank -%}
+              {%- if product_title_compact contains search_terms_tail_compact or product_handle_compact contains search_terms_tail_compact -%}
+                {%- assign current_product_match_priority = 1 -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endif -%}
+          {%- if current_product_match_priority == 3 -%}
+            {%- if product_title_lc contains search_terms_sort_lc or product_handle_lc contains search_terms_sort_lc -%}
+              {%- assign current_product_match_priority = 2 -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endif -%}
+        {%- assign current_product_sort_score = current_product_match_priority | times: 10 | plus: current_product_rank -%}
+
+        {%- if current_product_match_priority == 0 -%}
+          {%- case current_product_rank -%}
+            {%- when 0 -%}
+              {%- assign product_rank_0_exact_handles = product_rank_0_exact_handles | append: item.handle | append: ',' -%}
+            {%- when 1 -%}
+              {%- assign product_rank_1_exact_handles = product_rank_1_exact_handles | append: item.handle | append: ',' -%}
+            {%- when 2 -%}
+              {%- assign product_rank_2_exact_handles = product_rank_2_exact_handles | append: item.handle | append: ',' -%}
+            {%- when 3 -%}
+              {%- assign product_rank_3_exact_handles = product_rank_3_exact_handles | append: item.handle | append: ',' -%}
+            {%- when 4 -%}
+              {%- assign product_rank_4_exact_handles = product_rank_4_exact_handles | append: item.handle | append: ',' -%}
+            {%- when 5 -%}
+              {%- assign product_rank_5_exact_handles = product_rank_5_exact_handles | append: item.handle | append: ',' -%}
+            {%- when 6 -%}
+              {%- assign product_rank_6_exact_handles = product_rank_6_exact_handles | append: item.handle | append: ',' -%}
+            {%- else -%}
+              {%- assign product_rank_7_exact_handles = product_rank_7_exact_handles | append: item.handle | append: ',' -%}
+          {%- endcase -%}
+        {%- elsif current_product_match_priority == 1 -%}
+          {%- case current_product_rank -%}
+            {%- when 0 -%}
+              {%- assign product_rank_0_partial_handles = product_rank_0_partial_handles | append: item.handle | append: ',' -%}
+            {%- when 1 -%}
+              {%- assign product_rank_1_partial_handles = product_rank_1_partial_handles | append: item.handle | append: ',' -%}
+            {%- when 2 -%}
+              {%- assign product_rank_2_partial_handles = product_rank_2_partial_handles | append: item.handle | append: ',' -%}
+            {%- when 3 -%}
+              {%- assign product_rank_3_partial_handles = product_rank_3_partial_handles | append: item.handle | append: ',' -%}
+            {%- when 4 -%}
+              {%- assign product_rank_4_partial_handles = product_rank_4_partial_handles | append: item.handle | append: ',' -%}
+            {%- when 5 -%}
+              {%- assign product_rank_5_partial_handles = product_rank_5_partial_handles | append: item.handle | append: ',' -%}
+            {%- when 6 -%}
+              {%- assign product_rank_6_partial_handles = product_rank_6_partial_handles | append: item.handle | append: ',' -%}
+            {%- else -%}
+              {%- assign product_rank_7_partial_handles = product_rank_7_partial_handles | append: item.handle | append: ',' -%}
+          {%- endcase -%}
+        {%- elsif current_product_match_priority == 2 -%}
+          {%- case current_product_rank -%}
+            {%- when 0 -%}
+              {%- assign product_rank_0_phrase_handles = product_rank_0_phrase_handles | append: item.handle | append: ',' -%}
+            {%- when 1 -%}
+              {%- assign product_rank_1_phrase_handles = product_rank_1_phrase_handles | append: item.handle | append: ',' -%}
+            {%- when 2 -%}
+              {%- assign product_rank_2_phrase_handles = product_rank_2_phrase_handles | append: item.handle | append: ',' -%}
+            {%- when 3 -%}
+              {%- assign product_rank_3_phrase_handles = product_rank_3_phrase_handles | append: item.handle | append: ',' -%}
+            {%- when 4 -%}
+              {%- assign product_rank_4_phrase_handles = product_rank_4_phrase_handles | append: item.handle | append: ',' -%}
+            {%- when 5 -%}
+              {%- assign product_rank_5_phrase_handles = product_rank_5_phrase_handles | append: item.handle | append: ',' -%}
+            {%- when 6 -%}
+              {%- assign product_rank_6_phrase_handles = product_rank_6_phrase_handles | append: item.handle | append: ',' -%}
+            {%- else -%}
+              {%- assign product_rank_7_phrase_handles = product_rank_7_phrase_handles | append: item.handle | append: ',' -%}
+          {%- endcase -%}
+        {%- else -%}
+          {%- case current_product_rank -%}
+            {%- when 0 -%}
+              {%- assign product_rank_0_handles = product_rank_0_handles | append: item.handle | append: ',' -%}
+            {%- when 1 -%}
+              {%- assign product_rank_1_handles = product_rank_1_handles | append: item.handle | append: ',' -%}
+            {%- when 2 -%}
+              {%- assign product_rank_2_handles = product_rank_2_handles | append: item.handle | append: ',' -%}
+            {%- when 3 -%}
+              {%- assign product_rank_3_handles = product_rank_3_handles | append: item.handle | append: ',' -%}
+            {%- when 4 -%}
+              {%- assign product_rank_4_handles = product_rank_4_handles | append: item.handle | append: ',' -%}
+            {%- when 5 -%}
+              {%- assign product_rank_5_handles = product_rank_5_handles | append: item.handle | append: ',' -%}
+            {%- when 6 -%}
+              {%- assign product_rank_6_handles = product_rank_6_handles | append: item.handle | append: ',' -%}
+            {%- else -%}
+              {%- assign product_rank_7_handles = product_rank_7_handles | append: item.handle | append: ',' -%}
+          {%- endcase -%}
+        {%- endif -%}
+
+        {%- if item.featured_media != blank and current_product_sort_score < first_product_sorted_score -%}
+          {%- assign first_product_sorted_score = current_product_sort_score -%}
+          {%- assign first_product_sorted_lcp_img = product_img_url -%}
+        {%- endif -%}
+
+        {%- capture product_price_html -%}
+          {%- render 'v5-price', product: item -%}
+        {%- endcapture -%}
+        {%- capture current_product_json_entry -%}
+          {
+            "id": {{ item.id | json }},
+            "handle": {{ item.handle | json }},
+            "available": {{ item.available | json }},
+            "is_kit": {% if current_product_is_kit %}true{% else %}false{% endif %},
+            "sort_rank": {{ current_product_rank | json }},
+            "sort_match_priority": {{ current_product_match_priority | json }},
+            "title": {{ item.title | json }},
+            "feature_text": {{ item.metafields.custom.product_features_info | metafield_tag | strip_html | strip_newlines | strip | json }},
+            "image_url": {%- if item.featured_media != blank -%}{{ item.featured_media | image_url: width: 332 | json }}{%- else -%}"https://cdn.shopify.com/s/files/1/0550/0524/9633/files/placeholder.png"{%- endif -%},
+            "image_alt": {{ item.featured_media.alt | default: item.title | json }},
+            "url": {{ item.url | json }},
+            "price_html": {{ product_price_html | strip | json }}
+          }
+        {%- endcapture -%}
+        {%- if product_results_json_entries != blank -%}
+          {%- assign product_results_json_entries = product_results_json_entries | append: ',' -%}
+        {%- endif -%}
+        {%- assign product_results_json_entries = product_results_json_entries | append: current_product_json_entry | strip -%}
+      {%- endif -%}
+
+      {%- if first_article_lcp_img == blank and item.object_type == 'article' and item.image != blank -%}
+        {%- assign first_article_lcp_img = item.image | image_url: width: 424 -%}
+      {%- endif -%}
+      {%- if item.object_type == 'article' -%}
+        {%- assign article_results_count = article_results_count | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if section.settings.enable_sorting -%}
+      {%- assign sorted_product_handles_str = product_rank_0_exact_handles
+        | append: product_rank_1_exact_handles
+        | append: product_rank_2_exact_handles
+        | append: product_rank_3_exact_handles
+        | append: product_rank_4_exact_handles
+        | append: product_rank_5_exact_handles
+        | append: product_rank_6_exact_handles
+        | append: product_rank_7_exact_handles
+        | append: product_rank_0_partial_handles
+        | append: product_rank_1_partial_handles
+        | append: product_rank_2_partial_handles
+        | append: product_rank_3_partial_handles
+        | append: product_rank_4_partial_handles
+        | append: product_rank_5_partial_handles
+        | append: product_rank_6_partial_handles
+        | append: product_rank_7_partial_handles
+        | append: product_rank_0_phrase_handles
+        | append: product_rank_1_phrase_handles
+        | append: product_rank_2_phrase_handles
+        | append: product_rank_3_phrase_handles
+        | append: product_rank_4_phrase_handles
+        | append: product_rank_5_phrase_handles
+        | append: product_rank_6_phrase_handles
+        | append: product_rank_7_phrase_handles
+        | append: product_rank_0_handles
+        | append: product_rank_1_handles
+        | append: product_rank_2_handles
+        | append: product_rank_3_handles
+        | append: product_rank_4_handles
+        | append: product_rank_5_handles
+        | append: product_rank_6_handles
+        | append: product_rank_7_handles
+      -%}
+    {%- else -%}
+      {%- assign sorted_product_handles_str = product_linear_handles -%}
+    {%- endif -%}
+
+    {%- assign sorted_product_handles_array = sorted_product_handles_str | split: ',' -%}
+    {%- assign sorted_product_index = 0 -%}
+    {%- for product_handle in sorted_product_handles_array -%}
+      {%- if product_handle != blank -%}
+        {%- assign sorted_product_index = sorted_product_index | plus: 1 -%}
+        {%- if sorted_product_index >= product_render_start and sorted_product_index <= product_render_end -%}
+          {%- assign current_page_product_handles_str = current_page_product_handles_str | append: product_handle | append: ',' -%}
+        {%- endif -%}
+        {%- if sorted_product_index >= product_render_end -%}
+          {%- break -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {%- assign current_page_product_handles_array = current_page_product_handles_str | split: ',' -%}
+
+    {%- if section.settings.enable_sorting and initial_type == 'product' -%}
+      {%- assign first_product_lcp_img = first_product_sorted_lcp_img -%}
+    {%- else -%}
+      {%- assign first_product_lcp_img = first_product_unsorted_lcp_img -%}
+    {%- endif -%}
+
+    {%- if initial_type == 'product' -%}
+      {%- assign initial_count_total = product_results_count -%}
+      {%- assign initial_page_size = product_page_size -%}
+    {%- elsif initial_type == 'article' -%}
+      {%- assign initial_count_total = article_results_count -%}
+    {%- endif -%}
+
+    {%- if initial_count_total > 0 -%}
+      {%- assign initial_total_pages = initial_count_total | plus: initial_page_size | minus: 1 | divided_by: initial_page_size -%}
+      {%- if initial_current_page > initial_total_pages -%}
+        {%- assign initial_current_page = initial_total_pages -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if initial_type == 'product' and first_product_lcp_img != blank -%}
+    <link rel="preload" href="{{ first_product_lcp_img }}" as="image" fetchpriority="high">
+  {%- elsif initial_type == 'article' and first_article_lcp_img != blank -%}
+    <link rel="preload" href="{{ first_article_lcp_img }}" as="image" fetchpriority="high">
+  {%- endif -%}
+
+  <div class="section-container-lg template-search">
+    <div class="w-full my-5 lg:my-10">
+      {%- if settings.predictive_search_enabled -%}
+        <v5-predictive-search data-loading-text="{{ 'accessibility.loading' | t }}">
+      {%- endif -%}
+        <form action="{{ routes.search_url }}" method="get" role="search" class="search relative">
+          <div class="field">
+            <input
+              class="search__input field__input"
+              id="Search-In-Template"
+              type="search"
+              name="q"
+              value="{{ search.terms | escape }}"
+              placeholder="{{ 'general.search.search' | t }}"
+              {%- if settings.predictive_search_enabled -%}
+                role="combobox"
+                aria-expanded="false"
+                aria-owns="predictive-search-results-list"
+                aria-controls="predictive-search-results-list"
+                aria-haspopup="listbox"
+                aria-autocomplete="list"
+                autocorrect="off"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+              {%- endif -%}
+            >
+            <input id="params_first" name="options[prefix]" type="hidden" value="last">
+            <input id="params_second" name="type" type="hidden" value="{{ initial_type }}">
+            <button class="search__button field__button" aria-label="Search">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21.0002 21L16.6572 16.657M16.6572 16.657C17.4001 15.9141 17.9894 15.0321 18.3914 14.0615C18.7935 13.0909 19.0004 12.0506 19.0004 11C19.0004 9.94936 18.7935 8.90905 18.3914 7.93842C17.9894 6.96779 17.4001 6.08585 16.6572 5.34296C15.9143 4.60007 15.0324 4.01078 14.0618 3.60874C13.0911 3.20669 12.0508 2.99976 11.0002 2.99976C9.9496 2.99976 8.90929 3.20669 7.93866 3.60874C6.96803 4.01078 6.08609 4.60007 5.34321 5.34296C3.84288 6.84329 3 8.87818 3 11C3 13.1217 3.84288 15.1566 5.34321 16.657C6.84354 18.1573 8.87842 19.0002 11.0002 19.0002C13.122 19.0002 15.1569 18.1573 16.6572 16.657Z" stroke="#C6C7C8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+
+            {%- if settings.predictive_search_enabled -%}
+              <div class="v5-predictive-search predictive-search--search-template" tabindex="-1" data-predictive-search>
+                <div class="predictive-search__loading-state">
+                  <svg aria-hidden="true" focusable="false" role="presentation" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+                  </svg>
+                </div>
+              </div>
+
+              <span class="predictive-search-status visually-hidden" role="status" aria-hidden="true"></span>
+            {%- endif -%}
+          </div>
+
+          <div class="v5-pii-warning" role="alert"></div>
+
+          {% comment %} 全局推荐搜索词列表 {% endcomment %}
+          {% if settings.predictive_search_enable_recommend %}
+            <div class="recommend-search-list"></div>
+          {% endif %}
+        </form>
+      {%- if settings.predictive_search_enabled -%}
+        </v5-predictive-search>
+      {%- endif -%}
+    </div>
+
+    {%- if search.performed and has_terms -%}
+      {%- if initial_count_total > 0 -%}
+        {%- assign v5_count_text = 'templates.search.v5_results_with_count' | t: terms: search.terms, count: initial_count_total -%}
+        <div class="w-full flex lg:hidden text-base text-[#222226]/50 my-8 v5-search-result_counts" data-count-template="{{ v5_count_text | escape }}" data-total="{{ initial_count_total }}">
+          {%- if initial_type == 'story' -%}
+            <div class="skeleton w-40 h-6"></div>
+          {%- else -%}
+            {{ v5_count_text }}
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+
+    <div class="w-full flex items-center justify-between border-0 border-b-[1px] border-solid border-[#C6C7C8]">
+      <div class="flex items-center gap-x-8 lg:gap-x-20">
+        <li class="search-category-item font-semibold text-[#222226]/50 v5-search-type-underlines text-base lg:text-xl pb-3 {% if initial_type == 'product' %}active{% endif %}" data-cate="product">{{'templates.search.type_product' | t}}</li>
+        <li class="search-category-item font-semibold text-[#222226]/50 v5-search-type-underlines text-base lg:text-xl pb-3 {% if initial_type == 'article' %}active{% endif %}" data-cate="article">{{'templates.search.type_blog' | t}}</li>
+        <li class="search-category-item font-semibold text-[#222226]/50 v5-search-type-underlines text-base lg:text-xl pb-3 {% if initial_type == 'story' %}active{% endif %}" data-cate="story">{{'templates.search.type_story' | t}}</li>
+      </div>
+      {%- if search.performed and has_terms -%}
+        {%- if initial_count_total > 0 -%}
+          {%- assign v5_count_text = 'templates.search.v5_results_with_count' | t: terms: search.terms, count: initial_count_total -%}
+          <span class="max-lg:hidden w-fit text-base text-[#222226]/50 v5-search-result_counts" data-count-template="{{ v5_count_text | escape }}" data-total="{{ initial_count_total }}">
+            {%- if initial_type == 'story' -%}
+              <div class="skeleton w-40 h-6 my-8 lg:my-0"></div>
+            {%- else -%}
+              {{ v5_count_text }}
+            {%- endif -%}
+          </span>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    <div id="page-search-container" class="w-full pt-4 pb-8 lg:py-10">
+      {%- if search.performed and has_terms -%}
+        {%- if search.filters != empty -%}
+          {%- if section.settings.enable_filtering or section.settings.enable_sorting -%}
+            <aside aria-labelledby="verticalTitle" class="facets-wrapper{% unless section.settings.enable_filtering %} facets-wrapper--no-filters{% endunless %} flex-1" id="main-search-filters" data-id="{{ section.id }}">
+            </aside>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endif -%}
+      
+      <div class="product-grid-container flex flex-col-reverse gap-5 lg:flex-row lg:gap-20" id="ProductGridContainer">
+        {%- if search.performed and has_terms -%}
+          {%- if search.results.size == 0 and search.filters != empty -%}
+            <div class="template-search__results collection flex-1" id="product-grid" data-id="{{ section.id }}">
+              <div class="w-full flex flex-col items-center justify-center gap-y-4 v5-search-results_empty py-10 lg:py-36">
+                <h2 class="w-full text-black font-semibold text-base lg:text-2xl text-center">{{ 'templates.search.no_results' | t: terms: search.terms }}</h2>
+                <p class="w-full font-normal text-black text-sm lg:text-xl text-center">{{ 'templates.search.try_again_tips' | t }}</p>
+              </div>
+            </div>
+          {%- else -%}
+            <div class="template-search__results collection flex-1" id="product-grid" data-id="{{ section.id }}">
+              <div class="loading-overlay gradient"></div>
+
+              {%- if false and initial_type == 'article' -%}
+                <div class="v5-skeleton-container flex flex-wrap gap-y-4 lg:gap-x-6 lg:gap-y-10">
+                  {%- for i in (1..4) -%}
+                    <div class="focus-zoom-container flex flex-col justify-between w-full lg:w-[26.5rem] bg-white">
+                      <div class="skeleton w-full h-[14.25rem] lg:h-[18.75rem]"></div>
+                      <div class="flex-1 flex flex-col justify-between bg-[#F5F5F3] px-4 py-3 lg:py-5">
+                        <div class="flex flex-col gap-y-3">
+                          <div class="skeleton w-4/5 h-5"></div>
+                          <div class="flex flex-wrap items-center gap-1">
+                            <div class="skeleton w-[5.5rem] lg:w-[6.25rem] h-[1.125rem]"></div>
+                            <div class="skeleton w-[5.5rem] lg:w-[6.25rem] h-[1.125rem]"></div>
+                          </div>
+                        </div>
+                        <div class="flex justify-between items-center mt-3 lg:mt-5">
+                          <div class="skeleton w-2/5 lg:w-1/5 h-3.5"></div>
+                        </div>
+                      </div>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- elsif initial_type == 'story' -%}
+                <div class="v5-skeleton-container flex flex-wrap gap-y-4 lg:gap-x-10 lg:gap-y-10">
+                  {%- for i in (1..4) -%}
+                    <div class="focus-zoom-container flex flex-col w-full px-8 gap-y-4 lg:w-[26.25rem] lg:px-0 lg:gap-y-6">
+                      <div class="skeleton w-full h-[23.375rem] lg:h-[35rem]"></div>
+                      <div class="w-full flex flex-col justify-center lg:justify-start pt-3 gap-y-2 lg:pt-4 lg:gap-y-4 border-0 border-t-[1px] border-primary border-solid">
+                        <div class="skeleton w-4/5 h-4 lg:h-6"></div>
+                        <div class="skeleton w-3/5 h-3 lg:h-4"></div>
+                        <div class="skeleton w-2/5 h-4 lg:h-5"></div>
+                      </div>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- elsif initial_type != 'product' -%}
+                <div class="v5-skeleton-container">
+                  {%- for i in (1..6) -%}
+                    <div class="focus-zoom-container flex items-center border-0 border-b-[1px] border-solid border-[#E8E8E5] gap-x-4 pb-4 lg:gap-x-10 lg:pb-6">
+                      <div class="skeleton w-20 h-20 lg:w-[10.375rem] lg:h-[10.375rem] shrink-0"></div>
+                      <div class="flex-1 flex flex-col gap-y-3 lg:gap-y-4">
+                        <div class="skeleton w-full h-6 lg:w-4/5 lg:h-5"></div>
+                        <div class="skeleton w-4/5 h-3 lg:w-2/5 lg:h-4"></div>
+                        <div class="flex items-center justify-between lg:justify-start lg:gap-x-10 lg:h-8">
+                          <div class="skeleton w-1/2 h-3.5 lg:w-1/5 lg:h-5"></div>
+                          <div class="skeleton w-1/3 h-3 lg:w-1/5 lg:h-5"></div>
+                        </div>
+                      </div>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+
+              {%- if initial_type == 'product' -%}
+                <script type="application/json" data-product-results-json>
+                  [{{ product_results_json_entries }}]
+                </script>
+              {%- endif -%}
+
+              <ul class="w-full template-search__results-ul flex flex-wrap gap-y-4 lg:gap-x-6 lg:justify-between {% if initial_type == 'product' %} lg:gap-y-6 {% else %} lg:gap-y-10 {% endif %}"{% if initial_type == 'story' %} style="display:none"{% endif %} data-prepaginate="{% if initial_type == 'article' %}true{% else %}false{% endif %}" data-initial-type="{{ initial_type }}" data="{{paginate.pages}}-{{search.results.size}}">
+                {%- if initial_type == 'product' -%}
+                  {%- assign rendered_product_count_on_page = 0 -%}
+                  {%- for product_handle in current_page_product_handles_array -%}
+                    {%- if product_handle != blank -%}
+                      {%- assign current_product = all_products[product_handle] -%}
+                      {%- if current_product != blank -%}
+                        {% render 'v5-search-product-result-item',
+                          product_item: current_product,
+                          lazy_load: rendered_product_count_on_page > 5
+                        %}
+                        {%- assign rendered_product_count_on_page = rendered_product_count_on_page | plus: 1 -%}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- else -%}
+                  {%- for item in search.results -%}
+                    {% assign lazy_load = false %}
+                    {%- if forloop.index > 1 -%}
+                      {%- assign lazy_load = true -%}
+                    {%- endif -%}
+
+                    {%- case item.object_type -%}
+                      {%- when 'article' -%}
+                        {%- if initial_type == 'article' -%}
+                          {% render 'v5-article-card',
+                            article: item,
+                            lazy_load: lazy_load
+                          %}
+                        {%- endif -%}
+                    {%- endcase -%}
+                  {%- endfor -%}
+                {%- endif -%}
+              </ul>
+              <div class="product-pagination-container">
+                {%- if initial_type != 'story' and initial_count_total > 0 -%}
+                  {% render 'v5-search-pagination',
+                    current_page: initial_current_page,
+                    total_pages: initial_total_pages,
+                    total_items: initial_count_total
+                  %}
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endif -%}
+        {%- else -%}
+          <div class="template-search__results collection flex-1" id="product-grid" data-id="{{ section.id }}">
+            <div class="w-full flex flex-col items-center justify-center gap-y-4 v5-search-results_empty py-10 lg:py-36">
+              <h2 class="w-full text-black font-semibold text-base lg:text-2xl text-center">{{ 'templates.search.no_results' | t: terms: search.terms }}</h2>
+              <p class="w-full font-normal text-black text-sm lg:text-xl text-center">{{ 'templates.search.try_again_tips' | t }}</p>
+            </div>
+          </div>
+        {%- endif -%}
+
+        {% comment %} support {% endcomment %}
+        {%- assign support_blocks = section.blocks | where: 'type', "support_item" -%}
+        {%- if support_blocks.size > 0 -%}
+          <div class="v5-search-support-wrap w-full lg:w-[22.5rem] flex flex-col gap-y-2 lg:gap-y-10 py-4 lg:py-6 h-max bg-[#F5F5F3]">
+            {%- if section.settings.support_heading != blank -%}
+              <h2 class="font-semibold text-base text-[#242F20] px-4 lg:px-6">{{ section.settings.support_heading | escape }}</h2>
+            {%- endif -%}
+            <ul class="w-full lg:max-h-[52.5rem] flex flex-row gap-4 lg:flex-col lg:gap-10 px-4 lg:px-6 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden">
+              {%- for block in support_blocks -%}
+                <li class="shrink-0 pt-3 pb-2 px-2 lg:p-3 flex flex-col items-center gap-4 lg:flex-row">
+                  <img class="w-6 h-6 lg:w-10 lg:h-10 object-contain shrink-0" src="{{ block.settings.support_icon | image_url: width: 80 }}" width="40" height="40" loading="lazy" fetchpriority="low" decoding="async" />
+                  <div class="flex flex-col lg:gap-y-3">
+                    {%- if block.settings.support_pc_title != blank -%}
+                      <div class="hidden lg:block">
+                        <h4 class="line-clamp-2 font-semibold text-[#242F20] text-xs lg:text-base">{{ block.settings.support_pc_title | escape }}</h4>
+                      </div>
+                    {%- endif -%}
+                    {%- if block.settings.support_mb_title != blank -%}
+                      {%- if block.settings.support_link != blank -%}
+                        <div class="lg:hidden">
+                          <a href="{{ block.settings.support_link }}" class="line-clamp-2 font-semibold text-[#242F20] text-xs lg:text-base">{{ block.settings.support_mb_title | escape }}</a>
+                        </div>
+                      {%- else -%}
+                        <div class="lg:hidden">
+                          <h4 class="font-semibold line-clamp-2 text-[#242F20] text-xs lg:text-base">{{ block.settings.support_mb_title | escape }}</h4>
+                        </div>
+                      {%- endif -%}
+                    {%- endif -%}
+                    {%- if block.settings.support_description != blank -%}
+                      <p class="max-lg:hidden text-[#242F20] line-clamp-2 lg:text-base lg:leading-5">{{ block.settings.support_description | newline_to_br }}</p>
+                    {%- endif -%}
+                    {%- if block.settings.support_link != blank and section.settings.support_learn_more_text != blank -%}
+                      <a href="{{ block.settings.support_link }}" class="max-lg:hidden text-black/60 underline underline-offset-4 lg:text-base hover:text-[#242F20] visited:text-[#242F20]">{{ section.settings.support_learn_more_text | escape }}</a>
+                    {%- endif -%}
+                  </div>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{% endpaginate %}
+
+<script type="application/json" id="main-search-v5-config">
+  {
+    "enableSorting": {{ section.settings.enable_sorting | json }},
+    "searchTerms": {{ search.terms | json }},
+    "searchCheckPiiEnable": {{ search_check_pii_enable | json }},
+    "searchPiiSensitiveInfo": {{ search_pii_sensitive_info | json }},
+    "predictiveSearchEnabled": {{ settings.predictive_search_enabled | default: false | json }},
+    "noResultsTemplate": {{ 'templates.search.no_results' | t: terms: '__TERM__' | json }},
+    "tryAgainTipsText": {{ 'templates.search.try_again_tips' | t | json }},
+    "shopNowText": {{ 'general.action_text.shop_now' | t | json }},
+    "readTheStoryText": {{ 'general.action_text.read_the_story' | t | json }}
+  }
+</script>
+<script src="{{ 'section-main-search-v5.js' | asset_url }}"></script>
+
+{% schema %}
+{
+  "name": "t:sections.main-search.name",
+  "tag": "section",
+  "class": "section v5-search-section",
+  "settings": [
+    { "type": "header", "content": "排序规则" },
+    { "type": "checkbox", "id": "enable_sorting", "default": true, "label": "启用自定义排序" },
+    { "type": "header", "content": "Support配置" },
+    { "type": "text", "id": "support_heading", "label": "Support标题", "default": "Support" },
+    { "type": "text", "id": "support_learn_more_text", "label": "Support链接文字", "default": "Learn More" }
+  ],
+  "blocks": [
+    {
+      "type": "support_item",
+      "name": "support",
+      "limit": 8,
+      "settings": [
+        { "type": "image_picker", "id": "support_icon", "label": "icon图标" },
+        { "type": "text", "id": "support_pc_title", "label": "PC端标题" },
+        { "type": "text", "id": "support_mb_title", "label": "MB端标题" },
+        { "type": "textarea", "id": "support_description", "label": "描述" },
+        { "type": "url", "id": "support_link", "label": "链接" }
+      ]
+    }
+  ]
+}
+{% endschema %}

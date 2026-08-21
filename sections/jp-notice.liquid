@@ -1,0 +1,1019 @@
+{% assign ai_gen_id = section.id | replace: '-', '' | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-news-list-{{ ai_gen_id }} {
+    display: block;
+    width: {{ section.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    padding-top: {{ section.settings.section_padding_top }}px;
+    padding-bottom: {{ section.settings.section_padding_bottom }}px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .ai-news-list-container-{{ ai_gen_id }} {
+    max-width: {{ section.settings.container_max_width }}px;
+    margin: 0 auto;
+  }
+
+  .ai-news-list-header-{{ ai_gen_id }} {
+    margin-bottom: 32px;
+  }
+
+  .ai-news-list-title-{{ ai_gen_id }} {
+    font-size: {{ section.settings.title_size }}px;
+    color: {{ section.settings.title_color }};
+    margin: 0 0 24px;
+    text-align: {{ section.settings.title_alignment }};
+  }
+
+  .ai-news-list-controls-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 6rem;
+  }
+
+  .ai-news-list-filters-{{ ai_gen_id }} {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    justify-content: {{ section.settings.filter_alignment }};
+  }
+
+  @media screen and (min-width: 1024px) {
+    .ai-news-list-filters-{{ ai_gen_id }} {
+      justify-content: flex-start;
+    }
+    .ai-news-list-filters-{{ ai_gen_id }} .ai-news-list-filter-btn-{{ ai_gen_id }} {
+      width: calc(100% / 6);
+      flex: 0 0 calc(100% / 6);
+      box-sizing: border-box;
+    }
+  }
+
+  .ai-news-list-year-{{ ai_gen_id }} {
+    flex: 0 0 auto;
+    position: relative;
+  }
+
+  .ai-news-list-year-trigger-{{ ai_gen_id }} {
+    height: 3rem;
+    background: #ffffff;
+    border: 1px solid #979797;
+    padding: 12px 44px;
+    font-size: 14px;
+    line-height: 1.4;
+    min-width: 160px;
+    cursor: pointer;
+    width: 12rem;
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-news-list-year-trigger-text-{{ ai_gen_id }} {
+    display: block;
+    text-align: center;
+    font-weight: 500;
+    color: #080808;
+  }
+
+  .ai-news-list-year-trigger-icon-{{ ai_gen_id }} {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .ai-news-list-year-options-{{ ai_gen_id }} {
+    position: absolute;
+    top: calc(100%);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #979797;
+    z-index: 20;
+  }
+
+  .ai-news-list-year-options-{{ ai_gen_id }}[hidden] {
+    display: none;
+  }
+
+  .ai-news-list-year-option-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.3;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: #1A1A1A;
+  }
+
+  .ai-news-list-year-option-{{ ai_gen_id }}:hover {
+    background: #F5F5F5;
+  }
+
+  .ai-news-list-year-option-{{ ai_gen_id }}.active {
+    background: #1A1A1A;
+    color: #FFFFFF;
+  }
+
+  .ai-news-list-filter-btn-{{ ai_gen_id }} {
+    height: 3rem;
+    width: 9.5rem;
+    padding: 12px 0;
+    color: #080808;
+    border: 1px solid rgba(151, 151, 151, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 日本行高问题 */
+  .ai-news-list-{{ ai_gen_id }} .ai-news-list-container-{{ ai_gen_id }} .ai-news-list-filter-btn-{{ ai_gen_id }} span{
+    line-height: 1.25 !important;
+  }
+
+  .ai-news-list-filter-btn-{{ ai_gen_id }}::part(label) {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .ai-news-list-filter-btn-{{ ai_gen_id }}::part(button) {
+    justify-content: center;
+  }
+
+  .ai-news-list-filter-btn-{{ ai_gen_id }} + .ai-news-list-filter-btn-{{ ai_gen_id }} {
+    margin-left: -1px;
+  }
+
+  @media screen and (min-width: 1024px) {
+    .ai-news-list-filters-{{ ai_gen_id }} .ai-news-list-filter-btn-{{ ai_gen_id }}:nth-child(7) {
+      margin-left: 0px;
+    }
+
+    .ai-news-list-filters-{{ ai_gen_id }} .ai-news-list-filter-btn-{{ ai_gen_id }}:nth-child(n+7) {
+      border-top: 0;
+    }
+  }
+
+  .ai-news-list-filter-btn-{{ ai_gen_id }}.active {
+    background: #1A1A1A;
+    color: #FFFFFF;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ai-news-list-items-{{ ai_gen_id }} {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .ai-news-list-item-{{ ai_gen_id }} {
+    padding: 24px 0 36px 0;
+    border-bottom: 1px dashed #D8D8D8;
+    display: none;
+  }
+
+  .ai-news-list-item-{{ ai_gen_id }}[data-pinned="true"] {
+     border-bottom: 1px solid #1A1A1A;
+  }
+
+  .ai-news-list-item-{{ ai_gen_id }}.visible {
+    display: block;
+  }
+
+  .ai-news-list-item-link-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    gap: 20px;
+  }
+
+  .ai-news-list-item-{{ ai_gen_id }}:hover {
+   background: #F9F9F9;
+  }
+
+  .ai-news-list-item-content-{{ ai_gen_id }} {
+    flex: 1;
+  }
+
+  .ai-news-list-item-title-{{ ai_gen_id }} {
+    font-weight: 500;
+    font-size: 16px;
+    color: #1A1A1A;
+    line-height: 16px;
+  }
+
+  .ai-news-list-item-date-{{ ai_gen_id }} {
+    font-weight: 400;
+    font-size: 14px;
+    color: #1A1A1A;
+    line-height: 20px;
+    margin-bottom: 8px;
+  }
+
+  .ai-news-list-pagination-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.75rem;
+    margin-top: 1.75rem;
+  }
+
+  .ai-news-list-page-btn-{{ ai_gen_id }} {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    border: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-news-list-page-btn-{{ ai_gen_id }} svg {
+    display: block;
+  }
+
+  .ai-news-list-page-btn-{{ ai_gen_id }}:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .ai-news-list-page-info-{{ ai_gen_id }} {
+    font-weight: 400;
+    font-size: 18px;
+    color: #666666;
+    line-height: 28px;
+  }
+
+  .ai-news-list-empty-{{ ai_gen_id }} {
+    text-align: center;
+    padding: 60px 20px;
+    color: {{ section.settings.item_date_color }};
+    font-size: 16px;
+  }
+
+  @media screen and (max-width: 1023.98px) {
+    .ai-news-list-filter-btn-{{ ai_gen_id }}{
+      height: 2.75rem;
+      font-size: 0.875rem;
+    }
+
+      .ai-news-list-filter-btn-{{ ai_gen_id }}::part(label) {
+        font-size: 0.875rem;
+      }
+
+    .ai-news-list-filters-{{ ai_gen_id }} .ai-news-list-filter-btn-{{ ai_gen_id }}{
+      width: 33.333333%;
+      flex: 0 0 33.333333%;
+      box-sizing: border-box;
+      /* height: 2.75rem; */
+      padding: 0.7rem 0;
+    }
+
+    .ai-news-list-filters-{{ ai_gen_id }} .ai-news-list-filter-btn-{{ ai_gen_id }}:nth-child(3n+1) {
+      margin-left: 0;
+    }
+
+    .ai-news-list-filters-{{ ai_gen_id }} .ai-news-list-filter-btn-{{ ai_gen_id }}:nth-child(n+4) {
+      border-top: 0;
+      /* margin-left: 0; */
+    }
+
+      .ai-news-list-controls-{{ ai_gen_id }} {
+        gap: 0.75rem;
+      }
+
+    .ai-news-list-{{ ai_gen_id }} {
+      width: 100%;
+    }
+
+    .ai-news-list-item-link-{{ ai_gen_id }} {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .ai-news-list-filters-{{ ai_gen_id }} {
+      justify-content: flex-start;
+    }
+
+    .ai-news-list-controls-{{ ai_gen_id }} {
+      flex-direction: column;
+    }
+
+    .ai-news-list-year-{{ ai_gen_id }} {
+      width: 100%;
+    }
+
+    .ai-news-list-year-trigger-{{ ai_gen_id }} {
+      height: 2.5rem;
+      width: 100%;
+      padding: 0.5625rem 0.75rem;
+    }
+
+    .ai-news-list-year-option-{{ ai_gen_id }} {
+      padding-left: 0.75rem;
+      text-align: left;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+    }
+
+      .ai-news-list-year-trigger-text-{{ ai_gen_id }} {
+        font-size: 1rem;
+        line-height: 1.25;
+        text-align: left;
+      }
+
+        .ai-news-list-item-date-{{ ai_gen_id }} {
+          font-weight: 400;
+          font-size: 0.875rem;
+          color: #666666;
+          margin-bottom: 0.375rem;
+        }
+
+          .ai-news-list-item-title-{{ ai_gen_id }} {
+            font-size:  0.875rem;
+            color: #1A1A1A;
+          }
+
+            .ai-news-list-item-{{ ai_gen_id }} {
+               padding: 1.5rem 0.75rem 1rem 0.75rem;
+            }
+      .ai-news-list-page-btn-{{ ai_gen_id }} {
+           width: 4rem;
+          height: 4rem;
+          min-width: 4rem;
+      }
+
+    .ai-news-list-pagination-{{ ai_gen_id }} {
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+      gap: 1rem;
+    }
+
+     .ai-news-list-page-info-{{ ai_gen_id }} {
+      font-size: 1rem;
+     }
+    .ai-news-list-header-{{ ai_gen_id }} {
+      margin-bottom: 0.5rem;
+    }
+  }
+{% endstyle %}
+
+<news-list-{{ ai_gen_id }}
+  class="ai-news-list-{{ ai_gen_id }}"
+  {% if section.settings.blog != blank %}
+    data-blog-handle="{{ section.settings.blog.handle }}"
+    data-blog-url="{{ section.settings.blog.url }}"
+    data-show-date="{% if section.settings.show_date %}true{% else %}false{% endif %}"
+    data-all-filter-text="{{ section.settings.all_filter_text | escape }}"
+    data-empty-text="{{ section.settings.empty_state_text | escape }}"
+  {% endif %}
+  {{ section.shopify_attributes }}
+>
+  <div class="ai-news-list-container-{{ ai_gen_id }}">
+    <div class="ai-news-list-header-{{ ai_gen_id }}">
+      {% if section.settings.blog != blank %}
+        <div class="ai-news-list-controls-{{ ai_gen_id }}">
+          {% if section.settings.enable_tag_filter %}
+            <div class="ai-news-list-filters-{{ ai_gen_id }} w-full"></div>
+          {%- else -%}
+            {% comment %} 单纯占位 {% endcomment %}
+            <div></div>
+          {% endif %}
+          {% if section.settings.enable_year_filter %}
+            <div
+              class="ai-news-list-year-{{ ai_gen_id }}"
+              data-default-year="{{ section.settings.year_filter_default | escape }}"
+            >
+              <div
+                type="button"
+                class="ai-news-list-year-trigger-{{ ai_gen_id }}"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+              >
+                <span class="ai-news-list-year-trigger-text-{{ ai_gen_id }}">
+                  {{- section.settings.year_filter_default -}}
+                </span>
+                <span class="ai-news-list-year-trigger-icon-{{ ai_gen_id }}">
+                  <svg width="11" height="6.844" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="none" fill-rule="evenodd"><path d="M-2.922-5.078v16h16v-16z"/><path fill="#1A1A1A" fill-rule="nonzero" d="M5.443 6.844L0 1.276 1.134 0l4.309 4.408L9.753 0 11 1.276z"/></g>
+                  </svg>
+                </span>
+              </div>
+              <div class="ai-news-list-year-options-{{ ai_gen_id }}" role="listbox" hidden>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2027">2027</div>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2026">2026</div>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2025">2025</div>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2024">2024</div>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2023">2023</div>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2022">2022</div>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2021">2021</div>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2020">2020</div>
+                <div type="button" class="ai-news-list-year-option-{{ ai_gen_id }}" data-year="2019">2019</div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    {% if section.settings.blog != blank %}
+      <ul class="ai-news-list-items-{{ ai_gen_id }}"></ul>
+      <div class="ai-news-list-empty-{{ ai_gen_id }}" style="display:none;">
+        {{ section.settings.empty_state_text }}
+      </div>
+
+      <div class="ai-news-list-pagination-{{ ai_gen_id }}">
+        <div
+          class="ai-news-list-page-btn-{{ ai_gen_id }}"
+          data-action="prev"
+          disabled
+        >
+          <svg class="lg:scale-[0.625] scale-[0.5]" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+            <g transform="matrix(-1 0 0 1 64 0)" stroke="#1A1A1A" fill="none" fill-rule="evenodd"><rect stroke-width="1.7" x=".85" y=".85" width="62.3" height="62.3" rx="31.15"/><path stroke-width="2.72" d="M18.051 32.41h20.09M33.628 22.154L43.884 32.41 33.628 42.666"/></g>
+          </svg>
+        </div>
+        <div class="ai-news-list-page-info-{{ ai_gen_id }}">
+          <span class="current-page">1</span>/<span class="total-pages">1</span>
+        </div>
+        <div
+          class="ai-news-list-page-btn-{{ ai_gen_id }}"
+          data-action="next"
+        >
+          <svg class="lg:scale-[0.625] scale-[0.5]" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+            <g stroke="#1A1A1A" fill="none" fill-rule="evenodd"><rect stroke-width="1.7" x=".85" y=".85" width="62.3" height="62.3" rx="31.15"/><path stroke-width="2.72" d="M18.051 32.41h20.09M33.628 22.154L43.884 32.41 33.628 42.666"/></g>
+          </svg>
+        </div>
+      </div>
+    {% else %}
+      <div class="ai-news-list-empty-{{ ai_gen_id }}">
+        {{ section.settings.empty_state_text }}
+      </div>
+    {% endif %}
+  </div>
+</news-list-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class NewsList{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.currentPage = 1;
+        this.itemsPerPage = 12;
+        this.currentTag = 'all';
+        this.currentYear = 'all';
+        this.allItems = [];
+        this.pinnedItems = [];
+        this.normalItems = [];
+        this.filteredItems = [];
+        this._resizeTimer = null;
+      }
+
+      connectedCallback() {
+        this.init();
+        this._onResize = () => {
+          if (this._resizeTimer) {
+            clearTimeout(this._resizeTimer);
+          }
+          this._resizeTimer = setTimeout(() => {
+            const next = this.getItemsPerPage();
+            if (next !== this.itemsPerPage) {
+              this.itemsPerPage = next;
+              this.currentPage = 1;
+              this.updateDisplay();
+            }
+          }, 150);
+        };
+        window.addEventListener('resize', this._onResize);
+      }
+
+      disconnectedCallback() {
+        if (this._onResize) {
+          window.removeEventListener('resize', this._onResize);
+        }
+        if (this._resizeTimer) {
+          clearTimeout(this._resizeTimer);
+        }
+        if (this._onDocClickYear) {
+          document.removeEventListener('click', this._onDocClickYear);
+        }
+        if (this._onKeydownYear) {
+          document.removeEventListener('keydown', this._onKeydownYear);
+        }
+      }
+
+      getItemsPerPage() {
+        try {
+          return window.matchMedia('(max-width: 1024px)').matches ? 8 : 12;
+        } catch (e) {
+          return 12;
+        }
+      }
+
+      async init() {
+        this.filtersWrap = this.querySelector('.ai-news-list-filters-{{ ai_gen_id }}');
+        this.itemsWrap = this.querySelector('.ai-news-list-items-{{ ai_gen_id }}');
+        this.emptyWrap = this.querySelector('.ai-news-list-empty-{{ ai_gen_id }}');
+        this.yearWrap = this.querySelector('.ai-news-list-year-{{ ai_gen_id }}');
+        this.yearTrigger = this.querySelector('.ai-news-list-year-trigger-{{ ai_gen_id }}');
+        this.yearTriggerText = this.querySelector('.ai-news-list-year-trigger-text-{{ ai_gen_id }}');
+        this.yearOptionsWrap = this.querySelector('.ai-news-list-year-options-{{ ai_gen_id }}');
+        this.paginationWrap = this.querySelector('.ai-news-list-pagination-{{ ai_gen_id }}');
+        this.prevButton = this.querySelector('[data-action="prev"]');
+        this.nextButton = this.querySelector('[data-action="next"]');
+        this.currentPageSpan = this.querySelector('.current-page');
+        this.totalPagesSpan = this.querySelector('.total-pages');
+
+        if (!this.itemsWrap) return;
+        this.itemsPerPage = this.getItemsPerPage();
+        await this.loadArticles();
+
+        this.filterButtons = this.querySelectorAll('.ai-news-list-filter-btn-{{ ai_gen_id }}');
+        this.items = this.querySelectorAll('.ai-news-list-item-{{ ai_gen_id }}');
+        this.allItems = Array.from(this.items);
+        this.pinnedItems = this.allItems.filter(item => item.dataset.pinned === 'true');
+        this.normalItems = this.allItems.filter(item => item.dataset.pinned !== 'true');
+        this.currentYear = this.getDefaultYear();
+        this.syncYearUI();
+        this.filterItems();
+
+        this.setupEventListeners();
+        this.updateDisplay();
+      }
+
+      getDefaultYear() {
+        const raw = String(this.yearWrap?.dataset?.defaultYear || '').trim();
+        return raw || '2026';
+      }
+
+      syncYearUI() {
+        if (this.yearTriggerText) {
+          this.yearTriggerText.textContent = this.currentYear;
+        }
+        if (!this.yearOptionsWrap) return;
+        const options = Array.from(this.yearOptionsWrap.querySelectorAll('.ai-news-list-year-option-{{ ai_gen_id }}'));
+        options.forEach(btn => {
+          btn.classList.toggle('active', (btn.dataset.year || '') === this.currentYear);
+        });
+      }
+
+      toggleYearDropdown(forceOpen) {
+        if (!this.yearTrigger || !this.yearOptionsWrap) return;
+        const isHidden = this.yearOptionsWrap.hasAttribute('hidden');
+        const willOpen = typeof forceOpen === 'boolean' ? forceOpen : isHidden;
+        if (willOpen) {
+          this.yearOptionsWrap.removeAttribute('hidden');
+          this.yearTrigger.setAttribute('aria-expanded', 'true');
+        } else {
+          this.yearOptionsWrap.setAttribute('hidden', '');
+          this.yearTrigger.setAttribute('aria-expanded', 'false');
+        }
+      }
+
+      closeYearDropdown() {
+        this.toggleYearDropdown(false);
+      }
+
+      getStorefrontAccessToken() {
+        try {
+          if (typeof STOREFRONT_ACCESS_TOKEN === 'undefined') return null;
+          return STOREFRONT_ACCESS_TOKEN?.get(window.location.hostname) || null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      formatDate(isoString) {
+        const format = '%Y年%m月%d日（%a）';
+        const d = new Date(isoString);
+
+        const yyyy = String(d.getFullYear());
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const weekdayShortJa = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
+        const weekdayLongJa = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'][d.getDay()];
+
+        return format
+          .replace(/%Y/g, yyyy)
+          .replace(/%m/g, mm)
+          .replace(/%d/g, dd)
+          .replace(/%a/g, weekdayShortJa)
+          .replace(/%A/g, weekdayLongJa);
+      }
+
+      escapeHtml(text) {
+        return String(text || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      async loadArticles() {
+        const blogHandle = this.dataset.blogHandle;
+        const blogUrl = this.dataset.blogUrl || '';
+        if (!blogHandle) return;
+
+        const token = this.getStorefrontAccessToken();
+        if (!token) return;
+
+        const query = `
+          query blogArticles($handle: String!, $first: Int!) {
+            blog(handle: $handle) {
+              articles(first: $first, sortKey: PUBLISHED_AT, reverse: true) {
+                edges {
+                  node {
+                    handle
+                    title
+                    publishedAt
+                    tags
+                    metafield(namespace: "custom", key: "pinned") {
+                      value
+                    }
+                    urlMetafield: metafield(namespace: "custom", key: "url") {
+                      value
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `;
+
+        let blog = null;
+        try {
+          const response = await fetch('/api/2023-10/graphql.json', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Shopify-Storefront-Access-Token': token,
+            },
+            body: JSON.stringify({ query, variables: { handle: blogHandle, first: 250 } }),
+          });
+          const json = await response.json();
+          blog = json?.data?.blog || null;
+        } catch (e) {
+          blog = null;
+        }
+
+        const rawArticles = (blog?.articles?.edges || [])
+          .map(edge => edge?.node)
+          .filter(Boolean);
+
+        if (!rawArticles.length) return;
+
+        const isPinnedFlag = (value) => {
+          const v = String(value || '').trim().toLowerCase();
+          return v === 'true' || v === '1' || v === 'yes';
+        };
+
+        const pinnedCandidates = rawArticles.filter(a => isPinnedFlag(a?.metafield?.value));
+        const pinnedSelected = pinnedCandidates.slice(0, 6);
+        const pinnedHandleSet = new Set(pinnedSelected.map(a => a.handle).filter(Boolean));
+        const normalArticles = rawArticles.filter(a => !pinnedHandleSet.has(a.handle));
+        const articles = pinnedSelected.concat(normalArticles);
+
+        const tagSet = new Set();
+        articles.forEach(a => (a.tags || []).forEach(t => tagSet.add(t)));
+        const tags = Array.from(tagSet).slice(0, 8);
+
+        if (this.filtersWrap) {
+          const allLabel = String(this.dataset.allFilterText || '').trim() || 'All';
+          this.currentTag = 'all';
+          let filtersHtml = `<div class="ai-news-list-filter-btn-{{ ai_gen_id }} active w-[9.5rem]" data-tag="all" size="large"><span>${this.escapeHtml(allLabel)}</span></div>`;
+          tags.forEach(tag => {
+            filtersHtml += `<div class="ai-news-list-filter-btn-{{ ai_gen_id }} w-[9.5rem]" data-tag="${this.escapeHtml(tag)}" size="large"><span class='line-clamp-2'>${this.escapeHtml(tag)}</span></div>`;
+          });
+          this.filtersWrap.innerHTML = filtersHtml;
+        }
+
+        const showDate = this.dataset.showDate === 'true';
+        let itemsHtml = '';
+        articles.forEach((article, idx) => {
+          const metafieldUrlRaw = String(article?.urlMetafield?.value || '').trim();
+          let metafieldUrl = '';
+          if (metafieldUrlRaw) {
+            if (metafieldUrlRaw.startsWith('http://') || metafieldUrlRaw.startsWith('https://') || metafieldUrlRaw.startsWith('/')) {
+              metafieldUrl = metafieldUrlRaw;
+            } else {
+              metafieldUrl = `/${metafieldUrlRaw}`;
+            }
+          }
+          const url = metafieldUrl || (blogUrl && article.handle ? `${blogUrl}/${article.handle}` : '');
+          const tagsJson = JSON.stringify(article.tags || []);
+          const title = this.escapeHtml(article.title);
+          const publishedAt = article.publishedAt || '';
+          const dateAttr = publishedAt ? publishedAt.slice(0, 10) : '';
+          const dateText = publishedAt ? this.escapeHtml(this.formatDate(publishedAt)) : '';
+          const pinned = pinnedHandleSet.has(article.handle) ? 'true' : 'false';
+          const year = publishedAt ? String(new Date(publishedAt).getFullYear()) : '';
+
+          itemsHtml += `
+            <li class="ai-news-list-item-{{ ai_gen_id }}" data-tags='${this.escapeHtml(tagsJson)}' data-index="${idx + 1}" data-pinned="${pinned}" data-year="${this.escapeHtml(year)}">
+              <a href="${this.escapeHtml(url)}" class="ai-news-list-item-link-{{ ai_gen_id }}">
+                <div class="ai-news-list-item-content-{{ ai_gen_id }} relative">
+                  ${showDate && publishedAt ? `<time class="ai-news-list-item-date-{{ ai_gen_id }}" datetime="${this.escapeHtml(dateAttr)}">${dateText}</time>` : ''}
+                  <h3 class="ai-news-list-item-title-{{ ai_gen_id }} lg:pr-[2rem]">${title}</h3>
+                  <div class='svg-box absolute top-1/2 -translate-y-1/2 right-[0.75rem] lg:block hidden'>
+                    <svg width="6.844" height="11" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M-5.078 13.922h16v-16h-16z"/><path fill="#666" fill-rule="nonzero" d="M6.844 5.557L1.276 11 0 9.866l4.408-4.309L0 1.247 1.276 0z"/></g></svg>
+                  </div>
+                </div>
+              </a>
+            </li>
+          `;
+        });
+
+        this.itemsWrap.innerHTML = itemsHtml;
+      }
+
+      setupEventListeners() {
+        this.filterButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            this.handleFilterClick(button);
+          });
+        });
+
+        if (this.yearTrigger && this.yearWrap && this.yearOptionsWrap) {
+          this.yearTrigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.toggleYearDropdown();
+          });
+
+          this.yearOptionsWrap.addEventListener('click', (e) => {
+            const btn = e.target.closest('.ai-news-list-year-option-{{ ai_gen_id }}');
+            if (!btn) return;
+            const year = btn.dataset.year || '';
+            if (!year) return;
+            this.currentYear = year;
+            this.syncYearUI();
+            this.currentPage = 1;
+            this.filterItems();
+            this.updateDisplay();
+            this.closeYearDropdown();
+          });
+
+          this._onDocClickYear = (e) => {
+            if (!this.yearWrap.contains(e.target)) {
+              this.closeYearDropdown();
+            }
+          };
+          document.addEventListener('click', this._onDocClickYear);
+
+          this._onKeydownYear = (e) => {
+            if (e.key === 'Escape') {
+              this.closeYearDropdown();
+            }
+          };
+          document.addEventListener('keydown', this._onKeydownYear);
+        }
+
+        if (this.prevButton) {
+          this.prevButton.addEventListener('click', () => {
+            this.goToPage(this.currentPage - 1);
+          });
+        }
+
+        if (this.nextButton) {
+          this.nextButton.addEventListener('click', () => {
+            this.goToPage(this.currentPage + 1);
+          });
+        }
+      }
+
+      handleFilterClick(button) {
+        this.filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        this.currentTag = button.dataset.tag;
+        this.currentPage = 1;
+        this.filterItems();
+        this.updateDisplay();
+      }
+
+      filterItems() {
+        const matchYear = (item) => {
+          if (this.currentYear === 'all') return true;
+          return (item.dataset.year || '') === this.currentYear;
+        };
+
+        if (this.currentTag === 'all') {
+          const filteredNormal = this.normalItems.filter(matchYear);
+          this.filteredItems = this.pinnedItems.concat(filteredNormal);
+        } else {
+          const filteredNormal = this.normalItems.filter(item => {
+            let tags = [];
+            try {
+              tags = JSON.parse(item.dataset.tags || '[]');
+            } catch (e) {
+              tags = [];
+            }
+            return tags.includes(this.currentTag) && matchYear(item);
+          });
+          this.filteredItems = this.pinnedItems.concat(filteredNormal);
+        }
+      }
+
+      updateDisplay() {
+        const hasItems = this.filteredItems.length > 0;
+        if (this.itemsWrap) {
+          this.itemsWrap.style.display = hasItems ? '' : 'none';
+        }
+        if (this.emptyWrap) {
+          this.emptyWrap.style.display = hasItems ? 'none' : '';
+        }
+
+        this.allItems.forEach(item => item.classList.remove('visible'));
+
+        const totalPages = Math.ceil(this.filteredItems.length / this.itemsPerPage);
+        const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+        const endIndex = startIndex + this.itemsPerPage;
+
+        this.filteredItems.slice(startIndex, endIndex).forEach(item => {
+          item.classList.add('visible');
+        });
+
+        if (this.currentPageSpan) {
+          this.currentPageSpan.textContent = this.filteredItems.length > 0 ? this.currentPage : 0;
+        }
+        if (this.totalPagesSpan) {
+          this.totalPagesSpan.textContent = totalPages;
+        }
+
+        if (this.paginationWrap) {
+          this.paginationWrap.style.display = totalPages > 1 ? '' : 'none';
+        }
+
+        if (this.prevButton) {
+          this.prevButton.disabled = this.currentPage <= 1;
+        }
+        if (this.nextButton) {
+          this.nextButton.disabled = this.currentPage >= totalPages;
+        }
+      }
+
+      goToPage(page) {
+        const totalPages = Math.ceil(this.filteredItems.length / this.itemsPerPage);
+        if (page < 1 || page > totalPages) {
+          return;
+        }
+        this.currentPage = page;
+        this.updateDisplay();
+        this.scrollToTop();
+      }
+
+      scrollToTop() {
+        const container = this.querySelector('.ai-news-list-header-{{ ai_gen_id }}');
+        if (container) {
+          container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    customElements.define('news-list-{{ ai_gen_id }}', NewsList{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "日站-新闻列表",
+  "settings": [
+    {
+      "type": "header",
+      "content": "内容设置"
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "博客"
+    },
+    {
+      "type": "text",
+      "id": "empty_state_text",
+      "label": "空状态提示",
+      "default": "请选择一个博客以显示新闻列表"
+    },
+    {
+      "type": "header",
+      "content": "筛选设置"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_tag_filter",
+      "label": "启用左侧标签筛选",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "all_filter_text",
+      "label": "全部筛选按钮文本",
+      "default": "全部"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_year_filter",
+      "label": "启用年份筛选",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "year_filter_default",
+      "label": "默认年份",
+      "options": [
+        { "value": "2027", "label": "2027" },
+        { "value": "2026", "label": "2026" },
+        { "value": "2025", "label": "2025" },
+        { "value": "2024", "label": "2024" },
+        { "value": "2023", "label": "2023" },
+        { "value": "2022", "label": "2022" },
+        { "value": "2021", "label": "2021" },
+        { "value": "2020", "label": "2020" },
+        { "value": "2019", "label": "2019" }
+      ],
+      "default": "2026"
+    },
+    {
+      "type": "header",
+      "content": "显示设置"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "显示发布日期",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "布局设置"
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "桌面宽度",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "container_max_width",
+      "label": "容器最大宽度",
+      "min": 800,
+      "max": 1400,
+      "step": 100,
+      "unit": "px",
+      "default": 1200
+    },
+    {
+      "type": "range",
+      "id": "section_padding_top",
+      "label": "区块上内边距",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom",
+      "label": "区块下内边距",
+      "min": 0,
+      "max": 500,
+      "step": 10,
+      "unit": "px",
+      "default": 300
+    }
+  ],
+  "presets": [
+    {
+      "name": "日站-新闻列表"
+    }
+  ]
+}
+{% endschema %}

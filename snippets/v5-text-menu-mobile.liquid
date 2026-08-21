@@ -1,0 +1,52 @@
+{%-liquid
+    assign has_submenu = true    
+    if settings.menu_list.links.size == 1 
+        assign first_lv1 = settings.menu_list.links | first
+        unless first_lv1.links.size > 0
+            assign has_submenu = false
+        endunless
+    endif
+-%}
+
+{%- if has_submenu == true -%}
+    <drawer-dialog style="--drawer-top: var(--header-pos-bottom);" id="Drawer__text_{{ id }}" placement="right">
+        <div class="drawer__overlay"></div>
+        <div class="drawer__content">
+            <div class="section-container-lg">
+                <div class="v5-menu-back drawer__close-btn flex items-center gap-x-1 py-4 sticky top-0 bg-white z-10">
+                    <div class="w-5 h-5 flex items-center justify-center">
+                        {%- render "icon-arrow", class: 'w-3 h-3 rotate-180', color: 'var(--color-text-info)' -%}
+                    </div>
+                    <span class="color-text-info text-base font-normal line-clamp-1">{{ section.settings.text_back }}</span>
+                </div>
+
+                <div class="v5-text-menu-mobile__content">
+                    <div>
+                        {%- for link in settings.menu_list.links -%}
+                            <div class="mb-6">
+                                <div class="color-text-weak font-normal text-sm mb-2">{{ link.title }}</div>
+                                {%- for childlink in link.links -%}
+                                    <a 
+                                        href="{{ childlink.url }}" 
+                                        class="flex justify-between items-center gap-x-2 pl-3"
+                                        data-ga-event="5.0_top_nav_user_clicks"
+                                        data-ga-action="click"
+                                        data-ga-params-module="{{ settings.handle.title | strip_html | escape }}"
+                                        data-ga-params-position="{{ childlink.title | strip | escape }}"
+                                        data-ga-params-link="{{ childlink.url | escape }}"
+                                    >
+                                        <span style="word-break: break-all;max-width: fit-content;" class="color-text-main text-base font-normal cursor-pointer relative line-clamp-2 flex-1">{{ childlink.title }}</span>
+
+                                        <div class="w-8 h-8 flex items-center justify-center">
+                                            <svg class="w-3 h-3" viewBox="0 0 1024 1024" width="16" height="16"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="var(--color-text-main)"></path></svg>
+                                        </div>
+                                    </a>
+                                {%- endfor -%}
+                            </div>
+                        {%- endfor -%}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </drawer-dialog>
+{%- endif -%}

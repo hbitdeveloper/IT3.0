@@ -1,0 +1,211 @@
+
+
+<div id="{{ section.id }}" class="{% if section.settings.type == 'embed' %} embed-component {% endif %}"
+    data-handle="{{ section.settings.handle }}">
+    <div class="pdp-container">
+        <div class="videos">
+            <div class="left">
+                <div class="title-info">
+                    <h2 class="jky-slideup title">{{ section.settings.title  | replace: '<em>', '<em style="color:var(--jds-color-primary)">'   }}</h2>
+                    {%- if section.settings.button_text != blank -%}
+                        <a
+                            target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                            href="{{ section.settings.link }}"
+                            data-ga-event="section_video_display_user_clicks"
+                            data-ga-action="click"
+                            data-ga-params-module="Product Video"
+                            data-ga-params-link="{{ section.settings.link }}"
+                            data-ga-params-button_name="{{ section.settings.button_text | escape}}"
+                            data-ga-params-position="{{ section.settings.title | strip_html }}"
+                        >
+                            <button class="index-button">
+                                <span>{{ section.settings.button_text | escape}}</span>
+                                <div>
+                                    <div class="arrow">
+                                        <svg class="line" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                                    <g transform="translate(672.000000, 286.000000)">
+                                                        <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                                    </g>
+                                                </g>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="box">
+                {% for item in section.blocks %}
+                    {% if item.settings.pc_video != blank %}
+                        <div class="video-content">
+                            <div class="video-detail pc-block">
+                                {%-
+                                        render 'jky-video',
+                                        video_url: item.settings.pc_video,
+                                        autoplay: item.settings.autoplay,
+                                        loop: item.settings.loop,
+                                        poster: item.settings.pc_image,
+                                        controls: item.settings.controls,
+                                        isHidePauseBtn: false,
+                                -%}
+                            </div>
+
+                            <div class="video-detail mobile-block {% if item.settings.type == 'vertical' %} vertical-video {% else %} horizontal-video {% endif %}">
+                                {%-
+                                        render 'jky-video',
+                                        video_url: item.settings.mb_video,
+                                        autoplay: item.settings.autoplay,
+                                        loop: item.settings.loop,
+                                        poster: item.settings.mb_image,
+                                        controls: item.settings.controls,
+                                        isHidePauseBtn: false,
+                                -%}
+                            </div>
+                            {%- if item.settings.description != blank -%}
+                                <div class="discription">{{ item.settings.description | replace: '<em>', '<em style="color:var(--jds-color-primary)">'}}</div>
+                            {%- endif -%}
+
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                {%- if section.settings.button_text != blank -%}
+                    <a
+                        target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                        href="{{ section.settings.link }}"
+                        data-ga-event="section_video_display_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="Product Video"
+                        data-ga-params-link="{{ section.settings.link }}"
+                        data-ga-params-button_name="{{ section.settings.button_text | escape}}"
+                        data-ga-params-position="{{ section.settings.title | strip_html }}"
+                    >
+                        <button class="index-button">
+                            <span>{{ section.settings.button_text | escape}}</span>
+                            <div>
+                                <div class="arrow">
+                                    <svg class="line" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                        <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                            <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                                <g transform="translate(672.000000, 286.000000)">
+                                                    <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                                </g>
+                                            </g>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
+                        </button>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script defer>
+    (function () {
+      function initPdpV4Videos() {
+        // 渐变出现
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                // 元素进入视窗,触发动画
+                entry.target.classList.add('jky-slideup-animate');
+                }
+            });
+        });
+
+        // 开始观察目标元素
+        const slideups = document.querySelectorAll('.jky-slideup')
+        if (slideups && slideups.length) {
+            slideups.forEach(item => {
+                observer.observe(item);
+            })
+        }
+        {% comment %} 获取元素 {% endcomment %}
+        const ele = document.querySelectorAll('#{{  section.id }} .video-detail')
+        ele.forEach(item => {
+            item.addEventListener('click', function(event) {
+                const jkyVideo = item.querySelector('jky-video')
+                const link = jkyVideo.getAttribute('video-src')
+                window.dataLayer?.push({ "event_parameters": null });
+                window.dataLayer?.push({
+                    event:"ga4Event",
+                    event_name:"section_video_display_user_clicks",
+                    event_parameters:{
+                        current_page: window.location.href,
+                        module: "Product Video",
+                        position:  '{{ section.settings.title | strip_html }}',
+                        button_name: 'clicks',
+                        link
+                    }
+                });
+            });
+        })
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPdpV4Videos);
+      } else {
+        initPdpV4Videos();
+      }
+    })();
+</script>
+
+{% schema %}
+    {
+        "name": "产品视频",
+        "class": "product-v4-videos",
+        "disabled_on": {
+            "templates": ["collection"]
+        },
+        "settings": [
+            {
+                "type": "select",  "id": "type", "label": "类型", "default": "embed",
+                "options": [
+                  { "value": "embed","label": "内嵌使用" },
+                  { "value": "independent", "label": "独立使用"}
+                ]
+            },
+            { "type": "text", "id": "handle", "label": "Handle（当前页面唯一的handle）", "default": "embed-component-01" },
+            { "type": "richtext", "id": "title", "label": "标题", "info": "提示：选中文本设置斜体可标记品牌色。" },
+            { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+            { "type": "text", "id": "button_text", "label": "按钮文案" },
+            { "type": "url", "id": "link", "label": "跳转地址" }
+        ],
+        "blocks": [
+            {
+                "type": "video",
+                "name": "视频配置",
+                "limit": 3,
+                "settings": [
+                    { "type": "url", "id": "pc_video", "label": "PC视频链接(800*450)"},
+                    { "type": "image_picker", "id": "pc_image", "label": "PC封面图(800*450)" },
+                    {
+                        "type": "select",  "id": "type", "label": "MB端样式类型", "default": "vertical",
+                        "options": [
+                          { "value": "vertical","label": "竖屏(686*1000)" },
+                          { "value": "horizontal", "label": "横屏（686*386）"}
+                        ]
+                    },
+                    { "type": "url", "id": "mb_video",  "label": "MB视频链接"},
+                    { "type": "image_picker", "id": "mb_image", "label": "MB封面图" },
+                    { "type": "checkbox", "id": "loop", "label": "是否循环播放", "default": false},
+                    { "type": "checkbox", "id": "controls", "label": "是否显示控件", "default": true},
+                    { "type": "checkbox", "id": "autoplay", "label": "是否自动播放", "default": false},
+                    { "type": "richtext", "id": "description", "label": "描述", "info": "提示：选中文本设置斜体可标记品牌色。" }
+                ]
+            }
+        ],
+        "presets": [
+            {
+              "name": "产品视频"
+            }
+          ]
+    }
+{% endschema %}

@@ -1,0 +1,251 @@
+{% comment %} 产品手风琴 {% endcomment %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{% comment %} 
+    如果是EHB页面，直接获取当前第一个
+    如果是Product页面，直接设置为当前选中的变体，如果不存在 则默认为第一个
+                    当变体切换时，该板块也对应切换
+{% endcomment %}
+
+{% style %}
+  v5-accordion .accordion-image{
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    overflow: hidden;
+  }
+  v5-accordion .accordion-image-select{
+    opacity: 1;
+    z-index: 1;
+  }
+{% endstyle %}
+
+{% assign curr_variant_id = nil %}
+{% assign block_variant_ids = ',' %}
+
+{% for block in section.blocks %}
+  {% assign block_product = block.settings.product %}
+  {% if block_product != blank and block_product.available %}
+      {% assign tmp_variant = block_product.variants | where: "id", block.settings.variant_id | where: "available", true | first | default: block_product.selected_or_first_available_variant %}
+      {% assign block_variant_ids = block_variant_ids  | append: tmp_variant.id | append: ',' %}
+      {% if curr_variant_id == nil %}
+        {% assign curr_variant_id = tmp_variant.id %}
+      {% endif %}
+  {% endif %}
+{% endfor %}
+
+{% if template contains 'product.' %}
+  {% assign selected_variant_id = product.selected_or_first_available_variant.id %}
+  {% if block_variant_ids contains selected_variant_id %}
+    {% assign curr_variant_id = selected_variant_id %}
+  {% endif %}
+{% endif %}
+<div 
+    {{ section.shopify_attributes }}
+    class="section-padding section-v5-accordion"
+    {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %} 
+    style="background: {{section.settings.bg_color}};{{style}}"
+> 
+    <v5-accordion
+        data-is-product="{%- if template contains 'product.' -%} true {%- else -%} false {%- endif -%}"
+        data-curr_variant_id="{{curr_variant_id}}"
+        data-str="{{block_variant_ids}}"
+    >
+        <div class="w-[21.4375rem] lg:w-[82rem] block lg:flex mx-auto lg:gap-6">
+            <div class="relative w-full lg:w-[40.25rem] h-[13.625rem] mb-6 lg:mb-0 scence-images">
+                {% for block in section.blocks %}
+                    {% assign block_product = block.settings.product %}
+                    {% if block_product != blank and block_product.available %}
+                            {% assign c_variant = block_product.variants | where: "id", block.settings.variant_id | where: "available", true | first | default: block_product.selected_or_first_available_variant %}
+                            <div class="accordion-image" data-index="{{ forloop.index }}" data-id="{{ c_variant.id }}">
+                                {% render 'diff-end-img', pc_img: block.settings.pc_scene_image, mb_img: block.settings.mb_scene_image, pc_img_width: 644, mb_img_width: 343, class: "w-full object-cover rounded-lg" %}
+                            </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="flex-1">
+                {% for block in section.blocks %}
+                    {% if block.settings.product != blank%}
+                        {% assign block_product = block.settings.product %}
+                        {% if block_product.available %}
+                            {% render 'v5-accordion-card', setting: block.settings %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+    </v5-accordion>
+</div>
+<script src="{{ 'sections-v5-accordion.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "V5-产品手风琴",
+        "limit": 1,
+        "enabled_on": {
+            "templates": ["product", "page"]
+        },
+        "settings": [
+            {
+                "type": "select",
+                "id": "style_type",
+                "options": [
+                    {
+                    "value": "default",
+                    "label": "默认"
+                    },
+                    {
+                    "value": "custom",
+                    "label": "自定义"
+                    }
+                ],
+                "default": "default",
+                "label": "样式类型"
+            },
+            { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#F9F7F3" },
+            { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+            { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "上边距",
+                "default": 40,
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "下边距",
+                "default": 40,
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_left",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "左边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_right",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "右边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+
+            { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+            {
+                "type": "select",
+                "id": "mb_padding_type",
+                "options": [
+                    {
+                    "value": "default",
+                    "label": "默认"
+                    },
+                    {
+                    "value": "custom",
+                    "label": "自定义"
+                    }
+                ],
+                "default": "default",
+                "label": "MB边距",
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_mb",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "上边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_mb",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "下边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_left_mb",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "左边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_right_mb",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "右边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+            }
+        ],
+        "blocks": [
+            {
+                "type": "product",
+                "name": "产品",
+                "limit": 4,
+                "settings": [
+                    { "type": "product", "id": "product", "label": "选择产品" },
+                    { "type": "number", "id": "variant_id", "label": "变体ID(必填)", "visible_if": "{{ block.settings.product != blank }}" , "info": "相同商品，变体ID不能重复"},
+                    { "type": "text", "id": "tag", "label": "产品标签", "visible_if": "{{ block.settings.product != blank }}" },
+                    { "type": "text", "id": "selling_points", "label": "产品卖点", "visible_if": "{{ block.settings.product != blank }}" },
+                    { "type": "select", "id": "btn_type", "label": "按钮类型", "options": [
+                            { "value": "add_to_cart", "label": "Add To Cart" },
+                            { "value": "shop_now", "label": "Shop Now" }
+                        ],
+                        "default": "add_to_cart", "visible_if": "{{ block.settings.product != blank }}"
+                    },
+                    { "type": "image_picker", "id": "pc_power_image", "label": "供电图PC", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度612, 高度自适应" },
+                    { "type": "image_picker", "id": "mb_power_image", "label": "供电图MB", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度343, 高度自适应" },
+                    { "type": "image_picker", "id": "pc_scene_image", "label": "场景图PC", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度644, 高度自适应" },
+                    { "type": "image_picker", "id": "mb_scene_image", "label": "场景图MB", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度343, 高度自适应"  }, 
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "V5-产品手风琴",
+                "category": "V5.0"
+            }
+        ]
+    }
+{% endschema %}

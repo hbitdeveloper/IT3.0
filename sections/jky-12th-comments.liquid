@@ -1,0 +1,90 @@
+{% assign status = 'tourist' %}
+{%- if customer.id -%}
+  {% assign status = 'logged_in' %}
+{%- endif -%}
+
+{% assign comp_theme = section.settings.comp_theme | default: 'default' %}
+<div
+  class="jky-12th-comments {{ comp_theme }} {%if comp_theme == 'default' and section.settings.is_gift_block == true%} gift-anchor gift-anchor--mb{%endif%}"
+  anchor="{{ section.settings.anchor | escape }}"
+  data-theme="{{ comp_theme }}"
+  data-avatar="{{ section.settings.avatar | image_url: width: 80, height: 80 }}"
+  data-status="{{ status }}"
+  data-title="{{ section.settings.title | escape  }}"
+  data-favorite="{{ section.settings.favorite | escape }}"
+  data-view_more="{{ section.settings.view_more | escape }}"
+  data-hbid="{{ section.settings.id | escape }}"
+  style="--bg-color: {{ section.settings.bg_color }}"
+>
+  <div class="jky-12th-container">
+    <div class="jky-up title">{{ section.settings.title | escape }}</div>
+  </div>
+  <div class="jky-up swiper-info relative">
+    <div class="swiper swiper-comments">
+      <div class="swiper-wrapper" id="swiper-comments-wrapper"></div>
+      {% if comp_theme == 'default' %}
+        <div class="swiper-pagination comments-pagination"></div>
+        <div class="swiper-button-next comments-next"></div>
+        <div class="swiper-button-prev comments-prev"></div>
+      {% endif %}
+    </div>
+    {% if comp_theme == 'jp-cherry' %}
+      <div class="swiper-button-next comments-next"></div>
+      <div class="swiper-button-prev comments-prev"></div>
+    {% endif %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "十二周年-用户留言",
+  "settings": [
+    { "type": "header", "content": "基本设置" },
+    { "type": "color", "id": "bg_color", "label": "背景色", "default": "#DBEEF9" },
+    { "type": "text", "id": "anchor", "label": "锚点定位" },
+    { "type": "header", "content": "组件设置" },
+    {
+      "type": "select",
+      "id": "comp_theme",
+      "label": "组件主题",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "jp-cherry",
+          "label": "日本樱花主题"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "paragraph",
+      "content": "默认主题下，展示所有功能及元素"
+    },
+    {
+      "type": "paragraph",
+      "content": "日本樱花主题下，仅展示用户留言，不包含产品相关信息"
+    },
+    {
+      "type": "checkbox",
+      "id": "is_gift_block",
+      "label": "是否为礼盒模块",
+      "default": false,
+      "info": "该模块的顺序请保持：KV-滚动介绍-品牌介绍-获奖Swiper",
+      "visible_if": "{{ section.settings.comp_theme == 'default' }}"
+    },
+    { "type": "text", "id": "id", "label": "活动ID（必填，否则将默认为12周年活动）" },
+    { "type": "text", "id": "title", "label": "标题" },
+    { "type": "image_picker", "id": "avatar", "label": "头像(80*80)" },
+    {
+      "type": "text",
+      "id": "favorite",
+      "label": "My Favorite",
+      "visible_if": "{{ section.settings.comp_theme == 'default' }}"
+    },
+    { "type": "text", "id": "view_more", "label": "查看更多", "default": "View More" }
+  ]
+}
+{% endschema %}

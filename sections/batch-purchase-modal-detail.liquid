@@ -1,0 +1,160 @@
+<div class="batch-purchase--detail batch-purchase-modal"  aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="modal-mask"></div>
+  <div class="modal-content">
+    <div class="modal-content-close">
+        <svg @click="handleProductModalHide()" xmlns="http://www.w3.org/2000/svg" fill="#888888" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </div>
+    <div class="modal-content-main">
+      <template v-for="(item,index) in list" :key="index">
+          <div class="modal-content-item">
+            <div v-if="detailShow" class="modal-content-item-swiper">
+              <swiper-container
+                class="mySwiper"
+                :thumbs-swiper="`.mySwiper${index}`"
+                space-between="10"
+                navigation="true"
+                style="--swiper-navigation-color: #a5a4a4; --swiper-pagination-color: #a5a4a4; --swiper-navigation-size:20px; ">
+                <swiper-slide v-for="img in item.images" lazy="true">
+                  <div class="main-img">
+                    <img :src="img" :alt="item.title" />
+                  </div>
+                </swiper-slide>
+              </swiper-container>
+              <swiper-container
+                class="myInfoSwiper"
+                :class="`mySwiper${index}`"
+                space-between="10"
+                :slides-per-view="6"
+                watch-slides-progress="true">
+                <swiper-slide v-for="img in item.images" lazy="true">
+                  <img class="thumbs-img" :src="img" :alt="item.title" />
+                </swiper-slide>
+              </swiper-container>
+            </div>
+
+            <div class="modal-content-info">
+              <div class="content-title">${item.title}</div>
+              <div class="content-price">
+                {%- if shop.id == 10015375438 or shop.id == 56124375224 -%}
+                  <span class="text">希望小売価格: </span>
+                {% endif %}
+                ${item.formatPrice}
+                {%- if shop.id == 10015375438 or shop.id == 56124375224 -%}
+                  (税込)
+                {% endif %}
+              </div>
+              {% comment %} 日站不显示折扣信息 {% endcomment %}
+              {%- if shop.id == 10015375438 or shop.id == 56124375224 -%}
+                <div class="content-tips">{{ section.settings.tips }}</div>
+              {% else %}
+                <div class="content-discount" v-for="(item1, j) in item.discountList" :key="j">
+                  <span class="content-discount-text" v-if="j != item.discountList.length - 1">${item1[0]} - ${item.discountList[j + 1][0] - 1 }  {{ section.settings.psc }}</span>
+                  <span class="content-discount-text" v-else>${ item1[0] }  {{ section.settings.psc }} ${ orMore }</span>
+                  <div class="content-discount-left">
+                      <div class="each">${item1[3]} {{ section.settings.each }}</div>
+                      <div class="off">${item1[1]}% {{ section.settings.off }}</div>
+                  </div>
+                </div>
+              {%- endif -%}
+
+              <div class="description-info" v-if="list.length === 1 && item.description">
+                  <div class="content-description" v-html="item.description"></div>
+              </div>
+
+              <div class="sub-total">
+                  <div class="content-quantity" >
+                      <div class="quantity-item-title">{{ section.settings.quantity | escape}}</div>
+                      <div class="quantity-item-input">
+                          <button @click="handleMinus(item)" :class="[item.quantity <= 1 ? 'quantity-not-allowed': '']" >
+                            {% render 'icon-minus' class: 'w-full h-full p-2 lg:w-10 lg:h-10 lg:p-3' %}
+                          </button>
+                          <input @input="e => handleModalInput(e, item)" @blur="handleInputBlur(item)" v-model="item.quantity" type="number" step="1" min="1">
+                          <button @click="handlePlus(item)">
+                            {% render 'icon-plus' class: 'w-full h-full p-2 lg:w-10 lg:h-10 lg:p-3' %}
+                          </button>
+                      </div>
+                  </div>
+                  <div class="price" v-if="list.length > 1">
+                      {{ section.settings.subTotal }}:
+                      {% comment %} 如果是日站 {% endcomment %}
+                      {% if shop.id == 10015375438 or shop.id == 56124375224 %}
+                        <span class="totle-price">${item.subTotalPriceFormat}</span>
+                      {% else %}
+                        <span class="totle-price">${item.totalPriceFormat}</span>
+                        <span  class="origin-price">${item.subTotalPriceFormat}</span>
+                      {% endif %}
+                  </div>
+              </div>
+            </div>
+          </div>
+      </template>
+    </div>
+
+    <div class="modal-content-footer">
+        <div class="footer-left"></div>
+        <div>
+            <div class="footer-price">
+                {{ section.settings.total }}:
+                {% comment %} 如果是日站 {% endcomment %}
+                {% if shop.id == 10015375438 or shop.id == 56124375224 %}
+                  <span class="totle-price">${subTotalPriceFormat}</span>
+                {% else %}
+                  <span class="totle-price">${totalPriceFormat}</span>
+                  <span  class="origin-price">${subTotalPriceFormat}</span>
+                {% endif %}
+
+            </div>
+            <div class="footer-buttons">
+                {% comment %}
+                 当为单个的时候可以显示 立即购买/跳转到商详页/跳转地址
+                 当为多个的时候只能显示立即购买和跳转地址
+                {% endcomment %}
+                {% if section.settings.type == 'buy_it_now' %}
+                    <button class="buy batch-purchase-buy" @click="handleBuy">{{ section.settings.addToCart }}</button>
+                {% elsif section.settings.type == 'view_more' %}
+                    <a v-if="list.length === 1" :href="`${list[0].url}?variant=${list[0].variantId}`">
+                      <button class="buy batch-purchase-buy" >{{ section.settings.viewMore }}</button>
+                    </a>
+                {% elsif section.settings.type == 'customize' %}
+                    <a href="{{section.settings.customize_url}}">
+                      <button class="buy batch-purchase-buy" >{{ section.settings.customize_text }}</button>
+                    </a>
+                {% endif %}
+                <button class="download" @click="uploadProof(true)">{{ section.settings.downloadPriceList }}</button>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Product Modal",
+    "tag": "div",
+    "settings": [
+      { "type": "text", "id": "psc", "label": "Psc", "default": "Psc" },
+      { "type": "text", "id": "off", "label": "Off", "default": "Off" },
+      { "type": "text", "id": "each", "label": "Each", "default": "Each" },
+      { "type": "text", "id": "quantity", "label": "Quantity", "default": "Quantity" },
+
+      { "type": "text", "id": "subTotal", "label": "Sub Total", "default": "Sub Total" },
+      { "type": "text", "id": "total", "label": "Total", "default": "Total" },
+      {
+        "type": "select", "id": "type", "label": "按钮类型",
+        "options": [
+          { "value": "buy_it_now", "label": "立即购买" },
+          { "value": "view_more", "label": "View More" },
+          { "value": "customize", "label": "自定义" }
+        ],
+        "default": "buy_it_now"
+      },
+      { "type": "text", "id": "addToCart", "label": "立即购买", "default": "Buy It Now" },
+      { "type": "text", "id": "viewMore", "label": "View More", "default": "View More"},
+      { "type": "header", "content": "自定义按钮" },
+      { "type": "text", "id": "customize_text", "label": "自定义按钮文案",  "placeholder": "自定义按钮文案" },
+      { "type": "url", "id": "customize_url", "label": "自定义跳转地址" },
+      { "type": "text", "id": "downloadPriceList", "label": "DOWNLOAD PRICE LIST", "default": "DOWNLOAD PRICE LIST" },
+      { "type": "textarea", "id": "tips", "label": "日站提示信息", "default": "日站提示信息" }
+    ]
+  }
+{% endschema %}

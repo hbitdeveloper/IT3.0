@@ -1,0 +1,171 @@
+{% comment %} 阳台光伏 banner {% endcomment %}
+{% assign slides = section.blocks | where: 'type', 'slide_item' %}
+{% assign heightClass = 'h-1080 lg:j-h-800 xl:a-h-800' %}
+{% if section.settings.banner_height == '800' %}
+  {% assign heightClass = 'h-1080 lg:j-h-800 xl:a-h-800' %}
+{% else %}
+  {% assign heightClass = 'h-517 lg:j-h-500 xl:a-h-500' %}
+{% endif %}
+
+<section class="w-screen {{ heightClass }} relative photovolatic-banner-body">
+  {% if section.settings.pc_product_img != blank or section.settings.mb_product_img != blank %}
+  <div class="photovolatic-banner-product">
+    <div class="banner-product-img">
+      {% render 'responsive-image',
+              image: section.settings.pc_product_img,
+              mimage: section.settings.mb_product_img,
+              image_class: 'w-full h-full object-cover'
+      %}
+    </div>
+  </div>
+  {% endif %}
+  <div>
+    <div
+            class="swiper-balcony-banner swiper-container overflow-hidden w-full {{ heightClass }} absolute left-0 top-0"
+            data-loop="{{ section.settings.loop }}"
+            data-autoplay="{{ section.settings.autoplay }}"
+            data-autoplay-delay="{{ section.settings.autoplay_delay }}"
+            data-size="{{ slides.size }}"
+    >
+      <div class="swiper-wrapper">
+        {% for block in slides %}
+          <div class="swiper-slide overflow-hidden">
+            <div class="slide-inner flex flex-col flex-start w-full {{ heightClass }} relative {% if section.settings.mask %} mask {% endif %}">
+              {% comment %} image {% endcomment %}
+              {% render 'responsive-image',
+                      image: block.settings.pc_slide_img,
+                      mimage: block.settings.mb_slide_img,
+                      image_class: 'w-full h-full object-cover'
+              %}
+              <div class="swiper-balcony-banner-text w-full lg:w-auto absolute left-1/2 -translate-x-1/2 top-0 z-2" style="opacity:0;">
+                <h2 class="
+                        w-full text-center font-600 text-56 leading-80 line-clamp-3 px-40 pt-50 mb-20
+                        lg:j-w-1000 lg:j-text-48 lg:j-leading-64 lg:j-px-0 lg:j-pt-80 lg:j-mb-20 lg:line-clamp-2
+                        xl:a-w-1000 xl:a-text-48 xl:a-leading-64 xl:a-px-0 xl:a-pt-80 xl:a-mb-20
+                        balcony-banner-h2 opacity-0
+                    "
+                    style="color: {{ block.settings.slide_title_color }}"
+                >{{ block.settings.slide_title | newline_to_br }}</h2>
+                <p class="
+                        w-full text-center font-500 text-32 leading-44 line-clamp-5 px-40
+                        lg:j-w-1000 lg:j-text-20 lg:j-leading-32 lg:j-px-0 lg:line-clamp-3
+                        xl:a-w-1000 xl:a-text-20 xl:a-leading-32 xl:a-px-0
+                        balcony-banner-p opacity-0
+                    "
+                   style="color: {{ block.settings.slide_description_color }}"
+                >{{ block.settings.slide_description | newline_to_br }}</p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% if slides.size > 1 %}
+        <div class="swiper-pagination swiper-balcony-pagination"></div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "photovolatic Banner",
+    "class": "section-photovolatic section-photovolatic-banner",
+    "settings": [
+      {
+        "type": "select",
+        "id": "banner_height",
+        "label": "Banner Height",
+        "default": "800",
+        "options": [
+          {
+            "value": "800",
+            "label": "800"
+          },
+          {
+            "value": "500",
+            "label": "500"
+          }
+        ],
+        "info": "高度 800 适用于光伏聚合页，高度 500 适用于光伏安装页"
+      },
+      {
+        "type": "checkbox",
+        "id": "mask",
+        "label": "是否开启遮罩层",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "loop",
+        "label": "Loop",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "autoplay",
+        "label": "Auto Play",
+        "default": true
+      },
+      {
+        "type": "range",
+        "id": "autoplay_delay",
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "unit": "s",
+        "label": "Auto Play Delay",
+        "default": 5
+      },
+      {
+        "type": "image_picker",
+        "id": "pc_product_img",
+        "label": "PC Product Image"
+      },
+      {
+        "type": "image_picker",
+        "id": "mb_product_img",
+        "label": "Mobile Product Image"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "slide_item",
+        "name": "Slide item",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "pc_slide_img",
+            "label": "PC Slide Image"
+          },
+          {
+            "type": "image_picker",
+            "id": "mb_slide_img",
+            "label": "Mobile Slide Image"
+          },
+          {
+            "type": "textarea",
+            "id": "slide_title",
+            "label": "Slide Title"
+          },
+          {
+            "type": "color",
+            "id": "slide_title_color",
+            "label": "Slide Title Color",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "textarea",
+            "id": "slide_description",
+            "label": "Slide Description"
+          },
+          {
+            "type": "color",
+            "id": "slide_description_color",
+            "label": "Slide Description Color",
+            "default": "#FFFFFF"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

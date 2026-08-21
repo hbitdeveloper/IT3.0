@@ -1,0 +1,27 @@
+{%- comment -%}
+  为所有博客列表模板输出统一的根 Blog 实体。
+
+  参数：
+  - organization_id：共享的 Organization 实体 ID
+  - include_organization_reference：是否允许 publisher 引用 Organization
+{%- endcomment -%}
+{%- liquid
+  assign blog_schema_url = request.origin | append: blog.url
+  assign blog_schema_id = blog_schema_url | append: '#blog'
+  assign blog_description = page_description | strip_html | strip
+-%}
+
+<script id="blog-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": {{ blog_schema_id | json | replace: '\/', '/' }},
+    "name": {{ page_title | default: blog.title | strip | json }},
+    "url": {{ blog_schema_url | json | replace: '\/', '/' }}{% if blog_description != blank %},
+    "description": {{ blog_description | json }}{% endif %},
+    "inLanguage": {{ request.locale.iso_code | json }}{% if include_organization_reference %},
+    "publisher": {
+      "@id": {{ organization_id | json | replace: '\/', '/' }}
+    }{% endif %}
+  }
+</script>

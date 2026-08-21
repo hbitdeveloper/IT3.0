@@ -1,0 +1,136 @@
+{% if settings.collection_shop != blank %}
+{% assign selected_collection = collections[settings.collection_shop] %}
+{% assign collection_products = selected_collection.products %}
+    {% comment %} 初始化产品数组 {% endcomment %}
+    {% assign product_data = '' %}
+    {% for product in collection_products %}
+        {% assign capacity = product.metafields.my_fields.wattage %}
+        {% if capacity != blank %}
+            {% comment %} 产品最大功率，单位：W（瓦特） {% endcomment %}
+            {% assign max_power = product.metafields.custom.max_power %}
+            {% assign shortname = product.metafields.custom.shortname | default: product.title %}
+            {% assign words = shortname | split: ' ' %}
+            {% if words.first == 'Jackery' %}
+                {% assign shortname = shortname | remove_first: 'Jackery ' %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+<div {% if shopify_attributes != blank %}{{shopify_attributes}}{% endif %} class="newcomer-main-container newcomer-higher-output newcomer-higher-output-{{ index }}" anchor="{{ settings.anchor_id  | url_decode | strip | replace: ' ', ''}}">
+    <div class="higher-output-content" data-table-title="{{ settings.table_title | strip_html }}">
+        <div class="higher-left">
+            <div class="higher-index">{{ settings.part_index }}</div>
+            <h3 class="higher-title">{{ settings.part_title | newline_to_br }}</h3>
+            <div class="higher-des">{{ settings.part_subtitle | newline_to_br }}</div>
+            {% if settings.button_title != blank %}
+            <div class="higher-btn-pc higher-btn">
+                <div class="btn-title">{{ settings.button_title }}</div>
+                <div class="btn-icon"><jds-icon name="plus-line" class="icon"></jds-icon></div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="higher-right">
+            <div class="higher-video">
+                {% comment %} 视频展示 {% endcomment %}
+                {% if settings.videoSrc != blank or settings.poster != blank %}
+                    {%- render 'jky-video',
+                            video_url: settings.videoSrc,
+                            poster: settings.poster,
+                            isHidePauseBtn: false,
+                            class: 'newcomer-video-box pc-block',
+                            autoplay: settings.autoplay,
+                            controls: settings.controls,
+                            loop: true
+                    -%}
+                {% endif %}
+
+                {% if settings.videoSrcMB != blank or settings.posterMB != blank %}
+                    {%- render 'jky-video',
+                            video_url: settings.videoSrcMB,
+                            poster: settings.posterMB,
+                            isHidePauseBtn: false,
+                            class: 'newcomer-video-box mb-block',
+                            autoplay: settings.autoplay,
+                            controls: settings.controls,
+                            loop: true
+                    -%}
+                {% endif %}
+            </div>
+        </div>
+        {% if settings.button_title != blank %}
+        <div class="higher-btn-mb higher-btn">
+            <div class="btn-title">{{ settings.button_title }}</div>
+            <div class="btn-icon"><jds-icon name="plus-line" class="icon"></jds-icon></div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<div class="newcomer-main-pop">
+    <div class="higher-output-box">
+        <div class="output-box-top">
+            {% if settings.jky_theme_version == 'v4' %}
+                <jds-icon name="close-fill" class="pop-close-icon"></jds-icon>
+            {%- else -%}
+                <jds-icon name="close" class="pop-close-icon"></jds-icon>  
+            {% endif %}
+            <div class="pop-title">{{ settings.table_title }}</div>
+        </div>
+        <div class="pop-content">
+            {% if settings.pc_pop_poster or settings.mb_pop_poster %}
+                {% render 'responsive-image',
+                  image: settings.pc_pop_poster,
+                  mimage: settings.mb_pop_poster,
+                  image_class: 'output-pop-image'
+                %}
+            {% else %}
+            <table class="higher-output-table">
+                <thead>
+                    <tr>
+                        <th>{{ settings.table_col_title_1 }}</th>
+                        <th>{{ settings.table_col_title_2 }}</th>
+                        <th>{{ settings.table_col_title_3 }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in collection_products %}
+                        {% assign capacity = product.metafields.my_fields.wattage %}
+                        {% if capacity != blank %}
+                            {% assign max_power = product.metafields.custom.max_power %}
+                            {% assign shortname = product.metafields.custom.shortname | default: product.title %}
+                            {% assign words = shortname | split: ' ' %}
+                            {% if words.first == 'Jackery' %}
+                                {% assign shortname = shortname | remove_first: 'Jackery ' %}
+                            {% endif %}
+                            <tr>
+                                <td class="table-name">{{ shortname }}</td>
+                                <td class="table-value">{% if capacity != blank %}{{ capacity }} Wh{% else %}-{% endif %}</td>
+                                <td class="table-value">{% if max_power != blank %}{{ max_power }} W{% else %}-{% endif %}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .newcomer-higher-output-{{ index }}{
+        padding-top:{{ settings.pc_padding_top }}px;
+        padding-bottom:{{ settings.pc_padding_bottom }}px;
+    }
+    @media screen and (min-width: 1024px) and (max-width: 1439.98px){
+        .newcomer-higher-output-{{ index }}{
+            padding-top: calc( {{ settings.pc_padding_top }}  * 100vw / 1440 );
+            padding-bottom: calc( {{ settings.pc_padding_bottom }}  * 100vw / 1440 );
+        }
+    }
+    @media screen and (max-width: 1023.98px){
+        .newcomer-higher-output-{{ index }}{
+            padding-top: calc( {{ settings.mb_padding_top }}  * 100vw / 750 );
+            padding-bottom: calc( {{ settings.mb_padding_bottom }}  * 100vw / 750 );
+        }
+    }
+</style>

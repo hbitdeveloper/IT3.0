@@ -1,0 +1,472 @@
+{% style %}
+  v5-common-videos-and-images .swiper-unload .slide-1,
+  v5-common-videos-and-images .swiper-slide-active,
+  v5-common-videos-and-images .swiper-slide-duplicate-active,
+  v5-common-videos-and-images .swiper-loaded .swiper-bottom,
+  v5-common-videos-and-images .swiper-loaded .arrow-btn,
+  v5-common-videos-and-images .swiper-slide-active .video-box,
+  v5-common-videos-and-images .swiper-slide-active .video-text-wrap {
+    opacity: 1;
+  }
+  v5-common-videos-and-images .swiper {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  v5-common-videos-and-images .swiper.swiper-loaded {
+    opacity: 1;
+  }
+  v5-common-videos-and-images .pc-swiper-button-prev {
+    position: absolute;
+    --w: calc((var(--pc-slide-width) + 40) / 2);
+    --h: calc((var(--pc-slide-height) - 40) / 2);
+    --left: calc(var(--w) + var(--pc-prev-next-btn-gap));
+    --top: calc(var(--h) / 16);
+    left: calc(50% - calc(var(--left) / 16) * 1rem);
+    top: calc(var(--top) * 1rem);
+    z-index: 2;
+  }
+  v5-common-videos-and-images .pc-swiper-button-next {
+    position: absolute;
+    --w: calc((var(--pc-slide-width) + 40) / 2);
+    --h: calc((var(--pc-slide-height) - 40) / 2);
+    --right: calc(var(--w) + var(--pc-prev-next-btn-gap));
+    --top: calc(var(--h) / 16);
+    right: calc(50% - calc(var(--right) / 16) * 1rem);
+    top: calc(var(--top) * 1rem);
+    z-index: 2;
+  }
+  @media screen and (max-width: 1023.98px) {
+    v5-common-videos-and-images .pc-swiper-button-prev {
+      --w: calc(var(--mb-slide-width) + 30);
+      --h: calc(var(--mb-slide-height) - 30);
+      --left: calc(var(--w) + var(--mb-prev-next-btn-gap));
+      --top: calc(var(--h) / 32);
+      left: calc(50% - calc(var(--left) / 32) * 1rem);
+    }
+    v5-common-videos-and-images .pc-swiper-button-next {
+      --w: calc(var(--mb-slide-width) + 30);
+      --h: calc(var(--mb-slide-height) - 30);
+      --right: calc(var(--w) + var(--mb-prev-next-btn-gap));
+      --top: calc(var(--h) / 32);
+      right: calc(50% - calc(var(--right) / 32) * 1rem);
+    }
+    {% if section.settings.mb_slide_width < 750 %}
+      v5-common-videos-and-images .video-text-wrap {
+        --suffix-w: calc(343 - var(--mb-slide-width));
+        --suffix-gap: calc(var(--suffix-w) / 2);
+        width: calc(100% + calc((var(--suffix-w) / 16) * 1rem));
+        margin-left: calc((var(--suffix-gap) / 16) * -1rem);
+      }
+    {% endif %}
+  }
+{% endstyle %}
+
+{% liquid
+  assign pause_all_dom = '#v5-common-videos-and-images-' | append: section.id
+
+  assign item_blocks = section.blocks | where: 'type', 'slide'
+  assign total = item_blocks.size
+
+  # swiper左右箭头
+  assign swiper_btn_base = 'lg:block arrow-btn opacity-0 text-[#242F20] !w-[1.875rem] !h-[1.875rem] lg:!w-10 lg:!h-10 z-[2]'
+  
+  # MB端，左右箭头位置
+  assign mb_prev_next_btn_position = section.settings.mb_prev_next_btn_position | default: 'down'
+  assign mb_prev_next_btn_display = 'hidden'
+  if mb_prev_next_btn_position == 'aside'
+    assign mb_prev_next_btn_display = 'block'
+  endif
+
+  assign swiper_prev_btn = 'pc-swiper-button-prev ' | append: mb_prev_next_btn_display | append: ' ' | append: swiper_btn_base
+  assign swiper_next_btn = 'pc-swiper-button-next ' | append: mb_prev_next_btn_display | append: ' ' | append: swiper_btn_base
+%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<v5-common-videos-and-images
+  id="v5-common-videos-and-images-{{ section.id }}"
+  class="w-full section-padding flex flex-col gap-y-9 lg:gap-y-[3.75rem]"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{ section.settings.anchor | escape }}"
+  {% endif %}
+  {% if section.settings.belongs_to != blank %}
+    belongs-to-target="{{ section.settings.belongs_to | escape }}"
+  {% endif %}
+  data-total="{{ total }}"
+  data-autoplay="{{ section.settings.swiper_auto }}"
+  data-delay="{{ section.settings.swiper_delay }}"
+  data-mb-prev-next-btn-position="{{ mb_prev_next_btn_position }}"
+  style="
+    background-color:{{ section.settings.bg_color | default: '#FFFFFF' }};
+    --pc-slide-width:{{ section.settings.pc_slide_width }};
+    --pc-slide-height:{{ section.settings.pc_slide_height }};
+    --mb-slide-width: calc({{ section.settings.mb_slide_width }} / 2);
+    --mb-slide-height: calc({{ section.settings.mb_slide_height }} / 2);
+    --pc-prev-next-btn-gap:{{ section.settings.pc_prev_next_btn_gap }};
+    --mb-prev-next-btn-gap:{{ section.settings.mb_prev_next_btn_gap }};
+    --pc-final-width: calc(var(--pc-slide-width) / 16 * 1rem);
+    --pc-final-height: calc(var(--pc-slide-height) / 16 * 1rem);
+    --mb-final-width: calc(var(--mb-slide-width) / 16 * 1rem);
+    --mb-final-height: calc(var(--mb-slide-height) / 16 * 1rem);
+    {{ style }}
+  "
+>
+  <div class="section-container-lg flex flex-col gap-y-3 lg:gap-y-5">
+    {%- if section.settings.title != blank -%}
+      <h2 class="w-full v5-font-oxm font-extrabold text-center text-[#242F20] text-4xl lg:text-7xl">{{ section.settings.title | newline_to_br }}</h2>
+    {%- endif -%}
+    {%- if section.settings.subtitle != blank -%}
+      <p class="w-full font-normal lg:font-semibold text-center text-[#242F20] text-sm lg:text-[1.75rem] lg:leading-[2.25rem]">{{ section.settings.subtitle | newline_to_br }}</p>
+    {%- endif -%}
+  </div>
+  <div class="w-full swiper overflow-hidden swiper-unload">
+    <div class="swiper-wrapper {% if total == 1 %} lg:justify-center {% endif %}">
+      {% for block in item_blocks %}
+        <div class="swiper-slide w-[var(--mb-final-width)] lg:w-[var(--pc-final-width)] {% if total > 1 %} mx-2 lg:mx-3 {% endif %} flex items-start justify-center flex-col slide-{{ forloop.index }}">
+          {% comment %} PC {% endcomment %}
+          <div class="hidden lg:block video-box {% if section.settings.show_mask and total > 1 %} lg:opacity-30 transition-all duration-600 ease-[cubic-bezier(0.8,0,0.2,1)] {% endif %} w-full h-[var(--mb-final-height)] lg:h-[var(--pc-final-height)] relative">
+            {%- liquid
+              assign video = block.settings.video
+              assign preview_image = block.settings.poster
+              if block.settings.poster == blank and block.settings.video_source == 'uploaded'
+                assign preview_image = block.settings.video.preview_image
+              endif
+
+              if block.settings.video_source == 'url'
+                assign video = block.settings.video_url
+              endif
+            -%}
+            {%- if video != blank -%}
+              {%- if block.settings.video_source == 'url' -%}
+                {%- render 'viewport-youtube',
+                  pauseAllDOM: pause_all_dom,
+                  video: video.id,
+                  url: video.url,
+                  observe: false,
+                  api: true,
+                  poster: preview_image,
+                  autoplay: false,
+                  loop: section.settings.loop,
+                  controls: true
+                -%}
+              {%- else -%}
+                {%- render 'viewport-video',
+                  pauseAllDOM: pause_all_dom,
+                  url: video,
+                  observe: false,
+                  poster: preview_image,
+                  autoplay: false,
+                  loop: section.settings.loop,
+                  controls: section.settings.controls,
+                  show_muted_button: true,
+                  show_pause_button: true
+                -%}
+              {%- endif -%}
+            {%- else -%}
+              {%- if preview_image != blank -%}
+                <img
+                  class="w-full h-full object-cover transition-all duration-500 ease-out"
+                  src="{{ block.settings.poster | image_url: width: section.settings.pc_slide_width }}"
+                  alt="{{ block.settings.poster.alt }}"
+                  loading="lazy"
+                  width="{{ section.settings.pc_slide_width }}"
+                  height="{{ section.settings.pc_slide_height }}"
+                >
+              {%- else -%}
+                {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full object-cover transition-all duration-500 ease-out' }}
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if block.settings.video_tag_pc != blank -%}
+              <div class="flex items-center justify-center w-fit max-w-[90%] !line-clamp-1 absolute top-2 left-2 lg:top-5 lg:left-5 text-xs px-2 h-7 lg:text-base leading-[1.625rem] text-[#242F20] font-semibold bg-white z-[2]">{{ block.settings.video_tag_pc | escape }}</div>
+            {%- endif -%}
+          </div>
+
+          {% comment %} MB {% endcomment %}
+          <div class="block lg:hidden video-box {% if section.settings.show_mask and total > 1 %} lg:opacity-30 transition-all duration-600 ease-[cubic-bezier(0.8,0,0.2,1)] {% endif %} w-full h-[var(--mb-final-height)] lg:h-[var(--pc-final-height)] relative">
+            {%- liquid
+              assign mb_video = block.settings.mobile_video
+              assign mb_preview_image = block.settings.mobile_poster
+              if block.settings.mobile_poster == blank and block.settings.mobile_source == 'uploaded'
+                assign mb_preview_image = block.settings.mobile_video.preview_image
+              endif
+
+              if block.settings.mobile_source == 'url'
+                assign mb_video = block.settings.mobile_video_url
+              endif
+            -%}
+            {%- if mb_video != blank -%}
+              {%- if block.settings.mobile_source == 'url' -%}
+                {%- render 'viewport-youtube',
+                  pauseAllDOM: pause_all_dom,
+                  video: mb_video.id,
+                  url: mb_video.url,
+                  observe: false,
+                  api: true,
+                  poster: mb_preview_image,
+                  autoplay: false,
+                  loop: section.settings.loop,
+                  controls: true
+                -%}
+              {%- else -%}
+                {%- render 'viewport-video',
+                  pauseAllDOM: pause_all_dom,
+                  url: mb_video,
+                  observe: false,
+                  poster: mb_preview_image,
+                  autoplay: false,
+                  loop: section.settings.loop,
+                  controls: section.settings.controls,
+                  show_muted_button: true,
+                  show_pause_button: true
+                -%}
+              {%- endif -%}
+            {%- else -%}
+              {%- if mb_preview_image != blank -%}
+                <img
+                  class="w-full h-full object-cover transition-all duration-500 ease-out"
+                  src="{{ block.settings.mobile_poster | image_url: width: 750 }}"
+                  alt="{{ block.settings.mobile_poster.alt }}"
+                  loading="lazy"
+                  width="{{ section.settings.mb_slide_width }}"
+                  height="{{ section.settings.mb_slide_height }}"
+                >
+              {%- else -%}
+                {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full object-cover transition-all duration-500 ease-out' }}
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if block.settings.video_tag_mb != blank -%}
+              <div class="flex items-center justify-center w-fit max-w-[90%] !line-clamp-1 absolute top-2 left-2 lg:top-5 lg:left-5 text-xs px-2 h-7 lg:text-base leading-[1.625rem] text-[#242F20] font-semibold bg-white z-[2]">{{ block.settings.video_tag_mb | escape }}</div>
+            {%- endif -%}
+          </div>
+
+          {%- if section.settings.show_divide -%}
+            <div class="w-full max-w-[21.4375rem] mx-auto {% if total > 1 %} lg:w-[calc(100%+1.5rem)] lg:max-w-[calc(100%+1.5rem)] {% else %} lg:w-full lg:max-w-full {% endif %} h-4 lg:h-6 bg-transparent border-0 border-b-[1px] border-solid border-primary"></div>
+          {%- endif -%}
+
+          {%- if block.settings.title != blank or block.settings.subtitle != blank -%}
+            <div class="video-text-wrap flex flex-col gap-y-2 lg:gap-y-3 {% if total > 1 %} opacity-0 transition-all duration-600 ease-[cubic-bezier(0.8,0,0.2,1)] {% endif %} w-full max-w-[21.4375rem] mx-auto lg:w-full lg:max-w-full pt-4 lg:pt-5">
+              {%- if block.settings.title != blank -%}
+                <div class="video-title w-full text-black text-sm lg:text-2xl font-semibold text-center line-clamp-2">
+                  {{ block.settings.title | newline_to_br }}
+                </div>
+              {%- endif -%}
+              {%- if block.settings.subtitle != blank -%}
+                <div class="video-subtitle w-full text-[#5C5C5C] text-sm lg:text-base font-normal text-center line-clamp-2">
+                  {{ block.settings.subtitle | newline_to_br }}
+                </div>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        </div>
+      {% endfor %}
+    </div>
+    {% if total > 1 %}
+      {%- render 'v5-icon-arrow-left', class: swiper_prev_btn -%}
+      {%- render 'v5-icon-arrow-right', class: swiper_next_btn -%}
+  
+      {%- if mb_prev_next_btn_position == 'down' -%}
+        <div class="swiper-bottom flex items-center justify-center lg:hidden opacity-0 gap-x-[1.125rem] mt-8 w-full h-[1.875rem]">
+          {%- render 'v5-icon-arrow-left', class: 'mb-swiper-button-prev left-0 !w-[1.875rem] !h-[1.875rem]' -%}
+          {%- render 'v5-icon-arrow-right', class: 'mb-swiper-button-next right-0 !w-[1.875rem] !h-[1.875rem]' -%}
+        </div>
+      {%- endif -%}
+    {% endif %}
+  </div>
+</v5-common-videos-and-images>
+<script src="{{ 'sections-v5-common-videos-and-images.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-通用视频/图文轮播组件",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示"
+    },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 96 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 96 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#FFFFFF" },
+    { "type": "textarea", "id": "title", "label": "版块标题", "default": "Latest Videos" },
+    { "type": "textarea", "id": "subtitle", "label": "版块副标题", "default": "How real people use Jackery to stay powered through life’s moments." },
+    { "type": "number", "id": "pc_slide_width", "label": "PC视频宽度", "default": 898, "info": "单位：px" },
+    { "type": "number", "id": "pc_slide_height", "label": "PC视频高度", "default": 505, "info": "单位：px" },
+    { "type": "number", "id": "mb_slide_width", "label": "MB视频宽度", "default": 750, "info": "单位：px" },
+    { "type": "number", "id": "mb_slide_height", "label": "MB视频高度", "default": 360, "info": "单位：px" },
+
+    { "type": "header", "content": "左右箭头设置" },
+    { "type": "number", "id": "pc_prev_next_btn_gap", "label": "PC端，左右箭头与slide的间距", "default": 68, "info": "单位：px" },
+    {
+      "type": "select",
+      "id": "mb_prev_next_btn_position",
+      "label": "MB端，左右箭头位置",
+      "options": [
+        { "value": "aside", "label": "两侧" },
+        { "value": "down", "label": "下方" }
+      ],
+      "default": "down"
+    },
+    { "type": "number", "id": "mb_prev_next_btn_gap", "label": "MB端，左右箭头与slide的间距", "default": -30, "info": "单位：px", "visible_if": "{{ section.settings.mb_prev_next_btn_position == 'aside' }}" },
+
+    { "type": "header", "content": "个性化设置" },
+    { "type": "checkbox", "id": "show_divide", "label": "显示分隔线", "default": true },
+    { "type": "checkbox", "id": "show_mask", "label": "显示视频遮罩", "default": true },
+
+    { "type": "header", "content": "轮播设置" },
+    { "type": "checkbox", "id": "swiper_auto", "label": "自动轮播", "default": false },
+    { "type": "range", "id": "swiper_delay", "label": "轮播间隔（单位：秒）", "min": 6, "max": 100, "step": 1, "default": 10 },
+
+    { "type": "header", "content": "视频设置" },
+    { "type": "paragraph", "content": "视频轮播组件可见并且轮播到对应视频时自动播放" },
+    { "type": "checkbox", "id": "loop", "label": "循环播放", "default": true },
+    { "type": "checkbox", "id": "controls", "label": "显示播放控件", "default": true, "info": "仅对Shopify本地视频有效" }
+  ],
+  "blocks": [
+    {
+      "name": "视频",
+      "type": "slide",
+      "settings": [
+        { "type": "textarea", "id": "title", "label": "视频标题", "default": "The Quiet Power of the Sun" },
+        { "type": "textarea", "id": "subtitle", "label": "视频副标题", "default": "\"With Jackery, I can gather electricity from the sun and use it.\" He says" },
+        
+        { "type": "header", "content": "PC端视频相关配置" },
+        {
+          "type": "select",
+          "id": "video_source",
+          "label": "视频来源",
+          "options": [
+            {
+              "value": "uploaded",
+              "label": "本地"
+            },
+            {
+              "value": "url",
+              "label": "Youtube"
+            }
+          ],
+          "default": "uploaded"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "视频",
+          "info": "建议10M以内，支持 MP4、WEBM、MOV 格式",
+          "visible_if": "{{ block.settings.video_source == 'uploaded' }}"
+        },
+        {
+          "type": "video_url",
+          "id": "video_url",
+          "label": "YouTube视频地址",
+          "accept": ["youtube"],
+          "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+          "visible_if": "{{ block.settings.video_source == 'url' }}"
+        },
+        { "type": "image_picker", "id": "poster", "label": "视频封面图" },
+        { "type": "text", "id": "video_tag_pc", "label": "左上角视频标签", "default": "Video" },
+        
+        { "type": "header", "content": "MB端视频相关配置" },
+        {
+          "type": "select",
+          "id": "mobile_source",
+          "label": "视频来源",
+          "options": [
+            {
+              "value": "uploaded",
+              "label": "本地"
+            },
+            {
+              "value": "url",
+              "label": "Youtube"
+            }
+          ],
+          "default": "uploaded"
+        },
+        {
+          "type": "video",
+          "id": "mobile_video",
+          "label": "视频",
+          "visible_if": "{{ block.settings.mobile_source == 'uploaded' }}"
+        },
+        {
+          "type": "video_url",
+          "id": "mobile_video_url",
+          "label": "YouTube视频地址",
+          "accept": ["youtube"],
+          "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+          "visible_if": "{{ block.settings.mobile_source == 'url' }}"
+        },
+        { "type": "image_picker", "id": "mobile_poster", "label": "视频封面图" },
+        { "type": "text", "id": "video_tag_mb", "label": "左上角视频标签", "default": "Video" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-通用视频/图文轮播组件",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

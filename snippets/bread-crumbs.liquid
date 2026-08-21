@@ -1,0 +1,55 @@
+{%- doc -%}
+    @description
+        根据传入的字符串数组生成面包屑导航
+        输出：HTML 面包屑导航，包含链接和分隔符
+    @param { boolean } is_show_home 是否显示首页链接 默认 true
+    @param { string } str 面包屑项字符串，格式为 "title1:url1|title2:url2|title3"
+    @example
+        {% render 'bread-crumbs', is_show_home: true, str: "首页:/|分类:/collections|商品" %}
+{%- enddoc -%}
+
+<div class="h-9 w-full font-normal text-[#666666] text-[0.75rem] leading-9 flex items-center">
+    {%- comment -%} 初始化变量，设置默认值 {%- endcomment -%}
+    {%- assign is_show_home = is_show_home | default: true -%}
+    {%- assign breadcrumb_items = str | default: '' | split: '|' -%}
+    {%- assign separator = '<span class="px-[0.25rem]">></span>' -%}
+    {%- if is_show_home -%}
+        <a
+            href="{{ routes.root_url }}"
+            aria-label="{{ settings.article_home }}"
+            data-ga-event="vbread_crumbs_user_clicks"
+            data-ga-action="click"
+            data-ga-params-module="BreadCrumb"
+            data-ga-params-position="L1"
+            data-ga-params-button_name="{{ settings.article_home }}"
+            data-ga-params-link="{{ routes.root_url }}"
+        >{{settings.article_home}}</a>
+        {%- if breadcrumb_items.size > 0 -%}{{ separator }}{%- endif -%}
+    {%- endif -%}
+    {%- comment -%} 渲染面包屑项 {%- endcomment -%}
+    {%- for item in breadcrumb_items -%}
+        {%- assign level = forloop.index | plus: 1 -%}
+        {%- assign parts = item | split: ':' -%}
+        {%- assign title = parts[0] -%}
+        {%- assign url = parts[1] | default: '' -%}
+
+        {%- if url != '' -%}
+            <a
+                href="{{ url | escape }}"
+                aria-label="{{ title | escape }}"
+                data-ga-event="vbread_crumbs_user_clicks"
+                data-ga-action="click"
+                data-ga-params-module="BreadCrumb"
+                data-ga-params-position="L{{ level }}"
+                data-ga-params-button_name="{{ blog.title | escape }}"
+                data-ga-params-link="{{ request.origin | append: blog.url }}"
+            >{{ title | escape }}</a>
+        {%- else -%}
+            <span {% if forloop.last %} class="truncate flex-1" {% endif %} >{{ title | escape }}</span>
+        {%- endif -%}
+        {%- unless forloop.last -%}{{ separator }}{%- endunless -%}
+    {%- endfor -%}
+</div>
+
+
+

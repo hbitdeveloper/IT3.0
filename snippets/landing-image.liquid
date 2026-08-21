@@ -1,0 +1,40 @@
+{% comment %} 活动页-图片组件 {% endcomment %}
+<style>
+    .landing-block--pic {padding-top: var(--padding-top);padding-bottom:var(--padding-bottom);}
+    .landing-block--pic .landing-block--pic-main img {width: 100%;}
+
+    {%- if schema_settings.full_width != true -%}
+    .landing-block--pic .landing-block--pic-main.section-container img {border-radius: var(--pic-radius);}
+    {%- endif -%}
+
+    .landing-block--pic-heading {line-height: 48px;font-size: 40px;padding-left: 40px;padding-right: 40px;text-align: center;font-weight: 600;padding-bottom: var(--padding-content);}
+
+    {%- if schema_settings.title != blank -%}
+    .landing-block--pic-link .landing-block--pic-box {cursor: pointer;}
+    .landing-block--pic-link .landing-block--pic-box a {position: absolute;inset: 0;z-index: 1;}
+    {%- endif -%}
+
+      @media screen and (max-width: 1024px) {
+        .landing-block--pic {padding-top: calc(var(--padding-top) / 3);padding-bottom:calc(var(--padding-bottom) / 3);}
+        .landing-block--pic-heading {line-height: 8vw;font-size: 6.4vw;padding-left: 5.3333vw;padding-right: 5.3333vw;padding-bottom: calc(var(--padding-content) / 2);}
+
+        {%- if schema_settings.full_width != true -%}
+        .landing-block--pic .landing-block--pic-main.section-container img {border-radius: calc(var(--pic-radius) / 2);}
+        {%- endif -%}
+      }
+</style>
+
+<div {%if schema_settings.anchor != blank%}anchor={{schema_settings.anchor | escape}}{%endif%} class="landing-block--pic {%if schema_settings.img_link != blank%} landing-block--pic-link{%endif%} color-{{ schema_settings.color_scheme }}" style="background:var(--color-background);--pic-radius: {{schema_settings.pic_radius}}px;--padding-bottom:{{schema_settings.padding_bottom}}px;--padding-top:{{schema_settings.padding_top}}px;--padding-content: {{schema_settings.padding_content}}px;">
+    <div class="landing-block--pic-main {%unless schema_settings.full_width == true%}activity-container{%endunless%}">
+        {%- if schema_settings.title != blank -%}
+            <div class="landing-block--pic-heading" style="color:var(--color-text);">{{schema_settings.title | newline_to_br}}</div>
+        {%- endif -%}
+
+        <div class="landing-block--pic-box relative">
+            {%- if schema_settings.img_link != blank -%}
+                <a href="{{schema_settings.img_link}}" data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Single Banner" data-ga-params-link="{{schema_settings.img_link}}" data-ga-params-url="{{schema_settings.pc_img}}"></a>
+            {%- endif -%}
+            {% render 'responsive-image', image: schema_settings.pc_img, width: 1200, mimage: schema_settings.mb_img, mwidth: 1024, image_class: "w-full object-cover" %}
+        </div>
+    </div>
+</div>

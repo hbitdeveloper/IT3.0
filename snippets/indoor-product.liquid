@@ -1,0 +1,146 @@
+<style>
+  .indoor-product {
+    margin-top: var(--block_margin_top);
+  }
+  .indoor-product .product-box .item-product .icon-box .icon-title {
+    font-size: var(--block_title_size);
+  }
+  @media screen and (max-width: 1023.98px) {
+    .indoor-product {
+      margin-top: calc(var(--block_margin_top) / 2);
+    }
+    .indoor-product .product-box .item-product .icon-box .icon-title {
+      font-size: calc(var(--block_mb_title_size) / 7.5);
+    }
+  }
+</style>
+
+<div class="indoor-product" style="--block_margin_top:{{ product.margin }}px; --block_title_size: {{ product.font }}px;--block_mb_title_size: {{ product.mb-font }}vw"
+anchor="{{ product.anchor_id  | url_decode | strip | replace: ' ', ''}}"
+>
+  <div class="product-box {{ product.position }}">
+    {% for i in (0..2) %}
+      {% assign product-index = 'product-' | append: forloop.index %}
+      {% assign img-index = 'img-' | append: forloop.index %}
+      {% assign name-index = 'name-' | append: forloop.index %}
+      {% assign sell-point-index = 'sell-point-' | append: forloop.index %}
+      {% assign icon-one-index = 'icon-one-' | append: forloop.index %}
+      {% assign icon-one-text-index = 'icon-one-text-' | append: forloop.index %}
+      {% assign icon-one-time-index = 'icon-one-time-' | append: forloop.index %}
+      {% assign icon-two-index = 'icon-two-' | append: forloop.index %}
+      {% assign icon-two-text-index = 'icon-two-text-' | append: forloop.index %}
+      {% assign icon-two-time-index = 'icon-two-time-' | append: forloop.index %}
+      {% assign icon-three-index = 'icon-three-' | append: forloop.index %}
+      {% assign icon-three-text-index = 'icon-three-text-' | append: forloop.index %}
+      {% assign icon-three-time-index = 'icon-three-time-' | append: forloop.index %}
+      {% assign price-index = 'price-' | append: forloop.index %}
+      {% assign price-line-index = 'price-line-' | append: forloop.index %}
+      {% assign link-index = 'link-' | append: forloop.index %}
+      {% if product[product-index] != blank %}
+        {% assign productimg = product[img-index] | default: product[product-index].featured_image %}
+        {% assign title = product[name-index] | default: product[product-index].title %}
+        {% assign price_discounted = product[product-index].metafields.custom.manual_discounted_price %}
+        {% assign target = product[product-index].selected_or_first_available_variant %}
+
+        {% comment %} 现价取值逻辑 {% endcomment %}
+        {% if product[price-index] != blank %}
+          {% assign price = product[price-index] | times: 100 %}
+        {% elsif price_discounted != blank %}
+          {% assign price = product[product-index].metafields.custom.manual_discounted_price | times: 100 %}
+        {% else %}
+          {% comment %} 如果开启了自动计算折扣价 {% endcomment %}
+          {%- if settings.open_auto_discount_price -%}
+            {% comment %} 自动计算 - 折后价格 {% endcomment %}
+            {%- assign auto_discount_price = target.metafields.custom.auto_discount_price | times: 1 -%}
+            {%- if auto_discount_price > 0 -%}
+              {% comment %} 当前价格 {% endcomment %}
+              {% assign price = target.price %}
+
+              {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+              {%- if auto_discount_price < target.price -%}
+                {% assign price = auto_discount_price %}
+              {%- endif -%}
+            {%- else -%}
+              {% assign price = target.price %}
+            {%- endif -%}
+          {%- else -%}
+            {% assign price = target.price %}
+          {%- endif -%}
+        {% endif %}
+
+        {% comment %} 划线价取值逻辑 {% endcomment %}
+        {% if product[price-line-index] != blank %}
+          {% assign priceline = product[price-line-index] | times: 100 %}
+        {% elsif price_discounted != blank %}
+          {% assign priceline = target.price %}
+        {% else %}
+          {% comment %} 如果开启了自动计算折扣价 {% endcomment %}
+          {%- if settings.open_auto_discount_price -%}
+            {% comment %} 自动计算 - 折后价格 {% endcomment %}
+            {%- assign auto_discount_price = target.metafields.custom.auto_discount_price | times: 1 -%}
+            {%- if auto_discount_price > 0 -%}
+              {% comment %} 当前价格 {% endcomment %}
+              {%- assign current_price = target.price -%}
+              {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+              {%- if auto_discount_price < target.price -%}
+                {%- assign current_price = auto_discount_price -%}
+              {%- endif -%}
+
+              {%- if current_price < target.compare_at_price -%}
+                {% assign priceline = target.compare_at_price %}
+              {%- else -%}
+                {%- if current_price < target.price -%}
+                  {% assign priceline = target.price %}
+                {%- endif -%}
+              {%- endif -%}
+            {%- else -%}
+              {% assign priceline = target.compare_at_price %}
+            {%- endif -%}
+          {%- else -%}
+            {% assign priceline = target.compare_at_price %}
+          {%- endif -%}
+        {% endif %}
+
+        <div class="item-product">
+          <div class="img-title relative">
+            {% render 'responsive-image', image: productimg, image_class: 'product-img' %}
+            <div class="title-description">
+              <h3 class="title text-ellipsis-2" style="text-align: {{ product.name-position }};color:{{ product.name-color }}">{{ title }}</h3>
+              <div class="description" style="text-align: {{ product.sell-position }};color:{{ product.sell-point-color }}">{{ product[sell-point-index] }}</div>
+            </div>
+          </div>
+
+          <div class="icon-box">
+            <div class="item-icon">
+              {% render 'responsive-image', image: product[icon-one-index], image_class: 'icon-img' %}
+              <div class="icon-title">{{ product[icon-one-text-index] }}</div>
+              <div class="icon-h">{{ product[icon-one-time-index] }}</div>
+            </div>
+            <div class="item-icon">
+              {% render 'responsive-image', image: product[icon-two-index], image_class: 'icon-img' %}
+              <div class="icon-title">{{ product[icon-two-text-index] }}</div>
+              <div class="icon-h">{{ product[icon-two-time-index] }}</div>
+            </div>
+            <div class="item-icon">
+              {% render 'responsive-image', image: product[icon-three-index], image_class: 'icon-img' %}
+              <div class="icon-title">{{ product[icon-three-text-index] }}</div>
+              <div class="icon-h">{{ product[icon-three-time-index] }}</div>
+            </div>
+          </div>
+          <div class="item-bottom">
+            <div class="price">
+              {{ price | money }}
+              {% if priceline > price %}
+                <span class="line-price">{{ priceline | money }}</span>
+              {% endif %}
+            </div>
+
+            <a href="{{ product[link-index] }}" target="{% if new_window %}_blank{% else %}_self{% endif %}">
+              <div class="btn">{{ product.btn }}</div>
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>

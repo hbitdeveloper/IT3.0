@@ -1,0 +1,163 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{% liquid
+    assign show_scene_head = false
+    for item in section.blocks
+        if item.settings.title != blank or item.settings.desc != blank
+            assign show_scene_head = true
+            break
+        endif
+    endfor 
+%}
+<div
+    {{ section.shopify_attributes }}
+    class="section-padding section-v5-pdp-scene-compare relative{% if section.settings.type == 'embed' %} embed-component{% endif %}"
+    {% if section.settings.type == 'embed' and section.settings.anchor != blank %}
+        data-anchor="{{section.settings.anchor}}" anchor="{{section.settings.anchor}}"
+    {% endif %}
+    {% if section.settings.type == 'embed' and section.settings.handle != blank %}
+        data-handle="{{ section.settings.handle }}"
+    {% endif %}
+    {% if section.settings.type == 'independent' and section.settings.anchor != blank %}
+        anchor-target="{{section.settings.anchor}}"
+    {% endif %}
+    style="background: {{section.settings.bg_color}};{{style}}"
+>
+    {% assign size = section.blocks | size %}
+     <v5-pdp-scene-compare data-size="{{size}}" data-is-show-jump="{{ section.settings.is_show_jump }}">
+        <div class="w-full lg:w-[82.5rem] mx-auto">
+            {% if section.settings.title != blank %}
+                <h2 class="px-[1rem] lg:px-0 text-[1.5rem] lg:text-[3rem] text-center mb-6 lg:mb-10 font-semibold text-[#242F20]">{{ section.settings.title | escape}}</h2> 
+            {% endif %}
+
+            <div class="pl-[1rem] lg:pl-0">
+                <div class="swiper v5-pdp-scene-compare-swiper">
+                    <div class="swiper-wrapper items-stretch {% if size <= 3 %} lg:gap-6 lg:justify-center{% endif %}">
+                        {% for block in section.blocks %}
+                            {% assign curr_product = block.settings.product %}
+                            {% assign curr_variant_id = block.settings.variant %}
+                            {% assign variant = curr_product.variants | where: "id", curr_variant_id | first %}
+                            {% if variant == blank %}
+                                {% assign variant = curr_product.selected_or_first_available_variant %}
+                            {% endif %}
+                            <div class="w-[17.5rem] lg:w-[26.5rem] swiper-slide mr-6 {% if size > 3 %} lg:mr-6 {% else %} lg:mr-0 {% endif %} h-auto flex">
+                                {% render
+                                    'v5-pdp-scene-compare-card', 
+                                    block: block,
+                                    variant: variant,
+                                    product: curr_product,
+                                    title: product.title | escape,
+                                    is_show_price: section.settings.is_show_price,
+                                    is_show_cart: section.settings.is_show_cart,
+                                    show_scene_head: show_scene_head,
+                                    bg_color: section.settings.bg_color,
+                                    is_show_jump: section.settings.is_show_jump,
+                                    product_id: curr_variant_id,
+                                %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+            </div>
+
+            {%- if section.settings.tip != blank -%}
+                <div class="pl-[1rem] mt-3 lg:pl-0 lg:mt-10 lg:mb-10 text-left lg:text-center text-[0.75rem] font-normal text-[#242F20E5]/90">{{ section.settings.tip | escape }}</div>
+            {%- endif -%}
+            {% comment %} 最后一个item {% endcomment %}
+             {%- if size > 3 -%}
+                <div class="hidden lg:flex items-center justify-center mb-[6.25rem]">
+                    <div class="flex items-center gap-10">
+                        {% render 'v5-icon-arrow-left', class: 'v5-icon-arrow-left cursor-pointer lg:!w-10 lg:!h-10 text-[#242F20]' %}
+                        {% render 'v5-icon-arrow-right', class: 'v5-icon-arrow-right cursor-pointer lg:!w-10 lg:!h-10 text-[#242F20]' %}
+                    </div>
+                </div>
+             {%- endif -%}
+           
+        </div>
+    </v5-pdp-scene-compare>
+    {% if section.settings.is_show_line %}
+        {% comment %} 定位到底部中间 {% endcomment %}
+        <div class="w-0.5 h-16 lg:h-24 bg-[#C3C3BE] absolute bottom-0 left-4 lg:left-1/2 lg:-translate-x-1/2"></div>
+    {% endif %}
+</div>
+<script src="{{ 'section-v5-pdp-scene-compare.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "V5-商详页生活方式-产品对比",
+        "settings": [
+            {
+                "type": "select",
+                "id": "type",
+                "label": "类型",
+                "default": "independent",
+                "options": [
+                    {
+                    "value": "embed",
+                    "label": "内嵌使用"
+                    },
+                    {
+                    "value": "independent",
+                    "label": "独立使用"
+                    }
+                ]
+            },
+            {
+                "type": "text",
+                "id": "handle",
+                "label": "Handle（当前页面唯一的handle）",
+                "default": "v-video-01",
+                "visible_if": "{{ section.settings.type == 'embed' }}"
+            },
+            { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+            { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#F5F5F3" },
+            { "type": "header", "content": "PC边距" },
+            { "type": "range", "id": "padding_top", "min": 0, "max": 400, "step": 4, "unit": "px", "label": "上边距", "default": 96},
+            { "type": "range", "id": "padding_bottom", "min": 0, "max":  400, "step": 4, "unit": "px", "label": "下边距", "default": 96},
+            { "type": "range", "id": "padding_left", "min": 0, "max": 400, "step": 4, "unit": "px", "label": "左边距", "default": 0},
+            { "type": "range", "id": "padding_right", "min": 0, "max": 400, "step": 4, "unit": "px", "label": "右边距", "default": 0},
+            { "type": "header", "content": "MB边距" },
+            { "type": "select", "id": "mb_padding_type","label": "MB边距", "options": [ { "value": "default", "label": "与PC一致" }, { "value": "custom", "label": "单独配置" } ], "default": "custom"},
+            { "type": "range", "id": "padding_top_mb", "min": 0, "max": 400, "step": 4, "unit": "px", "label": "上边距", "default": 24, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 400, "step": 4, "unit": "px", "label": "下边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_left_mb", "min": 0, "max": 400, "step": 4, "unit": "px", "label": "左边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "range", "id": "padding_right_mb", "min": 0, "max": 400, "step": 4, "unit": "px", "label": "右边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "text", "id": "title", "label": "对比标题", "default": "Fit Your Lifestyle" },
+            { "type": "text", "id": "tip", "label": "提示", "default": "*Figures shown are estimates; actual usage varies." },
+            { "type": "checkbox", "id": "is_show_price", "label": "是否显示价格", "default": true },
+            { "type": "checkbox", "id": "is_show_cart", "label": "是否显示添加到购物车按钮", "default": true },
+            { "type": "checkbox", "id": "is_show_line", "label": "是否显示底部竖线", "default": false },
+            { "type": "checkbox", "id": "is_show_jump", "label": "点击产品图片或标题跳转至商详页", "default": false }
+        ],
+        "blocks": [
+            {
+                "type": "scene",
+                "name": "场景",
+                "limit": 10,
+                "settings": [
+                    { "type": "textarea", "id": "title", "label": "标题" },
+                    { "type": "textarea", "id": "desc", "label": "描述", "info": "最多显示两行" },
+                    { "type": "product", "id": "product", "label": "产品" },
+                    { "type": "number", "id": "variant", "label": "变体ID", "info": "如果变体无效，则取默认选中的第一个变体" },
+                    { "type": "image_picker", "id": "pc_runtime", "label": "PC 充电时长图(392*80px)" },
+                    { "type": "image_picker", "id": "mb_runtime", "label": "MB 充电时长图(248*108px)" },
+                    { "type": "richtext", "id": "includes", "label": "包含信息", "default": "<p></p>" }
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "V5-商详页生活方式-产品对比",
+                "category": "V5.0",
+                "blocks": [
+                    { "type": "scene" },
+                    { "type": "scene" },
+                    { "type": "scene" }
+                ]
+            }
+        ]
+    }
+{% endschema %}

@@ -1,0 +1,997 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<style>
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    border-color: var(--tag-line-color, #00000026);
+  }
+
+  {% if section.settings.is_need_nav_scroll_pc %}
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul {
+      flex-wrap: nowrap;
+    }
+  {% else %}
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul {
+      flex-wrap: wrap;
+    }
+  {% endif %}
+
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul::-webkit-scrollbar {
+    display: none; /* 隐藏滚动条 */
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul .navigation-item {
+    color: var(--text-color, #1a1a1a);
+    border-color: var(--tag-line-color, #00000026);
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul .navigation-item em {
+    color: var(--highlight-color, var(--text-color, #1a1a1a));
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul .navigation-item.active,
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul .navigation-item.active em {
+    color: var(--tag-active-color, var(--jds-color-primary));
+    font-weight: var(--tag-active-font-weight, 600);
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.tag-hollow .navigation-item.active {
+    border-color: var(--tag-active-color, var(--jds-color-primary));
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul .tag-nav-indicator {
+    background-color: var(--tag-active-color, var(--jds-color-primary));
+    transition: left 0.3s, width 0.3s;
+  }
+
+  /* 胶囊风格样式 */
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] {
+    border-bottom: none;
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] .navigation-item {
+    background-color: var(--tag-solid-bg-color, #fff);
+    color: var(--text-color, #1a1a1a);
+    border-radius: 1.5rem;
+    padding: 0.5rem 1.5rem;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] .navigation-item em {
+    color: var(--text-color, #1a1a1a);
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] .navigation-item.active {
+    background-color: var(--tag-active-solid-bg-color, var(--jds-color-primary));
+    color: var(--tag-active-color, #fff);
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] .navigation-item.active em {
+    color: var(--tag-active-color, #fff);
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] .tag-nav-indicator {
+    display: none;
+  }
+
+  /* 胶囊风格 - 平铺样式 */
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] {
+    width: 100%;
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] .navigation-item {
+    flex: 0 0 auto;
+    text-align: center;
+    min-width: fit-content;
+  }
+  /* 胶囊风格平铺样式 - PC端对齐方式 */
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'].align-center {
+    justify-content: center;
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'].align-left {
+    justify-content: flex-start;
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'].align-right {
+    justify-content: flex-end;
+  }
+  /* 胶囊风格平铺样式 - 移动端对齐方式 */
+  @media (max-width: 1023.98px) {
+    {% if section.settings.is_need_nav_scroll_mb %}
+      jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul {
+        flex-wrap: nowrap;
+      }
+    {% else %}
+      jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul {
+        flex-wrap: wrap;
+      }
+    {% endif %}
+
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'].mb-align-center {
+      justify-content: center;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'].mb-align-left {
+      justify-content: flex-start;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'].mb-align-right {
+      justify-content: flex-end;
+    }
+  }
+
+  /* 胶囊风格 - 滚动样式 */
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+  jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] .navigation-item {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  @media (min-width: 1024px) {
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul .navigation-item {
+      padding: calc(var(--pc-tag-size) * 12 / 21) 0;
+      font-size: var(--pc-tag-size, 1.3125rem);
+      line-height: calc(var(--pc-tag-size) * 32 / 21);
+      font-weight: var(--tag-font-weight, 500);
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.tag-hollow .navigation-item {
+      padding: 0.75rem 1rem;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.align-center {
+      margin-left: auto;
+      margin-right: auto;
+      justify-content: center;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.align-left {
+      margin-left: unset;
+      margin-right: auto;
+      justify-content: flex-start;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.align-right {
+      margin-left: auto;
+      margin-right: unset;
+      justify-content: flex-end;
+    }
+  }
+  @media (max-width: 1023.98px) {
+    jky-stories-collection-tag-category .tags-navigation-wrap,
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-ul-wrap {
+      width: 100% !important;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul .navigation-item {
+      padding: calc(var(--mb-tag-size) * 6 / 14) 0;
+      font-size: var(--mb-tag-size, 0.875rem);
+      line-height: calc(var(--mb-tag-size) * 16 / 14);
+      font-weight: var(--tag-font-weight, 600);
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.tag-hollow .navigation-item {
+      padding: 0.25rem 0.5rem;
+    }
+    /* 胶囊风格移动端样式 */
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul[data-capsule-style='solid'] .navigation-item {
+      padding: 0.75rem 1rem;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.mb-align-center {
+      margin-left: auto;
+      margin-right: auto;
+      justify-content: center;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.mb-align-left {
+      margin-left: unset;
+      margin-right: auto;
+      justify-content: flex-start;
+    }
+    jky-stories-collection-tag-category .tags-navigation-wrap .tags-nav-ul.mb-align-right {
+      margin-left: auto;
+      margin-right: unset;
+      justify-content: flex-end;
+    }
+  }
+</style>
+
+{%- liquid
+  # 字重
+  assign default_font_weight = '600'
+  if settings.jky_theme_version == 'v4'
+    assign default_font_weight = '500'
+  endif
+  assign tag_font_weight = section.settings.tag_font_weight | default: default_font_weight
+  assign tag_active_font_weight = section.settings.tag_active_font_weight | default: '600'
+
+  assign tag_font_style = '--tag-font-weight:' | append: tag_font_weight | append: ';--tag-active-font-weight:' | append: tag_active_font_weight
+
+  # 背景颜色
+  assign tag_bg_color = section.settings.tag_bg_color | color_modify: 'alpha', 0
+  assign tag_bg_color_style = ';--tag-nav-light-bg:' | append: tag_bg_color | append: ';--tag-nav-bg:' | append: section.settings.tag_bg_color | append: ";background:var(--tag-nav-bg, '#FFFFFF');"
+
+  # Tab样式
+  assign tag_style = tag_font_style | append: tag_bg_color_style
+
+  # 文字颜色
+  assign tag_color_style = '--text-color:' | append: section.settings.tag_color | append: ';--tag-active-color:' | append: section.settings.tag_active_color | append: ';'
+
+  # 实心Tab背景颜色
+  assign tag_solid_bg_color_style = '--tag-solid-bg-color:' | append: section.settings.tag_solid_bg_color | append: ';--tag-active-solid-bg-color:' | append: section.settings.tag_active_solid_bg_color | append: ';'
+
+  # 字体字号
+  assign pc_name_size = section.settings.pc_name_size | divided_by: 16.0
+  assign mb_name_size = section.settings.mb_name_size | divided_by: 32.0
+  assign tag_size_style = '--pc-tag-size:' | append: pc_name_size | append: 'rem;--mb-tag-size:' | append: mb_name_size | append: 'rem;'
+
+  # Tab item样式
+  assign tag_item_style = tag_color_style | append: tag_size_style
+  if section.settings.tag_show_style == 'solid'
+    assign tag_item_style = tag_item_style | append: tag_solid_bg_color_style
+  endif
+
+  # 公共按钮样式
+  assign tag_h = ''
+  if section.settings.tag_show_style == 'underline'
+    assign tag_h = 'h-[calc(100%-2px)]'
+  endif
+  assign nav_btn_base = 'invisible opacity-0 shadow-[-2px_0_4px_0_rgba(0, 0, 0, 0.1)] z-[1] absolute w-6 top-0 bottom-0 lg:w-[2.5rem] transition-all duration-300 cursor-pointer flex items-center justify-center ' | append: tag_h
+  assign nav_btn_prev_class = nav_btn_base | append: ' left-0 tag-nav-prev'
+  assign nav_btn_next_class = nav_btn_base | append: ' right-0 tag-nav-next'
+
+  # 选中的Tab下划线样式 粗线条/细线条
+  assign tag_active_line_type = section.settings.tag_active_line_type | default: 'active-line-bold'
+  if tag_active_line_type == 'active-line-bold'
+    assign tag_active_line_class = 'h-[0.1875rem] lg:h-[0.3125rem]'
+  else
+    assign tag_active_line_class = 'h-[2px]'
+  endif
+
+  # Tab导航类名
+  assign tag_ul_wrap_class = ''
+  assign tag_nav_ul_class = ''
+
+  # Tab展示样式 下划线/空心框/实心框
+  assign tag_show_style = section.settings.tag_show_style | default: 'underline'
+  assign tag_item_pc_border_radius = section.settings.tag_item_pc_border_radius | default: 0 | divided_by: 16.0
+  assign tag_item_mb_border_radius = section.settings.tag_item_mb_border_radius | default: 0 | divided_by: 32.0
+  assign tag_item_btn_class = '[&_.navigation-item]:border [&_.navigation-item]:border-solid [&_.tag-nav-indicator]:hidden [&_.navigation-item]:rounded-[var(--tag-item-pc-border-radius,0)] lg:[&_.navigation-item]:rounded-[var(--tag-item-mb-border-radius,0)]'
+  assign tag_item_border_radius_class = '--tag-item-pc-border-radius:' | append: tag_item_pc_border_radius | append: 'rem;' | append: '--tag-item-mb-border-radius:' | append: tag_item_mb_border_radius | append: 'rem;'
+
+  if tag_show_style == 'underline'
+    # tag下划线宽度
+    assign tag_line_width = section.settings.tag_line_width | default: 'auto'
+
+    if tag_line_width == 'auto'
+      assign tag_ul_wrap_class = ''
+      assign tag_nav_ul_class = 'border-b-[1px]'
+    else
+      assign tag_ul_wrap_class = 'border-b-[1px]'
+      assign tag_nav_ul_class = ''
+    endif
+
+    assign tag_item_class = 'tag-underline '
+  elsif tag_show_style == 'hollow'
+    # 空心按钮
+    assign tag_item_class = 'tag-hollow ' | append: tag_item_btn_class | append: tag_item_border_radius_class
+
+  elsif tag_show_style == 'solid'
+    # 实心按钮
+    assign tag_item_class = 'tag-solid ' | append: tag_item_btn_class | append: tag_item_border_radius_class
+  endif
+
+  # Tab item左右间距
+  assign tag_item_pc_gap = section.settings.tag_item_pc_gap | default: 48 | divided_by: 16.0
+  assign tag_item_pc_gap_y = section.settings.tag_item_pc_gap_y | default: 48 | divided_by: 16.0
+  assign tag_item_mb_gap = section.settings.tag_item_mb_gap | default: 48 | divided_by: 32.0
+  assign tag_item_mb_gap_y = section.settings.tag_item_mb_gap_y | default: 48 | divided_by: 32.0
+  assign tag_item_style = tag_item_style | append: '--tag-item-pc-gap:' | append: tag_item_pc_gap | append: 'rem;--tag-item-mb-gap:' | append: tag_item_mb_gap | append: 'rem;--tag-item-pc-gap-y:' | append: tag_item_pc_gap_y | append: 'rem;--tag-item-mb-gap-y:' | append: tag_item_mb_gap_y | append: 'rem;'
+  assign tag_nav_ul_class = 'gap-x-[var(--tag-item-mb-gap)] gap-y-[var(--tag-item-mb-gap-y)] lg:gap-x-[var(--tag-item-pc-gap)] lg:gap-y-[var(--tag-item-pc-gap-y)] ' | append: tag_nav_ul_class
+-%}
+
+<jky-stories-collection-tag-category
+  class="cal_scroll_target !top-0 left-0 right-0 z-[10000]"
+  {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %}
+  style="background: {{section.settings.bg_color | default: 'transparent' }};"
+>
+  <div class="tags-navigation-wrap section-padding {{section.settings.page_width}}" style="{{ style }}">
+    <div class="w-full flex flex-col" style="{{ tag_style }}">
+      <div
+        class="tags-ul-wrap max-w-full {{ section.settings.page_width }} mx-auto relative border-0 border-solid {{ tag_ul_wrap_class }}"
+        style="--tag-line-color:{{section.settings.tag_line_color}};border-color:var(--tag-line-color, '#00000026');"
+      >
+        <div
+          class="tags-nav-ul w-full lg:w-fit max-w-full flex items-center overflow-x-auto border-0 border-solid {{ tag_nav_ul_class }} relative align-{{section.settings.alignment}} mb-align-{{section.settings.alignment_mb}} px-6 lg:px-0 {{ tag_item_class }}"
+          data-capsule-style="{{ section.settings.tag_show_style }}"
+          style="{{ tag_item_style }} {{ style }}"
+        >
+          <div class="navigation-item active shrink-0 flex flex-row items-center cursor-pointer transition-colors duration-300" data-tag-type="all">
+            {{ section.settings.tag_all | escape | default: 'All' }}
+          </div>
+          {% for block in section.blocks %}
+            {%- if block.settings.tag_name != blank -%}
+              <div class="navigation-item shrink-0 flex flex-row items-center cursor-pointer transition-colors duration-300">
+                {{ block.settings.tag_name | escape }}
+              </div>
+            {%- endif -%}
+          {% endfor %}
+          <div class="tag-nav-indicator absolute left-0 bottom-0 w-0 {{ tag_active_line_class }}"></div>
+        </div>
+
+        <div
+          class="{{ nav_btn_prev_class }}"
+          style="background: linear-gradient(to left, var(--tag-nav-light-bg) 0%, var(--tag-nav-bg) 50%, var(--tag-nav-bg) 100%)"
+        >
+          {% render 'icon-arrow', class: 'w-4 h-4 rotate-180', color: section.settings.tag_color %}
+        </div>
+        <div
+          class="{{ nav_btn_next_class }}"
+          style="background: linear-gradient(to right, var(--tag-nav-light-bg) 0%, var(--tag-nav-bg) 50%, var(--tag-nav-bg) 100%)"
+        >
+          {% render 'icon-arrow', class: 'w-4 h-4', color: section.settings.tag_color %}
+        </div>
+      </div>
+    </div>
+  </div>
+</jky-stories-collection-tag-category>
+
+<script>
+  if (!customElements.get('jky-stories-collection-tag-category')) {
+    class JkyStoriesCollectionTagCategory extends HTMLElement {
+      constructor() {
+        super();
+        this.activeTabIndex = 0;
+        this.needWatchNavScroll = false;
+        this.eventsInited = false;
+        this.initialSynced = false;
+        this.placeholder = null;
+        this.resizeObserver = null;
+        this.scrollTicking = false;
+        
+        // 绑定方法
+        this.debouncedUpdateIndicator = this.debounce(this.updateTagIndicator.bind(this), 100);
+        this.debouncedCheckNavScroll = this.debounce(this.checkNavScroll.bind(this), 100);
+        this.handleScroll = this.handleScroll.bind(this);
+      }
+
+      connectedCallback() {
+        try {
+          this.initElements();
+          if (!this.tagNavItems?.length) return;
+          
+          this.initDOM();
+          this.initEvents();
+          
+          // 等待下一帧确保布局更新
+          requestAnimationFrame(() => {
+            this.updateTagIndicator();
+            this.checkNavScroll();
+          });
+        } catch (error) {
+          console.error('JkyStoriesCollectionTagCategory initialization error:', error);
+        }
+      }
+
+      disconnectedCallback() {
+        // 清理所有事件监听
+        window.removeEventListener('resize', this.debouncedUpdateIndicator);
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleScroll);
+        
+        if (this.tagNavUl) {
+          this.tagNavUl.removeEventListener('scroll', this.debouncedCheckNavScroll);
+        }
+        
+        if (this.resizeObserver) {
+          this.resizeObserver.disconnect();
+        }
+        
+        // 清理占位符
+        if (this.placeholder?.parentNode) {
+          this.placeholder.remove();
+        }
+      }
+
+      initElements() {
+        this.tagNavUl = this.querySelector('.tags-nav-ul');
+        if (!this.tagNavUl) {
+          throw new Error('Required element .tags-nav-ul not found');
+        }
+        
+        this.tagNavItems = this.tagNavUl.querySelectorAll('.navigation-item');
+        this.tagNavIndicator = this.tagNavUl.querySelector('.tag-nav-indicator');
+        this.prevBtn = this.querySelector('.tag-nav-prev');
+        this.nextBtn = this.querySelector('.tag-nav-next');
+      }
+
+      initDOM() {
+        if (this.tagNavItems[0]) {
+          this.tagNavItems[0].classList.add('active');
+        }
+        this.tagNavUl.classList.remove('invisible');
+      }
+
+      initEvents() {
+        if (this.eventsInited) return;
+        this.eventsInited = true;
+
+        // 注册click事件
+        this.tagNavItems.forEach((item, index) => {
+          item.addEventListener('click', (e) => this.handleTabClick(e, item, index));
+        });
+
+        // 导航按钮事件
+        this.prevBtn?.addEventListener('click', () => this.slidePrev());
+        this.nextBtn?.addEventListener('click', () => this.slideNext());
+
+        // 滚动监听
+        this.tagNavUl.addEventListener('scroll', this.debouncedCheckNavScroll);
+        
+        // 使用单个滚动处理函数
+        window.addEventListener('scroll', this.handleScroll, { passive: true });
+        window.addEventListener('resize', this.handleScroll, { passive: true });
+        
+        // resize监听
+        window.addEventListener('resize', this.debouncedUpdateIndicator);
+        
+        // ResizeObserver
+        if (window.ResizeObserver) {
+          this.resizeObserver = new window.ResizeObserver(() => {
+            this.checkNavScroll();
+            this.updateTagIndicator();
+          });
+          this.resizeObserver.observe(this.tagNavUl);
+        }
+      }
+
+      handleTabClick(event, item, index) {
+        event.preventDefault();
+        
+        // 更新active状态
+        this.tagNavItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        this.activeTabIndex = index;
+
+        // 滚动到可见区域
+        if (this.needWatchNavScroll && typeof scrollContentXSmoothly === 'function') {
+          scrollContentXSmoothly(item, this.tagNavUl);
+        }
+
+        this.updateTagIndicator();
+        this.filterContent(item.dataset.tagType, item.textContent.trim());
+        
+        // 滚动到gallery顶部
+        this.scrollToGallery();
+      }
+
+      filterContent(tagType, tagText) {
+        const cards = document.querySelectorAll('.stories-item-card');
+        
+        if (tagType === 'all') {
+          this.showAllContent(cards);
+
+          // 更新所有body的可见性
+          document.querySelectorAll('.stories-collection-gallery-body').forEach(body => body.classList.remove('!hidden'));
+        } else {
+          this.filterByTag(cards, tagText);
+
+          // 更新所有body的可见性
+          document.querySelectorAll('.stories-collection-gallery-body').forEach(body => {
+            // 尝试寻找一个“可见”的卡片（即没有 !hidden 类的卡片）
+            const hasVisibleCard = body.querySelector('.story-card-item:not(.\\!hidden)') || body.querySelector('.featured-items .stories-item-card:not(.\\!hidden)');
+
+            if (hasVisibleCard) {
+              body.classList.remove('!hidden'); // 有卡片，不隐藏
+            } else {
+              body.classList.add('!hidden');    // 没卡片，隐藏
+            }
+          });
+        }
+      }
+
+      showAllContent(cards) {
+        cards.forEach(card => {
+          const isFeatured = card.dataset.isHot === 'true';
+          if (isFeatured) {
+            card.classList.remove('!hidden');
+          } else {
+            card.parentElement?.classList.remove('!hidden');
+          }
+        });
+        
+        this.toggleElementsVisibility('.featured-items', false);
+
+        // 2. 恢复所有非精选区域 (Galleries)
+        const nonFeaturedGalleries = document.querySelectorAll('.stories-gallery-items');
+        nonFeaturedGalleries.forEach(gallery => {
+          // 移除 gallery 本身的隐藏
+          gallery.classList.remove('!hidden');
+          // 移除 gallery 前面 Tab 的隐藏
+          gallery.parentElement.querySelector('.story-tab')?.classList?.remove?.('!hidden');
+          
+          // 3. 额外处理：恢复内部被隐藏的 Sub-category Tab (Films/Stories)
+          const subTabs = gallery.parentElement.querySelector('.story-tab')?.querySelectorAll?.('.films-item, .stories-item');
+          subTabs?.forEach(tab => tab.classList.remove('!hidden'));
+        });
+      }
+
+      filterByTag(cards, tagText) {
+        let hasVisibleNonFeatured = false; // 是否有可见的非精选内容
+        
+        cards.forEach(card => {
+          const isFeatured = card.dataset.isHot === 'true';
+          const target = isFeatured ? card : card.parentElement;
+          const tag = card.querySelector('.life-story-tag');
+          
+          const shouldShow = tag && tag.textContent.trim().toLowerCase() === tagText.toLowerCase();
+          
+          if (shouldShow) {
+            target?.classList.remove('!hidden');
+            if (!isFeatured) hasVisibleNonFeatured = true;
+          } else {
+            target?.classList.add('!hidden');
+          }
+        });
+        
+        this.updateSectionVisibility(hasVisibleNonFeatured);
+      }
+
+      updateSectionVisibility(hasVisibleNonFeatured) {
+        // 更新精选区域
+        const featuredSections = document.querySelectorAll('.featured-items');
+        featuredSections.forEach(featured => {
+          const hasVisibleCard = featured.querySelector('.stories-item-card:not(.\\!hidden)');
+          if (hasVisibleCard) {
+            featured.classList.remove('!hidden');
+          } else {
+            featured.classList.add('!hidden');
+          }
+        });
+        const hasVisibleFeaturedInDom = Array.from(featuredSections).some(section => section.querySelector('.stories-item-card:not(.\\!hidden)'));
+        
+        // 更新非精选区域
+        const nonFeaturedGalleries = document.querySelectorAll('.stories-gallery-items');
+        if (!hasVisibleNonFeatured) {
+          nonFeaturedGalleries.forEach(gallery => {
+            gallery.parentElement.querySelector('.story-tab')?.classList?.add?.('!hidden');
+            gallery.classList.add('!hidden');
+          });
+        } else {
+          nonFeaturedGalleries.forEach(gallery => {
+            gallery.parentElement.querySelector('.story-tab')?.classList?.remove?.('!hidden');
+            gallery.classList.remove('!hidden');
+          });
+          this.updateSubCategoryVisibility();
+        }
+      }
+
+      updateSubCategoryVisibility() {
+        const nonFeaturedGalleries = document.querySelectorAll('.stories-gallery-items');
+        
+        nonFeaturedGalleries.forEach(gallery => {
+          const films = gallery.querySelectorAll('.story-card-item--films');
+          const stories = gallery.querySelectorAll('.story-card-item--stories');
+          const filmsTab = gallery.parentElement.querySelector('.story-tab')?.querySelector?.('.films-item');
+          const storiesTab = gallery.parentElement.querySelector('.story-tab')?.querySelector?.('.stories-item');
+          
+          const hasVisibleFilms = Array.from(films).some(film => !film.classList.contains('!hidden'));
+          const hasVisibleStories = Array.from(stories).some(story => !story.classList.contains('!hidden'));
+          
+          // 智能切换tab
+          if (!hasVisibleFilms && hasVisibleStories) {
+            filmsTab?.classList.add('!hidden');
+            storiesTab?.click?.();
+          } else if (hasVisibleFilms && !hasVisibleStories) {
+            storiesTab?.classList.add('!hidden');
+            filmsTab?.click?.();
+          } else {
+            filmsTab?.classList.remove('!hidden');
+            storiesTab?.classList.remove('!hidden');
+          }
+        });
+      }
+
+      toggleElementsVisibility(selector, hide) {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+          if (hide) el.classList.add('!hidden');
+          else el.classList.remove('!hidden');
+        });
+      }
+
+      scrollToGallery() {
+        const galleryTop = document.querySelector('.section-stories-gallery')?.offsetTop;
+        if (galleryTop) {
+          const tagNavHeight = this.getBoundingClientRect().height;
+          window.scrollTo({ 
+            top: galleryTop - tagNavHeight, 
+            behavior: 'smooth' 
+          });
+        }
+      }
+
+      checkNavScroll() {
+        if (!this.tagNavUl) return;
+        
+        const { scrollWidth, offsetWidth } = this.tagNavUl;
+        const needScroll = scrollWidth > offsetWidth;
+        
+        if (needScroll !== this.needWatchNavScroll) {
+          this.needWatchNavScroll = needScroll;
+          this.updateNavScrollStyle();
+        }
+        
+        if (needScroll) {
+          this.watchNavScroll();
+        } else {
+          this.hideNavButtons();
+        }
+      }
+
+      updateNavScrollStyle() {
+        if (!this.tagNavUl) return;
+        
+        if (this.needWatchNavScroll) {
+          this.tagNavUl.style.justifyContent = 'flex-start';
+          this.tagNavUl.classList.add('lg:px-[2.5rem]');
+        } else {
+          this.tagNavUl.style.justifyContent = '';
+          this.tagNavUl.classList.remove('lg:px-[2.5rem]');
+          this.hideNavButtons();
+        }
+      }
+
+      watchNavScroll() {
+        if (!this.tagNavUl) return;
+        
+        const { scrollLeft, scrollWidth, offsetWidth } = this.tagNavUl;
+        const isAtStart = scrollLeft === 0;
+        const isAtEnd = scrollLeft + offsetWidth >= scrollWidth - 1;
+        
+        this.prevBtn?.classList.toggle('opacity-0', isAtStart);
+        this.prevBtn?.classList.toggle('invisible', isAtStart);
+        this.nextBtn?.classList.toggle('opacity-0', isAtEnd);
+        this.nextBtn?.classList.toggle('invisible', isAtEnd);
+      }
+
+      hideNavButtons() {
+        this.prevBtn?.classList.add('opacity-0', 'invisible');
+        this.nextBtn?.classList.add('opacity-0', 'invisible');
+      }
+
+      updateTagIndicator() {
+        const activeTab = this.tagNavUl?.querySelector('.navigation-item.active');
+        if (!activeTab || !this.tagNavIndicator) return;
+        
+        this.tagNavIndicator.style.width = `${activeTab.offsetWidth}px`;
+        this.tagNavIndicator.style.left = `${activeTab.offsetLeft}px`;
+      }
+
+      slidePrev() {
+        if (this.activeTabIndex > 0) {
+          this.slideTo(this.activeTabIndex - 1);
+        }
+      }
+
+      slideNext() {
+        if (this.activeTabIndex < this.tagNavItems.length - 1) {
+          this.slideTo(this.activeTabIndex + 1);
+        }
+      }
+
+      slideTo(index) {
+        if (this.tagNavItems[index]) {
+          this.tagNavItems[index].click();
+        }
+      }
+
+      handleScroll() {
+        if (!this.scrollTicking) {
+          requestAnimationFrame(() => {
+            this.watchFixedNav();
+            this.scrollTicking = false;
+          });
+          this.scrollTicking = true;
+        }
+      }
+
+      watchFixedNav() {
+        if (!this.parentNode) return;
+        
+        const scrollY = window.scrollY || window.pageYOffset;
+        
+        // 创建或获取占位符
+        if (!this.placeholder || !this.placeholder.classList.contains('sticky-placeholder')) {
+          this.placeholder = document.createElement('div');
+          this.placeholder.classList.add('sticky-placeholder');
+          this.parentNode.insertBefore(this.placeholder, this);
+        }
+        
+        // 只在非fixed状态更新位置和高度
+        if (this.style.position !== 'fixed') {
+          this.initialTop = this.getBoundingClientRect().top + scrollY;
+          this.placeholder.style.height = `${this.offsetHeight}px`;
+          this.placeholder.style.display = 'none';
+        }
+        
+        // 切换fixed状态
+        const shouldFix = scrollY >= this.initialTop;
+        this.style.position = shouldFix ? 'fixed' : '';
+        this.placeholder.style.display = shouldFix ? 'block' : 'none';
+        
+        if (shouldFix) {
+          this.style.top = '0';
+          this.style.left = '0';
+          this.style.right = '0';
+          this.style.zIndex = '10000';
+        }
+      }
+
+      debounce(fn, wait) {
+        let timeoutId = null;
+        return (...args) => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => fn.apply(this, args), wait);
+        };
+      }
+    }
+    
+    customElements.define('jky-stories-collection-tag-category', JkyStoriesCollectionTagCategory);
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Stories Tag Category",
+  "class": "section-stories-collection section-stories-tag-category",
+  "limit": 1,
+  "settings": [
+    { "type": "header", "content": "基础配置" },
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度"
+    },
+    { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#FFFFFF" },
+    { "type": "header", "content": "上下边距" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36
+    },
+    { "type": "header", "content": "标签配置" },
+    { "type": "text", "id": "tag_all", "label": "全部标签文案", "default": "All", "info": "固定的标签，默认显示为All。不配置也会显示" },
+
+    { "type": "color", "id": "tag_bg_color", "label": "整体背景颜色", "default": "#FFFFFF" },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "PC端对齐方式",
+      "default": "center"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment_mb",
+      "label": "移动端对齐方式",
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "tag_item_pc_gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "PC端页签X轴间距",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "tag_item_pc_gap_y",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "PC端页签Y轴间距",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "tag_item_mb_gap",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "MB端页签X轴间距",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "tag_item_mb_gap_y",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "MB端页签Y轴间距",
+      "default": 48
+    },
+    { "type": "checkbox", "id": "is_need_nav_scroll_pc", "label": "PC端左右滚动", "default": true, "info": "开启后，PC端标签导航栏内容超出后，会左右滚动" },
+    { "type": "checkbox", "id": "is_need_nav_scroll_mb", "label": "MB端左右滚动", "default": true, "info": "开启后，MB端标签导航栏内容超出后，会左右滚动" },  
+    { "type": "header", "content": "Tab样式配置" },
+    {
+      "type": "select",
+      "id": "tag_show_style",
+      "options": [
+        {
+          "value": "underline",
+          "label": "下划线"
+        },
+        {
+          "value": "hollow",
+          "label": "空心按钮"
+        },
+        {
+          "value": "solid",
+          "label": "实心按钮"
+        }
+      ],
+      "default": "solid",
+      "label": "Tab展示样式"
+    },
+    { "type": "color", "id": "tag_color", "label": "Tab颜色", "default": "#000000" },
+    {
+      "type": "color",
+      "id": "tag_active_color",
+      "label": "Tab选中颜色",
+      "default": "#FFF"
+    },
+    {
+      "type": "color",
+      "id": "tag_solid_bg_color",
+      "label": "Tab实心按钮背景色",
+      "default": "#FFF",
+      "visible_if": "{{ section.settings.tag_show_style == 'solid' }}"
+    },
+    {
+      "type": "color",
+      "id": "tag_active_solid_bg_color",
+      "label": "选中Tab实心按钮背景色",
+      "default": "#FD5000",
+      "visible_if": "{{ section.settings.tag_show_style == 'solid' }}"
+    },
+    {
+      "type": "select",
+      "id": "tag_active_line_type",
+      "options": [
+        {
+          "value": "active-line-bold",
+          "label": "粗线条"
+        },
+        {
+          "value": "active-line-light",
+          "label": "细线条"
+        }
+      ],
+      "default": "active-line-bold",
+      "label": "选中Tab下划线粗细",
+      "visible_if": "{{ section.settings.tag_show_style == 'underline' }}"
+    },
+    {
+      "type": "select",
+      "id": "tag_line_width",
+      "options": [
+        {
+          "value": "auto",
+          "label": "自适应"
+        },
+        {
+          "value": "full",
+          "label": "铺满"
+        }
+      ],
+      "default": "auto",
+      "label": "整个Tab下划线宽度",
+      "visible_if": "{{ section.settings.tag_show_style == 'underline' }}"
+    },
+    {
+      "type": "color",
+      "id": "tag_line_color",
+      "label": "整个Tab下划线颜色",
+      "default": "#00000026",
+      "visible_if": "{{ section.settings.tag_show_style == 'underline' }}"
+    },
+    {
+      "type": "range",
+      "id": "tag_item_pc_border_radius",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "PC端页签圆角",
+      "default": 0,
+      "visible_if": "{{ section.settings.tag_show_style == 'hollow' or section.settings.tag_show_style == 'solid' }}"
+    },
+    {
+      "type": "range",
+      "id": "tag_item_mb_border_radius",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "MB端页签圆角",
+      "default": 0,
+      "visible_if": "{{ section.settings.tag_show_style == 'hollow' or section.settings.tag_show_style == 'solid' }}"
+    },
+    { "type": "header", "content": "文本样式配置" },
+    { "type": "range", "id": "pc_name_size", "min": 12, "max": 36, "step": 1, "label": "PC端标题字号", "default": 20 },
+    { "type": "range", "id": "mb_name_size", "min": 12, "max": 72, "step": 1, "label": "MB端标题字号", "default": 28 },
+    {
+      "type": "select",
+      "id": "tag_font_weight",
+      "options": [
+        {
+          "value": "400",
+          "label": "400"
+        },
+        {
+          "value": "500",
+          "label": "500"
+        },
+        {
+          "value": "600",
+          "label": "600"
+        }
+      ],
+      "default": "600",
+      "label": "标题字重"
+    },
+    {
+      "type": "select",
+      "id": "tag_active_font_weight",
+      "options": [
+        {
+          "value": "500",
+          "label": "500"
+        },
+        {
+          "value": "600",
+          "label": "600"
+        }
+      ],
+      "default": "600",
+      "label": "标题选中字重"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "tag",
+      "name": "Tag",
+      "settings": [
+        { "type": "text", "id": "tag_name", "label": "Tag Name" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Stories Tag Category"
+    }
+  ]
+}
+{% endschema %}

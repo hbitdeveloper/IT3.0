@@ -1,0 +1,1816 @@
+<link rel="stylesheet" href="{{ 'common-header.min.css' | asset_url }}">
+{% style %}
+    {%- if section.settings.header_bg != blank -%}
+    jky-header header {
+        background-image: url({{section.settings.header_bg | image_url: width: section.settings.header_bg.width}});
+    }
+    {%- endif -%}
+    @media (max-width: 1024px) {
+        {%- if section.settings.m_header_bg != blank -%}
+        jky-header header {
+            background-image: url({{section.settings.m_header_bg | image_url: width: section.settings.m_header_bg.width}});
+        }
+        {%- endif -%}
+    }
+
+    .header--pic {display: block;}
+    .header--pic img {width: 100%;height: 100%;object-fit: contain;}
+    .header--pic.header-m-pic {width: 170px;}
+    .header-container {line-height: 1.25;}
+
+    /* 日站字体样式适配 修复-颜色在safari显示差异 */
+    html[lang="ja"] jky-header header .header-container .menu-list--mb .m-menu-item.m-menu-item--simpletext .content .m-simpletext-item .m-simpletext-item--title {
+    color: rgba(0, 0, 0, 0.2);
+    }
+
+    @media screen and (max-width: 1024px) {
+    html[lang="ja"] jky-header header .header-container .menu-list--mb .m-menu-item.m-menu-item--shop .m-shop-child .m-shop-child--content {
+        height: auto;
+    }
+    }
+
+    @media screen and (min-width: 1024px) {
+        .grid-product-list .grid-product-item .grid-product-item--title {
+
+        }
+    }
+
+    header .product-label-tag-text--p {display:none;}
+{% endstyle %}
+
+{%- liquid
+    assign time_now = 'now' | date: '%s'
+
+    assign is_jp = false
+    if shop.id == 10015375438 or shop.id == 56124375224
+        assign is_jp = true
+    endif
+
+    assign is_legal_person = false
+    if template == "page.legal-person"
+        assign is_legal_person = true
+    endif
+
+    assign CR = settings.shop_cr | default: localization.country.iso_code | default: 'US'
+
+    assign account_url = "https://account.jackery.com"
+    if shop.id == 55005249633 or shop.id == 56124375224 or shop.id == 64525172955 or shop.id == 75730714917
+        assign account_url = "https://demo-account.jackery.com"
+    elsif shop.id == 79611232554 or theme.role == "unpublished"
+        assign account_url = "https://account-uat.jackery.com"
+    endif
+-%}
+
+<jky-header class="block">
+    {% comment %} app {% endcomment %}
+    {%- for block in section.blocks -%}
+        {%- case block.type -%}
+            {%- when '@app' -%}
+                {% render block %}
+        {%- endcase -%}
+    {%- endfor -%}
+
+    {% comment %} 定位 {% endcomment %}
+    {%- if section.settings.show_locale_switcher -%}
+        {% render 'locale-switcher-new' %}
+    {%- endif -%}
+    {% comment %} 通知栏 {% endcomment %}
+    {% assign announce_bar_list = section.blocks | where: 'type', "announcement_bars" %}
+    {%- if section.settings.show_announcement_bar and announce_bar_list.size > 0 -%}
+        {% render 'announcement-bar-new',
+            announceList: announce_bar_list,
+            speed: section.settings.speed,
+            days: section.settings.days,
+            hrs: section.settings.hours,
+            mins: section.settings.mins,
+            secs: section.settings.secs
+        %}
+    {%- endif -%}
+    <header style="--t-color:{{section.settings.header_t_color}};--header-bg:{{section.settings.header_bg_color}};">
+        <div class="header-container flex">
+        <a href="/" data-ga-event="top_brand_logo4.0" data-ga-action="click" aria-label="index link" data-ga-params-link="{{request.host}}" class="logo">{%- render 'icon-logo', width: 240, height: 27 -%}</a>
+
+        <div class="menu-list flex">
+                {% if is_legal_person == true and shop.id == 10015375438 or is_legal_person == true and shop.id == 56124375224 %}{% else %}
+                     <div class="header-sub--icon">
+                        {%- if section.settings.icon_sub_img != blank -%}
+                            {%- render 'responsive-image', image: section.settings.icon_sub_img, mimage: section.settings.icon_sub_img, width: 40, mwidth: 20 -%}
+                        {%- endif -%}
+                    </div>
+                {% endif %}
+
+            {%- if is_legal_person == true -%}
+                {% comment %} 判断是日站 {% endcomment %}
+                {%- if is_jp == true -%}
+                    <div class="legal-text">{{ section.settings.legal_text }}</div>
+                {%- endif -%}
+            {%- endif -%}
+
+            {%- for block in section.blocks -%}
+                {%- case block.type -%}
+                    {%- when 'sales_menu' -%}
+                        {% comment %} sales菜单-双列 {% endcomment %}
+                        {%- liquid
+                            assign is_show = false
+                            assign begin_time = 0
+                            if block.settings.begin_time != blank
+                                assign begin_time = block.settings.begin_time | date: '%s'
+                            endif
+
+                            assign end_time = 0
+                            if block.settings.end_time != blank
+                                assign end_time = block.settings.end_time | date: '%s'
+                            endif
+
+                            if begin_time == 0 and end_time == 0
+                                assign is_show = true
+                            elsif begin_time != 0 and end_time == 0 and begin_time < time_now
+                                assign is_show = true
+                            elsif begin_time == 0 and end_time != 0 and end_time > time_now
+                                assign is_show = true
+                            elsif begin_time != 0 and end_time != 0 and end_time > time_now and begin_time < time_now
+                                assign is_show = true
+                            endif
+
+                            assign textColor = '<em style="color: ' | append: block.settings.pc_highlight_color | append: '">'
+                        -%}
+                        {%- if is_show == true -%}
+                            <div class="menu-item flex menu-item-sales">
+                                <div class="menu-item--title relative cursor-pointer flex items-center h-full" data-ga-event="top_first_nav4.0" data-ga-action="mouseenter" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position="">
+                                    {{block.settings.m_title}}
+                                </div>
+                                <div class="menu-item--content menu-item-text menu-item-text--sales">
+                                    <div class="container header-container">
+                                    <div class="menu-close">
+                                        {%- render 'icon-close', width: 20, height: 20, color: '#888888'  -%}
+                                    </div>
+                                    {%- if block.settings.left_img != blank -%}
+                                        <div class="sales-item relative" style="--sales-text-color: {{block.settings.left_color}};--sales-text-sub-color: {{ block.settings.left_sub_color | default: block.settings.left_color }};--sales-text-color-mb:{{block.settings.mb_left_color}};--sales-text-sub-color-mb: {{ block.settings.mb_left_sub_color | default: block.settings.mb_left_color }};--sales-subtext-color: {{block.settings.right_des_color}};--sales-subtext-color-mb: {{block.settings.mb_right_des_color}};" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | escape}}" data-ga-params-second_nav="{{block.settings.left_title | escape}}" data-ga-params-type="saleban_double_menu" data-ga-params-link="{{block.settings.left_link}}">
+                                            <img
+                                                srcset="
+                                                    {{ settings.favicon | image_url: width: 32, height: 32 }} 0w,
+                                                    {%- if block.settings.left_img.width >= 462 -%}{{ block.settings.left_img | image_url: width: 462 }} 462w,{%- endif -%}
+                                                    {%- if block.settings.left_img.width >= 643 -%}{{ block.settings.left_img | image_url: width: 643 }} 643w,{%- endif -%}
+                                                    {%- if block.settings.left_img.width >= 1286 -%}{{ block.settings.left_img | image_url: width: 1286 }} 1286w,{%- endif -%}
+                                                "
+                                                src="{{ block.settings.left_img | image_url: width: 643 }}"
+                                                sizes="(min-width: 1920px) 1286px,(min-width: 1440px) 643px, (min-width: 1024) 33.4895vw, 0px"
+                                                alt="{{ block.settings.left_img.alt | escape }}"
+                                                loading="lazy"
+                                                width="{{ block.settings.left_img.width }}"
+                                                height="{{ block.settings.left_img.height }}"
+                                                class="bg"
+                                            />
+
+                                            <div href="{{block.settings.left_link}}" class="sales-item--content">
+                                            {%- if block.settings.left_title != blank -%}
+                                                <div class="title text-overflow-1">{{block.settings.left_title | replace: '<em>', textColor}}</div>
+                                            {%- endif -%}
+                                            {%- if block.settings.left_subtitle != blank -%}
+                                                <div class="subtitle text-overflow-1">{{block.settings.left_subtitle | replace: '<em>', textColor}}</div>
+                                            {%- endif -%}
+
+                                            {%- if block.settings.left_des != blank -%}
+                                                <div class="des text-overflow-1" style="color:{{block.settings.left_des_color}};">{{block.settings.left_des | replace: '<em>', textColor}}</div>
+                                            {%- endif -%}
+                                            {%- if block.settings.left_btn_txt != blank and block.settings.left_link != blank -%}
+                                                <jds-button href="{{block.settings.left_link}}" class="jds-animate has-text-button" icon="arrow-right-long" icon-mode="capsule">{{ block.settings.left_btn_txt | escape }}</jds-button>
+                                            {%- endif -%}
+                                            </div>
+                                            <a class="sale-link-box" style="z-index:1;" href="{{block.settings.left_link}}" aria-label="sales menu link"></a>
+                                        </div>
+                                    {%- endif -%}
+
+                                    {%- if block.settings.right_img != blank -%}
+                                        <div class="sales-item relative" style="--sales-text-color: {{block.settings.right_color}};--sales-text-sub-color: {{ block.settings.right_sub_color | default: block.settings.right_color }};--sales-text-color-mb: {{block.settings.mb_right_color}};--sales-text-sub-color-mb:{{block.settings.mb_right_sub_color | default: block.settings.mb_right_color}};--sales-subtext-color: {{block.settings.right_des_color}};--sales-subtext-color-mb: {{block.settings.mb_right_des_color}};" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | escape}}" data-ga-params-second_nav="{{block.settings.right_title | escape}}" data-ga-params-type="saleban_double_menu" data-ga-params-link="{{block.settings.right_link}}">
+                                            <img
+                                                srcset="
+                                                    {{ settings.favicon | image_url: width: 32, height: 32 }} 0w,
+                                                    {%- if block.settings.right_img.width >= 462 -%}{{ block.settings.right_img | image_url: width: 462 }} 462w,{%- endif -%}
+                                                    {%- if block.settings.right_img.width >= 643 -%}{{ block.settings.right_img | image_url: width: 643 }} 643w,{%- endif -%}
+                                                    {%- if block.settings.right_img.width >= 1286 -%}{{ block.settings.right_img | image_url: width: 1286 }} 1286w,{%- endif -%}
+                                                "
+                                                src="{{ block.settings.right_img | image_url: width: 643 }}"
+                                                sizes="(min-width: 1920px) 1286px,(min-width: 1440px) 643px, (min-width: 1024) 33.4895vw, 0px"
+                                                alt="{{ block.settings.right_img.alt | escape }}"
+                                                loading="lazy"
+                                                width="{{ block.settings.right_img.width }}"
+                                                height="{{ block.settings.right_img.height }}"
+                                                class="bg"
+                                            />
+
+                                            <div href="{{block.settings.right_link}}" class="sales-item--content">
+                                                {%- if block.settings.right_title != blank -%}
+                                                    <div class="title text-overflow-1">{{block.settings.right_title | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.right_subtitle != blank -%}
+                                                    <div class="subtitle text-overflow-1">{{block.settings.right_subtitle | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.right_des != blank -%}
+                                                    <div class="des text-overflow-1" style="color:{{block.settings.right_des_color}};">{{block.settings.right_des | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.right_btn_txt != blank and block.settings.right_link != blank -%}
+                                                    <jds-button href="{{block.settings.right_link}}" class="jds-animate has-text-button" icon="arrow-right-long" icon-mode="capsule">{{ block.settings.right_btn_txt | escape }}</jds-button>
+                                                {%- endif -%}
+                                            </div>
+                                            <a class="sale-link-box" style="z-index:1;" href="{{block.settings.right_link}}" aria-label="sales menu link"></a>
+                                        </div>
+                                    {%- endif -%}
+                                    </div>
+                                </div>
+                            </div>
+                        {%- endif -%}
+                    {%- when 'sales_menu_full' -%}
+                        {%- liquid
+                            assign is_show = false
+                            assign begin_time = 0
+                            if block.settings.begin_time != blank
+                                assign begin_time = block.settings.begin_time | date: '%s'
+                            endif
+
+                            assign end_time = 0
+                            if block.settings.end_time != blank
+                                assign end_time = block.settings.end_time | date: '%s'
+                            endif
+
+                            if begin_time == 0 and end_time == 0
+                                assign is_show = true
+                            elsif begin_time != 0 and end_time == 0 and begin_time < time_now
+                                assign is_show = true
+                            elsif begin_time == 0 and end_time != 0 and end_time > time_now
+                                assign is_show = true
+                            elsif begin_time != 0 and end_time != 0 and end_time > time_now and        begin_time < time_now
+                                assign is_show = true
+                            endif
+
+                            assign textColor = '<em style="color: ' | append: block.settings.pc_highlight_color | append: '">'
+                        -%}
+                        {%- if is_show == true -%}
+                            <div class="menu-item flex menu-item-sales menu-item-sales--full">
+                                <div class="menu-item--title relative cursor-pointer flex items-center h-full" data-ga-event="top_first_nav4.0" data-ga-action="mouseenter" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position="">{{block.settings.m_title}}</div>
+                                <div class="menu-item--content menu-item-text menu-item-text--sales menu-item-text--sales--full" style="--sales-text-color: {{block.settings.pc_color}};--sales-text-sub-color: {{ block.settings.pc_sub_color | default: block.settings.pc_color}};--sales-text-color-mb: {{block.settings.mb_color}};--sales-text-sub-color-mb: {{ block.settings.mb_sub_color | default: block.settings.mb_color }};--sales-subtext-color: {{block.settings.des_color}};--sales-subtext-color-mb: {{block.settings.mb_des_color}};">
+                                    <div class="container header-container">
+                                        <div class="sales-item relative" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | escape}}" data-ga-params-second_nav="{{block.settings.title | escape}}" data-ga-params-type="saleban_full_menu" data-ga-params-link="{{block.settings.link}}">
+
+                                            <img
+                                                srcset="
+                                                    {{ settings.favicon | image_url: width: 32, height: 32 }} 0w,
+                                                    {%- if block.settings.img.width >= 1380 -%}{{ block.settings.img | image_url: width: 1380 }} 1380w,{%- endif -%}
+                                                    {%- if block.settings.img.width >= 1920 -%}{{ block.settings.img | image_url: width: 1920 }} 1920w,{%- endif -%}
+                                                    {%- if block.settings.img.width >= 3840 -%}{{ block.settings.img | image_url: width: 3840 }} 3840w,{%- endif -%}
+                                                "
+                                                src="{{ block.settings.img | image_url: width: 643 }}"
+                                                sizes="(min-width: 1920px) 3840px,(min-width: 1440px) 1920px, (min-width: 1024px) 1380px, 0px"
+                                                alt="{{ block.settings.img.alt | escape }}"
+                                                loading="lazy"
+                                                width="{{ block.settings.img.width }}"
+                                                height="{{ block.settings.img.height }}"
+                                                class="bg"
+                                            />
+
+                                            <div class="sales-item--content header-container">
+                                                <div class="menu-close">
+                                                    {%- render 'icon-close', width: 20, height: 20, color: '#888888'  -%}
+                                                </div>
+                                                <div class="title text-overflow-3">{{block.settings.title | replace: '<em>', textColor}}</div>
+                                                {%- if block.settings.subtitle != blank -%}
+                                                    <div class="subtitle text-overflow-3">{{block.settings.subtitle | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.des != blank -%}
+                                                    <div class="des text-overflow-3">{{block.settings.des | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+
+                                                {%- if block.settings.btn_txt != blank -%}
+                                                <a class="fk-btn" style="z-index:9;" href="{{block.settings.link}}">
+                                                    <span>{{block.settings.btn_txt | escape}}</span>
+                                                    <div class="fk-btn--icon">
+                                                        <svg class="svg-arrow-line" viewBox="0 0 1024 1024" width="10" height="10"><path d="M604.17061386 93.0426665l402.19903979 402.1990398-402.19903979 410.57818814L512 813.64928061l259.66975621-259.75354784H9.2511995V428.208533h754.03940987L512 176.83413201l92.17061386-83.79146551z" fill="#1a1a1a"></path></svg>
+                                                    </div>
+                                                </a>
+                                                {%- endif -%}
+                                            </div>
+
+                                            <a class="sale-link-box" style="z-index:1;" href="{{block.settings.link}}" aria-label="sales menu link"></a>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {%- endif -%}
+                    {%- when 'text_menu' -%}
+                        {%- if block.settings.menu_list != blank -%}
+                            {%- liquid
+                                assign has_child = false
+                                assign child_num = 0
+
+                                for link in block.settings.menu_list.links
+                                    if link.links != blank
+                                        assign has_child = true
+                                    endif
+                                endfor
+
+                                if has_child
+                                    assign child_num = block.settings.menu_list.links.size
+                                endif
+                            -%}
+
+                            {% comment %} 文本菜单-单列 {% endcomment %}
+                            {%- unless has_child -%}
+                                <div class="menu-item flex menu-item-simpletext">
+                                    <div class="menu-item--title menu-item--title--no-modal relative cursor-pointer flex items-center h-full" data-ga-event="top_first_nav4.0" data-ga-action="mouseenter" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position>{{block.settings.m_title}}</div>
+                                    <div class="menu-item--content menu-item-text menu-item-text--simple">
+                                        <div class="container">
+                                            <div class="menu-item-text--simple_item">
+                                                {%- for link in block.settings.menu_list.links -%}
+                                                    <a aria-label="menu link" href="{{ link.url }}" class="text--simple_sub-child relative" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-type="text_menu" data-ga-params-link="{{link.url}}">
+                                                        <span class="text-overflow-1">{{ link.title }}</span>
+                                                    </a>
+                                                {%- endfor -%}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {%- endunless -%}
+
+                            {% comment %} 文本菜单-双列 {% endcomment %}
+                            {%- if has_child == true and child_num == 2 -%}
+                                <div class="menu-item flex menu-item-simpletext">
+                                    <div class="menu-item--title menu-item--title--no-modal relative cursor-pointer flex items-center h-full" data-ga-event="top_first_nav4.0" data-ga-action="mouseenter" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position>{{block.settings.m_title}}</div>
+                                    <div class="menu-item--content menu-item-text menu-item-text--simple">
+                                        <div class="container">
+                                            {%- for link in block.settings.menu_list.links -%}
+                                                <div class="menu-item-text--simple_item">
+                                                    <div class="text--simple_sub-child text--simple_cate relative">
+                                                        <div class="text-overflow-1">{{link.title}}</div>
+                                                    </div>
+
+                                                    {%- for childlink in link.links -%}
+                                                        <a class="text--simple_sub-child relative" aria-label="menu link" href="{{childlink.url }}" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-second_nav="{{childlink.title | escape}}" data-ga-params-type="text_menu" data-ga-params-link="{{childlink.url}}" data-ga-params-title="{{link.title | escape}}">
+                                                            <span class="text-overflow-1">{{childlink.title}}</span>
+                                                        </a>
+                                                    {%- endfor -%}
+                                                </div>
+                                            {%- endfor -%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%- endif -%}
+
+                            {% comment %} 文本菜单-3/4列 {% endcomment %}
+                            {%- if has_child == true -%}
+                                {%- if child_num == 3 or child_num == 4 -%}
+                                    <div class="menu-item flex menu-item-simpletext menu-item-middletext">
+                                        <div class="menu-item--title relative cursor-pointer flex items-center h-full" data-ga-event="top_first_nav4.0" data-ga-action="mouseenter" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position="">{{block.settings.m_title}}</div>
+                                        <div class="menu-item--content menu-item-text menu-item-text--simple menu-item-text--middle">
+                                            <div class="container header-container" style="align-items: flex-start;">
+                                                <div class="menu-close">
+                                                    {%- render 'icon-close', width: 20, height: 20, color: '#888888'  -%}
+                                                </div>
+
+                                                {%- for link in block.settings.menu_list.links -%}
+                                                    <div class="menu-item-text--simple_item">
+                                                        <div class="text--simple_sub-child text--simple_cate relative">
+                                                        <div class="text-overflow-1">{{link.title}}</div>
+                                                        </div>
+                                                        {%- for childlink in link.links -%}
+                                                            <a aria-label="menu link" href="{{childlink.url }}" class="text--simple_sub-child relative" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-second_nav="{{childlink.title | escape}}" data-ga-params-type="text_menu" data-ga-params-link="{{childlink.url}}" data-ga-params-title="{{link.title | escape}}">
+                                                                <span class="text-overflow-1">{{childlink.title}}</span>
+                                                            </a>
+                                                        {%- endfor -%}
+                                                    </div>
+                                                {%- endfor -%}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {%- endif -%}
+                            {%- endif -%}
+
+                            {% comment %} 文本菜单-5/5+列 {% endcomment %}
+                            {%- if has_child == true and child_num > 4 -%}
+                                <div class="menu-item flex menu-item-simpletext menu-item-bigtext">
+                                    <div class="menu-item--title relative cursor-pointer flex items-center h-full" data-ga-event="top_first_nav4.0" data-ga-action="mouseenter" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position="">{{block.settings.m_title}}</div>
+                                    <div class="menu-item--content menu-item-text menu-item-text--simple menu-item-text--big">
+                                        <div class="container header-container" style="align-items: flex-start;">
+                                            <div class="menu-close">
+                                                {%- render 'icon-close', width: 20, height: 20, color: '#888888'  -%}
+                                            </div>
+                                            {%- for link in block.settings.menu_list.links limit: 6 -%}
+                                                <div class="menu-item-text--simple_item">
+                                                    <div class="text--simple_sub-child text--simple_cate relative">
+                                                        <div class="text-overflow-1 relative">{{link.title}}</div>
+                                                    </div>
+
+                                                    {%- for childlink in link.links -%}
+                                                        <a aria-label="menu link" href="{{childlink.url }}" class="text--simple_sub-child relative" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-second_nav="{{childlink.title | escape}}" data-ga-params-type="text_menu" data-ga-params-link="{{childlink.url}}" data-ga-params-title="{{link.title | escape}}">
+                                                            <span class="text-overflow-1">{{childlink.title}}</span>
+                                                        </a>
+                                                    {%- endfor -%}
+                                                </div>
+                                            {%- endfor -%}
+                                        </div>
+                                    </div>
+                                </div>
+                            {%- endif -%}
+                        {%- endif -%}
+                    {%- when 'pictext_menu' -%}
+                        {%- assign pt_menu = shop.metaobjects.menu_pic_card[block.settings.handle] -%}
+                        {%- assign pt_menu_title = pt_menu.title | strip_html -%}
+                        <div class="menu-item flex menu-item-pictext">
+                            <div class="menu-item--title relative cursor-pointer flex items-center h-full" data-ga-event="top_first_nav4.0" data-ga-action="mouseenter" data-ga-params-first_nav="{{pt_menu_title}}" data-ga-params-position="">{{pt_menu.title}}</div>
+                            <div class="menu-item--content menu-item-pictext--content">
+                                <div class="header-container container">
+                                <div class="menu-close">
+                                    {%- render 'icon-close', width: 20, height: 20, color: '#888888'  -%}
+                                </div>
+                                {% comment %} 图文菜单 {% endcomment %}
+                                <div class="menu-item-pictext--tabs">
+                                    {%- for item in pt_menu.cate.value -%}
+                                        <div class="menu-item-pictext--tab-item {% if forloop.first %} active{% endif %}" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{pt_menu_title}}" data-ga-params-second_nav="{{item.title | escape}}" data-ga-params-type="pictext_menu"><span class="text-overflow-2">{{item.title}}</span></div>
+                                    {%- endfor -%}
+
+                                </div>
+                                <div class="menu-item-pictext--main">
+                                    {%- for item in pt_menu.cate.value -%}
+                                        <div class="menu-item-pictext--main-item {% if forloop.first %} active{% endif %}">
+                                            {%- for card in item.items.value -%}
+                                            <a aria-label="menu tab target" href="{{card.url}}" class="menu-item-pictext--card submenu-list-item" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{pt_menu_title}}" data-ga-params-second_nav="{{item.title | escape}}" data-ga-params-type="pictext_menu" data-ga-params-link="{{card.url}}" data-ga-params-title="{{card.title}}">
+                                                    {%- assign card_img = card.card_img -%}
+                                                    <div class="img_box relative">
+                                                        <img
+                                                            srcset="
+                                                                {{ settings.favicon | image_url: width: 32, height: 32 }} 0w,
+                                                                {%- if card_img.width >= 235 -%}{{ card_img | image_url: width: 235 }} 235w,{%- endif -%}
+                                                                {%- if card_img.width >= 326 -%}{{ card_img | image_url: width: 326 }} 326w,{%- endif -%}
+                                                                {%- if card_img.width >= 652 -%}{{ card_img | image_url: width: 652 }} 652w,{%- endif -%}
+                                                            "
+                                                            src="{{ card_img | image_url: width: 326 }}"
+                                                            sizes="(min-width: 1920px) 652px,(min-width: 1440px) 326px, (min-width: 1024) 235px, 0px"
+                                                            alt="{{ card_img.alt | escape }}"
+                                                            loading="lazy"
+                                                            width="{{ card_img.width }}"
+                                                            height="{{ card_img.height }}"
+                                                        />
+
+                                                        <span class="btn">{%- render 'icon-arrow-right', width: 22, height: 22, color:'#ffffff' -%}</span>
+                                                    </div>
+
+                                                    <div class="title text-overflow-1">{{card.title | escape}}</div>
+                                                    <div class="subtitle text-overflow-2">{{card.subtitle | escape}}</div>
+                                            </a>
+                                            {%- endfor -%}
+                                        </div>
+                                    {%- endfor -%}
+                                </div>
+                                {% comment %} 图文菜单 {% endcomment %}
+                                </div>
+                            </div>
+                        </div>
+                    {%- when 'shop_menu' -%}
+                        {%- if block.settings.menu_list != blank -%}
+                            {%- assign shop_m_title = block.settings.m_title | strip_html -%}
+                            <div class="menu-item flex menu-item-shop">
+                                <div class="menu-item--title relative cursor-pointer flex items-center h-full" data-ga-event="top_first_nav4.0" data-ga-action="mouseenter" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-position="">{{block.settings.m_title}}</div>
+                                <div class="menu-item--content menu-item-shop--content">
+                                    <div class="container header-container">
+                                        <div class="menu-close">
+                                            {%- render 'icon-close', width: 20, height: 20, color: '#888888'  -%}
+                                        </div>
+
+                                        <div class="left-menu">
+                                            {%- for link in block.settings.menu_list.links -%}
+                                                {%- if link.links != blank -%}
+                                                    {% comment %} 一级shop菜单-有子级submenu {% endcomment %}
+                                                    <div class="trees-item has--child">
+                                                        <div class="title title-has--child" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-type="product_menu">
+                                                            <span class="text-overflow-2">{{link.title | escape}}</span>
+                                                            {%- render 'icon-arrow', width: 16, height: 16, color:'#1a1a1a' -%}
+                                                        </div>
+                                                        {% comment %} 二级shop菜单 {% endcomment %}
+                                                        <div class="trees-submenu">
+                                                            {%- for childlink in link.links -%}
+                                                                <div class="trees-item" target="{{childlink.title | url_decode | strip | replace: ' ', ''}}">
+                                                                    <div class="title" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu"><span class="text-overflow-2">{{childlink.title | escape}}</span></div>
+                                                                </div>
+                                                            {%- endfor -%}
+                                                        </div>
+
+                                                        {% comment %} 产品结构数据 {% endcomment %}
+                                                        <template>
+                                                            {%- for childlink in link.links -%}
+                                                            {%- assign collection_link = childlink.object -%}
+                                                            <div class="product-container">
+                                                                <div class="product-header-content max-w-full" id="{{childlink.title | url_decode | strip | replace: ' ', ''}}">
+                                                                    <div class="title">{{childlink.title | escape}}</div>
+                                                                    {%- if section.settings.all_text != blank -%}
+                                                                        <a aria-label="product link" href="{% if collection_link.metafields.custom.landing_page_url != blank %}{{collection_link.metafields.custom.landing_page_url}}{% else %}{{collection_link.url}}{% endif %}" class="action-item whitespace-nowrap" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="{{section.settings.all_text | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="{% if collection_link.metafields.custom.landing_page_url != blank %}{{collection_link.metafields.custom.landing_page_url}}{% else %}{{collection_link.url}}{% endif %}">
+                                                                            <span>{{section.settings.all_text | escape}}</span>
+                                                                            <div class="svg-box">
+                                                                                <div class="inner">
+                                                                                    {%- render 'icon-arrow-right',class: 'svg-arrow-line', width: 10, height: 10, color:'#1a1a1a' -%}
+                                                                                    {%- render 'icon-arrow', class: 'svg-arrow-right', width: 10, height: 10, color:'rgba(0,0,0,0.6)' -%}
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                    {%- endif -%}
+
+                                                                    {%- if collection_link.metafields.custom.show_compare == true and section.settings.compare_text != blank -%}
+                                                                    <a data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="{{section.settings.compare_text | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="/pages/compare?handle={{collection_link.handle}}"  aria-label="compare product link" href="/pages/compare?handle={{collection_link.handle}}" class="action-item whitespace-nowrap">
+                                                                        <span>{{section.settings.compare_text | escape}}</span>
+                                                                        <div class="svg-box">
+                                                                            <div class="inner">
+                                                                                {%- render 'icon-arrow-right',class: 'svg-arrow-line', width: 10, height: 10, color:'#1a1a1a' -%}
+                                                                                {%- render 'icon-arrow', class: 'svg-arrow-right', width: 10, height: 10, color:'rgba(0,0,0,0.6)' -%}
+                                                                            </div>
+                                                                        </div>
+                                                                    </a>
+                                                                    {%- endif -%}
+                                                                </div>
+
+                                                                <div class="grid-product-list" style="--max-rows: {{section.settings.shop_collection_default}};--show-limits: {{ section.settings.shop_collection_max }};">
+                                                                    {%-liquid
+                                                                        assign col_handle = childlink.url | split: '/' | last
+                                                                        assign is_collection = false
+                                                                        if childlink.url contains "/collections/" and col_handle != 'all'
+                                                                            assign is_collection = true
+                                                                        endif
+                                                                        assign default_nums_allblock = 5
+                                                                        if section.settings.shop_collection_default == '2'
+                                                                            assign default_nums_allblock = 10
+                                                                        endif
+                                                                        assign show_allblock = false
+                                                                        if default_nums_allblock < collection_link.products.size and default_nums_allblock <= section.settings.shop_collection_max and section.settings.all_text != blank and collection_link.products.size > section.settings.shop_collection_max
+                                                                            assign show_allblock = true
+                                                                        endif
+
+                                                                        assign shop_collection_max_num = section.settings.shop_collection_max
+                                                                        if show_allblock
+                                                                            assign shop_collection_max_num = shop_collection_max_num | minus: 1
+                                                                        endif
+                                                                    -%}
+
+                                                                    {%- if is_collection -%}
+                                                                        {%- for product in collection_link.products limit: shop_collection_max_num -%}
+                                                                            {%- if product.metafields.custom.header_show_sku == true and product.has_only_default_variant != true -%}
+                                                                                {%- for variant in product.variants -%}
+                                                                                    {%- if variant.available and variant.metafields.custom.hide_in_header != true  -%}
+                                                                                        <a 
+                                                                                            spu-expend
+                                                                                            dd="collection_link.products.size:{{collection_link.products.size}}" aria-label="product link" 
+                                                                                            href="{{variant.url}}" class="header-product-gitem" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" 
+                                                                                            data-ga-params-second_nav="{{link.title | escape}}" 
+                                                                                            data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-product_spu_name="{{variant.title}}" 
+                                                                                            data-ga-params-link="{{variant.url}}"
+                                                                                        >
+                                                                                            {% render 'product-tag', variant: variant, product: product, from_header: true, header_pc: true %}
+                                                                                            {% comment %} 产品图片元字段--> 第一个变体--> 产品默认图片 {% endcomment %}
+                                                                                            {%- if product.metafields.custom.shop_menu_product_image != blank -%}
+                                                                                                {%- assign p_img = product.metafields.custom.shop_menu_product_image -%}
+                                                                                            {%- elsif variant.featured_image != blank -%}
+                                                                                                {%- assign p_img = variant.featured_image -%}
+                                                                                            {%- else -%}
+                                                                                                {%- assign p_img = product.featured_image -%}
+                                                                                            {%- endif -%}
+        
+                                                                                            <picture class="header-m-pic header--pic">
+                                                                                                <source srcset="{{ p_img | image_url: width: 120 }}, {{ p_img | image_url: width: 240 }} 2x" media="(max-width:320px)">
+                                                                                                <source srcset="{{ p_img | image_url: width: 240 }}, {{ p_img | image_url: width: 480 }} 2x" media="(max-width:1023px)">
+                                                                                                <source srcset="{{ p_img | image_url: width: 170 }}, {{ p_img | image_url: width: 340 }} 2x" media="(min-width:1023px)">
+                                                                                                <img
+                                                                                                    loading="lazy"
+                                                                                                    src="{{ p_img | image_url: width: 170 }}"
+                                                                                                    alt="{{p_img.alt | escape}}"
+                                                                                                    width="{{p_img.width}}"
+                                                                                                    height="{{p_img.width}}"
+                                                                                                >
+                                                                                            </picture>
+        
+                                                                                            <div class="product-content">
+                                                                                                <div class="p-title">
+                                                                                                    {%- if variant.metafields.custom.shortname != blank -%}
+                                                                                                        {{variant.metafields.custom.shortname}}
+                                                                                                    {%- elsif variant.title != 'Default Title' -%}
+                                                                                                        {{variant.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                                    {%- else -%}
+                                                                                                        {{product.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                                    {%- endif -%}
+                                                                                                </div>
+                                                                                                <div class="p-subtitle text-overflow-2">
+                                                                                                {%- if variant.metafields.custom.product_features_info != blank -%}
+                                                                                                    {{variant.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                                                                                {%- endif -%}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </a>
+                                                                                    {%- endif -%}
+                                                                                {%- endfor-%}
+                                                                            {%- else -%}
+                                                                                <a dd="collection_link.products.size:{{collection_link.products.size}}" aria-label="product link" href="{{product.url}}" class="header-product-gitem" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-product_spu_name="{{product.title}}" data-ga-params-link="{{product.url}}">
+                                                                                    {% render 'product-tag', product: product, from_header: true, header_pc: true %}
+                                                                                    {% comment %} 产品图片元字段--> 第一个变体--> 产品默认图片 {% endcomment %}
+                                                                                    {%- assign first_variant = product.variants | first -%}
+                                                                                    {%- if product.metafields.custom.shop_menu_product_image != blank -%}
+                                                                                        {%- assign p_img = product.metafields.custom.shop_menu_product_image -%}
+                                                                                    {%- elsif first_variant.featured_image != blank -%}
+                                                                                        {%- assign p_img = first_variant.featured_image -%}
+                                                                                    {%- else -%}
+                                                                                        {%- assign p_img = product.featured_image -%}
+                                                                                    {%- endif -%}
+
+                                                                                    <picture class="header-m-pic header--pic">
+                                                                                        <source srcset="{{ p_img | image_url: width: 120 }}, {{ p_img | image_url: width: 240 }} 2x" media="(max-width:320px)">
+                                                                                        <source srcset="{{ p_img | image_url: width: 240 }}, {{ p_img | image_url: width: 480 }} 2x" media="(max-width:1023px)">
+                                                                                        <source srcset="{{ p_img | image_url: width: 170 }}, {{ p_img | image_url: width: 340 }} 2x" media="(min-width:1023px)">
+                                                                                        <img
+                                                                                            loading="lazy"
+                                                                                            src="{{ p_img | image_url: width: 170 }}"
+                                                                                            alt="{{p_img.alt | escape}}"
+                                                                                            width="{{p_img.width}}"
+                                                                                            height="{{p_img.width}}"
+                                                                                        >
+                                                                                    </picture>
+
+                                                                                    <div class="product-content">
+                                                                                        <div class="p-title">
+                                                                                            {%- assign first_variant = product.variants | first -%}
+                                                                                            {%- if product.metafields.custom.shortname != blank -%}
+                                                                                                {{product.metafields.custom.shortname}}
+                                                                                            {%- elsif first_variant.title != 'Default Title' -%}
+                                                                                                {{first_variant.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                            {%- else -%}
+                                                                                                {{product.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                            {%- endif -%}
+                                                                                        </div>
+                                                                                        <div class="p-subtitle text-overflow-2">
+                                                                                        {%- if product.metafields.custom.product_features_info != blank -%}
+                                                                                            {{product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                                                                        {%- endif -%}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </a>
+                                                                            {%- endif -%}
+                                                                        {%- endfor -%}
+
+                                                                        {%- if show_allblock == true -%}
+                                                                            <a aria-label="product link" class="header-product-gitem header-product-gitem--linkall" href="{% if collection_link.metafields.custom.landing_page_url != blank %}{{collection_link.metafields.custom.landing_page_url}}{% else %}{{collection_link.url}}{% endif %}" class="action-item whitespace-nowrap" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="{{section.settings.all_text | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="{% if collection_link.metafields.custom.landing_page_url != blank %}{{collection_link.metafields.custom.landing_page_url}}{% else %}{{collection_link.url}}{% endif %}">
+                                                                                <div class="all_link_inner">
+                                                                                    {%- render 'icon-arrow-right',class: 'svg-arrow-line', width: 16, height: 16, color:'#fff' -%}
+                                                                                </div>
+                                                                                <span class="text-overflow-3">{{section.settings.all_text | escape}}</span>
+                                                                            </a>
+                                                                        {%- endif -%}
+                                                                    {%- endif -%}
+                                                                </div>
+
+                                                                    {%- assign default_nums = 5 -%}
+                                                                    {%- if section.settings.shop_collection_default == '2' -%}
+                                                                        {%- assign default_nums = 10 -%}
+                                                                    {%- endif -%}
+                                                                    {%- if default_nums < collection_link.products.size and default_nums < section.settings.shop_collection_max -%}
+                                                                    <div class="product-show-all">
+                                                                        <div class="line"></div>
+                                                                        <div class="btn" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-type="product_menu" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-position="{{section.settings.more_text | escape}}">
+                                                                        <span class="more">{{section.settings.more_text | escape}}</span>
+                                                                        <span class="less">{{section.settings.less_text | escape}}</span>
+                                                                        {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.5)' -%}
+                                                                        </div>
+                                                                    </div>
+                                                                    {%- endif -%}
+                                                            </div>
+                                                            {%- endfor -%}
+                                                        </template>
+                                                    </div>
+                                                {%- else -%}
+                                                    {%- assign col_handle = link.url | split: '/' | last -%}
+                                                    {%- if link.url contains "/collections/" and col_handle != 'all' -%}
+                                                        {% comment %} 一级shop菜单-有子级链接 {% endcomment %}
+                                                        <div class="trees-item has--child trees-item--submenu--noshow">
+                                                            <div class="title title-has--child" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-type="product_menu">
+                                                                <span class="text-overflow-2">{{link.title | escape}}</span>
+                                                                {% comment %} {%- render 'icon-arrow', width: 16, height: 16 -%} {% endcomment %}
+                                                            </div>
+
+                                                            {% comment %} 产品结构数据 {% endcomment %}
+                                                            <template>
+                                                                {%- assign collection_menu = link.object -%}
+                                                                <div class="product-container">
+                                                                    <div class="product-header-content max-w-full">
+                                                                        <div class="title">{{link.title | escape}}</div>
+
+                                                                        {%- if section.settings.all_text != blank -%}
+                                                                            <a aria-label="collection link" href="{% if collection_menu.metafields.custom.landing_page_url != blank %}{{collection_menu.metafields.custom.landing_page_url}}{% else %}{{collection_menu.url}}{% endif %}" class="action-item whitespace-nowrap" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="{{section.settings.all_text | escape}}" data-ga-params-third_nav data-ga-params-type="product_menu" data-ga-params-link="{% if collection_menu.metafields.custom.landing_page_url != blank %}{{collection_menu.metafields.custom.landing_page_url}}{% else %}{{collection_menu.url}}{% endif %}">
+                                                                                <span>{{section.settings.all_text | escape}}</span>
+                                                                                <div class="svg-box">
+                                                                                    <div class="inner">
+                                                                                        {%- render 'icon-arrow-right',class: 'svg-arrow-line', width: 10, height: 10, color:'#1a1a1a' -%}
+                                                                                        {%- render 'icon-arrow', class: 'svg-arrow-right', width: 10, height: 10, color:'rgba(0,0,0,0.5)' -%}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </a>
+                                                                        {%- endif -%}
+
+                                                                        {%- if collection_menu.metafields.custom.show_compare == true and section.settings.compare_text != blank -%}
+                                                                        <a data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="{{section.settings.compare_text | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="/pages/compare?handle={{collection_menu.handle}}"  aria-label="compare product link" href="/pages/compare?handle={{collection_menu.handle}}" class="action-item whitespace-nowrap">
+                                                                            <span>{{section.settings.compare_text | escape}}</span>
+                                                                            <div class="svg-box">
+                                                                                <div class="inner">
+                                                                                    {%- render 'icon-arrow-right',class: 'svg-arrow-line', width: 10, height: 10, color:'#1a1a1a' -%}
+                                                                                    {%- render 'icon-arrow', class: 'svg-arrow-right', width: 10, height: 10, color:'#1a1a1a' -%}
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                        {%- endif -%}
+                                                                    </div>
+
+                                                                    <div class="grid-product-list" style="--max-rows: {{section.settings.shop_collection_default}};--show-limits: {{ section.settings.shop_collection_max }};">
+                                                                        {%- assign default_nums_allblock = 5 -%}
+                                                                        {%- assign show_allblock = false -%}
+                                                                        {%- if section.settings.shop_collection_default == '2' -%}
+                                                                            {%- assign default_nums_allblock = 10 -%}
+                                                                        {%- endif -%}
+                                                                        {%- if default_nums_allblock < collection_menu.products.size and default_nums_allblock <= section.settings.shop_collection_max and section.settings.all_text != blank and collection_menu.products.size > section.settings.shop_collection_max -%}
+                                                                            {%- assign show_allblock = true -%}
+                                                                        {%- endif -%}
+
+                                                                            {%- assign shop_collection_max_num = section.settings.shop_collection_max -%}
+                                                                            {%- if show_allblock == true -%}
+                                                                                {%- assign shop_collection_max_num = section.settings.shop_collection_max | minus: 1 -%}
+                                                                            {%- endif -%}
+                                                                            {%- for product in collection_menu.products limit: shop_collection_max_num -%}
+                                                                                {%- if product.metafields.custom.header_show_sku == true and product.has_only_default_variant != true -%}
+                                                                                    {%- for variant in product.variants -%}
+                                                                                        {%- if variant.available and variant.metafields.custom.hide_in_header != true  -%}
+                                                                                            <a
+                                                                                                dd="collection_menu.products.size:{{collection_menu.products.size}}" 
+                                                                                                aria-label="product link" 
+                                                                                                href="{{variant.url}}" class="header-product-gitem" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{collection_menu.title | escape}}" data-ga-params-type="product_menu" data-ga-params-product_spu_name="{{variant.title}}" data-ga-params-link="{{variant.url}}">
+                                                                                                {% render 'product-tag', variant: variant, product: product, from_header: true, header_pc: true %}
+                                                                                                {% comment %} 产品图片元字段--> 第一个变体--> 产品默认图片 {% endcomment %}
+                                                                                                {%- assign first_variant = variant -%}
+                                                                                                {%- if product.metafields.custom.shop_menu_product_image != blank -%}
+                                                                                                    {%- assign p_img = product.metafields.custom.shop_menu_product_image -%}
+                                                                                                {%- elsif variant.featured_image != blank -%}
+                                                                                                    {%- assign p_img = variant.featured_image -%}
+                                                                                                {%- else -%}
+                                                                                                    {%- assign p_img = product.featured_image -%}
+                                                                                                {%- endif -%}
+            
+                                                                                                <picture class="header-m-pic header--pic">
+                                                                                                    <source srcset="{{ p_img | image_url: width: 120 }}, {{ p_img | image_url: width: 240 }} 2x" media="(max-width:320px)">
+                                                                                                    <source srcset="{{ p_img | image_url: width: 240 }}, {{ p_img | image_url: width: 480 }} 2x" media="(max-width:1023px)">
+                                                                                                    <source srcset="{{ p_img | image_url: width: 170 }}, {{ p_img | image_url: width: 340 }} 2x" media="(min-width:1023px)">
+                                                                                                    <img
+                                                                                                        loading="lazy"
+                                                                                                        src="{{ p_img | image_url: width: 170 }}"
+                                                                                                        alt="{{p_img.alt | escape}}"
+                                                                                                        width="{{p_img.width}}"
+                                                                                                        height="{{p_img.width}}"
+                                                                                                    >
+                                                                                                </picture>
+            
+                                                                                                <div class="product-content">
+                                                                                                    <div class="p-title">
+                                                                                                        {%- assign first_variant = variant -%}
+                                                                                                        {%- if variant.metafields.custom.shortname != blank -%}
+                                                                                                            {{variant.metafields.custom.shortname}}
+                                                                                                        {%- elsif variant.title != 'Default Title' -%}
+                                                                                                            {{variant.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                                        {%- else -%}
+                                                                                                            {{product.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                                        {%- endif -%}
+                                                                                                    </div>
+                                                                                                    <div class="p-subtitle text-overflow-2">
+                                                                                                    {%- if variant.metafields.custom.product_features_info != blank -%}
+                                                                                                        {{variant.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                                                                                    {%- endif -%}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </a>
+                                                                                        {%- endif -%}
+                                                                                    {%- endfor-%}
+                                                                                {%- else -%}
+                                                                                    <a 
+                                                                                        dd="collection_menu.products.size:{{collection_menu.products.size}}" aria-label="product link" 
+                                                                                        href="{{product.url}}" class="header-product-gitem" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-product_spu_name="{{product.title}}" data-ga-params-link="{{product.url}}">
+                                                                                        {% render 'product-tag', product: product, from_header: true, header_pc: true %}
+                                                                                        {% comment %} 产品图片元字段--> 第一个变体--> 产品默认图片 {% endcomment %}
+                                                                                        {%- assign first_variant = product.variants | first -%}
+                                                                                        {%- if product.metafields.custom.shop_menu_product_image != blank -%}
+                                                                                            {%- assign p_img = product.metafields.custom.shop_menu_product_image -%}
+                                                                                        {%- elsif first_variant.featured_image != blank -%}
+                                                                                            {%- assign p_img = first_variant.featured_image -%}
+                                                                                        {%- else -%}
+                                                                                            {%- assign p_img = product.featured_image -%}
+                                                                                        {%- endif -%}
+    
+                                                                                        <picture class="header-m-pic header--pic">
+                                                                                            <source srcset="{{ p_img | image_url: width: 120 }}, {{ p_img | image_url: width: 240 }} 2x" media="(max-width:320px)">
+                                                                                            <source srcset="{{ p_img | image_url: width: 240 }}, {{ p_img | image_url: width: 480 }} 2x" media="(max-width:1023px)">
+                                                                                            <source srcset="{{ p_img | image_url: width: 170 }}, {{ p_img | image_url: width: 340 }} 2x" media="(min-width:1023px)">
+                                                                                            <img
+                                                                                                loading="lazy"
+                                                                                                src="{{ p_img | image_url: width: 170 }}"
+                                                                                                alt="{{p_img.alt | escape}}"
+                                                                                                width="{{p_img.width}}"
+                                                                                                height="{{p_img.width}}"
+                                                                                            >
+                                                                                        </picture>
+    
+                                                                                        <div class="product-content">
+                                                                                            <div class="p-title">
+                                                                                                {%- assign first_variant = product.variants | first -%}
+                                                                                                {%- if product.metafields.custom.shortname != blank -%}
+                                                                                                    {{product.metafields.custom.shortname}}
+                                                                                                {%- elsif first_variant.title != 'Default Title' -%}
+                                                                                                    {{first_variant.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                                {%- else -%}
+                                                                                                    {{product.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                                {%- endif -%}
+                                                                                            </div>
+                                                                                            <div class="p-subtitle text-overflow-2">
+                                                                                            {%- if product.metafields.custom.product_features_info != blank -%}
+                                                                                                {{product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                                                                            {%- endif -%}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </a>
+                                                                                {%- endif -%}
+                                                                            {%- endfor -%}
+
+                                                                            {%- if show_allblock == true -%}
+                                                                            <a aria-label="product link" class="header-product-gitem header-product-gitem--linkall" href="{% if collection_menu.metafields.custom.landing_page_url != blank %}{{collection_menu.metafields.custom.landing_page_url}}{% else %}{{collection_menu.url}}{% endif %}" class="action-item whitespace-nowrap" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="{{section.settings.all_text | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="{% if collection_menu.metafields.custom.landing_page_url != blank %}{{collection_menu.metafields.custom.landing_page_url}}{% else %}{{collection_menu.url}}{% endif %}">
+                                                                                <div class="all_link_inner">
+                                                                                    {%- render 'icon-arrow-right',class: 'svg-arrow-line', width: 16, height: 16, color:'#fff' -%}
+                                                                                </div>
+                                                                                <span class="text-overflow-3">{{section.settings.all_text | escape}}</span>
+                                                                            </a>
+                                                                            {%- endif -%}
+                                                                    </div>
+
+                                                                    {%- assign default_nums = 5 -%}
+                                                                    {%- if section.settings.shop_collection_default == '2' -%}
+                                                                        {%- assign default_nums = 10 -%}
+                                                                    {%- endif -%}
+                                                                    {%- if default_nums < collection_menu.products.size and default_nums < section.settings.shop_collection_max -%}
+                                                            <div class="product-show-all">
+                                                                        <div class="line"></div>
+                                                                        <div class="btn" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-type="product_menu" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-position="{{section.settings.more_text | escape}}">
+                                                                        <span class="more">{{section.settings.more_text | escape}}</span>
+                                                                        <span class="less">{{section.settings.less_text | escape}}</span>
+                                                                        {%- render 'icon-arrow', width: 16, height: 16, color: rgba(0,0,0,0.5) -%}
+                                                                        </div>
+                                                                    </div>
+                                                                    {%- endif -%}
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    {%- else -%}
+                                                        {% comment %} 一级shop菜单-无子级 {% endcomment %}
+                                                        <div class="trees-item no--child">
+                                                            <a aria-label="menu link" href="{{link.url}}" class="title title-no--child" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="{{link.url}}">
+                                                                <span class="text-overflow-2">{{link.title | escape}}</span>
+                                                                <div class="svg-box">
+                                                                    <div class="inner">
+                                                                        {%- render 'icon-arrow-right',class: 'svg-arrow-line', width: 10, height: 10, color:'#1a1a1a' -%}
+                                                                        {%- render 'icon-arrow', class: 'svg-arrow-right', width: 10, height: 10, color:'#1a1a1a' -%}
+                                                                    </div>
+                                                                </div>
+                                                            </a>
+                                                        </div>
+                                                    {%- endif -%}
+                                                {%- endif -%}
+                                            {%- endfor -%}
+                                        </div>
+
+                                        <div class="right-products"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {%- endif -%}
+                {%- endcase -%}
+            {%- endfor -%}
+        </div>
+
+        <div class="menu-list--mb">
+            {%- for block in section.blocks -%}
+                {%- case block.type -%}
+                    {%- when 'sales_menu' -%}
+                        {% comment %} sales菜单-双列 {% endcomment %}
+                        {%- liquid
+                            assign is_show = false
+                            assign begin_time = 0
+                            if block.settings.begin_time != blank
+                                assign begin_time = block.settings.begin_time | date: '%s'
+                            endif
+
+                            assign end_time = 0
+                            if block.settings.end_time != blank
+                                assign end_time = block.settings.end_time | date: '%s'
+                            endif
+
+                            if begin_time == 0 and end_time == 0
+                                assign is_show = true
+                            elsif begin_time != 0 and end_time == 0 and begin_time < time_now
+                                assign is_show = true
+                            elsif begin_time == 0 and end_time != 0 and end_time > time_now
+                                assign is_show = true
+                            elsif begin_time != 0 and end_time != 0 and end_time > time_now and begin_time < time_now
+                                assign is_show = true
+                            endif
+                        -%}
+                        {% assign textColor = '<em style="color: ' | append: block.settings.mb_highlight_color | append: '">' %}
+                        {%- if is_show == true -%}
+                            <div class="m-menu-item m-menu-item--sales">
+                                <div class="title" data-ga-event="top_first_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position="">
+                                    <span class="relative">{{block.settings.m_title}}</span>
+                                    {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.9)' -%}
+                                </div>
+                                <div class="content">
+                                    <div class="header-container">
+                                        {%- if block.settings.left_img != blank -%}
+                                        <a href="{{block.settings.left_link}}" class="m-sales-item m-sales-item--left" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-second_nav="{{block.settings.left_title | escape}}" data-ga-params-type="saleban_double_menu" data-ga-params-link="{{block.settings.left_link}}">
+                                            <div class="m-sales-item--content" style="background-image:url({{block.settings.left_m_img | image_url: width: 750}});--sales-text-color: {{block.settings.left_color}};--sales-text-sub-color: {{ block.settings.left_sub_color | default: block.settings.left_color }};--sales-text-color-mb:{{block.settings.mb_left_color}};--sales-text-sub-color-mb: {{ block.settings.mb_left_sub_color | default: block.settings.mb_left_color }};--sales-subtext-color: {{block.settings.left_des_color}};--sales-subtext-color-mb: {{block.settings.mb_left_des_color}};">
+                                                {%- if block.settings.left_title != blank -%}
+                                                <div class="m-sales--title">{{block.settings.left_title | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.left_subtitle != blank -%}
+                                                <div class="m-sales--subtitle">{{block.settings.left_subtitle | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.left_des != blank -%}
+                                                <div class="m-sales--des">{{block.settings.left_des | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {% if block.settings.left_btn_txt != blank and block.settings.left_link != blank %}
+                                                    <jds-button href="{{block.settings.left_link}}" class="has-text-button" size="medium">{{ block.settings.left_btn_txt | escape }}</jds-button>
+                                                {%- endif -%}
+                                            </div>
+                                        </a>
+                                        {%- endif -%}
+
+                                        {%- if block.settings.right_img != blank -%}
+                                        <a href="{{block.settings.right_link}}" class="m-sales-item m-sales-item--right" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-second_nav="{{block.settings.right_title | escape}}" data-ga-params-type="saleban_double_menu" data-ga-params-link="{{block.settings.right_link}}">
+                                            <div class="m-sales-item--content" style="background-image:url({{block.settings.right_m_img | image_url: width: 750}});--sales-text-color: {{block.settings.right_color}};--sales-text-sub-color: {{ block.settings.right_sub_color | default: block.settings.right_color }};--sales-text-color-mb:{{block.settings.mb_right_color}};--sales-text-sub-color-mb:{{block.settings.mb_right_sub_color | default: block.settings.mb_right_color}};--sales-subtext-color: {{block.settings.right_des_color}};--sales-subtext-color-mb: {{block.settings.mb_right_des_color}};">
+                                                {%- if block.settings.right_title != blank -%}
+                                                <div class="m-sales--title">{{block.settings.right_title | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.right_subtitle != blank -%}
+                                                <div class="m-sales--subtitle">{{block.settings.right_subtitle | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.right_des != blank -%}
+                                                <div class="m-sales--des">{{block.settings.right_des | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {% if block.settings.right_btn_txt != blank and block.settings.right_link != blank %}
+                                                    <jds-button href="{{block.settings.right_link}}" size="medium" class="has-text-button">{{ block.settings.right_btn_txt | escape }}</jds-button>
+                                                {%- endif -%}
+                                            </div>
+                                        </a>
+                                        {%- endif -%}
+                                    </div>
+                                </div>
+                            </div>
+                        {%- endif -%}
+                    {%- when 'sales_menu_full' -%}
+                        {% comment %} sales菜单-全屏 {% endcomment %}
+                        {%- liquid
+                            assign is_show = false
+                            assign begin_time = 0
+                            if block.settings.begin_time != blank
+                                assign begin_time = block.settings.begin_time | date: '%s'
+                            endif
+
+                            assign end_time = 0
+                            if block.settings.end_time != blank
+                                assign end_time = block.settings.end_time | date: '%s'
+                            endif
+
+                            if begin_time == 0 and end_time == 0
+                                assign is_show = true
+                            elsif begin_time != 0 and end_time == 0 and begin_time < time_now
+                                assign is_show = true
+                            elsif begin_time == 0 and end_time != 0 and end_time > time_now
+                                assign is_show = true
+                            elsif begin_time != 0 and end_time != 0 and end_time > time_now and        begin_time < time_now
+                                assign is_show = true
+                            endif
+                        -%}
+                        {% assign textColor = '<em style="color: ' | append: block.settings.mb_highlight_color | append: '">' %}
+                        {%- if is_show == true -%}
+                            <div class="m-menu-item m-menu-item--sales m-menu-item--sales--full">
+                                <div class="title" data-ga-event="top_first_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position="">
+                                    <span class="relative">{{block.settings.m_title}}</span>
+                                    {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.9)' -%}
+                                </div>
+                                <a href="{{block.settings.link}}" class="content" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-second_nav="{{block.settings.title | escape}}" data-ga-params-type="saleban_full_menu" data-ga-params-link="{{block.settings.link}}">
+                                    <div class="header-container">
+                                        {%- if block.settings.img != blank -%}
+                                        <div class="m-sales-item m-sales-item--left" style="--sales-text-color: {{block.settings.pc_color}};--sales-text-sub-color: {{ block.settings.pc_sub_color | default: block.settings.pc_color}};--sales-text-color-mb: {{block.settings.mb_color}};--sales-text-sub-color-mb: {{ block.settings.mb_sub_color | default: block.settings.mb_color }};--sales-subtext-color: {{block.settings.des_color}};--sales-subtext-color-mb: {{block.settings.mb_des_color}};">
+                                            <div class="m-sales-item--content" style="background-image:url({{block.settings.m_img | image_url: width: 750}});">
+                                                {%- if block.settings.title != blank -%}
+                                                <div class="m-sales--title">{{block.settings.title | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.subtitle != blank -%}
+                                                <div class="m-sales--subtitle">{{block.settings.subtitle | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {%- if block.settings.des != blank -%}
+                                                <div class="m-sales--des">{{block.settings.des | replace: '<em>', textColor}}</div>
+                                                {%- endif -%}
+                                                {% if block.settings.btn_txt != blank and block.settings.link != blank %}
+                                                    <jds-button href="{{block.settings.link}}" class="has-text-button">{{ block.settings.btn_txt | escape }}</jds-button>
+                                                {%- endif -%}
+                                            </div>
+                                        </div>
+                                        {%- endif -%}
+                                    </div>
+                                </a>
+                            </div>
+                        {%- endif -%}
+                    {%- when 'text_menu' -%}
+                        {%- if block.settings.menu_list != blank -%}
+                            {%- liquid
+                                assign has_child = false
+                                assign child_num = 0
+
+                                for link in block.settings.menu_list.links
+                                    if link.links != blank
+                                        assign has_child = true
+                                    endif
+                                endfor
+
+                                if has_child
+                                    assign child_num = block.settings.menu_list.links.size
+                                endif
+                            -%}
+
+                            {% comment %} 文本菜单-单列 {% endcomment %}
+                            {%- if has_child == true -%}
+                                <div class="m-menu-item m-menu-item--simpletext">
+                                    <div class="title" data-ga-event="top_first_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position="">
+                                        <span class="relative">{{block.settings.m_title}}</span>
+                                        {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.9)' -%}
+                                    </div>
+                                    <div class="content">
+                                        {%- for link in block.settings.menu_list.links -%}
+                                        <div class="m-simpletext-item">
+                                            <div class="m-simpletext-item--title header-container">{{link.title | escape}}</div>
+                                            <ul class="header-container">
+                                                {%- for childlink in link.links -%}
+                                                <a href="{{childlink.url}}" class="m-simpletext-item--main relative" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-second_nav="{{childlink.title | escape}}" data-ga-params-type="text_menu" data-ga-params-link="{{childlink.url}}">
+                                                    <span class="simpletext--name text-overflow-1">{{childlink.title}}</span>
+                                                </a>
+                                                {%- endfor -%}
+                                            </ul>
+                                        </div>
+                                        {%- endfor -%}
+                                    </div>
+                                </div>
+                            {%- else -%}
+                                <div class="m-menu-item m-menu-item--simpletext m-menu-item--simpletext--single">
+                                    <div class="title" data-ga-event="top_first_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}" data-ga-params-position="">
+                                        <span class="relative">{{block.settings.m_title}}</span>
+                                        {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.9)' -%}
+                                    </div>
+                                    <div class="content">
+                                        <div class="m-simpletext-item">
+                                            <ul class="header-container">
+                                                {%- for link in block.settings.menu_list.links -%}
+                                                    <a href="{{link.url}}" class="m-simpletext-item--main relative" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{block.settings.m_title | strip_html}}"  data-ga-params-type="text_menu" data-ga-params-link="{{link.url}}" data-ga-params-second_nav="{{link.title | escape}}">
+                                                        <span class="simpletext--name text-overflow-1">{{link.title}}</span>
+                                                    </a>
+                                                {%- endfor -%}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            {%- endif -%}
+                        {%- endif -%}
+                    {%- when 'pictext_menu' -%}
+                        {%- assign pt_menu = shop.metaobjects.menu_pic_card[block.settings.handle] -%}
+                        {%- assign pt_menu_title = pt_menu.title | strip_html -%}
+                        <div class="m-menu-item m-menu-item--pictext">
+                            <div class="title" data-ga-event="top_first_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{pt_menu_title}}" data-ga-params-position="">
+                                <span class="relative">{{pt_menu.title}}</span>
+                                {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.9)'-%}
+                            </div>
+                            <div class="content">
+                                <div class="m-pictext-tabs swiper">
+                                <div class="swiper-wrapper">
+                                    {%- for item in pt_menu.cate.value -%}
+                                        <div class="swiper-slide {% if forloop.first %} active{% endif %}" target="mp-{{forloop.index}}" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{pt_menu_title}}" data-ga-params-second_nav="{{item.title | escape}}" data-ga-params-type="pictext_menu">{{item.title}}</div>
+                                    {%- endfor -%}
+                                </div>
+                                </div>
+
+                                <div class="m-pictext-list">
+                                    {%- for item in pt_menu.cate.value -%}
+                                        <ul class="header-container">
+                                            <div class="m-pictext-title" id="mp-{{forloop.index}}">{{item.title | escape}}</div>
+                                            {%- for card in item.items.value -%}
+                                                <a href="{{card.url}}" class="m-pictext-card" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{pt_menu.title | escape}}" data-ga-params-second_nav="{{item.title | escape}}" data-ga-params-type="pictext_menu" data-ga-params-link="{{card.url}}" data-ga-params-title="{{card.title | escape}}">
+                                                    {% comment %} {% render 'responsive-image', image: card.card_img, mimage: card.card_img, width: 1, mwidth: 350 %} {% endcomment %}
+                                                    <img 
+                                                        src="{{card.card_img | image_url: width: 100}}" 
+                                                        alt="{{card.card_img.alt | escape}}" 
+                                                        loading="lazy" 
+                                                        width="{{ card.card_img.width }}"
+                                                        height="{{ card.card_img.height }}"
+                                                        fetchpriority="low"
+                                                        srcset="
+                                                            {{ card.card_img | image_url: width: 375 }} 375w,
+                                                            {{ card.card_img | image_url: width: 414 }} 414w,
+                                                            {{ card.card_img | image_url: width: 600 }} 600w,
+                                                            {{ card.card_img | image_url: width: 990 }} 990w
+                                                        "
+                                                    />
+
+                                                    <div class="m-pictext-card--title">{{card.title | escape}}</div>
+                                                    <div class="m-pictext-card--subtitle">{{card.subtitle | escape}}</div>
+                                                </a>
+                                            {%- endfor -%}
+                                        </ul>
+                                    {%- endfor -%}
+                                </div>
+                            </div>
+                        </div>
+                    {%- when 'shop_menu' -%}
+                        {%- if block.settings.menu_list != blank -%}
+                        {%- assign shop_m_title = block.settings.m_title | strip_html -%}
+                        <div class="m-menu-item m-menu-item--shop">
+                            <div class="title header-container" data-ga-event="top_first_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-position="">
+                                <span class="relative">{{block.settings.m_title}}</span>
+                                {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.9)' -%}
+                            </div>
+                            <div class="content">
+                                <div class="m-shop--content">
+                                <div class="m-shop-tree">
+                                    {%- for link in block.settings.menu_list.links -%}
+                                        {%- if link.links != blank -%}
+                                            <div class="m-shop-child m-shop-child--with-tabs show-all">
+                                                <div class="m-shop-child--title {% if link.links.size > 1 %} m-shop-child--title--ctabs{% endif %}">
+                                                    <div class="header-container" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-type="product_menu">
+                                                    <span class="text-overflow-2">{{link.title | escape}}</span>
+                                                    {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.6)' -%}
+                                                    </div>
+                                                </div>
+
+                                                {%- if link.links.size > 1 -%}
+                                                <div class="m-shop-submenu-tabs swiper">
+                                                    <div class="swiper-wrapper">
+                                                    {%- for childlink in link.links -%}
+                                                        <div class="swiper-slide {% if forloop.first %} active{% endif %}" target="{{childlink.title | url_decode | strip | replace: ' ', ''}}" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu">{{childlink.title | escape}}</div>
+                                                    {%- endfor -%}
+                                                    <div class="swiper-slide swiper-slide--none"></div>
+                                                    </div>
+                                                </div>
+                                                {%- endif -%}
+
+                                                <div class="toggle-content">
+                                                    {%- for childlink in link.links -%}
+                                                        {%- assign collection_menu = childlink.object -%}
+                                                        {%- assign col_handle = childlink.url | split: '/' | last -%}
+                                                        {%- if childlink.url contains "/collections/" and col_handle != 'all' -%}
+                                                        <div class="m-shop-submenu-title" id="{{childlink.title | url_decode | strip | replace: ' ', ''}}">{{childlink.title | escape}}</div>
+                                                            {%- for product in collection_menu.products limit: section.settings.shop_collection_max -%}
+                                                                {%- if product.metafields.custom.header_show_sku == true and product.has_only_default_variant != true -%}
+                                                                    {%- for variant in product.variants -%}
+                                                                        {%- if variant.available and variant.metafields.custom.hide_in_header != true  -%}
+                                                                            <a 
+                                                                                href="{{variant.url}}" 
+                                                                                class="m-shop-child--content flex header-container" data-ga-event="top_third_nav4.0" 
+                                                                                data-ga-action="click" 
+                                                                                data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-product_spu_name="{{product.title}}" data-ga-params-link="{{variant.url}}"
+                                                                            >
+                                                                                {% comment %} 产品图片元字段--> 第一个变体--> 产品默认图片 {% endcomment %}
+                                                                                {%- assign m_p_img = variant.featured_image | default: product.featured_image -%}
+            
+                                                                                <picture class="p-img header--pic image-lazy-loading">
+                                                                                    <source data-srcset="{{ m_p_img | image_url: width: 120 }}, {{ m_p_img | image_url: width: 240 }} 2x" media="(max-width:320px)">
+                                                                                    <source data-srcset="{{ m_p_img | image_url: width: 240 }}, {{ m_p_img | image_url: width: 480 }} 2x" media="(max-width:1023px)">
+                                                                                    <source data-srcset="{{ m_p_img | image_url: width: 170 }}, {{ m_p_img | image_url: width: 340 }} 2x" media="(min-width:1023px)">
+                                                                                    <img
+                                                                                        loading="lazy"
+                                                                                        data-src="{{ m_p_img | image_url: width: 170 }}"
+                                                                                        alt="{{m_p_img.alt | escape}}"
+                                                                                        width="{{m_p_img.width}}"
+                                                                                        height="{{m_p_img.width}}"
+                                                                                    >
+                                                                                </picture>
+            
+                                                                                {% render 'product-tag', variant: variant, product: product, from_header: true %}
+            
+                                                                                <div class="p-content">
+                                                                                    {% render 'product-tag', variant: variant, product: product, from_header: true %}
+            
+                                                                                    <div class="p-title text-overflow-2">
+                                                                                        {%- if variant.metafields.custom.shortname != blank -%}
+                                                                                            {{variant.metafields.custom.shortname}}
+                                                                                        {%- elsif variant.title != 'Default Title' -%}
+                                                                                            {{variant.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                        {%- else -%}
+                                                                                            {{product.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                        {%- endif -%}
+                                                                                    </div>
+                                                                                    <div class="p-des text-overflow-2">
+                                                                                        {%- if variant.metafields.custom.product_features_info != blank -%}
+                                                                                            {{ variant.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                                                                        {%- endif -%}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </a>
+                                                                        {%- endif -%}
+                                                                    {%- endfor -%}
+                                                                {%- else -%}
+                                                                    <a 
+                                                                        href="{{product.url}}" 
+                                                                        class="m-shop-child--content flex header-container" data-ga-event="top_third_nav4.0" 
+                                                                        data-ga-action="click" 
+                                                                        data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-product_spu_name="{{product.title}}" data-ga-params-link="{{product.url}}"
+                                                                    >
+                                                                        {% comment %} 产品图片元字段--> 第一个变体--> 产品默认图片 {% endcomment %}
+                                                                        {%- assign first_variant = product.variants | first -%}
+                                                                        {%- if product.metafields.custom.shop_menu_product_image != blank -%}
+                                                                            {%- assign m_p_img = product.metafields.custom.shop_menu_product_image -%}
+                                                                        {%- elsif first_variant.featured_image != blank -%}
+                                                                            {%- assign m_p_img = first_variant.featured_image -%}
+                                                                        {%- else -%}
+                                                                            {%- assign m_p_img = product.featured_image -%}
+                                                                        {%- endif -%}
+    
+                                                                        <picture class="p-img header--pic image-lazy-loading">
+                                                                            <source data-srcset="{{ m_p_img | image_url: width: 120 }}, {{ m_p_img | image_url: width: 240 }} 2x" media="(max-width:320px)">
+                                                                            <source data-srcset="{{ m_p_img | image_url: width: 240 }}, {{ m_p_img | image_url: width: 480 }} 2x" media="(max-width:1023px)">
+                                                                            <source data-srcset="{{ m_p_img | image_url: width: 170 }}, {{ m_p_img | image_url: width: 340 }} 2x" media="(min-width:1023px)">
+                                                                            <img
+                                                                                loading="lazy"
+                                                                                data-src="{{ m_p_img | image_url: width: 170 }}"
+                                                                                alt="{{m_p_img.alt | escape}}"
+                                                                                width="{{m_p_img.width}}"
+                                                                                height="{{m_p_img.width}}"
+                                                                            >
+                                                                        </picture>
+    
+                                                                        {% render 'product-tag', product: product, from_header: true %}
+    
+                                                                        <div class="p-content">
+                                                                            {% render 'product-tag', product: product, from_header: true %}
+    
+                                                                            <div class="p-title text-overflow-2">
+                                                                                {%- assign first_variant = product.variants | first -%}
+                                                                                {%- if product.metafields.custom.shortname != blank -%}
+                                                                                    {{product.metafields.custom.shortname}}
+                                                                                {%- elsif first_variant.title != 'Default Title' -%}
+                                                                                    {{first_variant.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                {%- else -%}
+                                                                                    {{product.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                {%- endif -%}
+                                                                            </div>
+                                                                            <div class="p-des text-overflow-2">
+                                                                                {%- if product.metafields.custom.product_features_info != blank -%}
+                                                                                    {{product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                                                                {%- endif -%}
+                                                                            </div>
+                                                                        </div>
+                                                                    </a>
+                                                                {%- endif -%}
+                                                            {%- endfor -%}
+                                                            <div class="m-shop-actions header-container">
+                                                                <div class="m-shop-btns">
+                                                                    {%- assign collection_child = childlink.url -%}
+                                                                    {%- if collection_menu.metafields.custom.landing_page_url != blank -%}
+                                                                        {%- assign collection_child = collection_menu.metafields.custom.landing_page_url -%}
+                                                                    {%- endif -%}
+
+                                                                    {%- if section.settings.all_text != blank -%}
+                                                                    <a aria-label="collection link" href="{{collection_child}}" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="{{section.settings.all_text | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="{% if collection_menu.metafields.custom.landing_page_url != blank %}{{collection_menu.metafields.custom.landing_page_url}}{% else %}{{collection_menu.url}}{% endif %}" class="m-shop--btn m-shop-collections">{{section.settings.all_text | escape}}</a>
+                                                                    {%- endif -%}
+
+                                                                    {%- if collection_menu.metafields.custom.show_compare == true and section.settings.compare_text != blank -%}
+                                                                    <a data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="compare" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="/pages/compare?handle={{collection_menu.handle}}" aria-label="compare product link" href="/pages/compare?handle={{collection_menu.handle}}" class="m-shop--btn m-shop-compare">{{section.settings.compare_text | escape}}</a>
+                                                                    {%- endif -%}
+                                                                </div>
+                                                            </div>
+                                                        {%- endif -%}
+                                                    {%- endfor -%}
+                                                </div>
+                                            </div>
+                                        {%- else -%}
+                                            {%- assign col_handle = link.url | split: '/' | last -%}
+                                            {%- if link.url contains "/collections/" and col_handle != 'all' -%}
+                                                {% comment %} 一级shop菜单-有子级链接 {% endcomment %}
+                                                {%- assign collection_menu = link.object -%}
+                                                <div class="m-shop-child">
+                                                    <div class="m-shop-child--title">
+                                                        <div class="header-container" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-type="product_menu">
+                                                        <span class="text-overflow-2">{{link.title | escape}}</span>
+                                                        {%- render 'icon-arrow', width: 16, height: 16, color:'rgba(0,0,0,0.6)' -%}
+                                                        </div>
+                                                    </div>
+                                                    <div class="toggle-content">
+                                                        {%- for product in collection_menu.products limit: section.settings.shop_collection_max -%}
+                                                            {%- if product.metafields.custom.header_show_sku == true and product.has_only_default_variant != true -%}
+                                                                {%- for variant in product.variants -%}
+                                                                    {%- if variant.available and variant.metafields.custom.hide_in_header != true  -%}
+                                                                        <a 
+                                                                            href="{{variant.url}}" class="m-shop-child--content flex header-container" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{collection_menu.title | escape}}" data-ga-params-type="product_menu" data-ga-params-product_spu_name="{{product.title}}" data-ga-params-link="{{variant.url}}">
+                                                                            {% comment %} 产品图片元字段--> 第一个变体--> 产品默认图片 {% endcomment %}
+                                                                            {%- assign m_p_img = variant.featured_image | default: product.featured_image -%}
+                                         
+                                                                            <picture class="p-img header--pic image-lazy-loading">
+                                                                                <source data-srcset="{{ m_p_img | image_url: width: 120 }}, {{ m_p_img | image_url: width: 240 }} 2x" media="(max-width:320px)">
+                                                                                <source data-srcset="{{ m_p_img | image_url: width: 240 }}, {{ m_p_img | image_url: width: 480 }} 2x" media="(max-width:1023px)">
+                                                                                <source data-srcset="{{ m_p_img | image_url: width: 170 }}, {{ m_p_img | image_url: width: 340 }} 2x" media="(min-width:1023px)">
+                                                                                <img
+                                                                                    loading="lazy"
+                                                                                    data-src="{{ m_p_img | image_url: width: 170 }}"
+                                                                                    alt="{{m_p_img.alt | escape}}"
+                                                                                    width="{{m_p_img.width}}"
+                                                                                    height="{{m_p_img.width}}"
+                                                                                >
+                                                                            </picture>
+        
+                                                                            {% render 'product-tag', variant: variant, product: product, from_header: true %}
+        
+                                                                            <div class="p-content">
+                                                                                {% render 'product-tag', variant: variant, product: product, from_header: true %}
+        
+                                                                                <div class="p-title text-overflow-2">
+                                                                                    {%- if variant.metafields.custom.shortname != blank -%}
+                                                                                        {{variant.metafields.custom.shortname}}
+                                                                                    {%- elsif variant.title != 'Default Title' -%}
+                                                                                        {{variant.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                    {%- else -%}
+                                                                                        {{product.title | escape | strip | replace: 'Jackery', ''}}
+                                                                                    {%- endif -%}
+                                                                                </div>
+                                                                                <div class="p-des text-overflow-2">
+                                                                                    {%- if variant.metafields.custom.product_features_info != blank -%}
+                                                                                        {{ variant.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                                                                    {%- endif -%}
+                                                                                </div>
+                                                                            </div>
+                                                                        </a>
+                                                                    {%- endif -%}
+                                                                {%- endfor -%}
+                                                            {%- else -%}
+                                                                <a 
+                                                                    href="{{product.url}}" class="m-shop-child--content flex header-container" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{collection_menu.title | escape}}" data-ga-params-type="product_menu" data-ga-params-product_spu_name="{{product.title}}" data-ga-params-link="{{product.url}}">
+                                                                    {% comment %} 产品图片元字段--> 第一个变体--> 产品默认图片 {% endcomment %}
+                                                                    {%- assign first_variant = product.variants | first -%}
+                                                                    {%- if product.metafields.custom.shop_menu_product_image != blank -%}
+                                                                        {%- assign m_p_img = product.metafields.custom.shop_menu_product_image -%}
+                                                                    {%- elsif first_variant.featured_image != blank -%}
+                                                                        {%- assign m_p_img = first_variant.featured_image -%}
+                                                                    {%- else -%}
+                                                                        {%- assign m_p_img = product.featured_image -%}
+                                                                    {%- endif -%}
+
+                                                                    <picture class="p-img header--pic image-lazy-loading">
+                                                                        <source data-srcset="{{ m_p_img | image_url: width: 120 }}, {{ m_p_img | image_url: width: 240 }} 2x" media="(max-width:320px)">
+                                                                        <source data-srcset="{{ m_p_img | image_url: width: 240 }}, {{ m_p_img | image_url: width: 480 }} 2x" media="(max-width:1023px)">
+                                                                        <source data-srcset="{{ m_p_img | image_url: width: 170 }}, {{ m_p_img | image_url: width: 340 }} 2x" media="(min-width:1023px)">
+                                                                        <img
+                                                                            loading="lazy"
+                                                                            data-src="{{ m_p_img | image_url: width: 170 }}"
+                                                                            alt="{{m_p_img.alt | escape}}"
+                                                                            width="{{m_p_img.width}}"
+                                                                            height="{{m_p_img.width}}"
+                                                                        >
+                                                                    </picture>
+
+                                                                    {% render 'product-tag', product: product, from_header: true %}
+
+                                                                    <div class="p-content">
+                                                                        {% render 'product-tag', product: product, from_header: true %}
+
+                                                                        <div class="p-title text-overflow-2">
+                                                                            {%- assign first_variant = product.variants | first -%}
+                                                                            {%- if product.metafields.custom.shortname != blank -%}
+                                                                                {{product.metafields.custom.shortname}}
+                                                                            {%- elsif first_variant.title != 'Default Title' -%}
+                                                                                {{first_variant.title | escape | strip | replace: 'Jackery', ''}}
+                                                                            {%- else -%}
+                                                                                {{product.title | escape | strip | replace: 'Jackery', ''}}
+                                                                            {%- endif -%}
+                                                                        </div>
+                                                                        <div class="p-des text-overflow-2">
+                                                                            {%- if product.metafields.custom.product_features_info != blank -%}
+                                                                                {{product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                                                            {%- endif -%}
+                                                                        </div>
+                                                                    </div>
+                                                                </a>
+                                                            {%- endif -%}
+                                                        {%- endfor -%}
+
+                                                        <div class="m-shop-actions header-container">
+                                                            {%- if collection_menu.products.size > 5 and section.settings.shop_collection_max > 5 -%}
+                                                            <div class="m-shop-show-all" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-type="product_menu" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-position="{{section.settings.more_text | escape}}">
+                                                                {%- render 'icon-arrow', width: 16, height: 16, color:'#1a1a1a' -%}
+                                                            </div>
+                                                            {%- endif -%}
+
+                                                            <div class="m-shop-btns">
+                                                                {%- if section.settings.all_text != blank -%}
+                                                                <a aria-label="collection link" href="{% if collection_menu.metafields.custom.landing_page_url != blank %}{{collection_menu.metafields.custom.landing_page_url}}{% else %}{{collection_menu.url}}{% endif %}" class="m-shop--btn m-shop-collections" data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="{{section.settings.all_text | escape}}" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="{% if collection_menu.metafields.custom.landing_page_url != blank %}{{collection_menu.metafields.custom.landing_page_url}}{% else %}{{collection_menu.url}}{% endif %}">{{section.settings.all_text | escape}}</a>
+                                                                {%- endif -%}
+                                                                {%- if collection_menu.metafields.custom.show_compare == true and section.settings.compare_text != blank -%}
+                                                                <a data-ga-event="top_third_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-position="compare" data-ga-params-third_nav="{{childlink.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="/pages/compare?handle={{collection_menu.handle}}" aria-label="compare product link" href="/pages/compare?handle={{collection_menu.handle}}" class="m-shop--btn m-shop-compare">{{section.settings.compare_text | escape}}</a>
+                                                                {%- endif -%}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {%- else -%}
+                                                {% comment %} 一级shop菜单-无子级 {% endcomment %}
+                                                <div class="m-shop-child m-shop-child--link">
+                                                    <a aria-label="menu link" href="{{link.url}}" class="m-shop-child--title" data-ga-event="top_second_nav4.0" data-ga-action="click" data-ga-params-first_nav="{{shop_m_title}}" data-ga-params-second_nav="{{link.title | escape}}" data-ga-params-type="product_menu" data-ga-params-link="{{link.url}}">
+                                                        <div class="header-container">
+                                                            <span class="text-overflow-2">{{link.title | escape}}</span>
+                                                            {%- render 'icon-arrow-right', class: 'svg-arrow-line', width: 22, height: 22, color:'#1a1a1a' -%}
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            {%- endif -%}
+                                        {%- endif -%}
+                                    {%- endfor -%}
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                        {%- endif -%}
+                {%- endcase -%}
+            {%- endfor -%}
+            {%- if section.settings.live_icon != blank -%}
+            <div class="header-actions--global_content_live flex items-center pt-[2rem] px-[1.5rem]">
+                <a href="{{ section.settings.live_link }}" {% if section.settings.link_target %}target="_blank"{% endif %} class="flex items-center gap-[0.75rem]">
+                <img src="{{section.settings.live_icon | image_url: width: 72}}" alt="{{section.settings.live_icon.alt | escape }}" class="h-[1.25rem] w-[2.25rem]" loading="lazy">
+                <span class="text-[1.125rem] font-medium leading-[1.625rem text-[#1A1A1A]">{{ section.settings.live_text }}</span>
+                {%- render 'icon-arrow', width: 16, height: 16, color:'#1a1a1a' -%}
+                </a>
+            </div>
+           {%- endif -%}
+
+            {%- if section.settings.locale_header_mb == false -%}
+            <div class="header-actions-item header-actions--global header-actions--global--mb" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="atlas">
+                <div class="header-actions--global_content">
+                    {%- render 'icon-global', width: 22, height: 22, color: '#000000' -%}
+                    {% render 'iso-code' %}
+                    <span>/{{'general.action_text.local_change_heading' | t}}</span>
+                    {%- render 'icon-arrow', width: 16, height: 16, color:'#1a1a1a' -%}
+                </div>
+            </div>
+            {%- endif -%}
+        </div>
+
+        <div class="header-actions flex h-full items-center lg:gap-x-4">
+            {%- if section.settings.live_icon != blank -%}
+            <div class="header-actions-item header-actions--live" role="button" aria-label="Live" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="live">
+                <a href="{{ section.settings.live_link }}" {% if section.settings.link_target %}target="_blank"{% endif %} class="flex">
+                    <img src="{{ section.settings.live_icon | image_url: width: 72}}" alt="{{ section.settings.live_icon.alt | escape }}" loading="lazy" class="lg:h-[1.25rem] lg:w-[2.25rem] live">
+                </a>
+            </div>
+            {%- endif -%}
+
+            <div class="header-actions-item header-actions--search {% if section.settings.search_show == false %} hidden-mb{% endif %}" role="button" aria-label="Search" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="search">
+            {%- render 'icon-search', class: 'header__section_search', width: 22, height: 22, color: '#000000' -%}
+            </div>
+            {%- unless settings.hide_login_icon -%}
+                <div class="header-actions-item header-actions--user" role="button" tabindex="0" aria-label="User Center">
+                    <div data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="account">{%- render 'icon-user', class: 'icon-user', width: 22, height: 22, color: '#000000' -%}</div>
+                    <div class="absolute header-user--menu-bg"></div>
+                    <div class="header-user--menu">
+                        <div class="header-user--content">
+                        {%- if section.settings.user_menu_title != blank -%}
+                            <div class="title">{{section.settings.user_menu_title | escape}}</div>
+                        {%- endif -%}
+                        <ul class="des-list">
+                            {%- for i in (0..4) -%}
+                                {% assign user_info_index = 'user_menu_info_' | append: forloop.index %}
+                                {%- if section.settings[user_info_index] != blank -%}
+                                    <li class="des">{{section.settings[user_info_index] | escape}}</li>
+                                {%- endif -%}
+                            {%- endfor -%}
+                        </ul>
+
+                        <div class="btns">
+                            {%- if customer -%}
+                                {% comment %} 跳转用户中心 {% endcomment %}
+                                <a role="link" aria-label="Account center" href="{{account_url | append: "?cr=" | append: CR}}" class="user--btn text-overflow-1" data-ga-event="top_function4.0" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="account" data-ga-params-title="{{section.settings.user_menu_title | escape}}" data-ga-params-button_name="{{ 'customer.account.title' | t }}">{{ 'customer.account.title' | t }}</a>
+                                {% comment %} 退出登录 {% endcomment %}
+                                <a role="link" data-ga-event="top_function4.0" aria-label="{{ 'customer.log_out' | t }}" href="/account/logout?return_url={{request.path}}" class="user--btn text-overflow-1 header-user-logout" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="account" data-ga-params-title="{{section.settings.user_menu_title | escape}}" data-ga-params-button_name="{{ 'customer.log_out' | t }}">{{ 'customer.log_out' | t }}</a>
+                            {%- else -%}
+                                {% comment %} 快捷登录 {% endcomment %}
+                                {%- if settings.quick_login == true -%}
+                                <a role="button" aria-label="{{'sections.header.free_password_login' | t}}" href="javascript:void(0);" class="user--btn header-user--pop-login text-overflow-1 {%if section.settings.pop_login_main==true%}user--btn-main{% endif %}" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="account" data-ga-params-title="{{section.settings.user_menu_title | escape}}" data-ga-params-button_name="{{'sections.header.free_password_login' | t}}">{{'sections.header.free_password_login' | t}}</a>
+                                {%- endif -%}
+                                {% comment %} 跳转account登录 {% endcomment %}
+                                <a role="link" aria-label="{{ 'customer.log_in' | t }}" href='{{ account_url | append: "/login?cr=" | append: CR | append: "&redirect_url=" | append: account_url | append: "/account/overview" }}' class="user--btn text-overflow-1" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="account" data-ga-params-title="{{section.settings.user_menu_title | escape}}" data-ga-params-button_name="{{'customer.log_in' | t}}">{{ 'customer.log_in' | t }}</a>
+                                {% comment %} 跳转account注册 {% endcomment %}
+                                <a role="link" aria-label="{{ 'customer.register.title' | t }}" href='{{ account_url | append: "/register?cr=" | append: CR }}' class="user--btn text-overflow-1 header-user--register" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="account" data-ga-params-title="{{section.settings.user_menu_title | escape}}" data-ga-params-button_name="{{'customer.register.title' | t}}">{{ 'customer.register.title' | t }}</a>
+                            {%- endif -%}
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            {%- endunless -%}
+
+            {%- unless settings.hide_cart_icon -%}
+                {% if settings.cart_type == 'page' %}
+                    <a href="/cart" class="header-actions-item header-actions--cart relative" id="cart-icon-bubble" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="cart">
+                {% else %}
+                    <div class="header-actions-item header-actions--cart relative" id="cart-icon-bubble" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="cart">
+                {% endif %}
+                    {%- render 'icon-cart', width: 29, height: 22, color: '#000000' -%}
+                    {%- if cart != empty -%}
+                        <div class="cart-count-bubble">
+                            {%- if cart.item_count < 100 -%}
+                                <span aria-hidden="true">{{ cart.item_count }}</span>
+                            {%- else -%}
+                                <span aria-hidden="true">99+</span>
+                            {%- endif -%}
+                            <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+                        </div>
+                    {%- endif -%}
+                        {%- if is_legal_person == true -%}
+                            {% comment %} 判断是日站 {% endcomment %}
+                            {%- if is_jp == true -%}
+                                <div class="legal-text mobile-block">{{ section.settings.legal_text }}</div>
+                            {%- endif -%}
+                        {%- endif -%}
+                {% if settings.cart_type == 'page' %}
+                    </a>
+                {% else %}
+                    </div>
+                {% endif %}
+            {%- endunless -%}
+
+
+            <div class="header-actions-item header-actions--global {%if section.settings.locale_header_mb == false%} header-actions--global--hide{% endif %}" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="atlas">
+                <div class="header-actions--global_content">
+                    {%- render 'icon-global', width: 22, height: 22, color: '#000000' -%}
+                    {% render 'iso-code' %}
+                </div>
+            </div>
+
+            <div class="header-actions-item header-toggle-btn--m" data-ga-event="top_function4.0" data-ga-action="click" data-ga-params-module="menu">
+            <div class="toggle-btn--content">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            </div>
+
+        </div>
+        </div>
+
+        {% assign aftersales_list = section.blocks | where: 'type', "after_sale_item" %}
+        {% render 'header-after-sales', list: aftersales_list, isShow: section.settings.show_after_sales %}
+    </header>
+    <div class="modal-bg"></div>
+</jky-header>
+
+{% comment %} 全局推荐搜索词列表 {% endcomment %}
+{% if settings.predictive_search_enable_recommend %}
+  {% assign recommend_search_list = section.blocks | where: 'type', "recommend_search_terms" %}
+  <script id="recommend-search-data" type="application/json">
+    {
+      "title": {{ 'templates.search.recommend_search' | t | json }},
+      "list": [
+        {% for item in recommend_search_list %}
+          {
+          "title": {{ item.settings.recommend_title | json }},
+          "link": {{ item.settings.recommend_link | json }}
+          }{% unless forloop.last %},{% endunless %}
+        {% endfor %}
+      ]
+    }
+  </script>
+{% endif %}
+
+<script src="{{ 'common-header.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+    "name": "jky header", "class": "jky-header sticky top-0", "tag": "div",
+    "settings": [
+        { "type": "header", "content": "Shop menu通用配置"},
+        {
+            "type": "range",
+            "id": "shop_collection_max",
+            "min": 5,
+            "max": 20,
+            "step": 5,
+            "label": "每个collection最大显示数量",
+            "default": 10
+        },
+        {
+        "type": "select",
+        "id": "shop_collection_default",
+        "options": [
+            {
+            "value": "1",
+            "label": "一行"
+            },
+            {
+            "value": "2",
+            "label": "两行"
+            }
+        ],
+        "default": "1",
+        "label": "每个collection默认显示数量",
+        "info": "5个/行"
+        },
+
+        { "type": "header", "content": "Header 多语言 & 相关配置"},
+        { "type": "text", "id": "all_text", "label": "查看所有", "default": "View All" },
+        { "type": "text", "id": "compare_text", "label": "对比", "default": "Compare" },
+        { "type": "text", "id": "more_text", "label": "更多", "default": "More" },
+        { "type": "text", "id": "less_text", "label": "收起", "default": "Less" },
+        {"type": "checkbox", "id": "show_after_sales", "label": "Show After Sales?", "default": false},
+        { "type": "text", "id": "user_menu_title", "label": "用户菜单Heading", "default": "Join Jackery Membership for Multiple Benifits" },
+        { "type": "text", "id": "user_menu_info_1", "label": "用户菜单信息列表-1", "default": "Get $200 off coupon for first registration" },
+        { "type": "text", "id": "user_menu_info_2", "label": "用户菜单信息列表-2", "default": "Memership Price (Up to $XXX off)" },
+        { "type": "text", "id": "user_menu_info_3", "label": "用户菜单信息列表-3" },
+        { "type": "text", "id": "user_menu_info_4", "label": "用户菜单信息列表-4" },
+        { "type": "text", "id": "user_menu_info_5", "label": "用户菜单信息列表-5" },
+        { "type": "checkbox", "id": "locale_header_mb", "label": "移动端切换国家地区是否在header中显示", "default": true },
+        { "type": "checkbox", "id": "pop_login_main", "label": "免密登录高亮显示？", "default": true },
+        { "type": "checkbox", "id": "search_show", "label": "显示搜索？", "default": true },
+        { "type": "color", "id": "header_t_color", "label": "Header文字颜色", "default": "#000000" },
+        { "type": "color", "id": "header_bg_color", "label": "Header背景颜色", "default": "#ffffff" },
+        {"type": "image_picker", "id": "header_bg", "label": "Header 氛围背景图片"},
+        {"type": "image_picker", "id": "m_header_bg", "label": "mobile Header 氛围背景图片"},
+        {"type": "image_picker", "id": "icon_sub_img", "label": "logo右侧图片"},
+        {"type": "text", "id": "legal_text", "label": "日本法人页header文案", "default": "法人向けサイト"},
+        {"type": "image_picker", "id": "live_icon", "label": "直播icon"},
+        {"type": "text", "id": "live_text", "label": "MB的直播入口文案"},
+        {"type": "url", "id": "live_link", "label": "直播跳转链接"},
+        {"type": "checkbox", "id": "link_target","label": "是否新标签页打开", "default": false},
+
+        { "type": "header", "content": "IP定位信息配置" },
+        { "type": "checkbox", "id": "show_locale_switcher", "label": "IP定位", "default": false, "info": "是否展示IP定位" },
+        { "type": "header", "content": "顶部通知栏信息配置"},
+        { "type": "checkbox", "id": "show_announcement_bar", "label": "顶部通知栏", "default": false, "info": "是否展示顶部通知栏" },
+        { "type": "text", "id": "days", "label": "天", "default": "Days", "info": "天的展示文案" },
+        { "type": "text", "id": "hours", "label": "时", "default": "Hrs", "info": "小时的展示文案" },
+        { "type": "text", "id": "mins", "label": "分", "default": "Mins", "info": "分的展示文案" },
+        { "type": "text", "id": "secs", "label": "秒", "default": "Secs", "info": "秒的展示文案" },
+        { "type": "range", "id": "speed", "min": 0, "max": 20, "step": 1, "unit": "S", "label": "Swiper切换速度", "default": 5}
+    ],
+    "blocks": [
+        {
+            "type": "sales_menu",
+            "name": "促销图文菜单-一行双列",
+            "limit": 5,
+            "settings": [
+                { "type": "color", "id": "pc_highlight_color", "label": "PC突出文案颜色", "info": "PC所有斜体文字颜色" },
+                { "type": "color", "id": "mb_highlight_color", "label": "MB突出文案颜色", "info": "MB所有斜体文字颜色" },
+                { "type": "html", "id": "m_title", "label": "菜单标题" },
+
+                { "type": "header", "content": "Left 图文信息配置" },
+                { "type": "richtext", "id": "left_title", "label": "Left 标题(第一个小点的！！)" },
+                { "type": "color", "id": "left_color", "label": "PC端Left 标题颜色", "default": "#FFFFFF" },
+                { "type": "color", "id": "mb_left_color", "label": "MB端Left 标题文本颜色", "default": "#FFFFFF" },
+                { "type": "richtext", "id": "left_subtitle", "label": "Left 副标题(第二个大点的！！)" },
+                { "type": "color", "id": "left_sub_color", "label": "PC端Left 副标题颜色" },
+                { "type": "color", "id": "mb_left_sub_color", "label": "MB端Left 副标题颜色" },
+                { "type": "richtext", "id": "left_des", "label": "Left 描述" },
+                { "type": "color", "id": "left_des_color", "label": "PC端Left 描述文本颜色", "default": "#FFFFFF" },
+                { "type": "color", "id": "mb_left_des_color", "label": "MB端Left 描述文本颜色", "default": "#FFFFFF" },
+                { "type": "url", "id": "left_link", "label": "Left 链接地址" },
+                { "type": "text", "id": "left_btn_txt", "label": "Left 按钮文案" },
+                { "type": "image_picker", "id": "left_img", "label": "Left Image", "info": "建议尺寸：1286 * 512" },
+                { "type": "image_picker", "id": "left_m_img", "label": "Left MB Image", "info": "建议尺寸：1024 * 1024" },
+
+                { "type": "header", "content": "Right 图文信息配置" },
+                { "type": "richtext", "id": "right_title", "label": "Right 标题(第一个小点的！！)" },
+                { "type": "color", "id": "right_color", "label": "PC端Right 标题颜色", "default": "#FFFFFF" },
+                { "type": "color", "id": "mb_right_color", "label": "MB端Right 标题颜色", "default": "#FFFFFF" },
+                { "type": "richtext", "id": "right_subtitle", "label": "Right 副标题(第二个大点的！！)" },
+                { "type": "color", "id": "right_sub_color", "label": "PC端Right 副标题颜色" },
+                { "type": "color", "id": "mb_right_sub_color", "label": "MB端Right 副标题颜色" },
+                { "type": "richtext", "id": "right_des", "label": "Right 描述" },
+                { "type": "color", "id": "right_des_color", "label": "PC端Right 描述文本颜色", "default": "#FFFFFF" },
+                { "type": "color", "id": "mb_right_des_color", "label": "MB端Right 描述文本颜色", "default": "#FFFFFF" },
+                { "type": "url", "id": "right_link", "label": "Right 链接地址" },
+                { "type": "text", "id": "right_btn_txt", "label": "Right 按钮文案" },
+                { "type": "image_picker", "id": "right_img", "label": "Right Image", "info": "建议尺寸：1286 * 512" },
+                { "type": "image_picker", "id": "right_m_img", "label": "Right MB Image", "info": "建议尺寸：1024 * 1024" },
+
+                { "type": "header", "content": "有效期" },
+                {
+                    "type": "text", "id": "begin_time", "label": "开始时间",
+                    "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/06/10 00:00:00"
+                },
+                {
+                    "type": "text", "id": "end_time", "label": "结束时间",
+                    "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/06/11 00:00:00"
+                }
+            ]
+        },
+        {
+            "type": "sales_menu_full",
+            "name": "促销图文菜单-一行单列",
+            "limit": 5,
+            "settings": [
+                { "type": "color", "id": "pc_highlight_color", "label": "PC突出文案颜色", "info": "PC所有斜体文字颜色" },
+                { "type": "color", "id": "mb_highlight_color", "label": "MB突出文案颜色", "info": "MB所有斜体文字颜色" },
+                { "type": "html", "id": "m_title", "label": "菜单标题" },
+
+                {"type": "header", "content": "图文信息配置"},
+                { "type": "richtext", "id": "title", "label": "标题" },
+                { "type": "color", "id": "pc_color", "label": "PC端文本颜色", "default": "#FFFFFF" },
+                { "type": "color", "id": "mb_color", "label": "MB端文本颜色", "default": "#FFFFFF" },
+                { "type": "richtext", "id": "subtitle", "label": "副标题" },
+                { "type": "color", "id": "pc_sub_color", "label": "PC端文本颜色" },
+                { "type": "color", "id": "mb_sub_color", "label": "MB端文本颜色" },
+                { "type": "richtext", "id": "des", "label": "描述" },
+                { "type": "color", "id": "des_color", "label": "PC端描述文本颜色", "default": "#FFFFFF" },
+                { "type": "color", "id": "mb_des_color", "label": "MB端描述文本颜色", "default": "#FFFFFF" },
+                { "type": "text", "id": "btn_txt", "label": "按钮文案" },
+
+                {"type": "url", "id": "link", "label": "链接地址" },
+                { "type": "image_picker", "id": "img", "label": "Image", "info": "建议尺寸：3840 * 640" },
+                { "type": "image_picker", "id": "m_img", "label": "MB Image", "info": "建议尺寸：1024 * 1024" },
+
+                { "type": "header", "content": "有效期" },
+                {
+                    "type": "text", "id": "begin_time", "label": "开始时间",
+                    "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/06/10 00:00:00"
+                },
+                {
+                    "type": "text", "id": "end_time", "label": "结束时间",
+                    "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/06/11 00:00:00"
+                }
+            ]
+        },
+        {
+            "type": "text_menu",
+            "name": "文本菜单",
+            "limit": 5,
+            "settings": [
+                { "type": "html", "id": "m_title", "label": "菜单标题" },
+                {"type": "link_list", "id": "menu_list", "label": "Menu"}
+            ]
+        },
+        {
+            "type": "pictext_menu",
+            "name": "图文菜单",
+            "limit": 1,
+            "settings": [
+                { "type": "text", "id": "handle", "label": "菜单Handle", "default": "header-menu-pic-card" }
+            ]
+        },
+        {
+            "type": "shop_menu",
+            "name": "Shop菜单",
+            "limit": 2,
+            "settings": [
+                { "type": "html", "id": "m_title", "label": "菜单标题" },
+                {"type": "link_list", "id": "menu_list", "label": "Menu"}
+            ]
+        },
+        {
+            "type": "after_sale_item",
+            "name": "5大服务优势",
+            "settings": [
+                {"type": "image_picker", "id": "slaes_icon", "label": "图标ICON", "info": "建议SVG格式"},
+                {"type": "text", "id": "sales_title", "label": "Heading"},
+                {"type": "richtext", "id": "sales_content", "label": "Content"}
+            ]
+        },
+        {
+            "type": "recommend_search_terms",
+            "name": "Recommended Search Terms",
+            "settings": [
+                {"type": "text", "id": "recommend_title", "label": "Title"},
+                {"type": "url", "id": "recommend_link", "label": "Link"}
+            ]
+        },
+        {
+            "type": "announcement_bars",
+            "name": "顶部通知栏",
+            "limit": 5,
+            "settings": [
+                { "type": "text", "id": "begin_time", "label": "开始时间(必填)",  "info": "规则: YYYY/MM/DD hh:mm:ss, 例如: 2024/05/06 00:00:00" },
+                { "type": "text", "id": "end_time", "label": "结束时间(必填)",  "info": "规则:YYYY/MM/DD hh:mm:ss, 例如: 2024/05/06 00:00:00" },
+                { "type": "select", "id": "background_type", "label": "背景类型","options": [{ "value": "1", "label": "背景色" }, { "value": "2", "label": "背景图片" }]},
+                { "type": "color_background", "id": "background_color","label": "背景色", "default": "linear-gradient(#000000, #000000)" },
+                { "type": "image_picker","id": "background_pc_image","label": "PC 背景图片(1920*50)"},
+                { "type": "image_picker","id": "background_mb_image","label": "MB 背景图片(750*100)"},
+                { "type": "checkbox", "id": "show_count_down", "label": "是否展示倒计时", "default": false },
+                { "type": "text_alignment", "id": "content_position", "label": "内容位置", "default": "center" },
+                { "type": "url", "id": "link",  "label": "通知栏跳转地址" },
+                { "type": "text", "id": "text", "label": "通知栏文本信息(PC)" },
+                { "type": "text", "id": "text_mb", "label": "通知栏文本信息(MB)" },
+                { "type": "color", "id": "text_color", "label": "通知栏文本颜色", "default": "#FFFFFF" },
+                { "type": "color", "id": "arrow_color", "label": "箭头颜色", "default":  "#FFFFFF" },
+                { "type": "header", "content": "当显示倒计时配置一下内容" },
+                { "type": "color", "id": "count_down_text_color", "label": "倒计时栏文本颜色", "default":  "#FFFFFF" },
+                { "type": "color", "id": "count_down_bg_color", "label": "倒计时栏背景颜色", "default":  "#FFFFFF" },
+                { "type": "color", "id": "count_down_num_color", "label": "倒计时栏数字颜色", "default": "#000000" }
+            ]
+        },
+        {
+            "type": "@app"
+        }
+    ]
+}
+{% endschema %}

@@ -1,0 +1,60 @@
+
+{%- doc -%}
+    自动满赠： 拦截加购或购买流程
+    新增逻辑：当用户为ToB的时候不加入满赠商品
+{%- enddoc -%}
+
+{% if shop.metafields.custom.auto_buy_free %}
+    <script>
+        class InterceptPurchaseProcess {
+            constructor() {
+                this.isToB = {{ customer.b2b? | json  }} || false;
+                this.getFullGiftList()
+                this.init();
+            }
+            // 获取所有的满赠商品
+            async getFullGiftList() {
+                const listRes = {{ shop.metafields.custom.auto_buy_free.value | json  }} || {}
+                window.isToBUser = this.isToB;
+                window.fullGiftList = listRes?.data || []
+            }
+            // 更改cart/add.js请求
+            init() {
+                if (window.isToBUser) return;
+                if (window.fullGiftList.length == 0) return;
+                const originalFetch = window.fetch;
+                window.fetch = async function(url, options) {
+                if (window.isToBUser) return originalFetch.call(window, url, options)
+                if (typeof url === 'string' && url?.includes('/cart/add.js')) {
+                    let params = JSON.parse(options?.body || '{}')
+                    // 判断所加商品是否具有赠品
+                    let items = params.items || [];
+                    if (!items.length) {
+                    items = [params]
+                    }
+                    const fullItems = items.flatMap(item => {
+                    const giftList = window.fullGiftList.find(item1 => item.id == item1.id)?.autoBuyChildResps || [];
+                    return giftList ? giftList.map(giftItem => ({
+                        id: giftItem.id,
+                        quantity: Number(giftItem.quantity) * Number(item.quantity),
+                        properties: {
+                        }
+                    })) : [];
+                    });
+                    
+                    if (fullItems.length) {
+                    params = {
+                        items: [...items, ...fullItems]
+                    };
+                    }
+                    options.body = JSON.stringify(params)
+                }
+                return originalFetch.call(window, url, options)
+                };
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            new InterceptPurchaseProcess()
+        })
+    </script>
+{% endif %}

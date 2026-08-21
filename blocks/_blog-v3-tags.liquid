@@ -1,0 +1,83 @@
+{% style %}
+  @media screen and (max-width:1023.98px){
+    .blog-v3-tags .mb-hide-icon .tag-item-icon{
+      display: none;
+    }
+  }
+{% endstyle %}
+
+<div class="blog-v3-tags w-full mb-12 lg:mb-8" {{ block.shopify_attributes }} data-block-type="_blog-v3-tags">
+  {%- if block.settings.h2_title != blank -%}
+    <h2 class="blog-v3-h2 font-medium w-full pb-3 border-solid border-0 border-b-[2px] border-[#EDEDED]">{{ block.settings.h2_title | escape_once }}</h2>
+  {%- endif -%}
+  {%- liquid
+    assign class_str = ''
+    if block.settings.mb_style == 'one'
+      assign class_str = 'w-full flex flex-col'
+    else
+      assign class_str = 'w-full grid grid-cols-2 gap-2 lg:flex lg:flex-col lg:gap-0 mb-hide-icon'
+    endif
+  %}
+  <ul class="{{ class_str }}">
+    {% content_for 'blocks' %}
+  </ul>
+</div>
+
+{%- javascript -%}
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.blog-v3-tags .blog-v3-tag-item').forEach((item) => {
+      item.addEventListener('click', function () {
+        const aDom = item.querySelector('a');
+        gaPushDataLayer('blogs_collection_user_clicks', {
+          module: 'SidebarCategory', // 固定为SidebarCategory
+          button_name: aDom.dataset.content, // 识别按钮内容text
+          link: aDom.href, // 完整跳转链接,未配置则为：null(非字符串)
+        });
+      });
+    });
+  });
+{%- endjavascript -%}
+
+{% schema %}
+{
+  "name": "V3博客-侧边栏-Tag展示",
+  "tag": null,
+  "blocks": [{ "type": "_blog-v3-tag-item" }],
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "h2_title",
+      "label": "H2标题",
+      "default": "Category"
+    },
+    {
+      "type": "select",
+      "id": "mb_style",
+      "label": "移动端展示样式",
+      "options": [
+        {
+          "value": "one",
+          "label": "一行一列"
+        },
+        {
+          "value": "two",
+          "label": "一行两列"
+        }
+      ],
+      "default": "one",
+      "info": "说明：一行两列时，移动端Icon图标固定不展示"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V3博客-侧边栏-Tag展示",
+      "category": "Blog-V3",
+      "blocks": [
+        {
+          "type": "_blog-v3-tag-item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

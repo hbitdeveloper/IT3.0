@@ -1,0 +1,237 @@
+<link rel="stylesheet" href="{{ 'snippets-v5-shop-menu.css' | asset_url }}">
+
+{%-liquid
+    assign menu_title = settings.menu_heading | default: settings.menu_list.title
+    assign menu_title_escaped = menu_title | escape
+    assign menu_title_key = menu_title | handleize | url_encode | strip | replace: ' ', ''
+    assign menu_links = settings.menu_list.links
+
+    assign has_tag = false
+    if settings.menu_tag != blank
+        assign has_tag = true
+    endif
+    assign menu_tag_escaped = settings.menu_tag | escape
+-%}
+
+{% capture arrow_svg %}
+  <svg class="rotate-90 w-4 h-4" viewBox="0 0 1024 1024" width="14" height="14"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="var(--color-text-main-secondery)"></path></svg>
+{% endcapture %}
+
+<jky-shop-menu 
+    {% if shopify_attributes != blank %}{{ shopify_attributes }}{% endif %} 
+    class=" lg:block hidden h-full"
+>
+    <div 
+        class="v5-header-main__menu-item list-none h-full flex items-center px-5 cursor-pointer flex-col"
+        data-ga-event="5.0_top_nav_user_clicks"
+        data-ga-action="mouseenter"
+        data-ga-params-module="Main Menu"
+        data-ga-params-position="{{ menu_title_escaped }}"
+        data-ga-params-link="NULL" 
+    >
+        {%- if has_tag -%}
+            <div class="w-full text-right h-0 relative">
+                <span class="absolute top-1 text-right v5-header-main__menu-tag text-xs font-medium background-text-accent text-white break-keep whitespace-nowrap right-0">{{ menu_tag_escaped }}</span>
+            </div>
+        {%- endif -%}
+        <span style="--left: 0;--right: 0;--color-text-main: {{ section.settings.text_color | default: '#242f20' }};{% if settings.fk_color != blank %}color: {{settings.fk_color}};{% endif %}" class="transition-medium-ease color-text-main v5-header-main__menu-name underline-animate relative font-semibold text-base h-full flex items-center">{{ menu_title }}</span> 
+
+        <div class="v5-header-main__shop-wrapper absolute top-full w-full left-0 pointer-events-none">
+            <div class="v5-header-main__shop-content transition-medium-ease invisible section-container-lg opacity-0 flex gap-x-10 py-10 h-full overflow-y-auto" style="max-height: min(80vh, 596px);">
+                <div class="v5-menu-animate v5-shop-menu-left overflow-y-auto pr-10" style="--index: 1;">
+                    {%- if menu_links.size > 0  -%}
+                        {%- for link in menu_links -%}
+                            {%- liquid
+                                assign level1_index = forloop.index
+                                assign level1_id = 'l1-' | append: level1_index
+                                assign link_url = link.url
+                                assign link_title = link.title
+                                assign link_links = link.links
+
+                                if link_url == '#category'
+                                    assign is_category_root = true
+                                else
+                                    assign is_category_root = false
+                                    assign col_handle = link_url | split: '/' | last
+                                endif
+                            -%}
+
+                            {% comment %} 判断menu URL值【#category为分类】 {% endcomment %}
+                            {%- if is_category_root -%}
+                                <div class="shop-menu-cate--group my-10">
+                                    <div class="color-text-weak shop-menu-cate-item font-normal text-sm line-clamp-1">{{ link_title }}</div>
+                                    {%- for link_v2 in link_links -%}
+                                        {%- assign level2_id = level1_id | append: '-l2-' | append: forloop.index -%}
+                                        {%- assign col_handle = link_v2.url | split: '/' | last -%}
+                                        {%- if link_v2.links.size > 0 -%}
+                                            <menu-toggle class="v5-menu-animate" style="--index: {{ forloop.index }}">
+                                                <div 
+                                                    data-key="{{menu_title_key}}-{{level2_id}}"
+                                                    data-shoptarget="{{menu_title_key}}-{{level2_id}}" 
+                                                    class="v5-header-main__shop-item transition-medium-ease color-text-main-secondery text-xl font-normal py-4 flex items-center justify-between w-full cursor-pointer"
+                                                    data-ga-event="5.0_top_nav_user_clicks"
+                                                    data-ga-action="click"
+                                                    data-ga-params-module="Shop Menu"
+                                                    data-ga-params-position="{{ link_v2.title | escape }}"
+                                                    data-ga-params-link="NULL" 
+                                                >
+                                                    <span class="line-clamp-2 flex-1">{{ link_v2.title }}</span>
+                                                    {{ arrow_svg }}
+                                                </div>
+
+                                                <div class="menu-toggle-content px-4 invisible">
+                                                    {%- for childlink in link_v2.links -%}
+                                                        {%- assign level3_id = level2_id | append: '-l3-' | append: forloop.index -%}
+                                                        {%- assign childlink_handle = childlink.url | split: '/' | last -%}
+                                                        {%- if childlink.url contains "/collections/" and childlink_handle != 'all' -%}
+                                                            <div 
+                                                                data-key="{{menu_title_key}}-{{level3_id}}"
+                                                                anchor-childmenu="{{menu_title_key}}-{{level3_id}}" class="menu-toggle-subitem invisible text-base flex items-center min-h-10 cursor-pointer"
+                                                                 data-ga-event="5.0_top_nav_user_clicks"
+                                                                 data-ga-action="click"
+                                                                 data-ga-params-module="Shop Menu"
+                                                                 data-ga-params-position="{{ link_v2.title | escape }}"
+                                                                 data-ga-params-title="{{ childlink.title | escape }}"
+                                                                 data-ga-params-link="NULL" 
+                                                            >
+                                                                <span class="line-clamp-2 color-text-main-secondery">
+                                                                {{ childlink.title }}</span></div>
+                                                        {%- else -%}
+                                                            <a 
+                                                                href="{{ childlink.url }}" class="menu-toggle-subitem invisible text-base flex items-center min-h-10 cursor-pointer"><span class="line-clamp-2 color-text-main-secondery"
+                                                                    data-ga-event="5.0_top_nav_user_clicks"
+                                                                    data-ga-action="click"
+                                                                    data-ga-params-module="Shop Menu"
+                                                                    data-ga-params-position="{{ link_v2.title | escape }}"
+                                                                    data-ga-params-title="{{ childlink.title | escape }}"
+                                                                    data-ga-params-link="{{ childlink.url }}"
+                                                                    
+                                                                >{{ childlink.title }}</span></a>
+                                                        {%- endif -%}
+                                                    {%- endfor -%}
+                                                </div>
+                                            </menu-toggle>
+                                        {%- elsif link_v2.url contains "/collections/" and col_handle != 'all' -%}
+                                            <div 
+                                                data-link="{{link.title | handleize | url_encode | strip | replace: ' ', ''}}-{{ link_v2.url }}" 
+                                                style="--index: {{ forloop.index }}" 
+                                                data-shoptarget="{{menu_title_key}}-{{level2_id}}"
+                                                data-key="{{menu_title_key}}-{{level2_id}}"
+                                                class="v5-menu-animate v5-header-main__shop-item transition-medium-ease color-text-main-secondery text-xl font-normal h-14 flex items-center justify-between w-full cursor-pointer"
+                                                data-ga-event="5.0_top_nav_user_clicks"
+                                                data-ga-action="click"
+                                                data-ga-params-module="Shop Menu"
+                                                data-ga-params-position="{{ link_v2.title | escape }}"
+                                                data-ga-params-link="NULL" 
+                                            >
+                                                <span class="line-clamp-1">{{ link_v2.title }}</span>
+                                            </div>
+                                        {%- else -%}
+                                            <a 
+                                                style="--index: {{ forloop.index }}" 
+                                                title="{{ link_v2.title }}" class="color-text-main-secondery v5-menu-animate color-text-main-secondery v5-header-main__shop-item transition-medium-ease h-14 text-xl font-normal flex items-center justify-between w-full" 
+                                                href="{{ link_v2.url }}"
+                                                data-ga-event="5.0_top_nav_user_clicks"
+                                                data-ga-action="click"
+                                                data-ga-params-module="Shop Menu"
+                                                data-ga-params-position="{{ link_v2.title | escape }}"
+                                                data-ga-params-link="{{ link_v2.url }}"
+                                            >
+                                                <span class="line-clamp-1">{{ link_v2.title }}</span>
+                                            </a>
+                                        {%- endif -%}
+                                    {%- endfor -%}
+                                </div>
+                            {%- else -%}
+                                {%- if link_links.size > 0 -%}
+                                    {% assign menu_index = forloop.index %}
+                                    <menu-toggle class="v5-menu-animate" style="--index: {{ forloop.index }}">
+                                        <div 
+                                            data-key="{{menu_title_key}}-{{level1_id}}"
+                                            data-shoptarget="{{menu_title_key}}-{{level1_id}}" class="v5-header-main__shop-item transition-medium-ease color-text-main-secondery text-xl font-normal py-4 flex items-center justify-between w-full cursor-pointer">
+                                            <span class="line-clamp-2 flex-1">{{ link_title }}</span>
+                                            {{ arrow_svg }}
+                                        </div>
+
+                                        <div class="menu-toggle-content px-4 invisible">
+                                            {%- for childlink in link_links -%}
+                                                {%- assign level2_id = level1_id | append: '-l2-' | append: forloop.index -%}
+                                                <div data-key="{{menu_title_key}}-{{ level2_id }}" anchor-childmenu="{{menu_title_key}}-{{ level2_id }}" class="menu-toggle-subitem invisible text-base line-clamp-1 h-10 !leading-10 cursor-pointer">{{ childlink.title }}</div>
+                                            {%- endfor -%}
+                                        </div>
+                                    </menu-toggle>
+
+                                {%- elsif link.url contains "/collections/" and col_handle != 'all' -%}
+                                    <div 
+                                        style="--index: {{ forloop.index }}"
+                                        data-key="{{menu_title_key}}-{{level1_id}}"
+                                        data-shoptarget="{{menu_title_key}}-{{level1_id}}" class="v5-menu-animate color-text-main-secondery v5-header-main__shop-item transition-medium-ease text-xl font-normal h-14 flex items-center justify-between w-full cursor-pointer">
+                                        <span class="line-clamp-1">{{ link.title }}</span>
+                                    </div>
+                                {%- else -%}
+                                    <a style="--index: {{ forloop.index }};padding: 0.85rem 0;" title="{{ link.title }}" class="v5-menu-animate color-text-main-secondery v5-header-main__shop-item transition-medium-ease text-xl font-normal flex items-center justify-between w-full" href="{{ link.url }}"><span class="line-clamp-2">{{ link.title }}</span></a>
+                                {%- endif -%}
+                            {%- endif -%}
+                        {%- endfor -%}
+                    {%- endif  -%}
+                </div>
+
+                <div class="v5-shop-menu-right flex-1">
+                    <div class="v5-shop-menu-right-content overflow-y-auto max-h-full">
+                        {%- if menu_links.size > 0  -%}
+                            {%- for link in menu_links -%}
+                                {%- assign level1_id = 'l1-' | append: forloop.index -%}
+                                {% assign menu_index = forloop.index %}
+                                {% comment %} 判断menu URL值【#category为分类】 {% endcomment %}
+                                 {%- if link.url == '#category' -%}
+                                    {%- for link_v2 in link.links -%}
+                                        {%- assign level2_id = level1_id | append: '-l2-' | append: forloop.index -%}
+                                        {%- assign col_handle = link_v2.url | split: '/' | last -%}
+                                        {%- if link_v2.links.size > 0 -%}
+                                            {%- render 'v5-shop-menu-grid', link: link_v2, for_loop: forloop, settings: settings, has_submenu: true, menu_index: menu_index, menu: link, link_v2: link_v2, levelid: level2_id, has_lv2: true -%}
+                                        {%- elsif link_v2.url contains "/collections/" and col_handle != 'all' -%}
+                                            {%- render 'v5-shop-menu-grid', link: link_v2, for_loop: forloop, settings: settings, has_submenu: false, menu_index: menu_index, menu: link, levelid: level2_id, has_lv2: true -%}
+                                        {%- endif -%}
+                                    {%- endfor -%}
+                                {%- else -%}
+                                    {%- assign col_handle = link.url | split: '/' | last -%}
+                                    {%- if link.links.size > 0 -%}
+                                        {%- render 'v5-shop-menu-grid', link: link, for_loop: forloop, settings: settings, has_submenu: true, menu_index: menu_index, menu: link, levelid: level1_id, has_lv2: false -%}
+                                    {%- elsif link.url contains "/collections/" and col_handle != 'all' -%}
+                                        {%- render 'v5-shop-menu-grid', link: link, for_loop: forloop, settings: settings, has_submenu: false, menu_index: menu_index, menu: link, levelid: level1_id, has_lv2: false -%}
+                                    {%- endif -%}
+                                {%- endif -%}
+                            {%- endfor -%}
+                        {%- endif  -%}
+                    </div>
+                </div>
+            </div>
+
+            <div class="v5-header-main__shop-bg transition-medium-ease bg-white absolute top-0 w-full left-0"></div>
+        </div>
+    </div> 
+
+    <div style="top: var(--header-pos-bottom);z-index: -3;background: rgba(0,0,0,0.6);" class="transition-quick-ease jky-shop-menu--modal-bg fixed left-0 right-0 bottom-0 invisible opacity-0"></div>
+</jky-shop-menu>
+
+{% comment %} 移动端menu 开关 {% endcomment %}
+<drawer-opener data-drawer="#Drawer__shop-menu--{{ id }}" class="lg:hidden block" {% if shopify_attributes != blank %}{{ shopify_attributes }}{% endif %}>
+    <div 
+        class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+        data-ga-event="5.0_top_nav_user_clicks"
+        data-ga-action="click"
+        data-ga-params-module="Main Menu"
+        data-ga-params-position="{{ menu_title_escaped }}"
+        data-ga-params-link="NULL" 
+    >
+        <div class="flex items-center flex-nowrap gap-x-2">
+            <span class="text-base font-semibold line-clamp-2 flex-1">{{ menu_title }}</span>
+            {%- if has_tag -%}
+                <span style="padding: 0 1px;" class="text-xs font-medium bg-primary text-white h-fit">{{ menu_tag_escaped }}</span>
+            {%- endif -%}
+        </div>
+        <div class="w-6 h-6 flex items-center justify-center">
+            {%- render "icon-arrow", class: 'w-3 h-3' -%}
+        </div>
+    </div>
+</drawer-opener>

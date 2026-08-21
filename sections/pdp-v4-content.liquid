@@ -1,0 +1,2094 @@
+{% comment %} 4.0产品详情页内容组件 {% endcomment %}
+{{ 'pdp-v4-content.min.css' | asset_url | stylesheet_tag }}
+
+{%- assign blocks_app_size = section.blocks | where: 'type', "@app" | size -%}
+
+{%- assign blocks_pdp_block_size = 0 -%}
+{%- for block in section.blocks -%}
+    {%- assign blocks_type = block.type -%}
+    {%- if blocks_type contains 'pdp' -%}
+        {%- assign blocks_pdp_block_size = blocks_pdp_block_size | plus: 1 -%}
+    {%- endif -%}
+{%- endfor -%}
+
+{%- assign blocks_tech_size = section.blocks | where: 'type', "tech" | size -%}
+{%- assign blocks_tech = section.blocks | where: 'type', "tech" -%}
+
+{%- assign blocks_faq_size = section.blocks | where: 'type', "faq" | size -%}
+{%- assign blocks_faq = section.blocks | where: 'type', "faq" -%}
+
+{%- assign blocks_reviews_size = section.blocks | where: 'type', "reviews" | size -%}
+{%- assign blocks_reviews = section.blocks | where: 'type', "reviews" -%}
+
+{%- assign tabs_num = blocks_faq_size | plus: blocks_tech_size | plus: blocks_reviews_size -%}
+{%- if blocks_pdp_block_size > 0 -%}
+    {%- assign tabs_num = blocks_faq_size | plus: blocks_tech_size | plus: blocks_reviews_size | plus: 1 -%}
+{%- endif -%}
+
+{% comment %} 详情 tab list {% endcomment %}
+{%- assign tabs_list = '' -%}
+{%- if blocks_pdp_block_size > 0 -%}
+    {%- assign tabs_list = section.settings.tab_highlights -%}
+{%- endif -%}
+
+{%- if blocks_tech_size > 0 -%}
+    {%- assign tabs_list = tabs_list | append: '-' | append: section.settings.tab_tech -%}
+{%- endif -%}
+
+{%- if blocks_faq_size > 0 -%}
+    {%- assign tabs_list = tabs_list | append: '-' | append: section.settings.tab_faq -%}
+{%- endif -%}
+
+{%- if blocks_reviews_size > 0 -%}
+    {%- assign tabs_list = tabs_list | append: '-' | append: section.settings.review_faq -%}
+{%- endif -%}
+{%- assign tabs_list = tabs_list | split: '-' -%}
+
+{% comment %} tab_mode {% endcomment %}
+{%- liquid
+  assign is_slide = true
+  if section.settings.tab_mode == 'column'
+    assign is_slide = false
+  endif
+-%}
+{%- render 'diy-tabs', settings: section.settings, title: product.title, list: tabs_list, mode_type: section.settings.tab_mode -%}
+{% comment %} 详情 tab list {% endcomment %}
+
+{% comment %} PDP V4各版块 开始 {% endcomment %}
+
+<div class="produc-detail--content">
+  <div
+    class="inner--container {% if is_slide == false %}inner--container_column{% endif %}"
+    {% if is_slide == true %}style="--translate-x-w: {{tabs_num}};--translate-active: 0;"{% endif %}
+  >
+    {%- if blocks_pdp_block_size > 0 -%}
+      <div class="produc-detail--contetn_item pdp-v4-content" section-id="{{ section.id }}">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'pdp-animated-title' -%}
+              {% comment %} 动效标题 {% endcomment %}
+              <div class="pdp-animated-title" data-index="{{ forloop.index }}">
+                {% render 'new-title',
+                  title: block.settings.title,
+                  type: block.settings.type,
+                  settings: block.settings,
+                  color: 'var(--jds-color-primary)',
+                  bgColor: '#fff'
+                %}
+              </div>
+            {%- when 'empty-block-box' -%}
+              {%- if block.settings.anchor == 'anchor__1' -%}
+                {% comment %} 空盒子版块 {% endcomment %}
+                {% render 'empty-block-box', settings: block.settings, handle: block.settings.sourceHandle, index: forloop.index %}
+              {%- endif -%}
+            {%- when 'pdp-calculator' -%}
+              {% comment %} 计算器 {% endcomment %}
+              {% render 'pdp-calculator', settings: block.settings, index: forloop.index %}
+            {%- when 'pdp-single-text-img' -%}
+              {% comment %} 单张上文下图 {% endcomment %}
+              {% render 'pdp-single-text-img', settings: block.settings, index: forloop.index %}
+            {%- when 'pdp-two-text-img' -%}
+              {% comment %} 一行两组图文 {% endcomment %}
+              {% render 'pdp-two-text-img', settings: block.settings, index: forloop.index %}
+            {%- when 'pdp-three-text-img' -%}
+              {% comment %} 一行三组图文 {% endcomment %}
+              {% render 'pdp-three-text-img', settings: block.settings, index: forloop.index %}
+            {%- when 'pdp-left-text-right-img' -%}
+              {% comment %} 单张左文右图 {% endcomment %}
+              {% render 'pdp-left-text-right-img', settings: block.settings, index: forloop.index %}
+            {%- when 'pdp-card-text-img' -%}
+              {% comment %} 单张卡片图文{% endcomment %}
+              {% render 'pdp-card-text-img', settings: block.settings, index: forloop.index %}
+            {%- when 'pdp-matrix' -%}
+              {% comment %} 灵活矩阵 {% endcomment %}
+              <div class="pdp-matrix section-matrix-graph">
+                {% render 'matrix-graph', settings: block.settings, index: forloop.index %}
+              </div>
+            {%- when 'media_highlight_scense' -%}
+              <div class="product-block-section" {% if block.settings.block_bg != blank and block.settings.block_bg != 'rgba(0,0,0,0)' %} data-invert="true"{% endif %}>
+                  {% render "diy-media-swiper", settings: block.settings %}
+              </div>
+            {% comment %} 产品对比 {% endcomment %}
+            {%- when 'product-compare' -%}
+              {% style %}
+                #{{block.id }}{ margin: {{ block.settings.pc_margin_x }}px 0; }
+                #{{block.id }} .compare-block-container{ width: 1200px; margin: 0 auto; }
+                #{{block.id }} .compare-title{ font-weight: 500; font-size: 40px; color: #1A1A1A; line-height: 48px; text-align: center; margin-bottom: 16px; }
+                #{{block.id }} .compare-desc{ font-weight: 500; font-size: 18px; color: #1A1A1A; line-height: 26px; text-align: center; }
+                @media screen and (max-width: 1439.98px) {
+                  #{{block.id }}{margin: {{ block.settings.pc_margin_x }}px 0}
+                  #{{block.id }} .compare-block-container{ width: 83.3333333333333vw; margin: 0 auto; }
+                  #{{block.id }} .compare-title{ font-size: 2.77777777777778vw; line-height: 3.33333333333333vw; margin-bottom: 1.11111111111111vw; }
+                  #{{block.id }} .compare-desc{ font-size: 1.25vw; line-height: 1.80555555555556vw; }
+                }
+                @media screen and (max-width: 1023.98px) {
+                  #{{block.id }} {margin: {{ block.settings.mb_margin_x }}px 0;}
+                  #{{block.id }} .compare-block-container{ width: 88.26666666vw; }
+                  #{{block.id }} .compare-title{ font-size: 7.46666666666667vw; line-height: 7.46666666666667vw; text-align: left; margin-bottom: 2.13333333333333vw; }
+                  #{{block.id }} .compare-desc{ font-weight: 500; font-size: 4.26666666666667vw; color: #1A1A1A; line-height: 6.4vw; text-align: left; }
+                }
+              {% endstyle %}
+              {% assign current_variant_id = product.selected_or_first_available_variant.id %}
+
+              <div id="{{block.id }}" {{ block.shopify_attributes }}>
+                  <div class="compare-block-container">
+                    {% if block.settings.title != blank %}
+                      <div class="compare-title"> {{ block.settings.title | escape }} </div>
+                    {% endif %}
+
+                    {% if block.settings.desc != blank %}
+                        <div class="jds-rte compare-desc"> {{ block.settings.desc | replace: '<em>',  '<em style="color: var(--jds-color-primary);">' }} </div>
+                    {% endif %}
+
+                    {% render 'compare-content',  type: 2, view_more: block.settings.view_more, current_variant_id: current_variant_id %}
+                  </div>
+              </div>
+
+              {%- when 'pdp-scroll' -%}
+                {% comment %} 滚动高亮 {% endcomment %}
+                {% render 'scroll-high-light', settings: block.settings, index: forloop.index %}
+
+              {%- when 'pdp-smart-recommend' -%}
+                {% comment %} 智能选购{% endcomment %}
+                <div class="smart-box" style="background: #F5F5F5">
+                  {% render 'smart-recommend-block', smart: block.settings, index: forloop.index %}
+                </div>
+
+              {%- when 'media_highlight_space' -%}
+                <div class=" product-media_highlight--block product-block-section"  {% if block.settings.block_bg != blank and block.settings.block_bg != 'rgba(0,0,0,0)' %} data-invert="true"{% endif %}>
+                    {%- render "diy-scroll-textpic", settings: block.settings -%}
+                </div>
+              {%- when 'five_kwh_product_videos' -%}
+                {% comment %} 用户视频轮播列表 {% endcomment %}
+                <div  class="section-five-find-out section-photovolatic-find-out" anchor="{{ block.settings.anchor_id | url_decode | strip | replace: ' ', ''}}" >
+                  {%- render "product-detail-videos", settings: block.settings, index: forloop.index -%}
+                </div>
+
+              {%- when 'pdp_award' -%}
+                {% comment %} 媒体背书 {% endcomment %}
+                {% render 'index-award-new', award: block.settings , index: forloop.index %}
+
+              {%- when 'recommend_products' -%}
+                {% comment %} 产品推荐 {% endcomment %}
+                {%- render 'app-recommend-products', block_settings: block.settings, product: product -%}
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if blocks_tech_size > 0 -%}
+      {%- assign blockTech = blocks_tech | first -%}
+      <div class="produc-detail--contetn_item product-detail--tech">
+        <product-specs
+          class="product-block-section"
+          {{ blockTech.shopify_attributes }}
+          data-product-title="{{ product.title | escape }}"
+          data-sku="{{ product.selected_or_first_available_variant.sku | escape }}"
+          data-id="{{ product.selected_or_first_available_variant.id | escape }}"
+          {% if blockTech.settings.block_bg != blank and blockTech.settings.block_bg != 'rgba(0,0,0,0)' %} data-invert="true"{% endif %}
+        >
+          <h2 class="section-container text-center tech--title">{{blockTech.settings.title | escape}}</h2>
+          {% comment %} 产品端口和尺寸 {% endcomment %}
+          <div class="accordion-ul section-container {% if blockTech.settings.part_1_heading == blank %} hidden{% endif %}" style="{% if blockTech.settings.part_1_heading == blank %}display: none;{% endif %}">
+            <div class="accordion-header">
+              {%- if blockTech.settings.part_1_heading != blank -%}
+                <h3 class="jky-text-lg font-bold">{{blockTech.settings.part_1_heading | escape}}</h3>
+                <svg class="accordion-close active" viewBox="0 0 1024 1024" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity=".6"></path></svg>
+              {%- endif -%}
+            </div>
+
+            <div class="accordion-content flex-col">
+              {% comment %} 主产品 {% endcomment %}
+              {%- if blockTech.settings.part_1_img -%}
+                {%- if blockTech.settings.part_1_product_title -%}
+                  <div class="accordion-content--title font-500 text-center">{{blockTech.settings.part_1_product_title | escape}}</div>
+                {%- endif -%}
+
+                <div class="flex accordion-content--specs-pic justify-center">
+                  {% render 'responsive-image', image: blockTech.settings.part_1_img, width: 750, mwidth: 300, image_class: 'specs-img' %}
+                  <ul>
+                    {%- for i in (0..19) -%}
+                      {%- assign key_index = 'part_1_product_desc_' | append: forloop.index -%}
+
+                      {%- if blockTech.settings[key_index] != blank -%}
+                        <li class="jky-text-base">{{blockTech.settings[key_index] | escape}}</li>
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- endif -%}
+
+              {% comment %} 左侧产品图 {% endcomment %}
+              {%- if blockTech.settings.part_1_img_2 -%}
+                <div class="accordion-content--specs-more-main">
+                  {%- if blockTech.settings.part_1_product_2_title -%}
+                    <div class="accordion-content--title font-500 text-center">{{blockTech.settings.part_1_product_2_title | escape}}</div>
+                  {%- endif -%}
+
+                  <div class="flex accordion-content--specs-pic justify-center">
+                    {%- render 'responsive-image', image: blockTech.settings.part_1_img_2, width: 750, mwidth: 300, image_class: 'specs-img' -%}
+                    <ul>
+                      {%- for i in (0..9) -%}
+                        {% assign key_index = 'part_1_product_2_desc_' | append: forloop.index %}
+
+                        {%- if blockTech.settings[key_index] != blank -%}
+                          <li class="jky-text-base">{{blockTech.settings[key_index] | escape}}</li>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </ul>
+                  </div>
+                </div>
+              {%- endif -%}
+
+              {% comment %} 右侧产品图 {% endcomment %}
+              {%- if blockTech.settings.part_1_img_3 -%}
+                <div class="accordion-content--specs-more-main">
+                  {%- if blockTech.settings.part_1_product_3_title -%}
+                    <div class="accordion-content--title font-500 text-center">{{blockTech.settings.part_1_product_3_title | escape}}</div>
+                  {%- endif -%}
+
+                  <div class="flex accordion-content--specs-pic justify-center">
+                    {% render 'responsive-image', image: blockTech.settings.part_1_img_3, width: 750, mwidth: 300, image_class: 'specs-img' %}
+                    <ul>
+                      {%- for i in (0..9) -%}
+                        {%- assign key_index = 'part_1_product_3_desc_' | append: forloop.index -%}
+
+                        {%- if blockTech.settings[key_index] != blank -%}
+                          <li class="jky-text-base">{{blockTech.settings[key_index] | escape}}</li>
+                        {%- endif -%}
+                      {%- endfor -%}
+                    </ul>
+                  </div>
+                </div>
+              {%- endif -%}
+
+              {% assign bundle_flag = false %}
+              {%- if blockTech.settings.part_1_img == blank and blockTech.settings.part_1_img_2 == blank and blockTech.settings.part_1_img_3 == blank -%}
+                  {% assign bundle_flag = true %}
+              {%- endif -%}
+
+              <ol>
+                {% comment %} 组合配件产品 {% endcomment %}
+                {%- for i in (0..4) -%}
+                  {%- assign bundle_key_index = 'part_1_bundle_img_' | append: forloop.index -%}
+                  {%- assign bundle_width_index = 'part_1_bundle_width_' | append: forloop.index -%}
+                  {%- assign bundle_title_index = 'part_1_bundle_title_' | append: forloop.index -%}
+                  {%- assign bundle_desc_index = 'part_1_bundle_desc_' | append: forloop.index -%}
+
+                  {%- if blockTech.settings[bundle_key_index] -%}
+                    <li data-bundle-width="{{blockTech.settings[bundle_width_index]}}" class="accordion-content--specs-pic_bundle" {% if forloop.index == 1 and bundle_flag == true %}  style="margin-top: 0;padding-top: 0;border-top: none;" {{forloop.index  }} {% endif %}>
+                      {%- if blockTech.settings[bundle_title_index] -%}
+                        <div class="accordion-content--title font-500 text-center">{{blockTech.settings[bundle_title_index] | escape}}</div>
+                      {%- endif -%}
+                      {% render 'responsive-image', image: blockTech.settings[bundle_key_index], width: 900, mwidth: 300 %}
+
+                      {%- if blockTech.settings[bundle_desc_index] -%}
+                        <span class="jky-text-sm">{{blockTech.settings[bundle_desc_index] | escape}}</span>
+                      {%- endif -%}
+                    </li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ol>
+            </div>
+          </div>
+
+          {% comment %} 产品参数 {% endcomment %}
+          <div class="accordion-ul section-container accordion--product-specs {% if blockTech.settings.part_2_heading == blank %} hidden{% endif %}" style="{% if blockTech.settings.part_2_heading == blank %}display: none;{% endif %}">
+            <div class="accordion-header">
+              {%- if blockTech.settings.part_2_heading != blank -%}
+                <h3 class="jky-text-lg font-bold">{{blockTech.settings.part_2_heading | escape}}</h3>
+                <svg class="accordion-close active" viewBox="0 0 1024 1024" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity=".6"></path></svg>
+              {%- endif -%}
+            </div>
+            <div class="accordion-content accordion-content--with-child specs">
+              <div class="accordion-ul"></div>
+            </div>
+          </div>
+
+          {% comment %} 加电包信息 {% endcomment %}
+          <div class="accordion-ul section-container accordion--whats-in-box {% if blockTech.settings.part_3_heading == blank %} hidden{% endif %}" style="{% if blockTech.settings.part_3_heading == blank %}display: none;{% endif %}">
+            <div class="accordion-header">
+              {%- if blockTech.settings.part_3_heading != blank -%}
+                <h3 class="jky-text-lg font-bold">{{blockTech.settings.part_3_heading | escape}}</h3>
+                <svg class="accordion-close active" viewBox="0 0 1024 1024" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity=".6"></path></svg>
+              {%- endif -%}
+            </div>
+            <div class="accordion-content" style="flex-direction: column;padding: 0;">
+              {% comment %} 单品-无变体，或者有且只有1个变体 {% endcomment %}
+              {%- if product.has_only_default_variant == true or product.variants.size == 1 -%}
+                {%- assign what_box = '' -%}
+                {%- if product.variants[0].metafields.custom.what_in_the_box_list_4_0 != blank -%}
+                  {%- assign what_box = product.variants[0].metafields.custom.what_in_the_box_list_4_0.value -%}
+                {%- elsif product.metafields.custom.what_is_in_the_box_4_0 != blank -%}
+                  {%- assign what_box = product.metafields.custom.what_is_in_the_box_4_0.value -%}
+                {%- endif -%}
+
+                {%- if what_box != blank -%}
+                  <what-is-in-the-box only-default-variant data-current-variant-id="{{ product.selected_or_first_available_variant.id }}">
+                    {% comment %} PC 端 {% endcomment %}
+                    <div class="pc-show-flex single-sku-wrap">
+                      {%- for list_item_4_0 in what_box -%}
+                        {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+                        {%- assign name = list_item_4_0.name | split: '*' | first -%}
+                        <div class="sku-item">
+                          <div>
+                            <h4>{{ name | strip }}</h4>
+                            <span>X{{ quantity | strip }}</span>
+                          </div>
+                          <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" alt="" loading="lazy">
+                        </div>
+                      {%- endfor -%}
+                    </div>
+
+                    {% comment %} Mobile 端 {% endcomment %}
+                    <div class="mb-show sku-box-wrap">
+                      {% comment %} 单品图片 {% endcomment %}
+                      {%- assign current_f_img = product.selected_or_first_available_variant.featured_image | image_url: width: 750 -%}
+                      {%- if product.selected_or_first_available_variant.featured_image == blank -%}
+                        {%- assign current_f_img = product.featured_image | image_url: width: 750 -%}
+                      {%- endif -%}
+                      <img class="sku-img" src="{{ current_f_img }}" alt="" loading="lazy">
+                      <div class="select-sku-variant-name-wrap">
+                        <select name="select-sku-variant-name">
+                          <option value="{{ product.title | escape }}">{{ product.title | escape}}</option>
+                        </select>
+                        <svg class="iconfont" viewBox="0 0 1024 1024" width="20" height="20"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#00000099"></path></svg>
+                      </div>
+                      <div class="sku-wrap">
+                        {%- for list_item_4_0 in what_box -%}
+                          {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+                          {%- assign name = list_item_4_0.name | split: '*' | first -%}
+                          <div class="sku-item">
+                            <div>
+                              <h4>{{ name | strip }}</h4>
+                              <span>X{{ quantity | strip }}</span>
+                            </div>
+                            <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" alt="" loading="lazy">
+                          </div>
+                        {%- endfor -%}
+                      </div>
+                    </div>
+                  </what-is-in-the-box>
+                {%- endif -%}
+              {%- else -%}
+                {% comment %} 多变体（>=2） {% endcomment %}
+                {% assign variants_json = "" %}
+                {% assign product_json = "" %}
+
+                {%- for variant in product.variants -%}
+                  {%- assign what_value = '' -%}
+                  {%- if variant.metafields.custom.what_in_the_box_list_4_0.value != blank -%}
+                    {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+                  {%- elsif product.metafields.custom.what_is_in_the_box_4_0 != blank -%}
+                    {%- assign what_value = product.metafields.custom.what_is_in_the_box_4_0.value -%}
+                  {%- endif -%}
+                  {% comment %} 收集sku数据 {% endcomment %}
+                  {%- if variants_json != "" -%}
+                    {%- assign variants_json = variants_json | append: "," -%}
+                  {%- endif -%}
+                  {%- assign variant_img = product.featured_image | image_url: width: 360, height: 360 | json -%}
+                  {%- if variant.featured_image -%}
+                    {%- assign variant_img = variant.featured_image | image_url: width: 360, height: 360 | json -%}
+                  {%- endif -%}
+                  {%- assign variant_name = variant.title | json -%}
+                  {%- assign variant_data = '{' | append: '"skuId":' | append: variant.id | append: ',' | append: '"name":' | append: variant_name | append: ',' | append: '"img":' | append: variant_img | append: '}' -%}
+                  {%- assign variants_json = variants_json | append: variant_data -%}
+
+                  {% comment %} 收集spu数据 {% endcomment %}
+                  {%- if product_json != "" -%}
+                    {%- assign product_json = product_json | append: "," -%}
+                  {%- endif -%}
+
+                  {% comment %} 处理 加电包单个类目 {% endcomment %}
+                  {%- assign what_box_data = "" -%}
+                  {%- if what_value -%}
+                    {%- for what_box in what_value -%}
+                      {%- if what_box_data != "" -%}
+                        {%- assign what_box_data = what_box_data | append: "," -%}
+                      {%- endif %}
+                      {%- assign img = what_box.img | image_url: width: 360, height: 360 | json -%}
+                      {%- assign name = what_box.name | json -%}
+                      {%- assign box_data = '{' | append: '"img":' | append: img | append: ',' | append: '"name":' | append: name | append: '}' -%}
+                      {%- assign what_box_data = what_box_data | append: box_data -%}
+                    {%- endfor -%}
+                    {%- assign what_box_data = "[" | append: what_box_data | append: "]" -%}
+                  {%- else -%}
+                    {%- assign what_box_data = "[]" -%}
+                  {%- endif -%}
+
+                  {%- assign product_data = '{' | append: '"skuId":' | append: variant.id | append: ',' | append: '"list":' | append: what_box_data | append: '}' -%}
+                  {%- assign product_json = product_json | append: product_data -%}
+                {%- endfor -%}
+
+                {%- assign variants_json = "[" | append: variants_json | append: "]" -%}
+                {%- assign product_json = "[" | append: product_json | append: "]" -%}
+
+                <what-is-in-the-box data-current-variant-id="{{ product.selected_or_first_available_variant.id }}">
+                  {% comment %} PC 端 {% endcomment %}
+                  <div class="pc-show-flex" style="flex-direction: column;">
+                    <div class="table-container"></div>
+                    <div class="table-arrow-wrap" style="display:none">
+                      <button class="table-arrow table-left-arrow" disabled aria-label="Scroll table left"></button>
+                      <button class="table-arrow table-right-arrow" aria-label="Scroll table right"></button>
+                    </div>
+                  </div>
+
+                  {% comment %} Mobile 端 {% endcomment %}
+                  <div class="mb-show sku-box-wrap">
+                    {% comment %} sku图片 {% endcomment %}
+                    {%- assign current_f_img = product.selected_or_first_available_variant.featured_image | image_url: width: 750 -%}
+                    {%- if product.selected_or_first_available_variant.featured_image == blank -%}
+                      {%- assign current_f_img = product.featured_image | image_url: width: 750 -%}
+                    {%- endif -%}
+                    <img class="sku-img" src="{{ current_f_img }}" alt="" loading="lazy">
+                    <div class="select-sku-variant-name-wrap">
+                      <select name="select-sku-variant-name">
+                        {%- for variant in product.variants -%}
+                          <option
+                            name="{{ variant.title | escape }}"
+                            value="{{ variant.id }}"
+                            {% if product.selected_or_first_available_variant.id == variant.id %}selected{% endif %}
+                          >{{ variant.title | escape}}</option>
+                        {%- endfor -%}
+                      </select>
+                      <svg class="iconfont" viewBox="0 0 1024 1024" width="20" height="20"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="#00000099"></path></svg>
+                    </div>
+                    {%- for variant in product.variants -%}
+                      {%- assign what_value = '' -%}
+                      {%- if variant.metafields.custom.what_in_the_box_list_4_0.value != blank -%}
+                        {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+                      {%- elsif product.metafields.custom.what_is_in_the_box_4_0 != blank -%}
+                        {%- assign what_value = product.metafields.custom.what_is_in_the_box_4_0.value -%}
+                      {%- endif -%}
+                      {%- assign what_box_list = what_value -%}
+                      <div
+                        class="sku-wrap {% if what_box_list == blank %}sku-wrap-no-margin{% endif %}"
+                        style="display:{% if product.selected_or_first_available_variant.id == variant.id %}flex{% else %}none{% endif %}"
+                        data-sku-id="{{ variant.id }}"
+                      >
+                        {%- for list_item_4_0 in what_box_list -%}
+                          {%- assign quantity = list_item_4_0.name | split: '*' | last -%}
+                          {%- assign name = list_item_4_0.name | split: '*' | first -%}
+                          <div class="sku-item">
+                            <div>
+                              <h4>{{ name | strip }}</h4>
+                              <span>X{{ quantity | strip }}</span>
+                            </div>
+                            <img src="{{ list_item_4_0.img | image_url: width: 340, height: 340 }}" alt="" loading="lazy">
+                          </div>
+                        {%- endfor -%}
+                      </div>
+                    {%- endfor -%}
+                  </div>
+
+                  <script id="variant-what-in-box-4-0" type="application/json">
+                    {{ variants_json }}
+                  </script>
+                  <script id="product-what-in-box-4-0" type="application/json">
+                    {{ product_json }}
+                  </script>
+                </what-is-in-the-box>
+              {%- endif -%}
+            </div>
+          </div>
+
+          {% comment %} 用户手册 {% endcomment %}
+          <div class="accordion-ul section-container accordion--manual {% if blockTech.settings.part_4_heading == blank %} hidden{% endif %}" style="{% if blockTech.settings.part_4_heading == blank %}display: none;{% endif %}">
+            <div class="accordion-header">
+              {%- if blockTech.settings.part_4_heading != blank -%}
+                <h3 class="jky-text-lg font-bold">{{blockTech.settings.part_4_heading | escape}}</h3>
+                <svg class="accordion-close active" viewBox="0 0 1024 1024" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="#1A1A1A" opacity=".6"></path></svg>
+              {%- endif -%}
+            </div>
+            <div class="accordion-content accordion-content--with-pdf">
+              <div class="manual-item">
+                <dl class="manual-list" type="{{blockTech.settings.page_type}}" data-section-title="{{blockTech.settings.part_4_heading | escape}}">
+                </dl>
+              </div>
+            </div>
+          </div>
+        </product-specs>
+
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'empty-block-box' -%}
+              {%- if block.settings.anchor == 'anchor__2' -%}
+                {% comment %} 空盒子版块 {% endcomment %}
+                {% render 'empty-block-box', settings: block.settings, handle: block.settings.sourceHandle, index: forloop.index %}
+              {%- endif -%}
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {% comment %} FAQ {% endcomment %}
+    {%- if blocks_faq_size > 0 -%}
+      {%- assign blockFaq = blocks_faq | first -%}
+
+      {%- assign faq_num = 0 -%}
+      {%- for item in product.metafields.custom.faq_multiple_columns.value -%}
+          {%- assign faq_num = faq_num | plus: 1 -%}
+      {%- endfor -%}
+
+      <product-faq-columns {{ blockFaq.shopify_attributes }} class="produc-detail--contetn_item">
+        {% comment %} faq {% endcomment %}
+        <div class="produc-detail--faq section-container product-block-section" style="max-width:100vw;" {% if blockFaq.settings.block_bg != blank and blockFaq.settings.block_bg != 'rgba(0,0,0,0)' %} data-invert="true"{% endif %} data-show-category="{{blockFaq.settings.faq_show_category}}">
+          <h2 class="faq-title">{{blockFaq.settings.title | escape}}</h2>
+
+          {%- assign categories = product.metafields.custom.faq_multiple_columns.value -%}
+          {%- assign faq_all = '' -%}
+          {%- assign view_more_link = '' -%}
+          {% comment %} 初始化计数变量 {% endcomment %}
+          {%- assign faq_all_count = 0 -%}
+
+          {% if faq_num > 0 %}
+            <div class="produc-detail--faq-wrap flex">
+              {% comment %} 需要分类展示 {% endcomment %}
+              {%- if blockFaq.settings.faq_show_category -%}
+                <div class="produc-detail--faq-left">
+                  {%- for faq_category in categories -%}
+                    {%- if forloop.index0 == 0 -%}
+                      {%- assign view_more_link = faq_category.view_more_link -%}
+                    {%- endif -%}
+                    <div
+                      class="faq-category-name {% if forloop.index0 == 0 %}active{% endif %}"
+                      data-product-title="{{ product.title | escape }}"
+                      data-index="{{forloop.index0}}"
+                      data-view-more-link="{{faq_category.view_more_link}}"
+                    >{{ faq_category.column_name | escape }}</div>
+                  {%- endfor -%}
+                </div>
+              {%- endif -%}
+
+              <div class="produc-detail--faq-right">
+                {% comment %} 需要分类展示 {% endcomment %}
+                {%- if blockFaq.settings.faq_show_category -%}
+                  {%- for faq_category in categories -%}
+                    <ul data-index="{{forloop.index0}}" class="{% if forloop.index0 == 0 %}active{% endif %}">
+                      {% comment %} 最多显示 10个 {% endcomment %}
+                      {%- for faq_question_and_answer in faq_category.column_content.value limit: 10 -%}
+                        <li>
+                          <div class="faq-header flex">
+                            <h3 class="item-title">{{faq_question_and_answer.question | escape}}</h3>
+                            <svg class="toggle_btn active" viewBox="0 0 1024 1024" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="currentColor" opacity=".6"></path></svg>
+                          </div>
+                          <div class="faq-content">
+                            <div class="rte">{{faq_question_and_answer.answer_text | metafield_tag}}</div>
+                            <div>
+                              {%- assign media_url = faq_question_and_answer.answer_media | metafield_text -%}
+                              {%- if media_url contains ".mp4" or media_url contains ".mov" -%}
+                                {% comment %} video {% endcomment %}
+                                {%
+                                  render 'jky-video',
+                                    class: 'w-full h-full faq-video'
+                                    video_url: media_url,
+                                    autoplay: false,
+                                    loop: false,
+                                    controls: true
+                                %}
+                              {%- elsif media_url contains ".jpg" or media_url contains ".jpeg" or media_url contains ".png" or media_url contains ".webp" or media_url contains ".gif" -%}
+                                {% comment %} image {% endcomment %}
+                                    <div class="pswp-gallery-faq" id="photo-enlarge-gallery-faq">
+                                        <a  data-pswp-width="{{ 1200 }}" data-pswp-height="{{ 1200 }}"
+                                          >
+                                          {% render 'responsive-image', image: faq_question_and_answer.answer_media %}
+                                        </a>
+                                    </div>
+
+                              {%- endif -%}
+                            </div>
+                          </div>
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                  {%- endfor -%}
+                {%- else -%}
+                  <ul data-index="0">
+                    {%- for faq_category in categories -%}
+                      {%- for faq_question_and_answer in faq_category.column_content.value -%}
+                        {% comment %} 只显示前 10 个 {% endcomment %}
+                        {%- if faq_all_count < 10 -%}
+                          <li>
+                            <div class="faq-header flex">
+                              <span>{{faq_question_and_answer.question | escape}}</span>
+                              <svg class="toggle_btn active" viewBox="0 0 1024 1024" width="36" height="36"><path d="M512 671.288889L785.066667 398.222222l-56.888889-62.577778L512 551.822222 295.822222 335.644444 233.244444 398.222222z" fill="currentColor" opacity=".6"></path></svg>
+                            </div>
+                            <div class="faq-content">
+                              <div class="rte">{{faq_question_and_answer.answer_text | metafield_tag}}</div>
+                              <div>
+                                {%- assign media_url = faq_question_and_answer.answer_media | metafield_text -%}
+                                {%- if media_url contains ".mp4" or media_url contains ".mov" -%}
+                                  {% comment %} video {% endcomment %}
+                                  {%
+                                    render 'jky-video',
+                                      class: 'w-full h-full'
+                                      video_url: media_url,
+                                      autoplay: false,
+                                      loop: false,
+                                      controls: true
+                                  %}
+                                {%- elsif media_url contains ".jpg" or media_url contains ".jpeg" or media_url contains ".png" or media_url contains ".webp" or media_url contains ".gif" -%}
+                                  <div class="pswp-gallery-faq" id="photo-enlarge-gallery-faq">
+                                    <a  data-pswp-width="{{ 1200 }}" data-pswp-height="{{ 1200 }}"
+                                      >
+                                      {% render 'responsive-image', image: faq_question_and_answer.answer_media %}
+                                    </a>
+                                </div>
+                                {%- endif -%}
+                              </div>
+                            </div>
+                          </li>
+                        {%- endif -%}
+
+                        {% comment %} 计数加 1 {% endcomment %}
+                        {%- assign faq_all_count = faq_all_count | plus: 1 -%}
+                      {%- endfor -%}
+                    {%- endfor -%}
+                  </ul>
+                {%- endif -%}
+              </div>
+            </div>
+          {% endif %}
+          {% unless settings.enable_faq_schema %}
+          <script class="seoai-schema" type="application/ld+json">
+            {%- capture faq_list -%}
+              {%- assign faq_count = 0 -%}
+              {%- for faq_category in categories -%}
+                {%- for faq_question_and_answer in faq_category.column_content.value -%}
+                  {%- if faq_count >= 10 -%}{%- break -%}{%- endif -%}
+                  {%- if faq_count > 0 -%},{%- endif -%}
+                  {
+                    "@type": "Question",
+                    "name": {{ faq_question_and_answer.question | truncate: 180 | strip_html | strip | json }},
+                    "acceptedAnswer": {
+                      "@type": "Answer",
+                      "text": {{ faq_question_and_answer.answer_text | metafield_tag | truncate: 300 | strip_html | strip | json }}
+                    }
+                  }
+                  {%- assign faq_count = faq_count | plus: 1 -%}
+                {%- endfor -%}
+                {%- if faq_count >= 10 -%}{%- break -%}{%- endif -%}
+              {%- endfor -%}
+            {%- endcapture -%}
+            {
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [{{ faq_list }}]
+            }
+          </script>
+          {% endunless %}
+          {% comment %} 不需要分类展示 {% endcomment %}
+          {%- if blockFaq.settings.faq_show_category == false and faq_all_count > 10 -%}
+            {%- assign view_more_link = blockFaq.settings.faq_show_category_link -%}
+          {%- endif -%}
+
+          <a href="{{view_more_link}}" class="faq--more" style="{% if faq_num > 0 and view_more_link != blank %}display:block{% else %}display:none{% endif %}">
+            <button class="index-button">
+              <span>{{'general.action_text.view_more' | t}}</span>
+              <div>
+                <div class="arrow">
+                  <svg class="line" width="20" height="15" viewBox="0 0 20 15">
+                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                      <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                        <g transform="translate(672.000000, 286.000000)">
+                          <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+            </button>
+          </a>
+        </div>
+      </product-faq-columns>
+    {%- endif -%}
+
+    {% comment %} Reviews {% endcomment %}
+    {%- if blocks_reviews_size > 0 -%}
+      {%- assign blockreviews = blocks_faq | first -%}
+      <div
+        {{ blockreviews.shopify_attributes }}
+        class="produc-detail--contetn_item produc-detail--contetn_item__app"
+      >
+        <div class="section-container product-block-section" {% if blockreviews.settings.block_bg != blank and blockreviews.settings.block_bg != 'rgba(0,0,0,0)' %} data-invert="true"{% endif %}>
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when '@app' -%}
+                {% render block %}
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+<div class="pdp-overlay fixed top-0 left-0 w-full h-full bg-white hidden items-center justify-center" id="overlay">
+  <img id="fullImage" class="max-w-full max-h-full">
+</div>
+{% comment %} PDP V4各版块 结束 {% endcomment %}
+<script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+<script src="{{ 'pdp-v4-content.min.js' | asset_url }}" defer></script>
+{% comment %} {{- 'photoswipe.css' | asset_url | stylesheet_tag -}} {% endcomment %}
+<script src="{{ 'photoswipe-lightbox.umd.min.js' | asset_url }}" defer></script>
+<script src="{{ 'photoswipe.umd.min.js' | asset_url }}" defer></script>
+<script src="{{ 'sections-pdp-v4-content.js' | asset_url }}" defer></script>
+{% schema %}
+{
+  "name": "4.0商详页内容组件",
+  "class": "pdp-v4-content",
+  "tag": "div",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "tab_mode",
+      "label": "模式",
+      "options": [
+        {
+          "value": "slide",
+          "label": "左右切换"
+        },
+        {
+          "value": "column",
+          "label": "上下平铺"
+        }
+      ],
+      "default": "slide"
+    },
+    {"type": "text", "id": "tab_highlights", "label": "图文Tab名称", "default": "Highlights"},
+    {"type": "text", "id": "tab_tech", "label": "产品参数Tab名称", "default": "Technik"},
+    {"type": "text", "id": "tab_faq", "label": "FAQ Tab名称", "default": "FAQS"},
+    {"type": "text", "id": "review_faq", "label": "Reviews Tab名称", "default": "Reviews"}
+  ],
+  "blocks": [
+    {
+      "type": "pdp-animated-title",
+      "name": "动效标题",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "标题"
+        },
+        {
+          "type": "select",
+          "id": "type",
+          "label": "标题的间距类型",
+          "default": "1",
+          "options": [
+            {
+              "value": "0",
+              "label": "小档"
+            },
+            {
+              "value": "1",
+              "label": "中档"
+            },
+            {
+              "value": "2",
+              "label": "大档"
+            },
+            {
+              "value": "3",
+              "label": "自定义"
+            }
+          ]
+        },
+        { "type": "header", "content": "以下自定义需要配合上面类型选择进行使用否则不生效,此默认值展示时上下边距为0" },
+        { "type": "number", "id": "pc_padding_top", "label": "PC上间距", "info": "PC上间距, 单位为px", "default": 40 },
+        { "type": "number", "id": "pc_padding_bottom", "label": "pc下间距", "info": "PC下间距, 单位为px", "default": 34 },
+        { "type": "number", "id": "mb_padding_top", "label": "MB上间距", "info": "MB上间距, 单位为px", "default": 56 },
+        { "type": "number", "id": "mb_padding_bottom", "label": "MB下间距", "info": "MB下间距, 单位为px", "default": 66 }
+      ]
+    },
+    {
+      "type": "empty-block-box",
+      "name": "空盒子版块",
+      "settings": [
+        {
+          "type": "select",
+          "id": "anchor",
+          "label": "页签设置",
+          "info": "非页签请清空此项",
+          "options": [
+            {
+              "value": "",
+              "label": "非页签"
+            },
+            {
+              "value": "anchor__1",
+              "label": "页签一"
+            },
+            {
+              "value": "anchor__2",
+              "label": "页签二"
+            },
+            {
+              "value": "anchor__3",
+              "label": "页签三"
+            },
+            {
+              "value": "anchor__4",
+              "label": "页签四"
+            }
+          ],
+          "default": ""
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "对内标题，标识每个空盒子的功能"
+        },
+        {
+          "type": "text",
+          "id": "sourceHandle",
+          "label": "绑定本页可内嵌组件的handle",
+          "info": "可内嵌: 1. 图文轮播-卡片切换 2. 左文右图（使用场景+设备时长）3. 首页-博客推荐",
+          "default": "embed-component-01"
+        },
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "版块ID",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        {
+          "type": "color",
+          "id": "authorTipsColor",
+          "label": "编辑模式下提示文案颜色",
+          "default": "#333"
+        },
+        {
+          "type": "color",
+          "id": "bgColor",
+          "label": "背景色",
+          "default": "#fff"
+        },
+        {
+          "type": "header",
+          "content": "根据内嵌的组件设置合适高度"
+        },
+        {
+          "type": "number",
+          "id": "pcBoxH",
+          "label": "PC端盒子高度（单位：px）",
+          "info": "提示：各分辨率UI按照响应式规范进行换算",
+          "default": 800
+        },
+        {
+          "type": "number",
+          "id": "mbBoxH",
+          "label": "移动端盒子高度（单位：px）",
+          "info": "提示：各分辨率UI按照响应式规范进行换算",
+          "default": 800
+        }
+      ]
+    },
+    {
+      "type": "pdp-calculator",
+      "name": "计算器",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "提醒：配置完当前产品的 Wattage/Capacity 后才展示此版块"
+        },
+        {
+          "type": "select",
+          "id": "page_width",
+          "options": [
+            {
+              "value": "section-container",
+              "label": "版心/1200px"
+            },
+            {
+              "value": "section-container-lg",
+              "label": "大版心/1312px"
+            }
+          ],
+          "default": "section-container-lg",
+          "label": "组件宽度"
+        },
+        {
+          "type": "select",
+          "id": "type",
+          "label": "功能切换",
+          "info": "请选择不同功能的计算器",
+          "options": [
+            {
+              "value": "",
+              "label": "计算有效时长"
+            },
+            {
+              "value": "costSavings",
+              "label": "计算节约费用"
+            }
+          ],
+          "default": ""
+        },
+        {
+          "type": "header",
+          "content": "计算器文案公共配置"
+        },
+        {
+          "type": "text",
+          "id": "topTitle",
+          "label": "顶部标题",
+          "default": "calculate the running time"
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "标题",
+          "default": "Enter the wattage of your appliance"
+        },
+        {
+          "type": "textarea",
+          "id": "subtitle",
+          "label": "副标题",
+          "default": "Input power does not exceed the maximum AC output of Explorer XX1 ${power}",
+          "info": "1.${power}用于替换当前产品产品的最大功率，替换后示例：(3000W); 2.${Capacity}用于替换当前产品的电池容量，替换后示例：(2000Wh)"
+        },
+        {
+          "type": "header",
+          "content": "计算有效时长UI相应配置项"
+        },
+        {
+          "type": "text",
+          "id": "hrs",
+          "label": "小时数",
+          "default": "Hrs"
+        },
+        {
+          "type": "text",
+          "id": "runningTimeText",
+          "label": "预期运行时长文本",
+          "default": "Expected Running Time"
+        },
+        {
+          "type": "textarea",
+          "id": "note",
+          "label": "注释",
+          "default": "Note: This is a calculation for reference. Please take the actual use for accuracy."
+        },
+        {
+          "type": "text",
+          "id": "btnTips",
+          "label": "按钮提示语",
+          "info": "日站填充文案：計算する"
+        },
+        {
+          "type": "textarea",
+          "id": "errorTips",
+          "label": "错误提示",
+          "default": "Input power does not exceed ${power}.",
+          "info": "${power}用于替换当前产品对应功率，如3000W"
+        },
+        {
+          "type": "header",
+          "content": "计算节约费用UI相应配置项"
+        },
+        {
+          "type": "text",
+          "id": "savingsUnit",
+          "label": "节省费用单位",
+          "default": "GBP"
+        },
+        {
+          "type": "text",
+          "id": "electricitybill",
+          "label": "输入框填充文案-电费单价",
+          "default": "Electricity Bill"
+        },
+        {
+          "type": "text",
+          "id": "electricityPriceUnit",
+          "label": "电费单价单位",
+          "default": "p/kWh"
+        },
+        {
+          "type": "text",
+          "id": "times",
+          "label": "输入框填充文案-次数",
+          "default": "Times"
+        },
+        {
+          "type": "text",
+          "id": "timesUnit",
+          "label": "次数单位",
+          "default": "Times"
+        },
+        {
+          "type": "text",
+          "id": "btnText",
+          "label": "按钮上文案",
+          "default": "Calculate Money Save"
+        },
+        {
+          "type": "textarea",
+          "id": "costSavingsUINote",
+          "label": "注释",
+          "default": "Note: This is a calculation for reference. Please take the actual use for accuracy"
+        }
+      ]
+    },
+    {
+      "type": "pdp-single-text-img",
+      "name": "单张上文下图",
+      "settings": [
+        {
+          "type": "select",
+          "id": "text_position",
+          "label": "图文位置",
+          "options": [
+            {
+              "value": "top",
+              "label": "文案在图片上方"
+            },
+            {
+              "value": "bottom",
+              "label": "文案在图片下方"
+            }
+          ],
+          "default": "top"
+        },
+        {
+          "type": "richtext",
+          "id": "title",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "subtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "pcImg",
+          "label": "PC端图片（1312*560）"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbImg",
+          "label": "MB端图片（宽750，高度自行填写）"
+        },
+        {
+          "type": "number",
+          "id": "mb_img_h",
+          "label": "mb图片高度(单位：px)",
+          "info": "提示：各分辨率UI按照响应式规范进行换算",
+          "default": 800
+        },
+        {"type":"url","id":"videoSrc","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"poster","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMB","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMB","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loop", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controls", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplay", "label": "视频自动播放", "default": false }
+      ]
+    },
+    {
+      "type": "pdp-two-text-img",
+      "name": "一行两组图文",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "sectionTitle",
+          "label": "版块标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "checkbox",
+          "id": "play_by_order",
+          "label": "本地视频按顺序自动播放",
+          "default": false,
+          "info": "开启后，视频的【自动播放设置】【循环播放设置】将无效，只能按顺序自动播放"
+        },
+        {
+          "type": "header",
+          "content": "Part1 图文"
+        },
+        {
+          "type": "richtext",
+          "id": "partOneTitle",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "partOneSubtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "partOnePCImg",
+          "label": "PC端图片（646*480）"
+        },
+        {
+          "type": "image_picker",
+          "id": "partOneMBImg",
+          "label": "移动端图片（686*644）"
+        },
+        {"type":"url","id":"videoSrc","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"poster","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMB","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMB","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loop", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controls", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplay", "label": "视频自动播放", "default": false },
+
+        {
+          "type": "header",
+          "content": "Part2 图文"
+        },
+        {
+          "type": "richtext",
+          "id": "partTwoTitle",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "partTwoSubtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "partTwoPCImg",
+          "label": "PC端图片（646*480）"
+        },
+        {
+          "type": "image_picker",
+          "id": "partTwoMBImg",
+          "label": "移动端图片（686*644）"
+        },
+        {"type":"url","id":"videoSrcTwo","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterTwo","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMBTwo","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMBTwo","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loopTwo", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controlsTwo", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplayTwo", "label": "视频自动播放", "default": false }
+      ]
+    },
+    {
+      "type": "pdp-three-text-img",
+      "name": "一行三组图文",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "sectionTitle",
+          "label": "版块标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "checkbox",
+          "id": "play_by_order",
+          "label": "本地视频按顺序自动播放",
+          "default": false,
+          "info": "开启后，视频的【自动播放设置】【循环播放设置】将无效，只能按顺序自动播放"
+        },
+        {
+          "type": "header",
+          "content": "Part1 图文"
+        },
+        {
+          "type": "richtext",
+          "id": "partOneTitle",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "partOneSubtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "partOnePCImg",
+          "label": "PC端图片（421*395）"
+        },
+        {
+          "type": "image_picker",
+          "id": "partOneMBImg",
+          "label": "移动端图片（686*644）"
+        },
+        {"type":"url","id":"videoSrc","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"poster","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMB","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMB","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loop", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controls", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplay", "label": "视频自动播放", "default": false },
+        {
+          "type": "header",
+          "content": "Part2 图文"
+        },
+        {
+          "type": "richtext",
+          "id": "partTwoTitle",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "partTwoSubtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "partTwoPCImg",
+          "label": "PC端图片（421*395）"
+        },
+        {
+          "type": "image_picker",
+          "id": "partTwoMBImg",
+          "label": "移动端图片（686*644）"
+        },
+        {"type":"url","id":"videoSrcTwo","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterTwo","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMBTwo","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMBTwo","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loopTwo", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controlsTwo", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplayTwo", "label": "视频自动播放", "default": false },
+        {
+          "type": "header",
+          "content": "Part3 图文"
+        },
+        {
+          "type": "richtext",
+          "id": "partThreeTitle",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "partThreeSubtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "partThreePCImg",
+          "label": "PC端图片（421*395）"
+        },
+        {
+          "type": "image_picker",
+          "id": "partThreeMBImg",
+          "label": "移动端图片（686*644）"
+        },
+        {"type":"url","id":"videoSrcThree","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterThree","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMBThree","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMBThree","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loopThree", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controlsThree", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplayThree", "label": "视频自动播放", "default": false }
+      ]
+    },
+    {
+      "type": "pdp-left-text-right-img",
+      "name": "单张左文右图",
+      "settings": [
+        { "type": "number", "id": "margin_top", "label": "Margin Top", "info": "上间距, 单位为px", "default": 36 },
+        { "type": "number", "id": "margin_bottom", "label": "Margin Bottom", "info": "下间距, 单位为px", "default": 36 },
+        {"type": "richtext", "id": "title", "label": "版块标题", "info": "提示：选中文本设置斜体可标记品牌色。"},
+        {"type": "richtext", "id": "description_one", "label": "描述文案一", "info": "提示：选中文本设置斜体可标记品牌色。"},
+        {"type": "richtext", "id": "description_two", "label": "描述文案二", "info": "提示：选中文本设置斜体可标记品牌色。"},
+        {"type": "richtext", "id": "description_three", "label": "描述文案三", "info": "提示：选中文本设置斜体可标记品牌色。"},
+        {"type": "richtext", "id": "description_four", "label": "描述文案四", "info": "提示：选中文本设置斜体可标记品牌色。"},
+        {"type": "richtext", "id": "description_five", "label": "描述文案五", "info": "提示：选中文本设置斜体可标记品牌色。"},
+        {"type": "richtext", "id": "description_six", "label": "描述文案六", "info": "提示：选中文本设置斜体可标记品牌色。"},
+        { "type": "url", "id": "videoPC", "label": "PC视频链接" },
+        { "type": "url", "id": "videoMB", "label": "MB视频链接" },
+        { "type": "image_picker", "id": "imgPC", "label": "PC封面图（760*560）" },
+        { "type": "image_picker", "id": "imgMB", "label": "MB封面图（686*505）" },
+        {"type": "checkbox", "id": "loop", "label": "循环播放？", "default": false},
+        {"type": "checkbox", "id": "controls", "label": "显示播放控件？", "default": true}
+      ]
+    },
+    {
+      "type": "pdp-matrix",
+      "name": "灵活矩阵组件",
+      "limit": 9,
+      "settings":[
+        { "type": "richtext","id": "matrix_title","label": "组件Title","info": "当前组件的大标题" },
+        { "type": "number","id": "matrix_height_pc","label": "pc组件的高度","default":313 },
+        { "type": "number","id": "matrix_height_mb","label": "mb组件的高度","default":331 },
+        { "type": "select", "id": "matrix_pc", "label": "PC 每个的占格比",
+          "options": [
+            { "value": "1fr 1fr 1fr 1fr", "label": "1:1:1:1" },
+            { "value": "1fr 2fr 1fr", "label": "1:2:1" },
+            { "value": "1fr 1fr 1fr", "label": "1:1:1" },
+            { "value": "2fr 1fr 1fr", "label": "2:1:1" },
+            { "value": "1fr 1fr 2fr", "label": "1:1:2" },
+            { "value": "1fr 3fr", "label": "1:3" },
+            { "value": "2fr 2fr", "label": "2:2" },
+            { "value": "3fr 1fr", "label": "3:1" },
+            { "value": "1fr", "label": "4" }
+          ], "default": "1fr 1fr 1fr 1fr", "info": "仅针对 pc 单个的占格比"
+        },
+        { "type": "select", "id": "matrix_mb", "label": "MB 每个的占格比",
+          "options": [
+            { "value": "1", "label": "1:1:1:1" },
+            { "value": "2", "label": "2:1:1" },
+            { "value": "3", "label": "1:1:2" },
+            { "value": "4", "label": "2:2" }
+          ], "default": "1", "info": "仅针对 mb 单个的占格比"
+        },
+        { "type": "number","id": "matrix_top_pc","label": "PC矩阵主体上边距(默认第一个矩阵上边距64px)"},
+        { "type": "number","id": "matrix_bottom_pc","label": "PC矩阵主体下边距"},
+        { "type": "number","id": "matrix_top_mb","label": "MB矩阵主体上边距"},
+        { "type": "number","id": "matrix_bottom_mb","label": "MB矩阵主体下边距"},
+
+        {"type": "header", "content": "矩阵1配置"},
+        { "type": "select", "id": "part_title_position_1", "label": "Part 1 Title & SubTitle position",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ], "default": "left", "info": "文案位置"
+        },
+        { "type": "color","id": "part_title_color_1","label": "part 1 title color" },
+        { "type": "richtext","id": "part_title_1","label": "Part 1 Title","info": "part 1 的主标题" },
+        { "type": "select", "id": "part_title_size_1", "label": "Part 1 Title Size",
+          "options": [
+            { "value": "large", "label": "Large" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "small", "label": "Small" }
+          ], "default": "middle", "info": "对于part 1 title的字号"
+        },
+        { "type": "richtext","id": "part_subtitle_1","label": "Part 1 subTitle","info": "part 1 的副标题" },
+        { "type": "select", "id": "part_subtitle_size_1", "label": "Part 1 subTitle size",
+          "options": [
+            { "value": "large", "label": "Large" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "small", "label": "Small" }
+          ], "default": "small", "info": "对于part 1 subtitle的字号"
+        },
+        { "type": "url","id": "part_video_pc_1","label": "Part 1 PC Video","info": "part 1 的 pc 视频" },
+        { "type": "checkbox","id": "part_loop_pc_1","label": "循环播放？","default": true },
+        { "type": "url","id": "part_video_mb_1","label": "Part 1 MB Video","info": "part 1 的 mb 视频" },
+        { "type": "checkbox","id": "part_loop_mb_1","label": "循环播放？","default": true },
+        { "type": "image_picker","id": "part_image_pc_1","label": "Part 1 PC Image","info": "part 1 的 pc 图片" },
+        { "type": "image_picker","id": "part_image_mb_1","label": "Part 1 MB Image","info": "part 1 的 mb 图片" },
+
+        {"type": "header", "content": "矩阵2配置"},
+        { "type": "select", "id": "part_title_position_2", "label": "Part 2 Title & SubTitle position",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ], "default": "left", "info": "文案位置"
+        },
+        { "type": "color","id": "part_title_color_2","label": "part 2 title color" },
+        { "type": "richtext","id": "part_title_2","label": "Part 2 Title","info": "part 2 的主标题" },
+        { "type": "select", "id": "part_title_size_2", "label": "Part 2 Title Size",
+          "options": [
+            { "value": "large", "label": "Large" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "small", "label": "Small" }
+          ], "default": "middle", "info": "对于part 2 title的字号"
+        },
+        { "type": "richtext","id": "part_subtitle_2","label": "Part 2 subTitle","info": "part 2 的副标题" },
+        { "type": "select", "id": "part_subtitle_size_2", "label": "Part 2 subTitle size",
+          "options": [
+            { "value": "large", "label": "Large" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "small", "label": "Small" }
+          ], "default": "small", "info": "对于part 2 subtitle的字号"
+        },
+        { "type": "url","id": "part_video_pc_2","label": "Part 2 PC Video","info": "part 2 的 pc 视频" },
+        { "type": "checkbox","id": "part_loop_pc_2","label": "循环播放？","default": true },
+        { "type": "url","id": "part_video_mb_2","label": "Part 2 MB Video","info": "part 2 的 mb 视频" },
+        { "type": "checkbox","id": "part_loop_mb_2","label": "循环播放？","default": true },
+        { "type": "image_picker","id": "part_image_pc_2","label": "Part 2 PC Image","info": "part 2 的 pc 图片" },
+        { "type": "image_picker","id": "part_image_mb_2","label": "Part 2 MB Image","info": "part 2 的 mb 图片" },
+
+        {"type": "header", "content": "矩阵3配置"},
+        { "type": "select", "id": "part_title_position_3", "label": "Part 3 Title & SubTitle position",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ], "default": "left", "info": "文案位置"
+        },
+        { "type": "color","id": "part_title_color_3","label": "part 3 title color" },
+        { "type": "richtext","id": "part_title_3","label": "Part 3 Title","info": "part 3 的主标题" },
+        { "type": "select", "id": "part_title_size_3", "label": "Part 3 Title Size",
+          "options": [
+            { "value": "large", "label": "Large" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "small", "label": "Small" }
+          ], "default": "middle", "info": "对于part 3 title的字号"
+        },
+        { "type": "richtext","id": "part_subtitle_3","label": "Part 3 subTitle","info": "part 3 的副标题" },
+        { "type": "select", "id": "part_subtitle_size_3", "label": "Part 3 subTitle size",
+          "options": [
+            { "value": "large", "label": "Large" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "small", "label": "Small" }
+          ], "default": "small", "info": "对于part 3 subtitle的字号"
+        },
+        { "type": "url","id": "part_video_pc_3","label": "Part 3 PC Video","info": "part 3 的 pc 视频" },
+        { "type": "checkbox","id": "part_loop_pc_3","label": "循环播放？","default": true },
+        { "type": "url","id": "part_video_mb_3","label": "Part 3 MB Video","info": "part 3 的 mb 视频" },
+        { "type": "checkbox","id": "part_loop_mb_3","label": "循环播放？","default": true },
+        { "type": "image_picker","id": "part_image_pc_3","label": "Part 3 PC Image","info": "part 3 的 pc 图片" },
+        { "type": "image_picker","id": "part_image_mb_3","label": "Part 3 MB Image","info": "part 3 的 mb 图片" },
+
+        {"type": "header", "content": "矩阵4配置"},
+        { "type": "color","id": "part_title_color_4","label": "part 4 title color" },
+        { "type": "select", "id": "part_title_position_4", "label": "Part 4 Title & SubTitle position",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ], "default": "left", "info": "文案位置"
+        },
+        { "type": "richtext","id": "part_title_4","label": "Part 4 Title","info": "part 4 的主标题" },
+        { "type": "select", "id": "part_title_size_4", "label": "Part 4 Title Size",
+          "options": [
+            { "value": "large", "label": "Large" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "small", "label": "Small" }
+          ], "default": "middle", "info": "对于part 4 title的字号"
+        },
+        { "type": "richtext","id": "part_subtitle_4","label": "Part 4 subTitle","info": "part 4 的副标题" },
+        { "type": "select", "id": "part_subtitle_size_4", "label": "Part 4 subTitle size",
+          "options": [
+            { "value": "large", "label": "Large" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "small", "label": "Small" }
+          ], "default": "small", "info": "对于part 4 subtitle的字号"
+        },
+        { "type": "url","id": "part_video_pc_4","label": "Part 4 PC Video","info": "part 4 的 pc 视频" },
+        { "type": "checkbox","id": "part_loop_pc_4","label": "循环播放？","default": true },
+        { "type": "url","id": "part_video_mb_4","label": "Part 4 MB Video","info": "part 4 的 mb 视频" },
+        { "type": "checkbox","id": "part_loop_mb_4","label": "循环播放？","default": true },
+        { "type": "image_picker","id": "part_image_pc_4","label": "Part 4 PC Image","info": "part 4 的 pc 图片" },
+        { "type": "image_picker","id": "part_image_mb_4","label": "Part 4 MB Image","info": "part 4 的 mb 图片" }
+      ]
+    },
+    {
+      "type": "tech",
+      "name": "商品参数",
+      "limit": 1,
+      "settings": [
+        { "type": "color", "id": "block_bg", "label": "深色背景设置", "info": "默认为空，表示浅色模式" },
+        {"type": "text", "id": "title", "label": "Tech Title", "default": "Product Details"},
+
+        {"type": "header", "content": "Part 1 - 产品端口和尺寸配置"},
+        {"type": "text", "id": "part_1_heading", "label": "Part 1 heading", "default": "Ports and Dimensions"},
+
+        {"type": "header", "content": "Part 1 - 主产品配置"},
+        {"type": "image_picker", "id": "part_1_img", "label": "Part 1 - 主产品参数图"},
+        {"type": "text", "id": "part_1_product_title", "label": "Part 1 主产品名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_desc_1", "label": "Part 1 主产品参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_desc_2", "label": "Part 1 主产品参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_desc_3", "label": "Part 1 主产品参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_desc_4", "label": "Part 1 主产品参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_desc_5", "label": "Part 1 主产品参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_desc_6", "label": "Part 1 主产品参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_desc_7", "label": "Part 1 主产品参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_desc_8", "label": "Part 1 主产品参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_desc_9", "label": "Part 1 主产品参数说明 9"},
+        {"type": "text", "id": "part_1_product_desc_10", "label": "Part 1 主产品参数说明 10"},
+        {"type": "text", "id": "part_1_product_desc_11", "label": "Part 1 主产品参数说明 11"},
+        {"type": "text", "id": "part_1_product_desc_12", "label": "Part 1 主产品参数说明 12"},
+        {"type": "text", "id": "part_1_product_desc_13", "label": "Part 1 主产品参数说明 13"},
+        {"type": "text", "id": "part_1_product_desc_14", "label": "Part 1 主产品参数说明 14"},
+        {"type": "text", "id": "part_1_product_desc_15", "label": "Part 1 主产品参数说明 15"},
+        {"type": "text", "id": "part_1_product_desc_16", "label": "Part 1 主产品参数说明 16"},
+        {"type": "text", "id": "part_1_product_desc_17", "label": "Part 1 主产品参数说明 17"},
+        {"type": "text", "id": "part_1_product_desc_18", "label": "Part 1 主产品参数说明 18"},
+        {"type": "text", "id": "part_1_product_desc_19", "label": "Part 1 主产品参数说明 19"},
+        {"type": "text", "id": "part_1_product_desc_20", "label": "Part 1 主产品参数说明 20"},
+
+        {"type": "header", "content": "Part 1 - 主产品左侧面配置"},
+        {"type": "image_picker", "id": "part_1_img_2", "label": "Part 1 - 主产品左侧面参数图"},
+        {"type": "text", "id": "part_1_product_2_title", "label": "Part 1 主产品左侧名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_2_desc_1", "label": "Part 1 主产品左侧面参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_2_desc_2", "label": "Part 1 主产品左侧面参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_2_desc_3", "label": "Part 1 主产品左侧面参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_2_desc_4", "label": "Part 1 主产品左侧面参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_2_desc_5", "label": "Part 1 主产品左侧面参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_2_desc_6", "label": "Part 1 主产品左侧面参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_2_desc_7", "label": "Part 1 主产品左侧面参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_2_desc_8", "label": "Part 1 主产品左侧面参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_2_desc_9", "label": "Part 1 主产品左侧面参数说明 9"},
+        {"type": "text", "id": "part_1_product_2_desc_10", "label": "Part 1 主产品左侧面参数说明 10"},
+
+        {"type": "header", "content": "Part 1 - 主产品右侧面配置"},
+        {"type": "image_picker", "id": "part_1_img_3", "label": "Part 1 - 主产品右侧面参数图"},
+        {"type": "text", "id": "part_1_product_3_title", "label": "Part 1 主产品右侧名称", "default": "Explorer 3000 Pro"},
+        {"type": "text", "id": "part_1_product_3_desc_1", "label": "Part 1 主产品右侧面参数说明 1", "default": "Main Power Button"},
+        {"type": "text", "id": "part_1_product_3_desc_2", "label": "Part 1 主产品右侧面参数说明 2", "default": "Car Port"},
+        {"type": "text", "id": "part_1_product_3_desc_3", "label": "Part 1 主产品右侧面参数说明 3", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_3_desc_4", "label": "Part 1 主产品右侧面参数说明 4", "default": "USB-A Output"},
+        {"type": "text", "id": "part_1_product_3_desc_5", "label": "Part 1 主产品右侧面参数说明 5", "default": "DC Output Button"},
+        {"type": "text", "id": "part_1_product_3_desc_6", "label": "Part 1 主产品右侧面参数说明 6", "default": "TT30(25A) AC Output"},
+        {"type": "text", "id": "part_1_product_3_desc_7", "label": "Part 1 主产品右侧面参数说明 7", "default": "(20A) AC Output"},
+        {"type": "text", "id": "part_1_product_3_desc_8", "label": "Part 1 主产品右侧面参数说明 8", "default": "AC Output Button"},
+        {"type": "text", "id": "part_1_product_3_desc_9", "label": "Part 1 主产品右侧面参数说明 9"},
+        {"type": "text", "id": "part_1_product_3_desc_10", "label": "Part 1 主产品右侧面参数说明 10"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 1 信息配置"},
+        {"type": "select", "id": "part_1_bundle_width_1", "label": "PC端宽度占比", "options": [{"value": "50%", "label": "50%"}, {"value": "100%", "label": "100%"}], "default": "100%", "info": "只有2个相邻的50%，才会合并在一行显示"},
+        {"type": "text", "id": "part_1_bundle_title_1", "label": "Part 1 配件1产品名称", "default": "SolarSaga 200W"},
+        {"type": "image_picker", "id": "part_1_bundle_img_1", "label": "Part 1 image - 配件1产品参数图"},
+        {"type": "text", "id": "part_1_bundle_desc_1", "label": "Part 1 配件1产品参数说明", "default": "Dimensions (unfolded): 21.3 x 91.3 x 1 in"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 2 信息配置"},
+        {"type": "select", "id": "part_1_bundle_width_2", "label": "PC端宽度占比", "options": [{"value": "50%", "label": "50%"}, {"value": "100%", "label": "100%"}], "default": "100%", "info": "只有2个相邻的50%，才会合并在一行显示"},
+        {"type": "text", "id": "part_1_bundle_title_2", "label": "Part 1 配件2产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_2", "label": "Part 1 image - 配件2产品参数图"},
+        {"type": "text", "id": "part_1_bundle_desc_2", "label": "Part 1 配件2产品参数说明"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 3 信息配置"},
+        {"type": "select", "id": "part_1_bundle_width_3", "label": "PC端宽度占比", "options": [{"value": "50%", "label": "50%"}, {"value": "100%", "label": "100%"}], "default": "100%", "info": "只有2个相邻的50%，才会合并在一行显示"},
+        {"type": "text", "id": "part_1_bundle_title_3", "label": "Part 1 配件3产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_3", "label": "Part 1 image - 配件3产品参数图"},
+        {"type": "text", "id": "part_1_bundle_desc_3", "label": "Part 1 配件3产品参数说明"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 4 信息配置"},
+        {"type": "select", "id": "part_1_bundle_width_4", "label": "PC端宽度占比", "options": [{"value": "50%", "label": "50%"}, {"value": "100%", "label": "100%"}], "default": "100%", "info": "只有2个相邻的50%，才会合并在一行显示"},
+        {"type": "text", "id": "part_1_bundle_title_4", "label": "Part 1 配件4产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_4", "label": "Part 1 image - 配件4产品参数图"},
+        {"type": "text", "id": "part_1_bundle_desc_4", "label": "Part 1 配件4产品参数说明"},
+
+        {"type": "header", "content": "Part 1 - 组合产品配件 5 信息配置"},
+        {"type": "select", "id": "part_1_bundle_width_5", "label": "PC端宽度占比", "options": [{"value": "50%", "label": "50%"}, {"value": "100%", "label": "100%"}], "default": "100%", "info": "只有2个相邻的50%，才会合并在一行显示"},
+        {"type": "text", "id": "part_1_bundle_title_5", "label": "Part 1 配件5产品名称"},
+        {"type": "image_picker", "id": "part_1_bundle_img_5", "label": "Part 1 image - 配件5产品参数图"},
+        {"type": "text", "id": "part_1_bundle_desc_5", "label": "Part 1 配件5产品参数说明"},
+
+
+        {"type": "header", "content": "Part 2 - 产品参数规格配置"},
+        {"type": "text", "id": "part_2_heading", "label": "Part 2 heading", "default": "Tech Specs"},
+
+        {"type": "header", "content": "Part 3 - What's in The Box 信息配置"},
+        {"type": "text", "id": "part_3_heading", "label": "Part 3 heading", "default": "What's in The Box"},
+
+        {"type": "header", "content": "Part 4 - 产品说明书配置"},
+        {"type": "text", "id": "part_4_heading", "label": "Part 4 heading", "default": "User Manual"},
+        {
+          "type": "select",
+          "id": "page_type",
+          "options": [
+            {"value": "pps_detail", "label": "pps系列"},
+            {"value": "sp_gather", "label": "sp系列"},
+            {"value": "sg_gather", "label": "sg系列"}
+          ],
+          "default": "sg_gather",
+          "label": "产品类型【pps/sg/sp】"
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "name": "FAQ",
+      "limit": 1,
+      "settings": [
+        { "type": "color", "id": "block_bg", "label": "深色背景设置", "info": "默认为空，表示浅色模式" },
+        {"type": "text", "id": "title", "label": "FAQ block Title", "default": "FAQ"},
+        {"type": "checkbox", "id": "faq_show_category", "label": "是否按分类展示", "default": true},
+        {"type": "url", "id": "faq_show_category_link", "label": "更多按钮链接", "info": "只有在【不按分类展示】时，并且【FAQ的总数量超过10个】，配置才生效"}
+      ]
+    },
+    {
+      "type": "reviews",
+      "name": "REVIEWS",
+      "limit": 1
+    },
+    {
+      "type": "pdp-card-text-img",
+      "name": "单张卡片图文组件",
+      "settings":[
+        {
+          "type": "select", "id": "pc_type", "label": "PC样式",
+          "options": [
+            { "value": "flex_start", "label": "左文" },
+            { "value": "flex_end", "label": "右文" }
+          ],
+          "default": "flex_end"
+        },
+
+        { "type": "header", "content": "PC 端" },
+        { "type": "image_picker", "id": "pc_image", "label": "PC背景图(宽度1312)" },
+        { "type": "image_picker", "id": "mb_image", "label": "MB背景图(宽度686)" },
+        { "type": "number", "id": "pc_height", "label": "PC端高度", "default": 800 },
+        { "type": "number", "id": "mb_height", "label": "MB端高度", "default": 1500 },
+        { "type": "number", "id": "pc_margin_x", "label": "PC上下间距", "info": "上间距, 单位为px", "default": 36 },
+        { "type": "number", "id": "mb_margin_x", "label": "MB上下间距", "info": "下间距, 单位为px", "default": 36 },
+        { "type": "richtext", "id": "title", "label": "标题", "info": "若为斜体，则将变为品牌色（优先级最高）" },
+        { "type": "color", "id": "title_color", "label": "标题整体颜色", "default": "#1A1A1A" },
+        { "type": "richtext", "id": "description", "label": "描述文案", "info": "若为斜体，则将变为品牌色（优先级最高）" },
+        { "type": "color", "id": "description_color", "label": "描述文案整体颜色", "default": "#1A1A1A" },
+        { "type": "color_background","id": "bgColor","label": "背景色","default": "#ffffff" }
+      ]
+    },
+    {
+      "type": "media_highlight_button",
+      "name": "通用按钮",
+      "settings": [
+        { "type": "color", "id": "button_wrap_bg_color", "label": "Button Wrap Background Color", "info": "按钮容器背景色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text", "label": "Button Text" },
+        { "type": "url", "id": "button_link", "label": "Button Link" },
+        { "type": "number", "id": "button_padding_top", "label": "Button Margin Top", "info": "上间距, 单位为px", "default": 40 },
+        { "type": "number", "id": "button_padding_bottom", "label": "Button Margin Bottom", "info": "下间距, 单位为px", "default": 40 }
+      ]
+    },
+    {
+      "type": "media_highlight_scense",
+      "name": "商品场景swiper",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "select",
+          "id": "page_width",
+          "options": [
+            {
+              "value": "section-container",
+              "label": "版心/1200px"
+            },
+            {
+              "value": "section-container-lg",
+              "label": "大版心/1312px"
+            }
+          ],
+          "default": "section-container-lg",
+          "label": "组件宽度"
+        },
+        { "type": "number", "id": "desktop_height", "label": "PC端图片高度", "default": 500 },
+        { "type": "number", "id": "mobile_height", "label": "MB端图片高度", "default": 420 },
+        { "type": "color", "id": "block_bg", "label": "深色背景设置", "info": "默认为空，表示浅色模式" },
+        { "type": "richtext", "id": "module_title", "label": "模块标题", "default": "<p></p>", "info": "斜体将会变成品牌色" },
+
+        {"type": "header", "content": "场景 1 配置"},
+        {"type": "text", "id": "scene_name_1", "label": "场景 1 名称"},
+        {"type": "richtext", "id": "scene_description_1", "label": "场景 1 描述", "info": "斜体将会变成品牌色"},
+        { "type": "url", "id": "link_1", "label": "场景 1 跳转地址", "info": "跳转地址，非必填"},
+        { "type": "image_picker", "id": "poster_1", "label": "场景 1 封面图片（PC）", "info": "默认建议尺寸：1312 * 500"},
+        { "type": "image_picker", "id": "poster_mb_1", "label": "场景 1 封面图片（Mobile）", "info": "默认建议尺寸：686 * 645"},
+        { "type": "url", "id": "video_url_1", "label": "场景 1 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_1", "label": "场景 1 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+
+        {"type": "header", "content": "场景 2 配置"},
+        {"type": "text", "id": "scene_name_2", "label": "场景 2 名称"},
+        {"type": "richtext", "id": "scene_description_2", "label": "场景 2 描述", "info": "斜体将会变成品牌色"},
+        { "type": "url", "id": "link_2", "label": "场景 2 跳转地址", "info": "跳转地址，非必填"},
+        { "type": "image_picker", "id": "poster_2", "label": "场景 2 封面图片（PC）", "info": "默认建议尺寸：1312 * 500"},
+        { "type": "image_picker", "id": "poster_mb_2", "label": "场景 2 封面图片（Mobile）", "info": "默认建议尺寸：686 * 645"},
+        { "type": "url", "id": "video_url_2", "label": "场景 2 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_2", "label": "场景 2 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+
+        {"type": "header", "content": "场景 3 配置"},
+        {"type": "text", "id": "scene_name_3", "label": "场景 3 名称"},
+        {"type": "richtext", "id": "scene_description_3", "label": "场景 3 描述", "info": "斜体将会变成品牌色"},
+        { "type": "url", "id": "link_3", "label": "场景 3 跳转地址", "info": "跳转地址，非必填"},
+        { "type": "image_picker", "id": "poster_3", "label": "场景 3 封面图片（PC）", "info": "默认建议尺寸：1312 * 500"},
+        { "type": "image_picker", "id": "poster_mb_3", "label": "场景 3 封面图片（Mobile）", "info": "默认建议尺寸：686 * 645"},
+        { "type": "url", "id": "video_url_3", "label": "场景 3 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_3", "label": "场景 3 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+
+        {"type": "header", "content": "场景 4 配置"},
+        {"type": "text", "id": "scene_name_4", "label": "场景 4 名称"},
+        {"type": "richtext", "id": "scene_description_4", "label": "场景 4 描述", "info": "斜体将会变成品牌色"},
+        { "type": "url", "id": "link_4", "label": "场景 4 跳转地址", "info": "跳转地址，非必填"},
+        { "type": "image_picker", "id": "poster_4", "label": "场景 4 封面图片（PC）", "info": "默认建议尺寸：1312 * 500"},
+        { "type": "image_picker", "id": "poster_mb_4", "label": "场景 4 封面图片（Mobile）", "info": "默认建议尺寸：686 * 645"},
+        { "type": "url", "id": "video_url_4", "label": "场景 4 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_4", "label": "场景 4 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+
+        {"type": "header", "content": "场景 5 配置"},
+        {"type": "text", "id": "scene_name_5", "label": "场景 5 名称"},
+        {"type": "richtext", "id": "scene_description_5", "label": "场景 5 描述", "info": "斜体将会变成品牌色"},
+        { "type": "url", "id": "link_5", "label": "场景 5 跳转地址", "info": "跳转地址，非必填"},
+        { "type": "image_picker", "id": "poster_5", "label": "场景 5 封面图片（PC）", "info": "默认建议尺寸：1312 * 500"},
+        { "type": "image_picker", "id": "poster_mb_5", "label": "场景 5 封面图片（Mobile）", "info": "默认建议尺寸：686 * 645"},
+        { "type": "url", "id": "video_url_5", "label": "场景 5 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_5", "label": "场景 5 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+
+        {"type": "header", "content": "场景 6 配置"},
+        {"type": "text", "id": "scene_name_6", "label": "场景 6 名称"},
+        {"type": "richtext", "id": "scene_description_6", "label": "场景 6 描述", "info": "斜体将会变成品牌色"},
+        { "type": "url", "id": "link_6", "label": "场景 6 跳转地址", "info": "跳转地址，非必填"},
+        { "type": "image_picker", "id": "poster_6", "label": "场景 6 封面图片（PC）", "info": "默认建议尺寸：1312 * 500"},
+        { "type": "image_picker", "id": "poster_mb_6", "label": "场景 6 封面图片（Mobile）", "info": "默认建议尺寸：686 * 645"},
+        { "type": "url", "id": "video_url_6", "label": "场景 6 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_6", "label": "场景 6 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"}
+      ]
+    },
+    {
+      "type": "product-compare",
+      "name": "产品对比 - 仅支持PPS、SG和SP 2",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "title", "label": "标题" },
+        { "type": "richtext", "id": "desc", "label": "描述", "info": "斜体将会变为品牌色" },
+        { "type": "number", "id": "pc_margin_x", "label": "PC上下间距", "info": "上下间距, 单位为px", "default": 40 },
+        { "type": "number", "id": "mb_margin_x", "label": "MB上下间距", "info": "上下间距, 单位为px", "default": 40 },
+        {"type": "text", "id": "view_more", "label": "View More"}
+      ]
+    },
+    {
+      "type": "pdp-scroll",
+      "name": "滚动高亮组件",
+      "limit": 1,
+      "settings":[
+        { "type": "text",  "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"},
+        { "type": "color_background","id": "bg_color","label": "背景色","default": "#ffffff" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC", "default": 36},
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC", "default": 36 },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB", "default": 48 },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB", "default": 48 },
+        {
+          "type": "select", "id": "align", "label": "对齐位置",
+          "options": [
+            { "value": "left", "label": "居左" },
+            { "value": "center", "label": "居中" },
+            { "value": "right", "label": "居右" }
+          ],
+        "default": "left"
+        },
+        { "type": "text", "id": "title", "label": "PC标题" },
+        { "type": "number", "id": "pc_font", "label": "PC标题字号","default": 40 },
+        { "type": "text", "id": "title_mb", "label": "MB标题" },
+        { "type": "number", "id": "mb_font", "label": "MB标题字号","default": 56 },
+        { "type": "color", "id": "title_color", "label": "标题文案颜色", "default": "#1a1a1a" },
+        { "type": "color", "id": "des_color", "label": "描述文案颜色", "default": "#999999" },
+        { "type": "color", "id": "des_high_color", "label": "描述文案高亮颜色"},
+        { "type": "number", "id": "pc_des_font", "label": "PC描述文案字号","default": 32 },
+        { "type": "number", "id": "mb_des_font", "label": "MB描述文案字号","default": 36},
+        { "type": "text", "id": "des_1", "label": "描述文案1"},
+        { "type": "text", "id": "des_2", "label": "描述文案2"},
+        { "type": "text", "id": "des_3", "label": "描述文案3"},
+        { "type": "text", "id": "des_4", "label": "描述文案4"},
+        { "type": "text", "id": "des_5", "label": "描述文案5"},
+        { "type": "text", "id": "des_6", "label": "描述文案6"},
+        { "type": "text", "id": "des_7", "label": "描述文案7"},
+        { "type": "text", "id": "des_8", "label": "描述文案8"},
+        { "type": "text", "id": "des_9", "label": "描述文案9"},
+        { "type": "text", "id": "des_10", "label": "描述文案10"},
+        { "type": "text", "id": "des_11", "label": "描述文案11"},
+        { "type": "text", "id": "des_12", "label": "描述文案12"},
+        { "type": "text", "id": "des_13", "label": "描述文案13"},
+        { "type": "text", "id": "des_14", "label": "描述文案14"},
+        { "type": "text", "id": "des_15", "label": "描述文案15"},
+        { "type": "text", "id": "des_16", "label": "描述文案16"},
+        { "type": "text", "id": "des_17", "label": "描述文案17"},
+        { "type": "text", "id": "des_18", "label": "描述文案18"},
+        { "type": "text", "id": "des_19", "label": "描述文案19"},
+        { "type": "text", "id": "des_20", "label": "描述文案20"}
+      ]
+    },
+    {
+      "type": "pdp-smart-recommend",
+      "name": "产品搭配推荐",
+      "limit": 1,
+      "settings": [
+        { "type": "textarea", "id": "title", "label": "Title Text", "default": "Find Compatible Solar Panels" },
+        {"type": "text", "id": "choose_solar", "label": "Choose One Type of Solar Panel Text", "default": "Choose One Type of Solar Panel"},
+        {"type": "text", "id": "recharge_time", "label": "Recharging Time Text", "default": "Recharging Time"},
+        {"type": "text", "id": "save_time", "label": "Municipal Electricity Saving Text", "default": "Municipal Electricity Saving"},
+        {"type": "checkbox", "id": "show_result", "label": "Is Show Recommended Result", "default": true},
+        {"type": "textarea", "id": "recommend_result", "label": "Recommended Result Text", "default": "Recommended Solar Generator Solution"},
+        {"type": "text", "id": "access_text", "label": "Need Accessories Text", "default": "You Need These Accessories"},
+        {"type": "text", "id": "hour", "label": "Hours Unit Text", "default": "Hrs"},
+        {"type": "text", "id": "wh", "label": "WH Unit Text", "default": "wh"},
+        {"type": "text", "id": "total", "label": "Total Text", "default": "Total:"},
+        {"type": "text", "id": "cart", "label": "Add To Cart Text", "default": "Add To Cart"}
+      ]
+    },
+    {
+      "type": "media_highlight_space",
+      "name": "使用场景",
+      "limit": 2,
+      "settings": [
+        { "type": "color", "id": "block_bg", "label": "深色背景设置", "info": "默认为空，表示浅色模式" },
+        { "type": "textarea", "id": "title", "label": "Title"},
+        { "type": "number", "id": "title_font", "label": "Title MB 字体大小","default":80 },
+        {
+          "type": "select",
+          "id": "page_width",
+          "options": [
+            {
+              "value": "section-container",
+              "label": "版心/1200px"
+            },
+            {
+              "value": "section-container-lg",
+              "label": "大版心/1312px"
+            }
+          ],
+          "default": "section-container",
+          "label": "组件宽度"
+        },
+
+        {"type": "header", "content": "场景 1 配置"},
+        { "type": "text", "id": "heading_1", "label": "场景 1 Heading" },
+        { "type": "textarea", "id": "description_1", "label": "场景 1 Description" },
+        { "type": "image_picker", "id": "pc_img_1", "label": "场景 1 PC Image", "info": "建议尺寸 600 * 600" },
+        { "type": "image_picker", "id": "mb_img_1", "label": "场景 1 Mobile Image", "info": "建议尺寸 600 * 600"},
+
+        {"type": "header", "content": "场景 2 配置"},
+        { "type": "text", "id": "heading_2", "label": "场景 2 Heading" },
+        { "type": "textarea", "id": "description_2", "label": "场景 2 Description" },
+        { "type": "image_picker", "id": "pc_img_2", "label": "场景 2 PC Image", "info": "建议尺寸 600 * 600" },
+        { "type": "image_picker", "id": "mb_img_2", "label": "场景 2 Mobile Image", "info": "建议尺寸 600 * 600"},
+
+        {"type": "header", "content": "场景 3 配置"},
+        { "type": "text", "id": "heading_3", "label": "场景 3 Heading" },
+        { "type": "textarea", "id": "description_3", "label": "场景 3 Description" },
+        { "type": "image_picker", "id": "pc_img_3", "label": "场景 3 PC Image", "info": "建议尺寸 600 * 600" },
+        { "type": "image_picker", "id": "mb_img_3", "label": "场景 3 Mobile Image", "info": "建议尺寸 600 * 600"},
+
+        {"type": "header", "content": "场景 4 配置"},
+        { "type": "text", "id": "heading_4", "label": "场景 4 Heading" },
+        { "type": "textarea", "id": "description_4", "label": "场景 4 Description" },
+        { "type": "image_picker", "id": "pc_img_4", "label": "场景 4 PC Image", "info": "建议尺寸 600 * 600" },
+        { "type": "image_picker", "id": "mb_img_4", "label": "场景 4 Mobile Image", "info": "建议尺寸 600 * 600"},
+
+        {"type": "header", "content": "场景 5 配置"},
+        { "type": "text", "id": "heading_5", "label": "场景 5 Heading" },
+        { "type": "textarea", "id": "description_5", "label": "场景 5 Description" },
+        { "type": "image_picker", "id": "pc_img_5", "label": "场景 5 PC Image", "info": "建议尺寸 600 * 600" },
+        { "type": "image_picker", "id": "mb_img_5", "label": "场景 5 Mobile Image", "info": "建议尺寸 600 * 600"},
+
+        {"type": "header", "content": "场景 6 配置"},
+        { "type": "text", "id": "heading_6", "label": "场景 6 Heading" },
+        { "type": "textarea", "id": "description_6", "label": "场景 6 Description" },
+        { "type": "image_picker", "id": "pc_img_6", "label": "场景 6 PC Image", "info": "建议尺寸 600 * 600" },
+        { "type": "image_picker", "id": "mb_img_6", "label": "场景 6 Mobile Image", "info": "建议尺寸 600 * 600"}
+      ]
+    },
+    {
+      "type": "five_kwh_product_videos",
+      "name": "用户视频轮播列表",
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#ffffff" },
+        { "type": "textarea", "id": "title", "label": "Title" },
+        {
+          "type": "select",
+          "id": "video_size",
+          "label": "选择视频样式：",
+          "default": "video_small",
+          "options": [
+            { "value": "video_small", "label": "竖屏" },
+            { "value": "video_large", "label": "横屏" }
+          ]
+        },
+        { "type": "checkbox", "id": "loop", "label": "循环播放？", "default": true },
+        { "type": "checkbox", "id": "controls", "label": "显示播放控件？", "default": true },
+
+        { "type": "header", "content": "视频信息 1 配置" },
+        { "type": "image_picker", "id": "poster_1", "label": "视频信息 1 封面图片" },
+        { "type": "url", "id": "video_url_1", "label": "视频信息 1 视频地址" },
+
+        { "type": "header", "content": "视频信息 2 配置" },
+        { "type": "image_picker", "id": "poster_2", "label": "视频信息 2 封面图片" },
+        { "type": "url", "id": "video_url_2", "label": "视频信息 2 视频地址" },
+
+        { "type": "header", "content": "视频信息 3 配置" },
+        { "type": "image_picker", "id": "poster_3", "label": "视频信息 3 封面图片" },
+        { "type": "url", "id": "video_url_3", "label": "视频信息 3 视频地址" },
+
+        { "type": "header", "content": "视频信息 4 配置" },
+        { "type": "image_picker", "id": "poster_4", "label": "视频信息 4 封面图片" },
+        { "type": "url", "id": "video_url_4", "label": "视频信息 4 视频地址" },
+
+        { "type": "header", "content": "视频信息 5 配置" },
+        { "type": "image_picker", "id": "poster_5", "label": "视频信息 5 封面图片" },
+        { "type": "url", "id": "video_url_5", "label": "视频信息 5 视频地址" },
+
+        { "type": "header", "content": "视频信息 6 配置" },
+        { "type": "image_picker", "id": "poster_6", "label": "视频信息 6 封面图片" },
+        { "type": "url", "id": "video_url_6", "label": "视频信息 6 视频地址" },
+
+        { "type": "header", "content": "视频信息 7 配置" },
+        { "type": "image_picker", "id": "poster_7", "label": "视频信息 7 封面图片" },
+        { "type": "url", "id": "video_url_7", "label": "视频信息 7 视频地址" },
+
+        { "type": "header", "content": "视频信息 8 配置" },
+        { "type": "image_picker", "id": "poster_8", "label": "视频信息 8 封面图片" },
+        { "type": "url", "id": "video_url_8", "label": "视频信息 8 视频地址" },
+
+        { "type": "header", "content": "视频信息 9 配置" },
+        { "type": "image_picker", "id": "poster_9", "label": "视频信息 9 封面图片" },
+        { "type": "url", "id": "video_url_9", "label": "视频信息 9 视频地址" },
+
+        { "type": "header", "content": "视频信息 10 配置" },
+        { "type": "image_picker", "id": "poster_10", "label": "视频信息 10 封面图片" },
+        { "type": "url", "id": "video_url_10", "label": "视频信息 10 视频地址" }
+      ]
+    },
+    {
+      "type": "pdp_award",
+      "name": "媒体背书",
+      "settings": [
+        { "type": "text", "id": "module_title", "label": "模块标题(必填)" },
+        { "type": "textarea", "id": "sub_title", "label": "描述" },
+        { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+        { "type": "image_picker", "id": "pc_image", "label": "PC 背景图(必填)", "info": "大小: 1920x640" },
+        { "type": "image_picker", "id": "mb_image", "label": "MB 背景图(必填)", "info": "大小: 750x1237" },
+        { "type": "text", "id": "button_text", "label": "按钮文案" },
+        { "type": "url", "id": "link", "label": "跳转地址" },
+
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "image_picker", "id": "pc_image_1", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_1", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_1", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 2 配置" },
+        { "type": "image_picker", "id": "pc_image_2", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_2", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_2", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 3 配置" },
+        { "type": "image_picker", "id": "pc_image_3", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_3", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_3", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 4 配置" },
+        { "type": "image_picker", "id": "pc_image_4", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_4", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_4", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 5 配置" },
+        { "type": "image_picker", "id": "pc_image_5", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_5", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_5", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 6 配置" },
+        { "type": "image_picker", "id": "pc_image_6", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_6", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_6", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 7 配置" },
+        { "type": "image_picker", "id": "pc_image_7", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_7", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_7", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 8 配置" },
+        { "type": "image_picker", "id": "pc_image_8", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_8", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_8", "label": "图片链接地址" }
+      ]
+    },
+    {
+      "type": "recommend_products",
+      "name": "产品推荐",
+      "settings": [
+        { "type": "header", "content": "推荐产品配置" },
+        {
+          "type": "select",
+          "id": "recommend_product_section_width",
+          "label": "组件宽度",
+          "options": [
+            {
+              "value": "w_1200",
+              "label": "版心/1200px"
+            },
+            {
+                "value": "w_1312",
+                "label": "大版心/1312px"
+            }
+          ],
+          "default": "w_1312"
+        },
+        {
+          "type": "number",
+          "id": "recommend_products_margin_top",
+          "label": "上间距",
+          "default": 40
+        },
+        {
+          "type": "number",
+          "id": "recommend_products_margin_bottom",
+          "label": "下间距",
+          "default": 32
+        },
+        { "type": "header", "content": "按钮配置", "info": "最多展示配置了文案的前两个按钮" },
+        {
+          "type": "text",
+          "id": "view_more_text",
+          "label": "查看更多按钮文案"
+        },
+        {
+          "type": "select",
+          "id": "view_more_style",
+          "label": "查看更多按钮样式",
+          "options": [
+            { "value": "secondary", "label": "空心" },
+            { "value": "primary", "label": "实心" }
+          ],
+          "default": "secondary"
+        },
+        {
+          "type": "text",
+          "id": "add_to_cart_text",
+          "label": "加购按钮文案",
+          "default": "Add to Cart"
+        },
+        {
+          "type": "select",
+          "id": "add_to_cart_style",
+          "label": "加购按钮样式",
+          "options": [
+            { "value": "secondary", "label": "空心" },
+            { "value": "primary", "label": "实心" }
+          ],
+          "default": "secondary"
+        },
+        {
+          "type": "text",
+          "id": "buy_now_text",
+          "label": "结算按钮文案",
+          "default": "Buy Now"
+        },
+        {
+          "type": "select",
+          "id": "buy_now_style",
+          "label": "结算按钮样式",
+          "options": [
+            { "value": "secondary", "label": "空心" },
+            { "value": "primary", "label": "实心" }
+          ],
+          "default": "primary"
+        }
+      ],
+      "limit": 1
+    },
+    {
+      "type": "@app"
+    }
+  ],
+  "presets": [
+    {
+      "name": "4.0商详页内容组件",
+      "category": "产品详情"
+    }
+  ]
+}
+{% endschema %}

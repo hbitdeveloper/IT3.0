@@ -1,0 +1,105 @@
+
+{% assign icons = section.blocks | where: 'type', 'icon_item' %}
+
+<section class="w-full flex-center flex-col bg-white">
+  <div class="w-full flex items-center justify-center flex-col px-40 lg:px-0 lg:flex-row lg:j-w-1280 lg:j-pl-120 lg:j-pr-75 lg:j-pt-60 lg:j-gap-x-90 xl:a-w-1280 xl:a-pl-120 xl:a-pr-75 xl:a-pt-60 xl:a-gap-x-90 bg-white">
+      <div class="flex-1 pt-60 lg:j-pt-60 xl:a-pt-60">
+          <h2 class="font-600 text-center lg:text-left text-48 leading-96 mb-40 lg:j-text-40 lg:j-leading-48 lg:j-px-10 lg:j-mb-45 xl:a-text-40 xl:a-leading-48 xl:a-px-10 xl:a-mb-45">
+            {{ section.settings.title | newline_to_br }}
+          </h2>
+          <ul class="flex flex-row gap-x-40 lg:flex-col lg:j-gap-x-0 lg:j-gap-y-30 xl:a-gap-x-0 xl:a-gap-y-30">
+            {% for block in icons %}
+              <li class="basis-1/3 flex flex-col gap-y-20 lg:flex-row items-center lg:gap-y-0 lg:j-gap-x-20 xl:a-gap-x-20">
+                <img class="rounded-full w-128 h-128 lg:j-w-80 lg:j-h-80 xl:a-w-80 xl:a-h-80 object-contain" src="{{ block.settings.icon_img | img_url: 'medium' }}" loading="lazy"/>
+                <span class="font-400 lg:j-text-22 lg:j-leading-26 xl:a-text-22 xl:a-leading-26 line-clamp-5 lg:line-clamp-3">
+                  {{ block.settings.icon_text | newline_to_br }}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+          {% if section.settings.description != blank %}
+            <p class="w-full font-400 text-#999 text-24 leading-36 mt-40 mb-30 lg:j-text-14 lg:j-leading-26 lg:j-px-10 lg:j-mt-75 lg:j-mb-0 xl:a-text-14 xl:a-leading-26 xl:a-px-10 xl:a-mt-75 xl:a-mb-0">
+              {{ section.settings.description | newline_to_br }}
+            </p>
+          {% endif %}
+      </div>
+      <div
+        class="photovolatic-user-guide-wrap bg-black w-640 h-1022 border-solid border-black border-16 !border-b-0 rounded-t-100 lg:j-w-420 lg:j-h-670 lg:j-border-8 lg:j-rounded-t-50 xl:a-w-420 xl:a-h-670 xl:a-border-8 xl:a-rounded-t-50 overflow-hidden"
+        style="transform:translateZ(0);"
+        data-section-title="{{ section.settings.title | escape }}"
+        data-video-url="{{ section.settings.video_url }}"
+      >
+        {%
+          render 'jky-video',
+            poster: section.settings.poster,
+            video_url: section.settings.video_url,
+            autoplay: false,
+            loop: section.settings.loop,
+            controls: section.settings.controls
+        %}
+      </div>
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "photovolatic User Guide",
+    "class": "section-photovolatic section-photovolatic-user-guide",
+    "settings": [
+      {
+        "type": "textarea",
+        "id": "title",
+        "label": "Section Title",
+        "default": "APP User Guide"
+      },
+      {
+        "type": "textarea",
+        "id": "description",
+        "label": "Description",
+        "default": "Follow the instructions in the APP to get the most from your balcony power system."
+      },
+      {
+        "type": "image_picker",
+        "id": "poster",
+        "label": "封面图片"
+      },
+      {
+        "type": "url",
+        "id": "video_url",
+        "label": "视频地址",
+        "info": "本地视频建议视频大小不超过20MB"
+      },
+      {
+        "type": "checkbox",
+        "id": "loop",
+        "label": "循环播放？",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "controls",
+        "label": "显示播放控件？",
+        "default": true
+      }
+    ],
+    "blocks": [
+      {
+        "type": "icon_item",
+        "name": "Icon item",
+        "limit": 3,
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "icon_img",
+            "label": "Icon Image"
+          },
+          {
+            "type": "textarea",
+            "id": "icon_text",
+            "label": "Icon Text"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

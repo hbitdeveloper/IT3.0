@@ -1,0 +1,320 @@
+{% liquid
+  assign item_blocks = section.blocks | where: 'type', 'item'
+  assign total = item_blocks.size
+%}
+
+{%- if total > 1 -%}
+  <style>
+    #v5-story-img-text-{{ section.id }} .swiper:not(.swiper-initialized) .swiper-wrapper {
+      display: flex;
+    }
+
+    #v5-story-img-text-{{ section.id }} .swiper:not(.swiper-initialized) .swiper-slide {
+      margin-right: 1rem;
+    }
+
+    @media (min-width: 1024px) {
+      #v5-story-img-text-{{ section.id }} .swiper:not(.swiper-initialized) .swiper-slide {
+        margin-right: 1.5rem;
+      }
+    }
+  </style>
+{%- endif -%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  id="v5-story-img-text-{{ section.id }}"
+  class="w-full section-padding flex flex-col gap-y-9 lg:gap-y-[3.75rem]"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  style="background-color: {{section.settings.bg_color | default: '#FFFFFF' }};{{ style }}"
+>
+  <div class="section-container-lg flex flex-col gap-y-3 lg:gap-y-5">
+    {%- if section.settings.title != blank -%}
+      <h2 class="w-full v5-font-oxm font-extrabold text-center text-[#242F20] text-4xl lg:text-7xl">{{ section.settings.title | newline_to_br }}</h2>
+    {%- endif -%}
+    {%- if section.settings.subtitle != blank -%}
+      <p class="w-full font-normal lg:font-semibold text-center text-[#242F20] text-sm lg:text-[1.75rem] lg:leading-[2.25rem]">{{ section.settings.subtitle | newline_to_br }}</p>
+    {%- endif -%}
+  </div>
+  <div class="section-container-lg swiper overflow-hidden w-full">
+    <div class="swiper-wrapper {% if total <= 2 %} lg:justify-center lg:gap-x-6 {% endif %}">
+      {% for block in item_blocks %}
+        <div class="swiper-slide flex flex-col-reverse lg:flex-row w-[21.4375rem] h-[27.75rem] lg:w-[40.5rem] lg:h-[22.0625rem] bg-[#F5F5F3]">
+          <div class="w-full flex-1 lg:w-[20.25rem] flex flex-col justify-between p-6">
+            <div class="flex flex-col gap-y-5">
+              <h2 class="font-semibold text-[#242F20] text-base lg:text-xl line-clamp-2 lg:line-clamp-3">{{ block.settings.title | newline_to_br }}</h2>
+              <p class="font-normal text-[#242F20]/90 text-sm lg:text-base line-clamp-3 lg:line-clamp-4">{{ block.settings.subtitle | newline_to_br }}</p>
+            </div>
+            <div class="w-full flex items-center {% if block.settings.link == blank or section.settings.read_btn_text == blank %} justify-end {% else %} justify-between {% endif %}">
+              {%- if block.settings.link != blank and section.settings.read_btn_text != blank -%}
+                <a href="{{ block.settings.link }}" class="w-fit max-w-[60%] appearance-none bg-transparent border-[#242F20] border-solid border h-9 leading-[2.125rem] font-semibold text-[#242F20] text-base px-6 line-clamp-1 hover:text-white hover:bg-[#242F20] visited:text-[#242F20] visited:bg-transparent">{{ section.settings.read_btn_text | escape }}</a>
+              {%- endif -%}
+              {%- if block.settings.read_time != blank -%}
+                <span class="w-fit max-w-[30%] flex font-normal text-base text-black/65 overflow-hidden">{{ block.settings.read_time | escape }}</span>
+              {%- endif -%}
+            </div>
+          </div>
+          {%- render 'diff-end-img',
+            picture_class: 'shrink-0 w-full h-[13.875rem] lg:w-[20.25rem] lg:h-[22.0625rem]',
+            class: 'w-full h-full object-cover',
+            pc_img: block.settings.pc_img,
+            mb_img: block.settings.mb_img,
+            pc_img_width: 324,
+            mb_img_width: 343
+          -%}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% comment %} 轮播按钮 {% endcomment %}
+  {%- if total > 1 -%}
+    <div class="w-full flex {% if total == 2 %} lg:hidden {% endif %} items-center justify-center gap-x-[1.125rem] -mt-1 lg:gap-x-10 lg:-mt-6">
+      <div class="rounded-full w-[1.875rem] h-[1.875rem] lg:w-10 lg:h-10 cursor-pointer" role="button" tabindex="0" data-prev aria-label="prev">
+        {% render 'v5-icon-arrow-left', class: 'text-[#242F20]' %}
+      </div>
+      <div class="rounded-full w-[1.875rem] h-[1.875rem] lg:w-10 lg:h-10 cursor-pointer" role="button" tabindex="0" data-next aria-label="next">
+        {% render 'v5-icon-arrow-right', class: 'text-[#242F20]' %}
+      </div>
+    </div>
+  {%- endif -%}
+</div>
+
+<script type="module">
+  document.addEventListener("DOMContentLoaded", function () {
+    const containerSelector = "#v5-story-img-text-{{ section.id }}";
+    const containerEl = document.querySelector(containerSelector);
+
+    if (!containerEl) return;
+
+    const blocksSize = parseInt("{{ total }}");
+
+    const getGaps = () => {
+      const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      return {
+        base: rootFontSize * 1,
+        desktop: rootFontSize * 1.5,
+      };
+    };
+
+    const baseOptions = {
+      slidesPerView: 'auto',
+      breakpoints: {
+        750: {
+          slidesPerView: 1,
+        },
+        1024: {
+          slidesPerView: 2,
+        }
+      },
+      loop: false,
+      lazy: {
+        loadPrevNext: true,
+        loadOnTransitionStart: true,
+        loadPrevNextAmount: 2
+      },
+    };
+
+    let swiperInstance = null;
+
+    const shouldEnableSwiper = () => {
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+      const isDesktop = viewportWidth >= 1024;
+
+      if (isDesktop) {
+        return blocksSize > 2;
+      }
+
+      return blocksSize > 1;
+    };
+
+    const initSwiper = () => {
+      if (swiperInstance || !shouldEnableSwiper()) return;
+
+      const gaps = getGaps();
+
+      const options = {
+        ...baseOptions,
+        spaceBetween: gaps.base,
+        breakpoints: {
+          750: {
+            ...baseOptions.breakpoints[750],
+            spaceBetween: gaps.base,
+          },
+          1024: {
+            ...baseOptions.breakpoints[1024],
+            spaceBetween: gaps.desktop,
+          }
+        },
+      };
+
+      if (blocksSize > 1) {
+        options.navigation = {
+          nextEl: containerSelector + ' [data-next]',
+          prevEl: containerSelector + ' [data-prev]',
+        };
+        options.loop = true;
+      }
+
+      const swiperEl = containerEl.querySelector(".swiper");
+      if (!swiperEl) return;
+
+      swiperInstance = new Swiper(swiperEl, options);
+    };
+
+    const destroySwiper = () => {
+      if (!swiperInstance) return;
+      swiperInstance.destroy(true, true);
+      swiperInstance = null;
+    };
+
+    const updateSwiper = () => {
+      if (swiperInstance) {
+        const gaps = getGaps();
+        swiperInstance.params.spaceBetween = gaps.base;
+
+        if (swiperInstance.params.breakpoints) {
+          if (swiperInstance.params.breakpoints[750]) {
+            swiperInstance.params.breakpoints[750].spaceBetween = gaps.base;
+          }
+
+          if (swiperInstance.params.breakpoints[1024]) {
+            swiperInstance.params.breakpoints[1024].spaceBetween = gaps.desktop;
+          }
+        }
+
+        swiperInstance.update();
+      }
+
+      if (shouldEnableSwiper()) {
+        if (swiperInstance) {
+          swiperInstance.update();
+        } else {
+          initSwiper();
+        }
+      } else {
+        destroySwiper();
+      }
+    };
+
+    updateSwiper();
+
+    if ("ResizeObserver" in window) {
+      const resizeObserver = new ResizeObserver(() => {
+        updateSwiper();
+      });
+      resizeObserver.observe(document.documentElement);
+    } else {
+      let resizeTimeoutId = null;
+      window.addEventListener("resize", () => {
+        if (resizeTimeoutId !== null) {
+          clearTimeout(resizeTimeoutId);
+        }
+        resizeTimeoutId = setTimeout(() => {
+          updateSwiper();
+        }, 150);
+      });
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "V5-推荐故事（图文）",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["product", "page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 96 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 96 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#FFFFFF" },
+    { "type": "textarea", "id": "title", "label": "版块标题", "default": "User Favorites" },
+    { "type": "textarea", "id": "subtitle", "label": "版块副标题", "default": "Most loved by our community" },
+
+    { "type": "header", "content": "图文卡片通用设置" },
+    { "type": "text", "id": "read_btn_text", "label": "阅读按钮文案", "default": "Read" }
+  ],
+  "blocks": [
+    {
+      "name": "图文卡片",
+      "type": "item",
+      "settings": [
+        { "type": "textarea", "id": "title", "label": "标题", "default": "How Sarah Secured His Home with Reliable Backup Power" },
+        { "type": "textarea", "id": "subtitle", "label": "副标题", "default": "Billy smiles when he talks about it. “It’s the best of both worlds,” " },
+        { "type": "text", "id": "read_time", "label": "阅读预估时长", "default": "10 min" },
+        { "type": "image_picker", "id": "pc_img", "label": "PC端图片", "info": "推荐尺寸: 324x353" },
+        { "type": "image_picker", "id": "mb_img", "label": "MB端图片", "info": "推荐尺寸: 686x444" },
+        { "type": "url", "id": "link", "label": "卡片跳转链接" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-推荐故事（图文）",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "item"
+        },
+        {
+          "type": "item"
+        },
+        {
+          "type": "item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,274 @@
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+{%-liquid
+  assign block_style = block.settings.block_style | default:'default'
+  assign block_class = ''
+  assign layout_class = 'flex flex-row items-stretch justify-center lg:justify-start flex-wrap'
+  if block_style == 'default'
+   assign block_class = 'gap-x-3 gap-y-10 lg:gap-8 [&_.v-data-card]:lg:bg-[rgba(255,255,255,0.3)] [&_.v-data-card]:lg:backdrop-filter:blur(12px); '
+  elsif block_style == 'style_border' or block_style == 'style_black'
+    assign layout_class = ''
+    assign grid_cols_class = 'grid-cols-2'
+    assign block_count = block.blocks.size | default: 0
+    if block_count == 3
+      assign grid_cols_class = 'grid-cols-3'
+    elsif block_count >= 4
+      assign grid_cols_class = 'grid-cols-2 lg:grid-cols-4'
+    endif
+
+    # 基础网格布局类
+    assign block_class = 'grid ' | append: grid_cols_class | append: ' gap-2 lg:gap-6'
+    # 卡片基础尺寸类
+    assign block_class = block_class | append: '[&_.v-data-card]:w-auto '
+
+    # 卡片背景与模糊效果类
+    if block_style == 'style_black'
+      assign block_class = block_class | append: '[&_.v-data-card]:bg-[rgba(0,0,0,0.4)] '
+    else
+      # 卡片背景与模糊效果类
+      assign block_class = block_class | append: '[&_.v-data-card]:lg:bg-[rgba(255,255,255,0.01)] '
+      assign block_class = block_class | append: '[&_.v-data-card]:backdrop-blur-[7.12px] [&_.v-data-card]:lg:backdrop-blur-[14px] '
+      # 卡片边框样式类
+      assign block_class = block_class | append: '[&_.v-data-card]:border [&_.v-data-card]:border-solid [&_.v-data-card]:border-[rgba(255,255,255,0.5)] '
+    endif
+  endif
+
+  # 卡片圆角类
+  assign enable_round_corners = block.settings.enable_round_corners | default:false
+  if enable_round_corners
+    assign block_class = block_class | append: '[&_.v-data-card]:rounded-lg [&_.v-data-card]:lg:rounded-2xl '
+  endif
+
+  assign block_position = block.settings.block_position | default:'default'
+  if block_position == 'bottom_center'
+    assign block_class = 'absolute bottom-0 left-1/2 -translate-x-1/2 justify-center ' | append: block_class
+  endif
+%}
+
+<div
+  {{ block.shopify_attributes }}
+  class="v-data-card-group {{block.settings.page_width}} {{ block_class }} section-padding {{ layout_class }}"
+  style="{{ style }}"
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% schema %}
+{
+  "name": "V-数据卡片组",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "提示：请自行控制数量，建议2-4个卡片"
+    },
+    {
+      "type": "header",
+      "content": "样式与布局"
+    },
+    {
+      "type": "select",
+      "id": "block_style",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认（固定宽度+半透明卡片）"
+        },
+        {
+          "value": "style_border",
+          "label": "样式二（等分宽度+带边框半透明磨砂卡片）"
+        },
+        {
+          "value": "style_black",
+          "label": "样式三（等分宽度+黑色半透明卡片）"
+        }
+      ],
+      "default": "default",
+      "label": "样式",
+      "info": "选择卡片组的样式"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_round_corners",
+      "label": "是否启用卡片圆角",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度",
+      "info": "MB端组件宽度固定和设计稿一致，不可修改"
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+    {
+      "type": "paragraph",
+      "content": "1. 数值以750px稿即2倍图值为标准进行配置与换算。",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 举例如48px在750px稿上为48px，在375px稿上则为24px。",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "_v-data-card"
+    },
+    {
+      "type": "_v-data-card-only-tag"
+    },
+    {
+      "type": "_v-data-card-num-unit-tag"
+    },
+  ],
+  "presets": [
+    {
+      "name": "V-数据卡片组",
+      "blocks": [
+        {
+          "type": "_v-data-card",
+          "settings": {
+            "number": 100,
+            "title": "<p>Authorized Patents</p>"
+          }
+        },
+        {
+          "type": "_v-data-card",
+          "settings": {
+            "number": 100,
+            "title": "<p>Global Awards</p>"
+          }
+        },
+      ]
+    }
+  ]
+}
+{% endschema %}

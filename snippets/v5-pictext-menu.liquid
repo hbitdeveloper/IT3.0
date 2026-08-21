@@ -1,0 +1,91 @@
+<div {% if shopify_attributes != blank %}{{ shopify_attributes }}{% endif %} class="lg:block hidden h-full"> 
+    <div
+        data-lazy-image 
+        class="v5-header-main__menu-item list-none h-full flex items-center px-5 cursor-pointer flex-col"
+        data-ga-event="5.0_top_nav_user_clicks"
+        data-ga-action="mouseenter"
+        data-ga-params-module="Main Menu"
+        data-ga-params-position="{{ settings.handle.title | strip_html | escape }}"
+        data-ga-params-link="NULL" 
+    >
+        {%- if settings.menu_tag != blank -%}
+            <div class="w-full text-right h-0 relative">
+                <span class="absolute top-1 text-right v5-header-main__menu-tag text-xs font-medium background-text-accent text-white break-keep whitespace-nowrap right-0">{{ settings.menu_tag | escape }}</span>
+            </div>
+        {%- endif -%}
+
+        <span style="--left: 0;--right: 0;--color-text-main: {{ section.settings.text_color | default: '#242f20' }};{% if settings.fk_color != blank %}color: {{settings.fk_color}};{% endif %}" class="color-text-main v5-header-main__menu-name underline-animate relative h-full flex items-center font-semibold text-base">{{ settings.handle.title | strip_html }}</span>
+            <div class="v5-header-main__shop-wrapper h-auto absolute top-full w-full left-0 pointer-events-none">
+                <div class="v5-header-main__shop-content transition-medium-ease invisible v5-header-main__text-menu-content section-container-lg opacity-0 flex gap-x-10 py-10 h-full">
+                    <div style="max-height: min(calc(80vh - 80px), 516px);overflow-y: auto;" class="w-full">
+                        <div class="grid {% if settings.handle.items.value.size == 1 %}grid-cols-1 {% elsif settings.handle.items.value.size == 2 %}grid-cols-2 {% else %} grid-cols-4 {% endif %} gap-x-6 w-full">
+                            {%- for item in settings.handle.items.value limit: 4 -%}
+                                <div class="lazy-image-wrapper relative v5-menu-animate{% if settings.handle.items.value.size > 2 %} aspect-square{% endif %}" style="--index: {{ forloop.index }};{% unless settings.handle.items.value.size > 2 %}height: 19.5rem;{% endunless %}">
+                                    {%- if item.tag != blank -%}
+                                        <div class="background-text-main absolute text-base font-semibold text-white py-1 px-2 z-[2] line-clamp-1{% if settings.handle.items.value.size == 1 %} left-24 top-4{% elsif settings.handle.items.value.size == 2 %} left-10 top-4{% else %} left-2 top-2{% endif %}">{{ item.tag }}</div>
+                                    {%- endif -%}
+                                    {%-liquid
+                                        assign item_width = 620
+                                        if settings.handle.items.value.size == 1
+                                            assign item_width = 2640
+                                        elsif settings.handle.items.value.size == 2
+                                            assign item_width = 1296
+                                        endif
+                                    -%}
+                                    <img 
+                                        width="{{ item.card_img.width }}" 
+                                        height="{{ item.card_img.height }}" 
+                                        loading="lazy" 
+                                        class="absolute w-full h-full top-0 left-0 object-cover opacity-0 transition-slow-ease" data-src="{{ item.card_img | image_url: width: item_width }}" 
+                                        alt="{{ item.card_img.alt | escape }}" 
+                                        fetchpriority="low"
+                                    />
+                                    <div class="relative z-[2] w-full h-full flex items-start justify-end flex-col {% if settings.handle.items.value.size == 1 %} px-24 py-10{% elsif settings.handle.items.value.size == 2 %} px-10 py-10{% else %} px-4 py-4{% endif %}">
+                                        <div style="color: {{ settings.card_color | default: '#000000' }};" class="line-clamp-2 font-semibold mb-2{% if settings.handle.items.value.size >2 %} text-base{% else %} text-2xl{% endif %}">{{item.title}}</div>
+                                        <div style="color: {{ settings.card_color | default: '#000000' }};" class="line-clamp-2 font-normal mb-3{% if settings.handle.items.value.size >2 %} text-base{% else %} text-xl{% endif %}">{{item.subtitle}}</div>
+                                        <a 
+                                            href="{{ item.url }}" 
+                                            style="background-color: {{ settings.help_bg | default: '#242f20' }};color: {{ settings.text_color | default: '#ffffff' }};"
+                                            class="background-text-main header-v5-btn flex items-center font-semibold text-white{% if settings.handle.items.value.size > 2 %} text-base px-4 h-10{% else %} text-xl px-5 h-12{% endif %}"
+                                            data-ga-event="5.0_top_nav_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="{{ settings.handle.title | strip_html | escape }}"
+                                            data-ga-params-position="{{ item.title | strip | escape }}"
+                                            data-ga-params-link="{{ item.url | escape }}"
+                                        >{{ settings.card_label }}</a> 
+                                    </div>
+                                </div>
+                            {%- endfor -%}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="v5-header-main__shop-bg transition-medium-ease bg-white absolute top-0 w-full left-0"></div>
+            </div>
+    </div>
+</div>
+
+{% comment %} 移动端menu 开关 {% endcomment %}
+<drawer-opener data-drawer="#Drawer__pictext--{{ id }}" class="lg:hidden block" {% if shopify_attributes != blank %}{{ shopify_attributes }}{% endif %}>
+    <div 
+        class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+        data-ga-event="5.0_top_nav_user_clicks"
+        data-ga-action="click"
+        data-ga-params-module="Main Menu"
+        data-ga-params-position="{{ settings.handle.title | strip_html | escape }}"
+        data-ga-params-link="NULL" 
+    >
+        <div class="flex items-center flex-nowrap gap-x-2">
+            <span class="text-base font-semibold line-clamp-2 flex-1">
+                {{ settings.handle.title | strip_html }}
+            </span>
+
+            {%- if settings.menu_tag != blank -%}
+                <span style="padding: 0 1px;" class="text-xs font-medium bg-primary text-white h-fit">{{ settings.menu_tag | escape }}</span>
+            {%- endif -%}
+        </div>
+        <div class="w-6 h-6 flex items-center justify-center">
+            {%- render "icon-arrow", class: 'w-3 h-3' -%}
+        </div>
+    </div>
+</drawer-opener>

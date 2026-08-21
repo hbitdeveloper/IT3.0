@@ -1,0 +1,170 @@
+<link
+        rel="stylesheet"
+        href="{{ 'collection-help-choose.css' | asset_url }}"
+        media="print"
+        onload="this.media='all'">
+<noscript>
+    {{ 'collection-help-choose.css' | asset_url | stylesheet_tag }}
+</noscript>
+<link
+        rel="stylesheet"
+        href="{{ 'sections-ehb-caculator.css' | asset_url }}"
+        media="print"
+        onload="this.media='all'">
+<noscript>
+  {{ 'sections-ehb-caculator.css' | asset_url | stylesheet_tag }}
+</noscript>
+<style>
+    #shopify-section-{{section.id}} .newcomer-calculator .calculator-content {
+        background: {{section.settings.bg_color | default: 'transparent' }};
+    }
+</style>
+
+<ehb-calculator
+    class="{{section.settings.page_width}} block newcomer-calculator-container my-6"
+    {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %}
+>
+    {%- for block in section.blocks -%}
+        {%- case block.type -%}
+            {%- when 'newcomer-calculator' -%}
+                {% render 'newcomer-calculator', settings: block.settings, index: 1, shopify_attributes: block.shopify_attributes %}
+        {%- endcase -%}
+    {%- endfor -%}
+
+    {%- liquid
+        assign has_img = 'no'
+        assign img_url = ''
+        if section.settings.modal_img != blank
+            assign has_img = 'yes'
+            assign img_url = section.settings.modal_img | image_url: width: 1920
+        endif
+    -%}
+    <script type="application/json">
+        {
+            "modal_btn": "{{section.settings.modal_btn}}",
+            "modal_title": "{{section.settings.modal_title}}",
+            "modal_subtitle": "{{section.settings.modal_subtitle}}",
+            "has_modal_img": "{{has_img}}",
+            "modal_img": "{{img_url}}",
+            "modal_img_alt": "{{section.settings.modal_img.alt}}"
+        }
+    </script>
+</ehb-calculator>
+
+<script defer src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/countUp.min.js?v=1752126972" data-cookieconsent="ignore"></script>
+<script defer src="{{ 'collection-help-choose.js' | asset_url }}"></script>
+<script src="{{ 'sections-ehb-caculator.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+    "name": "EHB产品计算器",
+    "class": "ehb-product-caculator",
+    "enabled_on": {
+      "templates": ["page"]
+    },
+    "settings": [
+        { "type": "header", "content": "组件样式配置" },
+        { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {
+            "type": "select",
+            "id": "page_width",
+            "options": [
+                {
+                "value": "section-container",
+                "label": "版心/1200px"
+                },
+                {
+                "value": "section-container-lg",
+                "label": "大版心/1312px"
+                },
+                {
+                "value": "w-full",
+                "label": "铺满/100%"
+                }
+            ],
+            "default": "section-container-lg",
+            "label": "PC的组件宽度",
+            "info": "MB端组件宽度固定和设计稿一致，不可修改"
+        },
+        {
+            "type": "color_background",
+            "id": "bg_color",
+            "label": "背景颜色",
+            "default": "rgba(217, 217, 217, 0.3)"
+        },
+
+        { "type": "header", "content": "弹窗配置" },
+        { "type": "text", "id": "modal_btn", "label": "弹窗按钮文案" },
+        { "type": "text", "id": "modal_title", "label": "弹窗标题" },
+        { "type": "text", "id": "modal_subtitle", "label": "弹窗副标题" },
+        {
+          "type": "image_picker",
+          "id": "modal_img",
+          "label": "弹窗图片"
+        }
+
+    ],
+    "blocks": [
+        {
+            "type": "newcomer-calculator",
+            "name": "储能估算",
+            "limit": 1,
+            "settings": [
+                { "type": "header", "content": "Calculator" },
+                { "type": "collection", "id": "collection_shop", "label": "产品系列" },
+                { "type": "number", "id": "part_index", "label": "索引" },
+                { "type": "richtext", "id": "part_title", "label": "标题" },
+                { "type": "richtext", "id": "part_subtitle", "label": "副标题" },
+                { "type": "richtext", "id": "table_description", "label": "备注" },
+                { "type": "image_picker", "id": "select_poster", "label": "未选择时候icon图片" },
+                { "type": "text", "id": "hour_text", "label": "小时数文案", "default": "Hrs"  },
+                { "type": "text", "id": "expected_text", "label": "预期运行时常文案"  },
+                { "type": "text", "id": "select_text", "label": "选择储能文案", "default": "select power station"  },
+                {
+                "type": "textarea",
+                "id": "errorTips",
+                "label": "错误提示",
+                "default": "Input power does not exceed ${power}W.",
+                "info": "${power}用于替换当前产品产品的最大功率，替换后示例：3000W;"
+                },
+                { "type": "text", "id": "w_text", "label": "瓦数名称", "default": "Wattage"  },
+                { "type": "text", "id": "button_tip_text", "label": "按钮提示语", "default": "calculation", "info": "日站填充文案：計算する"  },
+                { "type": "text", "id": "equipment", "label": "设备参数", "default": "Capacity ${capacity}, Output ${power}",
+                "info": " 1. ${power}用于替换当前产品产品的最大功率，替换后示例：3000W; 2. ${Capacity}用于替换当前产品的电池容量，替换后示例：2000Wh"  }
+            ]
+        }
+    ],
+    "presets": [
+        {
+            "name": "EHB产品计算器",
+            "category": "EHB页面",
+            "settings": {
+                "page_width": "section-container-lg",
+                "modal_btn": "Learn About the Capacity and Power of Jackery Products",
+                "modal_title": "The Power of Electrical Appliances",
+                "modal_subtitle": "Note: These power ranges are typical for commonly appliances, but the actual power consumption can vary based on the specific model and its intended use."
+            },
+            "blocks": [
+                {
+                    "type": "newcomer-calculator",
+                    "name": "储能估算",
+                    "settings": {
+                        "collection_shop": "accessories",
+                        "part_index": 3,
+                        "part_title": "<p><strong>Choose a Jackery to</strong> Estimate Runtime</p>",
+                        "part_subtitle": "<p>Select a Jackery power station and enter your appliance’s wattage to estimate the running time.</p>",
+                        "table_description": "<p>Note: This is a<strong>calculation</strong>for<em>reference</em>. Please take the actual use for accuracy</p>",
+                        "hour_text": "Hrs",
+                        "expected_text": "Expected Running Time1 Expected Running Time",
+                        "select_text": "select power station",
+                        "errorTips": "Input power does not exceed ${power}W.",
+                        "w_text": "Wattage",
+                        "button_tip_text": "calculation",
+                        "equipment": "Capacity ${capacity}, Output ${power}"
+                    }
+                }
+            ]
+        }
+    ]
+}
+{% endschema %}

@@ -1,0 +1,199 @@
+    <style>
+        .collection-product {
+            padding: 0 0 86px 0;
+        }
+        .collection-product-title {
+            margin-bottom: 80px;
+        }
+        .collection-product-item {
+            width: 390px;
+            height: 467px;
+        }
+        .collection-product-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .collection-product-item-content {
+            padding: 56px 52px;
+        }
+        .collection-product-item-subtitle {
+            margin: 12px auto 20px;
+        }
+        .collection-product-item-content .a-button-fill {
+            line-height: unset!important;
+            padding: 8px 32px;
+        }
+        .collection-product-item .collection-product-item-pimg {
+            z-index: 2;
+            height: 180px;
+            width: auto;
+            left: 20px;
+            bottom: 0;
+            transform: translateY(50%);
+        }
+
+        .product-recommend {
+            margin-top: 80px;
+            margin-bottom: 6.25vw;
+            background-color: #DDD5C5;
+        }
+        .product-recommend-b {
+            flex: 1;
+        }
+        .product-recommend-box {
+            max-width: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .product-recommend-b img {
+            width: 100%;
+            object-fit: cover;
+        }
+        .product-recommend-b:nth-child(2) {
+            padding-left: 4.47917vw;
+        }
+        .product-recommend-title {
+            margin-bottom: 40px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .collection-product-item img {
+                width: 100%;
+                height: 112vw;
+                object-fit: cover;
+            }
+            .collection-product {
+                padding: 14vw 0 32.2vw;
+                padding-bottom: 0;
+            }
+            .collection-product-title {
+                margin-bottom: 5vw;
+            }
+            .collection-product-item-subtitle {
+                margin: 1.6vw auto 6vw;
+            }
+            .collection-product-item .collection-product-item-pimg {
+                height: 38vw;
+            }
+            .collection-product-item-content {
+                padding: 13.3vw 12vw;
+            }
+            .collection-product-list {
+                flex-direction: column;
+            }
+            .collection-product-item {
+                width: 100%;
+                height: 112vw;
+                margin-bottom: 33vw;
+            }
+
+            .product-recommend {
+                margin-top: 0;
+                margin-bottom: 0;
+                flex-direction: column;
+                position: relative;
+            }
+            .product-recommend-box {
+                width: 100%;
+            }
+            .product-recommend-title {
+                margin-bottom: 6.5vw;
+                color: #fff;
+                text-align: center;
+            }
+            .product-recommend-b:nth-child(2) {
+                position: absolute;
+                padding: 15.3vw 18vw 0 18vw;
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+        }
+    </style>
+    
+    <div class="collection-product section-container">
+        <h2 class="collection-product-title font-bold text-center jky-text-2xl">{{section.settings.collection_title}}</h2>
+        <div class="collection-product-list flex justify-between">
+            {% for block in section.blocks %}
+                <div class="collection-product-item relative focus-zoom-container">
+                    <div class="collection-product-item-content absolute top-0 bottom-0 left-0 right-0 overflow-hidden flex items-center flex-col text-center">
+                        <div class="flex items-center flex-col text-center relative" style="z-index: 3;">
+                            <h3 class="collection-product-item-title jky-text-sm font-bold">{{block.settings.title}}</h3>
+                            <div class="collection-product-item-subtitle jky-text-xs">{{block.settings.subtitle | newline_to_br}}</div>
+                            <a class="z-button-fill-middle" href="{{block.settings.collection_link}}">{{section.settings.collection_btn}} <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon></a>
+                        </div>
+
+                        {%- if block.settings.p_image -%}
+                            {%- 
+                                render 'responsive-image', 
+                                image: block.settings.image, 
+                                image_class: 'focus-zoom absolute top-0 left-0 right-0 bottom-0',
+                                width: 390,
+                                mwidth: 350,
+                            -%}
+                        {%- else -%}
+                            {{ 'product-apparel-1' | placeholder_svg_tag: 'focus-zoom absolute top-0 left-0 right-0 bottom-0' }}
+                        {%- endif -%}
+                    </div>
+
+                    {%- if block.settings.p_image -%}
+                        {%- 
+                            render 'responsive-image', 
+                            image: block.settings.p_image, 
+                            image_class: 'absolute collection-product-item-pimg',
+                            width: 180,
+                            mwidth: 150,
+                        -%}
+                    {%- else -%}
+                        {{ 'product-1' | placeholder_svg_tag: 'absolute collection-product-item-pimg' }}
+                    {%- endif -%}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="product-recommend flex">
+        <div class="overflow-hidden product-recommend-b">
+            {% render 'responsive-image', image: section.settings.guide_image, mimage: section.settings.m_guide_image, image_class: '' %}
+        </div>
+
+        <div class="flex product-recommend-b flex-col justify-center">
+            <div class="product-recommend-box">
+                <h3 class="product-recommend-title jky-text-xl font-bold text-center">{{section.settings.guide_title | newline_to_br}}</h3>
+                <a class="z-button-middle" href="{{section.settings.guide_link}}">{{section.settings.guide_btn}} <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon></a>
+            </div>
+        </div>
+    </div>
+
+    {% schema %}
+        {
+            "name": "Collection and Buy guide",
+            "tag": "section",
+            "class": "section indoor-collection-product",
+            "settings": [
+                {"type": "text", "id": "collection_title", "label": "Collection title"},
+                {"type": "text", "id": "collection_btn", "label": "collection button text", "default": "LEARN MORE"},
+                {"type": "textarea", "id": "guide_title", "label": "Buy guide title"},
+                {"type": "text", "id": "guide_btn", "label": "Buy guide button text", "default": "HELP YOU CHOOSE"},
+                {"type": "url", "id": "guide_link", "label": "Buy guide link"},
+                {"type": "image_picker", "id": "guide_image", "label": "PC Buy guide banner"},
+                {"type": "image_picker", "id": "m_guide_image", "label": "Mobile Buy guide banner"}
+            ],
+            "max_blocks": 3,
+            "blocks": [
+                {
+                    "type": "collectiona_item", "name": "collection item",
+                    "settings": [
+                        {"type": "text", "id": "title", "label": "collection name"},
+                        {"type": "textarea", "id": "subtitle", "label": "collection Heading"},
+                        {"type": "url", "id": "collection_link", "label": "collection link"},
+                        {"type": "image_picker", "id": "image", "label": "collection Image"},
+                        {"type": "image_picker", "id": "p_image", "label": "collection product Image"}
+                    ]
+                }
+            ]
+        }
+    {% endschema %}

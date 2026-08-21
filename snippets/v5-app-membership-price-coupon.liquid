@@ -1,0 +1,50 @@
+{% comment %}
+    产品详情页 - 添加会员价
+
+    Accepts: product
+    Usage:
+    {% render 'v5-app-membership-price-coupon' %}
+{% endcomment %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% comment %} 全局控制启用：open_membership_price {% endcomment %}
+{%- if settings.open_membership_price == true -%}
+  {% assign current_variant = product.selected_or_first_available_variant %}
+  {% capture membership_asset_root_id %}membership-price-{{ section.id }}-{{ block.id }}{% endcapture %}
+
+  <div id="{{ membership_asset_root_id }}" {{ block.shopify_attributes }} class="w-full section-padding" style="display:none;{{ style }}">
+    <v5-app-membership-price
+      class="flex flex-col bg-[#F5F5F3] px-3 py-3 gap-y-2 lg:px-4 lg:py-4 lg:gap-y-3"
+      data-display-auto-discount-price-in-sticky-cart="{{ settings.display_auto_discount_price_in_sticky_cart }}"
+      data-spu-id='{{ product.id }}'
+      data-product-title="{{ product.title }}"
+      data-variant-id="{{ current_variant.id }}"
+      data-variant-title="{{ current_variant.title }}"
+      data-rules-text="{{ 'membershipPrice.V5_template.rules' | t }}"
+      data-ends-in-text="{{ 'membershipPrice.V5_template.ends_in' | t }}"
+      data-countdown-label-text="{{ 'membershipPrice.V5_template.countdown_label_text' | t }}"
+      data-no-login-title="{{ 'membershipPrice.V5_template.no_login_title' | t }}"
+      data-no-login-guided-to-login="{{ 'membershipPrice.V5_template.no_login_guided_to_login' | t }}"
+      data-no-login-btn-text="{{ 'membershipPrice.V5_template.no_login_btn_text' | t }}"
+      data-logged-and-claimed-with-auto-apply-title="{{ 'membershipPrice.V5_template.logged_and_claimed_with_auto_apply_title' | t }}"
+      data-logged-and-claimed-with-auto-apply-btn-text="{{ 'membershipPrice.V5_template.logged_and_claimed_with_auto_apply_btn_text' | t }}"
+      data-logged-and-claimed-with-no-auto-apply-title="{{ 'membershipPrice.V5_template.logged_and_claimed_with_no_auto_apply_title' | t }}"
+      data-logged-and-claimed-with-no-auto-apply-btn-text="{{ 'membershipPrice.V5_template.logged_and_claimed_with_no_auto_apply_btn_text' | t }}"
+      data-logged-and-unclaimed-title="{{ 'membershipPrice.V5_template.logged_and_unclaimed_title' | t }}"
+      data-logged-and-unclaimed-btn-text="{{ 'membershipPrice.V5_template.logged_and_unclaimed_btn_text' | t }}"
+      data-logged-apply-text="{{ 'membershipPrice.V5_template.logged_apply_text' | t }}"
+      data-logged-terms-text="{{ 'membershipPrice.V5_template.logged_terms_text' | t }}"
+      data-claim-code-success-tip-text="{{ 'membershipPrice.V5_template.claim_code_success_tip' | t }}"
+      data-copy-code-success-tip-text="{{ 'membershipPrice.V5_template.copy_code_success_tip' | t }}"
+    ></v5-app-membership-price>
+  </div>
+  {% render 'lazy-load-asset-group',
+    script: 'snippet-v5-app-membership-price-coupon.min.js',
+    style: 'snippet-v5-app-membership-price-coupon.min.css',
+    strategy: 'idle',
+    delay: 1800
+  %}
+{% endif %}

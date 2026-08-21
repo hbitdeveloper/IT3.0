@@ -1,0 +1,290 @@
+{% comment %}
+    奖品通知展示
+{% endcomment %}
+
+<style>
+    .winner-announcement{
+        margin-bottom: 120px;
+    }
+    .winner-announcement .winner-container{
+        margin: 0 auto;
+        width: 1280px;
+    }
+
+    .winner-announcement .winner-block{
+        width: 100%;
+        background: #FDF3E6;
+        border-radius: 16px;
+        padding: 40px 40px 40px 100px;
+        margin-bottom: 24px;
+    }
+    .winner-announcement .winner-block-title {
+        font-size: 32px;
+        line-height: 44px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        cursor: pointer;
+    }
+    .winner-announcement .winner-block-title div{
+        width: 960px;
+    }
+    .winner-announcement .winner-block-title svg{
+        transition: all .3s;
+        {% comment %} color: var(--jds-color-primary);
+        font-weight: bold; {% endcomment %}
+    }
+    .winner-announcement .winner-block-title.active svg{
+        transform: rotate(180deg);
+    }
+
+    .winner-announcement .winner-block-content{
+        width: 960px;
+        margin-top: 24px;
+    }
+    .winner-announcement .winner-block-content h3{
+        font-size: 24px;
+        line-height: 30px;
+        margin-bottom: 16px;
+        font-weight: 500;
+    }
+    .winner-announcement .winner-block-content li{
+        font-size: 18px;
+        line-height: 36px;
+        color: #1a1a1a;
+        font-weight: 400;
+    }
+    .winner-announcement .winner-block-content li::marker{
+        color: var(--jds-color-primary);
+    }
+    .winner-announcement .winner-block-content hr{
+        margin: 24px 0;
+        background-color: #f5ad23;
+        border: none;
+        height: 1px;
+    }
+    .winner-announcement .tips{
+        color: #666666;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 500;
+    }
+    @media screen and (max-width: 1440px) {
+        .winner-announcement{
+            margin-bottom: 8.33333333333333vw;
+        }
+        .winner-announcement .winner-container{
+            width: 88.8888888888889vw;
+        }
+
+        .winner-announcement .winner-block{
+            border-radius: 1.11111111111111vw;
+            padding: 2.7777777777777vw 2.7777777777777vw 2.7777777777777vw 6.94444444444444vw;
+            margin-bottom: 1.66666666666667vw;
+        }
+        .winner-announcement .winner-block-title {
+            font-size: 2.22222222222222vw;
+            line-height: 3.05555555555556vw;
+        }
+        .winner-announcement .winner-block-title div{
+            width: 66.6666666666667vw;
+        }
+
+        .winner-announcement .winner-block-content{
+            width: 66.6666666666667vw;
+            margin-top: 24px;
+        }
+        .winner-announcement .winner-block-content h3{
+            font-size: 1.66666666666667vw;
+            line-height: 2.08333333333333vw;
+            margin-bottom: 1.11111111111111vw;
+        }
+        .winner-announcement .winner-block-content li{
+            font-size: 1.25vw;
+            line-height: 2.5vw;
+        }
+        .winner-announcement .winner-block-content  hr{
+            margin: 1.66666666666667vw 0;
+        }
+        .winner-announcement .tips{
+            font-size: 1.11111111111111vw;
+            line-height: 1.66666666666667vw;
+        }
+    }
+    @media screen and (max-width: 1024px) {
+        .winner-announcement{
+            margin-bottom: 16vw;
+        }
+        .winner-announcement .winner-container{
+            width: 87.2vw;
+        }
+
+        .winner-announcement .winner-block{
+            border-radius: 2.66666666666667vw;
+            padding: 2.66666666666667vw 3.2vw 3.2vw ;
+            margin-bottom: 3.2vw;
+        }
+        .winner-announcement .winner-block-title {
+            font-size: 4.8vw;
+            line-height: 6.4vw;
+        }
+        .winner-announcement .winner-block-title div{
+            width: 71.2vw;
+        }
+        .winner-announcement .winner-block-title svg{
+            width: 5.133333vw;
+            height: 5.133333vw;
+        }
+        .winner-announcement .winner-block-content{
+            width: 100%;
+            margin-top: 4.53333333333333vw;
+        }
+        .winner-announcement .winner-block-content h3{
+            font-size: 4vw;
+            line-height: 5.33333333333333vw;
+            margin-bottom: 2.13333333333333vw;
+        }
+        .winner-announcement .winner-block-content li{
+            font-size: 3.73333333333333vw;
+            line-height: 5.06666666666667vw;
+            margin-bottom: 3.2vw;
+        }
+        .winner-announcement .winner-block-content hr{
+            margin: 5.33333333333333vw 0;
+        }
+        .winner-announcement .tips{
+            font-size: 3.46666666666667vw;
+            line-height: 4.8vw;
+        }
+    }
+</style>
+
+{% assign brandColor = '<em style="color: var(--jds-color-primary);">' %}
+<div id="{{ section.id }}" class="winner-announcement {%if section.settings.is_gift_block == true%} gift-anchor gift-anchor--mb{%endif%}" anchor="{{ section.settings.anchor | escape }}">
+    <div class="winner-container">
+        {% render 'new-title', class: 'winner-title', title: section.settings.module_title | escape, type: section.settings.type, bgColor: '#ffffff' %}
+        <div class="winner-contain ">
+            {% for block in section.blocks %}
+                <div class="winner-block">
+                    <div class="winner-block-title active">
+                        <div>{{block.settings.block_title | replace: '<em>', brandColor  }}</div>
+                        <svg width="28" height="28" viewBox="0 0 28 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                            <g i stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <g transform="translate(-1532.000000, -1781.000000)">
+                                    <g transform="translate(1546.000000, 1795.000000) rotate(-270.000000) translate(-1546.000000, -1795.000000) translate(1532.000000, 1781.000000)">
+                                        <rect x="0" y="0" width="28" height="28"></rect>
+                                        <polygon fill="var(--jds-color-primary)" fill-rule="nonzero" transform="translate(13.741243, 13.533333) scale(-1, 1) rotate(-90.000000) translate(-13.741243, -13.533333) " points="13.8519774 20.0666667 24.4824859 9.4361582 22.2677966 7 13.8519774 15.4158192 5.4361582 7 3 9.4361582"></polygon>
+                                    </g>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="winner-block-content">
+                        <div>{{block.settings.content | replace: '<em>', brandColor | replace:  '&lt;hr/&gt;', '<hr/>' }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="tips ">
+           {{section.settings.tips | replace: '<em>', brandColor  }}
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    const slideAnimations = new WeakMap();
+    const slideToggle = (el, durationMs = 300) => {
+      if (!el) return;
+
+      const prev = slideAnimations.get(el);
+      if (prev && typeof prev.cancel === 'function') prev.cancel();
+
+      const computed = window.getComputedStyle(el);
+      const isHidden = computed.display === 'none' || el.getClientRects().length === 0;
+
+      el.style.overflow = 'hidden';
+
+      if (isHidden) {
+        el.style.display = 'block';
+        const targetHeight = el.scrollHeight;
+        el.style.height = '0px';
+        const anim = el.animate(
+          [{ height: '0px' }, { height: `${targetHeight}px` }],
+          { duration: durationMs, easing: 'ease', fill: 'forwards' }
+        );
+        slideAnimations.set(el, anim);
+        anim.onfinish = () => {
+          el.style.height = '';
+          el.style.overflow = '';
+          slideAnimations.delete(el);
+        };
+        anim.oncancel = () => slideAnimations.delete(el);
+        return;
+      }
+
+      const startHeight = el.getBoundingClientRect().height;
+      const anim = el.animate(
+        [{ height: `${startHeight}px` }, { height: '0px' }],
+        { duration: durationMs, easing: 'ease', fill: 'forwards' }
+      );
+      slideAnimations.set(el, anim);
+      anim.onfinish = () => {
+        el.style.display = 'none';
+        el.style.height = '';
+        el.style.overflow = '';
+        slideAnimations.delete(el);
+      };
+      anim.oncancel = () => slideAnimations.delete(el);
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.winner-announcement .winner-block-title').forEach((title) => {
+        title.addEventListener('click', () => {
+          title.classList.toggle('active');
+          const content = title.parentElement?.querySelector('.winner-block-content');
+          slideToggle(content);
+        });
+      });
+    });
+  </script>
+
+{% schema %}
+    {
+        "name": "获奖通知",
+        "class": "winner-announcement",
+        "disabled_on": {
+            "templates": ["collection"]
+        },
+        "settings": [
+            { "type": "checkbox", "id": "is_gift_block", "label": "是否为礼盒模块", "default": false, "info": "该模块的顺序请保持：KV-滚动介绍-品牌介绍-获奖Swiper" },
+            { "type": "text",  "id": "anchor", "label": "二级标题定位锚点" },
+            { "type": "text",  "id": "module_title", "label": "标题" },
+            { "type": "checkbox", "id": "new_window", "label": "新开标签页", "default": false },
+            { "type": "select", "id": "type", "label": "标题类型", "options": [
+                { "value": "1", "label": "小档" },
+                { "value": "2", "label": "大档" }
+            ], "default": "1"},
+            { "type": "richtext",  "id": "tips", "label": "提示信息","info": "斜体将会变为品牌色" }
+        ],
+        "blocks": [
+            {
+                "type": "winner",
+                "name": "获奖名单",
+                "settings": [
+                    { "type": "richtext", "id": "block_title", "label": "获奖标题","info": "斜体将会变为品牌色" },
+                    { "type": "richtext", "id": "content", "label": "获奖名单", "info": "斜体将会变为品牌色" }
+                ]
+            },
+        ],
+        "presets": [
+            {
+                "name": "获奖通知",
+                "settings": {
+                    "module_title": "Winner Announcement",
+                    "new_window": false
+                }
+            }
+        ]
+    }
+{% endschema %}

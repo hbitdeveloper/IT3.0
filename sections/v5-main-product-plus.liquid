@@ -1,0 +1,3142 @@
+{% style %}
+.section-v5-main-product {
+  /* 覆盖 judge.me 插件样式 */
+  .jdgm-widget.jdgm-preview-badge {
+    margin-top: 0.25rem;
+  }
+  .jdgm-prev-badge__stars .jdgm-star {
+    font-size: 1.25rem;
+    @media (max-width: 1023.98px) {
+      font-size: 1rem;
+    }
+  }
+  .jdgm-prev-badge__text {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 500;
+    color: #707070;
+    font-size: 0.875rem;
+    margin-left: 0.75rem;
+    @media (max-width: 1023.98px) {
+      margin-left: 0.5rem;
+    }
+  }
+}
+@media screen and (max-width:1023px) {
+  .product-tax_fee_explanation{
+    max-width: 91.4666666666667vw;
+    width: 91.4666666666667vw;
+    margin: 0 auto;
+  }
+}
+{% endstyle %}
+
+{%- liquid
+  # plus版功能开关
+  assign plus_enabled = section.settings.enable_plus | default: false
+
+  assign model_3d = product.media | where: 'media_type', 'model'
+  if product.metafields.custom.modals_list.value != blank
+    assign model_3d = product.metafields.custom.modals_list.value
+  endif
+
+  assign first_video_media = false
+  assign first_video_media = product.media | where: 'media_type', 'video' | first
+  if first_video_media == false or first_video_media == blank
+    assign first_video_media = product.media | where: 'media_type', 'external_video' | first
+  endif
+
+  assign icon_text_block = section.blocks | where: 'type', 'icon_text'
+
+  # 欧洲站点，需要修改产品标签、标题的默认字体大小
+  assign need_modify_size = false
+  assign iso_code = settings.shop_cr | default: localization.country.iso_code | default: 'US'
+  if iso_code == 'GB' or iso_code == 'DE' or iso_code == 'FR' or iso_code == 'ES' or iso_code == 'EU' or iso_code == 'NL'
+    assign need_modify_size = true
+  endif
+-%}
+
+<div data-version="v5" class="max-w-full w-[82.5rem] mx-auto flex flex-col lg:flex-row justify-between pb-10 lg:py-[3.75rem]">
+  {% comment %} 图片、视频、3D、延保信息 {% endcomment %}
+  <div class="v5-product-gallery-wrapper flex flex-col self-start relative lg:sticky lg:top-[calc(var(--jky-header-h)+2.25vh)] {% if plus_enabled %} w-full {% else %} w-[21.4375rem] mx-auto lg:mx-0 {% endif -% %} lg:w-[40.5rem] lg:gap-y-3">
+    {% comment %} 商品图、视频、3D {% endcomment %}
+    <div class="w-full lg:w-[40.5rem]">
+      {%- if plus_enabled -%}
+        {%- render
+          "v5-product-gallery-plus",
+            img_product_tag_position_pc: section.settings.img_product_tag_position_pc,
+            img_product_tag_width_pc: section.settings.img_product_tag_width_pc,
+            img_product_tag_width_mb: section.settings.img_product_tag_width_mb,
+
+            photos_i18n: section.settings.product_photos_i18n | escape,
+            video_i18n: section.settings.product_video_i18n | escape,
+            model_i18n: section.settings.product_3d_model_i18n | escape,
+
+            show_3d_model_unfold: section.settings.product_3d_model_show_unfold,
+            unfolded_i18n: section.settings.product_unfolded_i18n | escape,
+            folded_i18n: section.settings.product_folded_i18n | escape,
+
+            first_video_media: first_video_media,
+            model_3d: model_3d,
+        -%}
+      {%- else -%}
+        {%- render
+          "v5-product-gallery",
+            photos_i18n: section.settings.product_photos_i18n | escape,
+            video_i18n: section.settings.product_video_i18n | escape,
+            model_i18n: section.settings.product_3d_model_i18n | escape,
+
+            show_3d_model_unfold: section.settings.product_3d_model_show_unfold,
+            unfolded_i18n: section.settings.product_unfolded_i18n | escape,
+            folded_i18n: section.settings.product_folded_i18n | escape,
+
+            first_video_media: first_video_media,
+            model_3d: model_3d,
+        -%}
+      {%- endif -%}
+    </div>
+
+    {% comment %} 技术证书 {% endcomment %}
+    {%- for block in icon_text_block -%}
+      {%- if block.settings.position == 'pos_1' -%}
+        {%- render 'v5-app-pdp-icon-text', block: block, class: 'hidden lg:flex' -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {% comment %} 特征图片 {% endcomment %}
+    {%- assign feature_image_list = product.metafields.custom.feature_image_list.value -%}
+    {%- if feature_image_list -%}
+      <div class="w-full hidden lg:flex flex-col gap-y-2 mt-8 lg:gap-y-3 lg:mt-0">
+        {%- for image in feature_image_list limit: 2 -%}
+          {%- render 'diff-end-img',
+            class: 'w-full h-auto lg:w-[40.5rem] object-cover',
+            pc_img: image,
+            mb_img: image,
+            pc_img_width: 648,
+            mb_img_width: 375,
+            placeholder_name: 'hero-apparel-1',
+            load_scene: 'defer'
+          -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {% comment %} 商品信息 {% endcomment %}
+  <div class="v5-product-info-wrapper w-[21.4375rem] mx-auto lg:w-[40.5rem] lg:mx-0 lg:pl-6" onlyVariant="{{ product.has_only_default_variant }}">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {% comment %} 插件 {% endcomment %}
+        {%- when '@app' -%}
+          <div {{ block.shopify_attributes }}>{% render block %}</div>
+
+        {% comment %} 标题 {% endcomment %}
+        {%- when 'title' -%}
+          {%- capture pdp_title_style -%}
+            {% render 'spacing-padding', settings: block.settings %}
+          {%- endcapture -%}
+          <div data-sticky-cart-title-trigger class="flex flex-col section-padding gap-y-2" style="{{ pdp_title_style }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.tag_1_text != blank or block.settings.tag_2_text != blank -%}
+              <p class="flex items-center flex-wrap gap-2.5">
+                {%- if block.settings.tag_1_text != blank -%}
+                  <span
+                    {% if need_modify_size -%}
+                      style="
+                        --mb-tag-size: calc({% if block.settings.tag_size_mb > 0 %}{{ block.settings.tag_size_mb }}{% else %}14{% endif %} / 16 * 1rem);
+                        --pc-tag-size: calc({% if block.settings.tag_size_pc > 0 %}{{ block.settings.tag_size_pc }}{% else %}16{% endif %} / 16 * 1rem);
+                        background-color:rgba(253,80,0,0.1);
+                      "
+                    {% else %}
+                      style="
+                        --mb-tag-size: calc({% if block.settings.tag_size_mb > 0 %}{{ block.settings.tag_size_mb }}{% else %}12{% endif %} / 16 * 1rem);
+                        --pc-tag-size: calc({% if block.settings.tag_size_pc > 0 %}{{ block.settings.tag_size_pc }}{% else %}14{% endif %} / 16 * 1rem);
+                        background-color:rgba(253,80,0,0.1);
+                      "
+                    {% endif %}
+                    class="inline-flex items-center justify-center font-medium min-h-6 text-[length:var(--mb-tag-size)] lg:text-[length:var(--pc-tag-size)] leading-none text-primary px-2 py-1"
+                  >{{ block.settings.tag_1_text | escape }}</span>
+                {%- endif -%}
+                {%- if block.settings.tag_2_text != blank -%}
+                  <span
+                    {% if need_modify_size -%}
+                      style="
+                        --mb-tag-size: calc({% if block.settings.tag_size_mb > 0 %}{{ block.settings.tag_size_mb }}{% else %}14{% endif %} / 16 * 1rem);
+                        --pc-tag-size: calc({% if block.settings.tag_size_pc > 0 %}{{ block.settings.tag_size_pc }}{% else %}16{% endif %} / 16 * 1rem);
+                      "
+                    {% else %}
+                      style="
+                        --mb-tag-size: calc({% if block.settings.tag_size_mb > 0 %}{{ block.settings.tag_size_mb }}{% else %}12{% endif %} / 16 * 1rem);
+                        --pc-tag-size: calc({% if block.settings.tag_size_pc > 0 %}{{ block.settings.tag_size_pc }}{% else %}14{% endif %} / 16 * 1rem);
+                      "
+                    {% endif %}
+                    class="inline-flex items-center justify-center font-medium min-h-6 text-[length:var(--mb-tag-size)] lg:text-[length:var(--pc-tag-size)] leading-none text-[#333] px-2 py-1 bg-[#F2EDEB]"
+                  >{{ block.settings.tag_2_text | escape }}</span>
+                {%- endif -%}
+              </p>
+            {%- endif -%}
+
+            {% comment %} 启用了 PLUS 版 {% endcomment %}
+            {%- if plus_enabled -%}
+              <h1
+                {% if need_modify_size %}
+                  style="
+                    --title-size-pc: calc({% if block.settings.title_size_pc > 0 %}{{ block.settings.title_size_pc }}{% else %}32{% endif %} / 16 * 1rem);
+                    --title-size-mb: calc({% if block.settings.title_size_mb > 0 %}{{ block.settings.title_size_mb }}{% else %}24{% endif %} / 16 * 1rem);
+                    line-height:1.2;
+                  "
+                {% else %}
+                  style="
+                    --title-size-pc: calc({% if block.settings.title_size_pc > 0 %}{{ block.settings.title_size_pc }}{% else %}32{% endif %} / 16 * 1rem);
+                    --title-size-mb: calc({% if block.settings.title_size_mb > 0 %}{{ block.settings.title_size_mb }}{% else %}24{% endif %} / 16 * 1rem);
+                    line-height:1.2;
+                  "
+                {% endif %}
+                class="font-semibold text-[#242F20] !text-[length:var(--title-size-mb)] lg:!text-[length:var(--title-size-pc)]"
+              >{{ product.title | escape }}</h1>
+            {%- else -%}
+              {%- assign title_parts = product.title | escape | split: '  ' -%}
+              {%- if title_parts.size > 1 -%}
+                <h1 class="flex flex-col gap-y-1.5 lg:gap-y-3.5">
+                  <span class="font-semibold text-[#242F20]/90 text-base lg:text-2xl">{{ title_parts[0] }}</span>
+                  <span
+                    style="
+                      --title-size-pc: calc({% if block.settings.title_size_pc > 0 %}{{ block.settings.title_size_pc }}{% else %}48{% endif %} / 16 * 1rem);
+                      --title-size-mb: calc({% if block.settings.title_size_mb > 0 %}{{ block.settings.title_size_mb }}{% else %}28{% endif %} / 16 * 1rem);
+                      line-height:1.25;
+                    "
+                    class="font-semibold text-[#242F20] !text-[length:var(--title-size-mb)] lg:!text-[length:var(--title-size-pc)]"
+                  >{{ title_parts[1] }}</span>
+                </h1>
+              {%- else -%}
+                <h1
+                  {% if need_modify_size %}
+                    style="
+                      --title-size-pc: calc({% if block.settings.title_size_pc > 0 %}{{ block.settings.title_size_pc }}{% else %}32{% endif %} / 16 * 1rem);
+                      --title-size-mb: calc({% if block.settings.title_size_mb > 0 %}{{ block.settings.title_size_mb }}{% else %}24{% endif %} / 16 * 1rem);
+                      line-height:1.25;
+                    "
+                  {% else %}
+                    style="
+                      --title-size-pc: calc({% if block.settings.title_size_pc > 0 %}{{ block.settings.title_size_pc }}{% else %}48{% endif %} / 16 * 1rem);
+                      --title-size-mb: calc({% if block.settings.title_size_mb > 0 %}{{ block.settings.title_size_mb }}{% else %}28{% endif %} / 16 * 1rem);
+                      line-height:1.25;
+                    "
+                  {% endif %}
+                  class="font-semibold text-[#242F20] !text-[length:var(--title-size-mb)] lg:!text-[length:var(--title-size-pc)]"
+                  {{ block.shopify_attributes }}
+                >{{ product.title | escape }}</h1>
+              {%- endif -%}
+            {% endif %}
+
+            {%- if block.settings.sentence_text != blank -%}
+              <p class="text-[#1F1E1D] text-base lg:text-lg -mt-1 lg:mt-0">{{ block.settings.sentence_text | escape }}</p>
+            {%- endif -%}
+          </div>
+
+        {% comment %} 价格 {% endcomment %}
+        {%- when 'price' -%}
+          <div data-sticky-cart-price-trigger>
+            {%- if plus_enabled -%}
+              {%-
+                render 'v5-app-pdp-product-price-plus',
+                show_product_direct_way: section.settings.show_product_direct_way | default: false,
+                product_direct_way: section.settings.product_direct_way | default: 'way_one',
+                product_direct_way_three_text: section.settings.product_direct_way_three_text | default: 'Final Price',
+                product: product,
+                block: block,
+                sectionId: section.id,
+                tax_fee_explanation: section.settings.tax_fee_explanation
+              -%}
+            {%- else -%}
+              {%-
+                render 'v5-app-pdp-product-price',
+                show_product_direct_way: section.settings.show_product_direct_way | default: false,
+                product_direct_way: section.settings.product_direct_way | default: 'way_one',
+                product_direct_way_three_text: section.settings.product_direct_way_three_text | default: 'Final Price',
+                product: product,
+                block: block,
+                sectionId: section.id,
+                tax_fee_explanation: section.settings.tax_fee_explanation
+              -%}
+            {%- endif -%}
+          </div>
+
+        {% comment %} 利益点 {% endcomment %}
+        {%- when 'benefit_items' -%}
+          {%- render 'v5-app-pdp-benefit-items', product: product, block: block -%}
+
+        {% comment %} 核心参数 {% endcomment %}
+        {%- when 'core_params' -%}
+          {%- render 'v5-app-pdp-core-params', product: product, block: block -%}
+
+        {% comment %} 特殊公告 {% endcomment %}
+        {%- when 'special_notice' -%}
+          {%- render 'v5-app-pdp-special-notice', block: block -%}
+
+        {% comment %} 特性文案 {% endcomment %}
+        {%- when 'product_feature_text' -%}
+          {%- render 'v5-app-pdp-product-feature-text', product: product, block: block -%}
+
+        {% comment %} 会员价 {% endcomment %}
+        {%- when 'membership_price_coupon' -%}
+          {% render 'v5-app-membership-price-coupon', block: block, sectionId: section.id %}
+
+        {% comment %} 优惠券 {% endcomment %}
+        {%- when 'coupon' -%}
+          {% render 'v5-app-coupon', block: block %}
+
+        {% comment %} 商品描述 {% endcomment %}
+        {%- when 'description' -%}
+          {% comment %} 技术证书 {% endcomment %}
+          {%- for block in icon_text_block -%}
+            {%- if block.settings.position == 'pos_1' -%}
+              {%- render 'v5-app-pdp-icon-text', block: block, class: 'flex lg:hidden' -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- render 'v5-app-pdp-description', product: product, block: block, is_plus: plus_enabled -%}
+
+        {% comment %} 多变体切换 {% endcomment %}
+        {%- when 'variant_picker' -%}
+          {%- if plus_enabled -%}
+            {%-
+              render 'v5-app-pdp-variant-picker-plus',
+              show_product_direct_way: section.settings.show_product_direct_way | default: false,
+              product_direct_way: section.settings.product_direct_way | default: 'way_one',
+              product_direct_way_three_text: section.settings.product_direct_way_three_text | default: 'Final Price',
+              product: product,
+              block: block,
+              sectionId: section.id
+            -%}
+          {% else %}
+            {%- 
+              render 'v5-app-pdp-variant-picker',
+              show_product_direct_way: section.settings.show_product_direct_way | default: false,
+              product_direct_way: section.settings.product_direct_way | default: 'way_one',
+              product_direct_way_three_text: section.settings.product_direct_way_three_text | default: 'Final Price',
+              product: product,
+              block: block,
+              sectionId: section.id
+            -%}
+          {%- endif -%}
+          
+        {% comment %} 配送与服务说明设置 {% endcomment %}
+        {%- when 'delivery_instructions' %}
+          {%- render 'delivery-instructions', block: block -%}
+
+        {% comment %} 数量选择器 {% endcomment %}
+        {%- when 'quantity_selector' -%}
+          {%- render 'v5-app-pdp-quantity', product: product, block: block -%}
+
+        {% comment %} klarna 支付 {% endcomment %}
+        {%- when 'klarna' -%}
+          <div class="product-info_block lg:py-4 py-2" {{ block.shopify_attributes }}>
+            {% render 'app-klarna' %}
+          </div>
+
+        {% comment %} 加购、立即购买 {% endcomment %}
+        {%- when 'buy_buttons' -%}
+          {%- if plus_enabled -%}
+            {%- render 'v5-app-pdp-buy-buttons-plus', product: product, block: block, section: section, sectionId: section.id -%}
+          {%- else -%}
+            {%- render 'v5-app-pdp-buy-buttons', product: product, block: block, section: section, sectionId: section.id -%}
+          {%- endif -%}
+
+        {% comment %} 加购和购买前，免税弹窗提示 {% endcomment %}
+        {%- when 'tax_free_popup' -%}
+          {% render 'tax-free-popup', block: block %}
+
+        {%- when 'icon_text' -%}
+          {% comment %} 服务优势 {% endcomment %}
+          {%- if block.settings.position == 'pos_2' -%}
+            {%- render 'v5-app-pdp-icon-text', block: block, class: 'flex' -%}
+          {%- endif -%}
+
+        {% comment %} 权益文案 {% endcomment %}
+        {%- when 'benefit_text' -%}
+          {%- render 'v5-app-pdp-benefit-text', section: section, block: block -%}
+
+        {% comment %} 快捷入口 {% endcomment %}
+        {%- when 'quike_chat' -%}
+          {%- if plus_enabled -%}
+            {%- render 'v5-app-pdp-quick-chat-plus', block: block -%}
+          {%- else -%}
+            {%- render 'v5-app-pdp-quick-chat', block: block -%}
+          {%- endif -%}
+
+        {% comment %} 捆绑销售 {% endcomment %}
+        {%- when 'bundled_sale' -%}
+          {%- if plus_enabled -%}
+            {%- render 'v5-app-bundled-sale-plus', product: product, block: block -%}
+          {%- else -%}
+            {%- render 'v5-app-bundled-sale', product: product, block: block -%}
+          {%- endif -%}
+
+        {% comment %} 产品推荐 {% endcomment %}
+        {%- when 'recommend_products' -%}
+          {%- render 'v5-app-recommend-products', product: product, block: block -%}
+
+        {% comment %} 产品推荐一度电 {% endcomment %}
+        {%- when 'recommend_products_one' -%}
+          {%- render 'v5-app-recommend-products-one', product: product, block: block -%}
+
+        {% comment %} 买赠 {% endcomment %}
+        {%- when 'free_gift' -%}
+          {%- render 'v5-app-pdp-free-gift', block: block -%}
+
+        {% comment %} 自动延保 {% endcomment %}
+        {%- when 'auto_extended_warranty' -%}
+          {%- render 'v5-app-pdp-auto-warranty', block: block -%}
+
+        {% comment %} 促销文案机动版块 {% endcomment %}
+        {%- when 'text_promotion' -%}
+          {% render 'app-text-promotion', block: block %}
+
+        {% comment %} 促销文案折叠组件 {% endcomment %}
+        {%- when 'text_promotion_fold' -%}
+          {% render 'app-text-promotion-fold', block: block %}
+
+        {% comment %} 自定义liquid {% endcomment %}
+        {%- when 'custom_liquid' -%}
+          {%- render 'v5-app-custom-liquid', block: block -%}
+        
+        {% comment %} 分隔线 {% endcomment %}
+        {%- when 'divider' -%}
+          {%- capture divider_style -%}
+            {% render 'spacing-padding', settings: block.settings %}
+          {%- endcapture -%}
+          <div {{ block.shopify_attributes }} class="w-full section-padding" style="{{ divider_style }}">
+            <div class="w-full h-px bg-[#F0F0F0]"></div>
+          </div>
+
+      {%- endcase -%}
+    {%- endfor -%}
+
+    {%- if product.has_only_default_variant == true -%}
+      {%- render "product-variants-json", variant: product.selected_or_first_available_variant, id: "selected-variant", show_discount_price: settings.display_auto_discount_price_in_sku -%}
+    {%- else -%}
+      {%- render "product-variants-json", variants: product.variants, id: "selected-variant", show_discount_price: settings.display_auto_discount_price_in_sku -%}
+    {%- endif -%}
+  </div>
+</div>
+
+{% comment %} 结构化数据 {% endcomment %}
+{% render "product-appld-json" %}
+
+{% comment %} 吸底购物车 {% endcomment %}
+{%- unless template == 'product.nosale' -%}
+  {%- render 'v5-app-stickyCart',
+    enable_shortage_reminds: section.settings.enable_shortage_reminds,
+    show_price_info: section.settings.show_price_info,
+    hide_add_to_cart_price: plus_enabled,
+  -%}
+{%- endunless -%}
+
+<script type="module">
+  // 注册 Judge.me 插件的点击事件监听器
+  function registerJdgmPluginClickEvent() {
+    const jdgmDOM = document.querySelector('.jdgm-prev-badge');
+    
+    // 如果已经找到元素，并且它还没有注册过事件（通过检查自定义属性）
+    if (jdgmDOM && !jdgmDOM.dataset.eventRegistered) {
+      jdgmDOM.addEventListener('click', function() {
+        // 1. 查找导航容器
+        const navigationContainer = document.querySelector('jky-navigation')?.querySelector('.navigation--container')
+
+        if (navigationContainer) {
+          // 2. 使用 querySelectorAll 获取所有动态导航块
+          const blocks = navigationContainer.querySelectorAll('.shopify-block')
+
+          // 3. 检查是否有块，并点击最后一个（通常是 REVIEWS 评论）
+          if (blocks.length > 0) {
+            const lastBlock = blocks[blocks.length - 1]
+            
+            // 确保找到的块是可见的且可点击的，然后触发点击
+            if (lastBlock) {
+              lastBlock.querySelector('.navigation-item').click()
+            }
+
+            // 4. 数据埋码 (使用模板字符串优化可读性)
+            gaPushDataLayer('5.0_products_details_page_user_clicks', {
+              product_spu_name: '{{ product.title | escape }}',
+              module: "Product Review", 
+              button_name: jdgmDOM.querySelector('span.jdgm-prev-badge__text')?.textContent?.trim() || 'Click to Reviews',
+            })
+          }
+        }
+      })
+      
+      // 标记该元素已注册事件，防止 MutationObserver 重复注册
+      jdgmDOM.dataset.eventRegistered = 'true'
+    }
+  }
+
+  // 使用防抖的 MutationObserver 确保在动态加载的内容中捕获 .jdgm-prev-badge
+  document.addEventListener('DOMContentLoaded', function() {
+    const productInfoWrapper = document.querySelector('.v5-product-info-wrapper')
+
+    // 首次检查并注册
+    registerJdgmPluginClickEvent()
+
+    if (productInfoWrapper) {
+      let debounceTimer;
+
+      const observer = new MutationObserver(function() {
+        // 已注册成功则直接断开，不再处理
+        if (document.querySelector('.jdgm-prev-badge[data-event-registered="true"]')) {
+          observer.disconnect();
+          return;
+        }
+        // 防抖：合并高频 DOM 变动，只做一次查询
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          registerJdgmPluginClickEvent();
+          if (document.querySelector('.jdgm-prev-badge[data-event-registered="true"]')) {
+            observer.disconnect();
+          }
+        }, 200);
+      })
+
+      observer.observe(productInfoWrapper, { 
+        childList: true, 
+        subtree: true
+      })
+    }
+  })
+</script>
+
+{% schema %}
+  {
+    "name": "V5-PDP-橱窗产品信息-Plus版",
+    "class": "section section-v5-main-product section-v5-main-product-plus",
+    "tag": "section",
+    "enabled_on": {
+      "templates": ["product"]
+    },
+    "settings": [
+      {"type": "checkbox", "id": "enable_plus", "label": "启用 PLUS 版功能", "default": false },
+      {
+        "type": "paragraph",
+        "content": "PLUS 版功能说明：",
+        "visible_if": "{{ section.settings.enable_plus == true }}"
+      },
+      {
+        "type": "paragraph",
+        "content": "1. 产品图库动态展示该变体关联的图片（变体专属图+通用图），非当前变体的图片将自动隐藏",
+        "visible_if": "{{ section.settings.enable_plus == true }}"
+      },
+      {
+        "type": "paragraph",
+        "content": "2. 【加购】和【立即购买】区域，将会显示套餐选购小结",
+        "visible_if": "{{ section.settings.enable_plus == true }}"
+      },
+      {
+        "type": "paragraph",
+        "content": "3. 【加购】按钮，将不会显示变体价格",
+        "visible_if": "{{ section.settings.enable_plus == true }}"
+      },
+
+      {"type": "header", "content": "左侧橱窗图，右上角图片角标设置", "info": "需要先在SKU元字段配置【产品橱窗配件图片】"},
+      {"type": "select", "id": "img_product_tag_position_pc", "label": "PC端角标位置", "options": [
+        { "value": "left", "label": "左侧" },
+        { "value": "right", "label": "右侧" },
+      ], "default": "left", "info": "MB端固定右侧显示"},
+      {"type": "number", "id": "img_product_tag_width_pc", "label": "PC端角标宽度", "default": 180},
+      {"type": "number", "id": "img_product_tag_width_mb", "label": "MB端角标宽度", "default": 140},
+      
+      {"type": "header", "content": "左侧（橱窗图/视频/3D模型）设置"},
+      {"type": "text", "id": "product_photos_i18n", "label": "图片选项\"Photos\"多语言", "default": "Photos"},
+      {"type": "text", "id": "product_video_i18n", "label": "视频选项\"Intro\"多语言", "default": "Intro"},
+      {"type": "text", "id": "product_3d_model_i18n", "label": "3d模型选项\"3D\"多语言", "default": "3D"},
+      {
+        "type": "checkbox",
+        "id": "product_3d_model_show_unfold",
+        "label": "是否启用3D模型展开（Unfold）/折叠（Fold）的视图选项",
+        "default": false
+      },
+      {"type": "text", "id": "product_unfolded_i18n", "label": "\"Unfolded\"多语言", "default": "Unfolded"},
+      {"type": "text", "id": "product_folded_i18n", "label": "\"Folded\"多语言", "default": "Folded"},
+
+      {"type": "header", "content": "右侧（产品信息）设置"},
+      {"type": "richtext", "id": "tax_fee_explanation", "label": "税费说明"},
+      {"type": "header", "content": "产品价格直降"},
+      {"type": "checkbox", "id": "show_product_direct_way", "label": "是否开启", "default": false},
+      {"type": "select", "id": "product_direct_way",
+        "options": [
+          { "value": "way_one", "label": "方案一" },
+          { "value": "way_two", "label": "方案二" },
+          { "value": "way_three", "label": "方案三" }
+        ],
+        "default": "way_one",
+        "label": "实现方式",
+        "info": "方案一：展示的价格：加一个新字段，取价格Shopify的价格（字段名称中不包含price）；原来的价格字段，取shopify的原价，不展示；展示的划线价：逻辑不变，用原来的原价字段，取shopify的原价。方案二：字段名称都改为不包含price，展示的价格：取自动计算的折后价；展示的划线价：取Shopify的原价（有原价且原价大于价格时）或价格（无原价或原价小于价格时）。方案三：新增一个最终价展示在现有价格下，最终价取自动计算的折后价，需要按SPU维度控制是否展示。",
+        "visible_if": "{{ section.settings.show_product_direct_way == true }}"
+      },
+      {"type": "text", "id": "product_direct_way_three_text", "label": "方案三文案", "default": "Final Price", "visible_if": "{{ section.settings.show_product_direct_way == true and section.settings.product_direct_way == 'way_three' }}"},
+
+      {"type": "header", "content": "到货提醒设置"},
+      {"type": "checkbox", "id": "enable_shortage_reminds", "label": "开启到货提醒", "default": true },
+      {"type": "text", "id": "shortage_title", "label": "Shortage form title", "default": "Notify Me When Available for Pre-order" },
+      {"type": "text", "id": "shortage_content", "label": "Shortage form content", "default": "Leave your email below to get a notification when the product is available for pre-order." },
+      {"type": "text", "id": "shortage_input_tips", "label": "Placeholder", "default": "Enter Your Email" },
+      {"type": "text", "id": "shortage_submit", "label": "Button text", "default": "Notify Me" },
+      {"type": "richtext", "id": "shortage_policy", "label": "Policy", "default": "<p>I have read and agreed to the <a href=\"https:\/\/www.jackery.com\/policies\/terms-of-service\" target=\"_blank\" title=\"Jackery Terms and service\">Terms<\/a> and <a href=\"https:\/\/www.jackery.com\/policies\/privacy-policy\" target=\"_blank\" title=\"https:\/\/www.jackery.com\/policies\/privacy-policy\">Privacy Policy<\/a>.<\/p>" },
+      {"type": "text", "id": "shortage_reminds_success", "label": "Tips success", "default": "Successfully subscribed! We'll let you know as soon as this product is available for purchase." },
+      {"type": "text", "id": "shortage_reminds_error", "label": "Tips error", "default": "Oops, something went wrong. Please try again later." },
+
+      {"type": "header", "content": "积分版块"},
+      {"type": "checkbox", "id": "is_show_point", "label": "启用积分文案版块开关", "default": true},
+
+      {"type": "header", "content": "吸底购物车设置"},
+      {
+        "type": "checkbox",
+        "id": "show_price_info",
+        "label": "显示价格、划线价、折扣价",
+        "default": true,
+        "info": "开启后，由于宽度受限，将不会显示【优惠券】信息"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "@app"
+      },
+      {
+        "type": "klarna",
+        "name": "klarna",
+        "limit": 1
+      },
+      {
+        "type": "icon_text",
+        "name": "图标 + 描述文案block",
+        "limit": 2,
+        "settings": [
+          { "type": "header", "content": "内容设置" },
+          {
+            "type": "select",
+            "id": "position",
+            "label": "位置",
+            "options": [
+              {"value": "pos_1", "label": "左侧（固定套图下方）"},
+              {"value": "pos_2", "label": "右侧"}
+            ],
+            "default": "pos_1"
+          },
+          {"type": "image_picker", "id": "icon_1", "label": "ICON 图标1"},
+          {"type": "textarea", "id": "text_1", "label": "描述文案1", "default": "Neque porro quisquam qui dolorem ipsum"},
+          {"type": "image_picker", "id": "icon_2", "label": "ICON 图标2"},
+          {"type": "textarea", "id": "text_2", "label": "描述文案2", "default": "Neque porro quisquam qui dolorem ipsum"},
+          {"type": "image_picker", "id": "icon_3", "label": "ICON 图标3", "visible_if": "{{ block.settings.position == 'pos_2' }}"},
+          {"type": "textarea", "id": "text_3", "label": "描述文案3", "default": "Neque porro quisquam qui dolorem ipsum", "visible_if": "{{ block.settings.position == 'pos_2' }}"},
+
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "custom",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 48,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "title",
+        "name": "商品标题block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 16
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 16
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 16,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 16,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {"type": "header", "content": "标签及文案配置"},
+          { "type": "text", "id": "tag_1_text", "label": "标题上方，高亮SPU标签一文案", "default": "NEW" },
+          { "type": "text", "id": "tag_2_text", "label": "标题上方，高亮SPU标签二文案", "default": "16 years of ultra-long lifespan" },
+          { "type": "number", "id": "tag_size_pc", "label": "PC端，标签字体大小", "info": "欧洲站点默认16px，非欧洲站点默认14px" },
+          { "type": "number", "id": "tag_size_mb", "label": "MB端，标签字体大小", "info": "欧洲站点默认14px，非欧洲站点默认12px" },
+          { "type": "text", "id": "sentence_text", "label": "标题下方，场景化定位文案", "default": "Reliable power for longer outages when you need it most." },
+          {"type": "header", "content": "标题字号配置"},
+          { "type": "number", "id": "title_size_pc", "label": "PC端，标题字体大小", "info": "欧洲站点默认32px，非欧洲站点默认48px。5.0 Plus版本默认32px。" },
+          { "type": "number", "id": "title_size_mb", "label": "MB端，标题字体大小", "info": "欧洲站点默认24px，非欧洲站点默认28px。5.0 Plus版本默认24px。" }
+        ]
+      },
+      {
+        "type": "price",
+        "name": "商品价格block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "benefit_items",
+        "name": "利益点",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          { "type": "header", "content": "利益点配置" },
+          { "type": "text", "id": "benefits_text", "label": "利益点弹窗标题", "default": "Service" },
+          { "type": "select", "id": "benefit_1_icon", "label": "利益点文案一图标",
+            "options": [
+              {
+                "value": "fast_and_delivery",
+                "label": "Fast and Delivery"
+              },
+              {
+                "value": "30_day_money_back_return",
+                "label": "30-Day Money Back Return"
+              },
+              {
+                "value": "free_warranty_return",
+                "label": "Free Warranty Return"
+              },
+              {
+                "value": "5_years_free_warranty",
+                "label": "5 Years Free Warranty"
+              },
+              {
+                "value": "customer_support",
+                "label": "Customer Support"
+              }
+            ]
+          },
+          { "type": "text", "id": "benefit_1_title", "label": "利益点文案一标题", "default": "Free & Fast Delivery" },
+          { "type": "text", "id": "benefit_1_desc", "label": "利益点文案一描述", "default": "Free & Fast Delivery" },
+          { "type": "select", "id": "benefit_2_icon", "label": "利益点文案二图标",
+            "options": [
+              {
+                "value": "fast_and_delivery",
+                "label": "Fast and Delivery"
+              },
+              {
+                "value": "30_day_money_back_return",
+                "label": "30-Day Money Back Return"
+              },
+              {
+                "value": "free_warranty_return",
+                "label": "Free Warranty Return"
+              },
+              {
+                "value": "5_years_free_warranty",
+                "label": "5 Years Free Warranty"
+              },
+              {
+                "value": "customer_support",
+                "label": "Customer Support"
+              }
+            ]
+          },
+          { "type": "text", "id": "benefit_2_title", "label": "利益点文案二标题", "default": "30-Day Money Back Return" },
+          { "type": "text", "id": "benefit_2_desc", "label": "利益点文案二描述", "default": "30-Day Money Back Return" },
+          { "type": "select", "id": "benefit_3_icon", "label": "利益点文案三图标",
+            "options": [
+              {
+                "value": "fast_and_delivery",
+                "label": "Fast and Delivery"
+              },
+              {
+                "value": "30_day_money_back_return",
+                "label": "30-Day Money Back Return"
+              },
+              {
+                "value": "free_warranty_return",
+                "label": "Free Warranty Return"
+              },
+              {
+                "value": "5_years_free_warranty",
+                "label": "5 Years Free Warranty"
+              },
+              {
+                "value": "customer_support",
+                "label": "Customer Support"
+              }
+            ]
+          },
+          { "type": "text", "id": "benefit_3_title", "label": "利益点文案三标题", "default": "Free Warranty Return" },
+          { "type": "text", "id": "benefit_3_desc", "label": "利益点文案三描述", "default": "Free Warranty Return" },
+          { "type": "select", "id": "benefit_4_icon", "label": "利益点文案四图标",
+            "options": [
+              {
+                "value": "fast_and_delivery",
+                "label": "Fast and Delivery"
+              },
+              {
+                "value": "30_day_money_back_return",
+                "label": "30-Day Money Back Return"
+              },
+              {
+                "value": "free_warranty_return",
+                "label": "Free Warranty Return"
+              },
+              {
+                "value": "5_years_free_warranty",
+                "label": "5 Years Free Warranty"
+              },
+              {
+                "value": "customer_support",
+                "label": "Customer Support"
+              }
+            ]
+          },
+          { "type": "text", "id": "benefit_4_title", "label": "利益点文案四标题", "default": "5 Years Warranty at jackery.com" },
+          { "type": "text", "id": "benefit_4_desc", "label": "利益点文案四描述", "default": "5 Years Warranty at jackery.com" },
+          { "type": "select", "id": "benefit_5_icon", "label": "利益点文案五图标",
+            "options": [
+              {
+                "value": "fast_and_delivery",
+                "label": "Fast and Delivery"
+              },
+              {
+                "value": "30_day_money_back_return",
+                "label": "30-Day Money Back Return"
+              },
+              {
+                "value": "free_warranty_return",
+                "label": "Free Warranty Return"
+              },
+              {
+                "value": "5_years_free_warranty",
+                "label": "5 Years Free Warranty"
+              },
+              {
+                "value": "customer_support",
+                "label": "Customer Support"
+              }
+            ]
+          },
+          { "type": "text", "id": "benefit_5_title", "label": "利益点文案五标题", "default": "Free Customer Service" },
+          { "type": "text", "id": "benefit_5_desc", "label": "利益点文案五描述", "default": "Free Customer Service" }
+        ]
+      },
+      {
+        "type": "core_params",
+        "name": "核心参数",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          { "type": "header", "content": "核心参数配置", "info": "数据来源于SPU元字段——\"特性文案\"" },
+          { "type": "text", "id": "core_params_text", "label": "核心参数弹窗标题", "default": "Key Specs" },
+          { "type": "text", "id": "all_core_params_btn_text", "label": "全部核心参数按钮文案", "default": "Full specs" },
+          { "type": "text", "id": "no_core_params_text", "label": "暂无核心参数文案", "default": "No Data Fetched." }
+        ]
+      },
+      {
+        "type": "special_notice",
+        "name": "特殊公告block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          { "type": "header", "content": "特殊公告配置" },
+          { "type": "text", "id": "notice_text", "label": "特殊公告文案", "default": "Each unit will be delivered separately." },
+          { "type": "color", "id": "notice_color", "label": "特殊公告颜色", "default": "#FF8E56" },
+          { "type": "checkbox", "id": "notice_bottom_line", "label": "是否显示下划线", "default": true }
+        ]
+      },
+      {
+        "type": "product_feature_text",
+        "name": "特性文案block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "coupon",
+        "name": "优惠券block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "membership_price_coupon",
+        "name": "会员价优惠券block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "description",
+        "name": "商品描述block",
+        "limit": 1,
+        "settings": [
+          { "type": "color", "id": "description_bg_color", "label": "PC端版块背景色", "default": "#FFFFFF" },
+          { "type": "color", "id": "description_bg_color_mb", "label": "MB端版块背景色", "default": "#FFFFFF" },
+          { "type": "checkbox", "id": "show_description", "label": "是否默认展开", "default": false },
+          { "type": "text", "id": "learn_more_text", "label": "\"展开\"多语言", "default": "View More" },
+          { "type": "text", "id": "learn_less_text", "label": "\"收起\"多语言", "default": "View Less" },
+
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "variant_picker",
+        "name": "变体选择block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+
+          { "type": "header", "content": "入口配置" },
+          { "type": "paragraph", "content": "【产品关键参数】配置" },
+          { "type": "checkbox", "id": "show_compare_specs", "label": "显示【产品关键参数对比】", "default": false },
+          { "type": "text", "id": "compare_specs_title", "label": "【产品关键参数对比】标题", "default": "Need help choosing a options?", "visible_if": "{{ block.settings.show_compare_specs }}" },
+          { "type": "textarea", "id": "compare_specs_description", "label": "【产品关键参数对比】描述", "default": "Explore the differences in usage duration and battery performance across various combinations.", "visible_if": "{{ block.settings.show_compare_specs }}" },
+          { "type": "text", "id": "compare_specs_dialog_title", "label": "【产品关键参数对比】弹窗标题", "default": "Bundle Spec Comparison", "visible_if": "{{ block.settings.show_compare_specs }}" },
+          { "type": "text", "id": "price_text", "label": "价格文案", "default": "Price" },
+          { "type": "text", "id": "no_specs_text", "label": "无数据文案", "default": "No compare specs available." }
+        ]
+      },
+      {
+        "type": "delivery_instructions",
+        "name": "配送与服务说明设置",
+        "limit": 1,
+        "settings": [
+          {"type": "text", "id": "freight_title", "label": "运费说明标题"},
+          {"type": "text", "id": "time_sensitive_title", "label": "时效标题"},
+          {"type": "text", "id": "delivery_areas_title", "label": "配送地区标题"},
+        ]
+      },
+      {
+        "type": "quantity_selector",
+        "name": "数量选择器block",
+        "limit": 1,
+        "settings": [
+          {"type": "text", "id": "product_quantity_label", "label": "\"Quantity\"多语言", "default": "Quantity"},
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "buy_buttons",
+        "name": "加购 & 立即购买block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 12
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 12,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          { "type": "header", "content": "按钮配置" },
+          { "type": "checkbox", "id": "show_shopify_buy_it_now", "label": "显示【Shopify立即购买】按钮", "default": false },
+          
+
+          { "type": "header", "content": "分期付款配置" },
+          { "type": "checkbox", "id": "show_installment_payment", "label": "显示分期支付", "default": false },
+          {
+            "type": "select",
+            "id": "installment_type",
+            "label": "分期付款类型",
+            "default": "custom",
+            "options": [
+              {
+                "label": "klarna",
+                "value": "klarna"
+              },
+              {
+                "label": "paypal",
+                "value": "paypal"
+              },
+              {
+                "label": "Splitit",
+                "value": "splitit"
+              },
+              {
+                "label": "自定义分期",
+                "value": "custom"
+              }
+            ],
+            "visible_if": "{{ block.settings.show_installment_payment }}"
+          },
+          {
+            "type": "number",
+            "id": "splitit_installments",
+            "label": "Splitit分期付款数",
+            "default": 6,
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'splitit' }}"
+          },
+          {
+            "type": "text",
+            "id": "splitit_text_custom",
+            "label": "splitit分期付款文案",
+            "default": "({price})/mo for 6 months at 0% APR",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'splitit' }}"
+          },
+          {
+            "type": "color",
+            "id": "splitit_learn_more_color",
+            "label": "learn more按钮颜色",
+            "default": "#4e8cfd",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'splitit' }}"
+          },
+          {
+            "type": "checkbox",
+            "id": "splitit_hide_icon",
+            "label": "隐藏按钮图标",
+            "default": true,
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'splitit' }}"
+          },
+          {
+            "type": "color",
+            "id": "splitit_logo_color",
+            "label": "logo颜色",
+            "default": "#39bca7",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'splitit' }}"
+          },
+          {
+            "type": "range",
+            "id": "fk_splitit_height",
+            "label": "splitit分期付款高度",
+            "default": 20,
+            "min": 20,
+            "max": 220,
+            "step": 2,
+            "unit": "px",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'splitit' }}"
+          },
+          {
+            "type": "range",
+            "id": "fk_splitit_height_mb",
+            "label": "MB端: splitit分期付款高度",
+            "default": 16,
+            "min": 16,
+            "max": 200,
+            "step": 2,
+            "unit": "px",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'splitit' }}"
+          },
+          {
+            "type": "text",
+            "id": "installment_paypal_client_id",
+            "label": "paypal分期付款clientId",
+            "default": "ARZonRAsVMfD8rt6AxLm-ykCYjzcNI7RE1DHtzk_FZNuYVQEBkdTaJ1l4oq4sciMofWaNM_owWP92VMz",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'paypal' }}"
+          },
+          {
+            "type": "range",
+            "id": "fk_paypal_height",
+            "label": "paypal分期付款高度",
+            "default": 2.4,
+            "min": 1,
+            "max": 10,
+            "step": 0.1,
+            "unit": "rem",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'paypal' }}"
+          },
+          {
+            "type": "range",
+            "id": "fk_paypal_height_mb",
+            "label": "MB端: paypal分期付款高度",
+            "default": 2.4,
+            "min": 1,
+            "max": 10,
+            "step": 0.1,
+            "unit": "rem",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'paypal' }}"
+          },
+          {
+            "type": "range",
+            "id": "fk_klarna_height",
+            "label": "klarna分期付款高度",
+            "default": 5,
+            "min": 2.5,
+            "max": 12,
+            "step": 0.1,
+            "unit": "rem",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'klarna' }}"
+          },
+          {
+            "type": "range",
+            "id": "fk_klarna_height_mb",
+            "label": "MB端: klarna分期付款高度",
+            "default": 5,
+            "min": 2.5,
+            "max": 12,
+            "step": 0.1,
+            "unit": "rem",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'klarna' }}"
+          },
+          {
+            "type": "text",
+            "id": "installment_text",
+            "label": "分期付款文案",
+            "default": "Starting at {Installment_per}/mo or 0% APR with",
+            "info": "{Installment_per}为分期金额变量",
+            "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'custom' }}"
+          },
+          { "type": "image_picker", "id": "installment_img", "label": "分期付款icon", "info": "建议上传108px*42px的图片", "visible_if": "{{ block.settings.show_installment_payment and block.settings.installment_type == 'custom' }}" },
+
+          { "type": "header", "content": "支付方式配置" },
+          { "type": "checkbox", "id": "show_payment_icons", "label": "显示支付方式icon", "default": true },
+        ]
+      },
+      {
+        "type": "tax_free_popup",
+        "name": "加购/购买前，免税弹窗提示",
+        "limit": 1,
+        "settings": [
+          {"type": "textarea", "id": "tax_free_popup_title", "label": "* 免税弹窗标题（必填）", "info": "任意必填项为空，则不会弹窗提示" },
+          {"type": "richtext", "id": "tax_free_popup_content", "label": "* 免税弹窗内容（必填）", "info": "任意必填项为空，则不会弹窗提示" },
+          {"type": "text", "id": "tax_free_popup_checbox_text", "label": "* 免税弹窗勾选文案（必填）", "info": "任意必填项为空，则不会弹窗提示" },
+          {"type": "color", "id": "tax_free_popup_checbox_text_color", "label": "勾选文案颜色", "default": "#666666" },
+          {"type": "text", "id": "tax_free_popup_button_text", "label": "* 免税弹窗按钮文案（必填）", "info": "任意必填项为空，则不会弹窗提示" }
+        ]
+      },
+      {
+        "type": "app_shortage",
+        "name": "到货提醒功能block（已废弃）",
+        "limit": 1,
+        "settings": [
+          { "type": "paragraph", "content": "已废弃，已集成到【加购 & 立即购买block】中，无需单独配置。" },
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 0
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 0
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 0,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 0,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "benefit_text",
+        "name": "权益文案block",
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+
+          { "type": "header", "content": "物流模块" },
+          { "type": "text", "id": "logistics_title", "label": "标题", "default": "物流模块标题" },
+          { "type": "inline_richtext", "id": "logistics_subtitle", "label": "描述文案", "default": "物流模块描述文案 $btn", "info": "$btn为变量插值，为配置项弹窗按钮文案替换使用" },
+          { "type": "richtext", "id": "logistics_dialog", "label": "弹窗内容", "default": "<p>Free shipping cost on&nbsp;every Jackery order .</p><p>Fast shipping:3-4 business days FedEx shipping service for :CA/AL/GA/LA/MA/MO/</p><p>NC/SC/NC/VA/AR/IL/KS/OK/TX.</p><p>* Warming reminder: Please kindly note that if the Solar Generator bundle is purchased, all items included will be shipped in separate</p>"},
+          { "type": "text", "id": "logistics_btn_text", "label": "弹窗按钮文案", "default": "button" },
+          { "type": "color", "id": "logistics_btn_color", "label": "弹窗按钮文案颜色", "default": "#fd5000" },
+          { "type": "checkbox", "id": "logistics_btn_bold", "label": "弹窗按钮文案是否加粗", "default": false },
+
+          { "type": "header", "content": "用户模块（商品积分文案版块）" },
+          {"type": "checkbox", "id": "is_show_point_block", "label": "启用积分文案版块开关", "default": true, "info": "关闭后，将会兜底显示\"全球站点积分文案\""},
+          {"type": "checkbox", "id": "is_show_global_point", "label": "显示兜底的\"全球站点积分文案\"", "default": true, "visible_if": "{{ block.settings.is_show_point_block == false }}" },
+          {
+            "type": "header",
+            "content": "内容配置",
+            "info":"说明：未配置内容（图片和文案）时，则展示【元对象-3.0&4.0商详页-商品积分文案版块】配置数据",
+            "visible_if": "{{ block.settings.is_show_point_block == true }}"
+          },
+          { "type": "text", "id": "points_title", "label": "标题", "default": "用户模块标题", "visible_if": "{{ block.settings.is_show_point_block == true }}" },
+          {
+            "type": "inline_richtext",
+            "id": "points_text",
+            "label": "积分文案（文案示例：成为会员可以获得：$points积分，请登录）",
+            "default": "成为会员可以获得：$points积分，请$btn",
+            "info": "注意：$points 为变量插值，会自动按照倍率将价格换算成积分替换，可以移动其位置，但不要改变形式，例如改成 $ points 或 $Points 都是错误的，$btn为变量插值为配置项弹窗按钮文案替换使用，&nbsp;可以实现空格",
+            "visible_if": "{{ block.settings.is_show_point_block == true }}"
+          },
+          {
+            "type": "select", "id": "pop",
+            "options": [
+              { "value": "passwordfree_pop", "label": "引导注册（调起免密登录弹窗）" },
+              { "value": "newuser_pop", "label": "引导订阅（调起拉新弹窗）" },
+              { "value": "klaviyo_pop", "label": "引导订阅（调起Klaviyo弹窗）" }
+            ],
+            "default": "passwordfree_pop",
+            "label": "点击按钮后弹窗内容",
+            "visible_if": "{{ block.settings.is_show_point_block == true }}"
+          },
+          { "type": "text", "id": "klva_id", "label": "Klaviyo弹窗ID（上述弹窗内容选择Klaviyo弹窗，配置此ID则会生效）", "visible_if": "{{ block.settings.is_show_point_block == true }}" },
+          { "type": "text", "id": "btn_text", "label": "弹窗按钮文案（配置则调起弹窗）", "default": "登录", "visible_if": "{{ block.settings.is_show_point_block == true }}" },
+          { "type": "color", "id": "btn_color", "label": "弹窗按钮文案颜色", "default": "#fd5000", "visible_if": "{{ block.settings.is_show_point_block == true }}" },
+          { "type": "checkbox", "id": "btn_bold", "label": "弹窗按钮文案是否加粗", "default": false, "visible_if": "{{ block.settings.is_show_point_block == true }}" },
+          { "type": "header", "content": "版块样式", "visible_if": "{{ block.settings.is_show_point_block == true }}" },
+          { "type": "color", "id": "link_color", "label": "积分文案超链接颜色", "default": "#fd5000", "visible_if": "{{ block.settings.is_show_point_block == true }}" },
+          { "type": "color", "id": "active_color", "label": "强调颜色", "default": "#fd5000", "info": "如果需要使用强调颜色标记，请在富文本中使用斜体标记", "visible_if": "{{ block.settings.is_show_point_block == true }}" },
+
+          { "type": "header", "content": "通用模块①" },
+          { "type": "text", "id": "common_title_1", "label": "标题", "default": "通用模块一标题" },
+          { "type": "inline_richtext", "id": "common_subtitle_1", "label": "描述文案", "default": "通用模块一描述文案" },
+          { "type": "header", "content": "通用模块②" },
+          { "type": "text", "id": "common_title_2", "label": "标题", "default": "通用模块二标题" },
+          { "type": "inline_richtext", "id": "common_subtitle_2", "label": "描述文案", "default": "通用模块二描述文案" },
+          { "type": "header", "content": "通用模块③" },
+          { "type": "text", "id": "common_title_3", "label": "标题", "default": "通用模块三标题" },
+          { "type": "inline_richtext", "id": "common_subtitle_3", "label": "描述文案", "default": "通用模块三描述文案" },
+          { "type": "header", "content": "订阅模块" },
+          { "type": "text", "id": "subscribe_title", "label": "标题", "default": "订阅标题" },
+          { "type": "inline_richtext", "id": "subscribe_subtitle", "label": "描述文案", "default": "订阅描述文案 $btn", "info": "$btn为变量插值，为配置项弹窗按钮文案替换使用" },
+          { "type": "text", "id": "subscribe_tag", "label": "邮箱订阅来源标签" },
+          { "type": "text", "id": "subscribe_form_title", "label": "订阅弹窗——表单标题", "default": "订阅弹窗标题" },
+          { "type": "text", "id": "subscribe_form_content", "label": "订阅弹窗——表单内容", "default": "订阅弹窗内容" },
+          { "type": "text", "id": "subscribe_form_input_tips", "label": "订阅弹窗——表单输入框placeholder", "default": "Enter Your Email" },
+          { "type": "text", "id": "subscribe_form_submit_text", "label": "订阅弹窗——表单提交按钮文案", "default": "Subscribe" },
+          { "type": "richtext", "id": "subscribe_form_policy", "label": "订阅弹窗——表单Policy", "default": "<p>I have read and agreed to the <a href=\"https:\/\/www.jackery.com\/policies\/terms-of-service\" target=\"_blank\" title=\"Jackery Terms and service\">Terms<\/a> and <a href=\"https:\/\/www.jackery.com\/policies\/privacy-policy\" target=\"_blank\" title=\"https:\/\/www.jackery.com\/policies\/privacy-policy\">Privacy Policy<\/a>.<\/p>" },
+          { "type": "text", "id": "subscribe_form_submit_success", "label": "订阅弹窗——表单提交成功Tips", "default": "Successfully subscribed!" },
+          { "type": "text", "id": "subscribe_form_submit_error", "label": "订阅弹窗——表单提交失败Tips", "default": "Oops, something went wrong. Please try again later." },
+          { "type": "text", "id": "subscribe_btn_text", "label": "弹窗按钮文案", "default": "button" },
+          { "type": "color", "id": "subscribe_btn_color", "label": "弹窗按钮文案颜色", "default": "#fd5000" },
+          { "type": "checkbox", "id": "subscribe_btn_bold", "label": "弹窗按钮文案是否加粗", "default": false }
+        ]
+      },
+      {
+        "type": "quike_chat",
+        "name": "快捷入口block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+
+          { "type": "header", "content": "内容设置" },
+          { "type": "checkbox", "id": "open_expert_chat", "label": "开启 Firework【咨询专家入口】" },
+          { "type": "image_picker", "id": "chat_icon_1", "label": "咨询专家图标", "visible_if": "{{ block.settings.open_expert_chat == true }}", "info": "图标尺寸：60 x 60" },
+          { "type": "text", "id": "chat_title_1", "label": "标题", "default": "Still have questions? Talk to an expert!", "visible_if": "{{ block.settings.open_expert_chat == true }}" },
+          { "type": "text", "id": "chat_button_text_1", "label": "按钮文案", "default": "Start a Chat", "info": "按钮点击后，调起【Firework 聊天窗口】", "visible_if": "{{ block.settings.open_expert_chat == true }}"  },
+          { "type": "checkbox", "id": "open_book_dialog", "label": "开启【预约咨询入口】" },
+          { "type": "image_picker", "id": "chat_icon_2", "label": "预约咨询图标", "visible_if": "{{ block.settings.open_book_dialog == true }}", "info": "图标尺寸：60 x 60" },
+          { "type": "text", "id": "chat_title_2", "label": "标题", "default": "Worry about installation?", "visible_if": "{{ block.settings.open_book_dialog == true }}"  },
+          { "type": "text", "id": "chat_button_text_2", "label": "按钮文案", "default": "Book a Consultation", "info": "请确保站点级别配置【产品购买意向表单收集-弹窗】覆盖了本页面，若覆盖，则按钮点击后，调起【收集用户意向表单】弹窗", "visible_if": "{{ block.settings.open_book_dialog == true }}"  }
+        ]
+      },
+      {
+        "type": "bundled_sale",
+        "name": "捆绑销售block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          { "type": "header", "content": "内容设置" },
+          { "type": "text", "id": "details_button_text", "label": "【查看详情】按钮文案", "default": "Details" },
+        ]
+      },
+      {
+        "type": "recommend_products",
+        "name": "产品推荐block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+        {
+        "type": "recommend_products_one",
+        "name": "产品推荐block(一度电)",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "free_gift",
+        "name": "买赠block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "内容配置" },
+          { "type": "image_picker", "id": "gift_image", "label": "图片" },
+          { "type": "text", "id": "gift_title", "label": "标题" },
+          { "type": "text", "id": "ends_in_text", "label": "倒计时\"结束于\"多语言", "default": "Ends in" },
+          { "type": "text", "id": "countdown_label_text", "label": "倒计时\"天、时、分、秒\"多语言", "default": "Days,Hours,Mins,Secs", "info": "用英文','号分隔" },
+          {
+            "type": "text", "id": "begin_time_str", "label": "倒计时\"开始时间\"",
+            "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/09/09 00:00:00"
+          },
+          {
+            "type": "text", "id": "end_time_str", "label": "倒计时\"结束时间\"",
+            "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/09/09 00:00:00"
+          },
+          { "type": "text", "id": "gift_dialog_btn", "label": "弹窗按钮", "default": "View Details"},
+          { "type": "richtext", "id": "gift_dialog_content", "label": "弹窗内容" },
+
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "auto_extended_warranty",
+        "name": "自动延保block",
+        "limit": 1,
+        "settings": [
+          { "type": "header", "content": "内容配置" },
+          { "type": "product", "id": "product", "label": "选择产品" },
+          { "type": "text", "id": "skuId", "label": "产品 Sku" },
+          { "type": "image_picker", "id": "product_img", "label": "产品图片" },
+          { "type": "text", "id": "warranty_title", "label": "标题" },
+          { "type": "textarea", "id": "warranty_description", "label": "描述" },
+
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "text_promotion",
+        "name": "文案促销机动版块",
+        "limit": 1,
+        "settings": [
+          {
+            "type": "header",
+            "content": "版块生效配置",
+            "info": "【版块开关+版块有效期】共同决定本版块是否展示，若无效则取全局文案促销机动版块配置"
+          },
+          {
+            "type": "checkbox",
+            "id": "enable_block",
+            "label": "启用开关",
+            "default": false
+          },
+          {
+            "type": "text",
+            "id": "text_promotion_block_start_time_str",
+            "label": "生效时间",
+            "info": "格式要求：YYYY/MM/DD hh:mm:ss，示例: 2025/01/01 00:00:00（开始时间必须小于结束时间）"
+          },
+          {
+            "type": "text",
+            "id": "text_promotion_block_end_time_str",
+            "label": "失效时间",
+            "info": "格式要求：YYYY/MM/DD hh:mm:ss，示例: 2025/01/01 00:00:00（开始时间必须小于结束时间）"
+          },
+          {
+            "type": "header",
+            "content": "内容配置"
+          },
+          { "type": "richtext", "id": "text_promotion_text", "label": "促销文案【斜体=文案突出】" },
+          { "type": "color", "id": "text_promotion_title_color", "label": "文案颜色", "default": "#595959" },
+          { "type": "color", "id": "text_promotion_title_main_color", "label": "突出文案颜色", "default": "#fd5000" },
+          {
+            "type": "color_background",
+            "id": "text_promotion_block_bg_color",
+            "label": "版块背景色",
+            "default": "#F5F5F3",
+            "info":"仅纯文本版块展示时使用该背景色，默认：#F5F5F3"
+          },
+          {
+            "type": "header",
+            "content": "版块背景图"
+          },
+          {
+            "type": "image_picker",
+            "id": "text_promotion_block_pc_bg_img",
+            "label": "PC端背景图",
+            "info": "推荐：624*120，最小高度：44px"
+          },
+          {
+            "type": "image_picker",
+            "id": "text_promotion_block_mb_bg_img",
+            "label": "移动端背景图",
+            "info": "推荐：686*260，最小高度：92px"
+          },
+          {
+            "type": "header",
+            "content": "版块内倒计时元素配置"
+          },
+          { "type": "text", "id": "text_promotion_ends_in_text", "label": "倒计时\"结束于\"多语言", "default": "Ends in" },
+          {
+            "type": "text",
+            "id": "text_promotion_start_time_str",
+            "label": "开始时间",
+            "info": "格式要求：YYYY/MM/DD hh:mm:ss，示例: 2025/01/01 00:00:00（开始时间必须小于结束时间）"
+          },
+          {
+            "type": "text",
+            "id": "text_promotion_end_time_str",
+            "label": "结束时间",
+            "info": "格式要求：YYYY/MM/DD hh:mm:ss，示例: 2025/01/01 00:00:00（开始时间必须小于结束时间）"
+          },
+          {
+            "type": "textarea",
+            "id": "text_promotion_countdown_labels",
+            "label": "时间单位标签",
+            "default": "Days,Hrs,Mins,Secs",
+            "info": "请用英文逗号,隔开"
+          },
+          {
+            "type": "color",
+            "id": "text_promotion_countdown_text_color",
+            "label": "文本颜色",
+            "default": "#595959"
+          },
+          {
+            "type": "color",
+            "id": "text_promotion_countdown_bg_color",
+            "label": "背景颜色",
+            "default": "#fd5000"
+          },
+          {
+            "type": "color",
+            "id": "text_promotion_countdown_number_color",
+            "label": "数字颜色",
+            "default": "#FFFFFF"
+          },
+
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "text_promotion_fold",
+        "name": "促销文案折叠组件",
+        "limit": 4,
+        "settings": [
+          { "type": "header", "content": "版块生效配置", "info": "【版块开关+版块有效期】共同决定本版块是否展示" },
+          { "type": "checkbox", "id": "enable_block", "label": "启用开关", "default": false },
+          {
+            "type": "text",
+            "id": "text_promotion_fold_block_start_time_str",
+            "label": "生效时间",
+            "info": "格式要求：YYYY/MM/DD hh:mm:ss，示例: 2025/01/01 00:00:00（开始时间必须小于结束时间）"
+          },
+          {
+            "type": "text",
+            "id": "text_promotion_fold_block_end_time_str",
+            "label": "失效时间",
+            "info": "格式要求：YYYY/MM/DD hh:mm:ss，示例: 2025/01/01 00:00:00（开始时间必须小于结束时间）"
+          },
+          { "type": "header", "content": "展开区配置" },
+          { "type": "richtext", "id": "text_promotion_fold_text", "label": "展开区文案【斜体=文案突出】", "info": "H1~H6统一为标题样式，段落为正文格式" },
+          {
+            "type": "color",
+            "id": "text_promotion_fold_title_color",
+            "label": "文案颜色",
+            "default": "#242F20",
+            "info":"默认：#242F20"
+          },
+          {
+            "type": "color",
+            "id": "text_promotion_fold_title_main_color",
+            "label": "突出文案颜色",
+            "default": "#fd5000"
+          },
+          {
+            "type": "color_background",
+            "id": "text_promotion_fold_block_bg_color",
+            "label": "文案背景色",
+            "default": "#F5F5F3",
+            "info":"默认：#F5F5F3"
+          },
+          {
+            "type": "image_picker",
+            "id": "text_promotion_fold_block_pc_bg_img",
+            "label": "PC端背景图",
+            "info": "推荐：624*80，最小高度：44px"
+          },
+          {
+            "type": "image_picker",
+            "id": "text_promotion_fold_block_mb_bg_img",
+            "label": "移动端背景图",
+            "info": "推荐：686*136，最小高度：92px"
+          },
+          {
+            "type": "url",
+            "id": "text_promotion_fold_img_jump_link",
+            "label": "图片跳转链接"
+          },
+
+          { "type": "header", "content": "倒计时/折叠区背景色配置" },
+          {
+            "type": "color_background",
+            "id": "text_promotion_fold_countdown_folded_bg_color",
+            "label": "倒计时/折叠区背景色",
+            "default": "#F5F5F3",
+            "info": "默认：#F5F5F3"
+          },
+
+          { "type": "header", "content": "倒计时配置" },
+          { "type": "text", "id": "text_promotion_fold_ends_in_text", "label": "倒计时\"结束于\"多语言", "default": "Ends in" },
+          {
+            "type": "select",
+            "id": "countdown_text_size",
+            "options": [
+              { "value": "jds-b1", "label": "一级文本" },
+              { "value": "jds-b2", "label": "二级文本" },
+              { "value": "jds-b3", "label": "三级文本" },
+              { "value": "custom", "label": "自定义" }
+            ],
+            "default": "jds-b3",
+            "label": "倒计时文本字号"
+          },
+          {
+            "type": "range",
+            "id": "countdown_custom_text_size",
+            "label": "自定义倒计时文本字号",
+            "default": 12,
+            "min": 12,
+            "max": 30,
+            "unit": "px",
+            "step": 2,
+            "visible_if": "{{ block.settings.countdown_text_size == 'custom' }}",
+            "info": "单位：px，移动端字号为当前字号自动减去2px"
+          },
+          {
+            "type": "text",
+            "id": "text_promotion_fold_start_time_str",
+            "label": "开始时间",
+            "info": "格式要求：YYYY/MM/DD hh:mm:ss，示例: 2025/01/01 00:00:00（开始时间必须小于结束时间）"
+          },
+          {
+            "type": "text",
+            "id": "text_promotion_fold_end_time_str",
+            "label": "结束时间",
+            "info": "格式要求：YYYY/MM/DD hh:mm:ss，示例: 2025/01/01 00:00:00（开始时间必须小于结束时间）"
+          },
+          {
+            "type": "color",
+            "id": "text_promotion_fold_countdown_text_color",
+            "label": "文本颜色",
+            "default": "#595959",
+            "info": "默认：#595959"
+          },
+          {
+            "type": "color",
+            "id": "text_promotion_fold_countdown_number_color",
+            "label": "数字颜色",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "color",
+            "id": "text_promotion_fold_countdown_number_bg_color",
+            "label": "数字背景颜色",
+            "default": "#fd5000"
+          },
+
+          { "type": "header", "content": "折叠区配置" },
+          { "type": "richtext", "id": "text_promotion_fold_folded_text", "label": "折叠区文案【斜体=文案突出】" },
+          { "type": "color", "id": "text_promotion_fold_folded_title_color", "label": "文案颜色", "default": "#595959" },
+          {
+            "type": "color",
+            "id": "text_promotion_fold_folded_title_main_color",
+            "label": "突出文案颜色",
+            "default": "#fd5000"
+          },
+
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      },
+      {
+        "type": "custom_liquid",
+        "name": "自定义Liquid",
+        "settings": [
+          {"type": "text", "id": "title","label": "名称（Shopify后台配置项使用）"},
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          { "type": "liquid", "id": "liquid", "label": "自定义Liquid" }
+        ]
+      },
+      {
+        "type": "divider",
+        "name": "分隔线",
+        "settings": [
+          { "type": "header", "content": "PC边距" },
+          {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24
+          },
+          { "type": "header", "content": "MB边距" },
+          {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+              {
+                "value": "default",
+                "label": "默认"
+              },
+              {
+                "value": "custom",
+                "label": "自定义"
+              }
+            ],
+            "default": "default",
+            "label": "MB边距"
+          },
+          {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          },
+          {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 24,
+            "visible_if": "{{ block.settings.mb_padding_type == 'custom' }}"
+          }
+        ]
+      }
+    ],
+    "limit": 1,
+    "presets": [
+      {
+        "name": "V5-PDP-橱窗产品信息-Plus版",
+        "category": "V5.0",
+        "blocks": [
+          {
+            "type": "icon_text",
+            "settings": {
+              "position": "pos_1",
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "custom",
+              "padding_top_mb": 48,
+              "padding_bottom_mb": 16
+            }
+          },
+          {
+            "type": "title",
+            "settings": {
+              "padding_top": 0,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 0,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "price",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "product_feature_text",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "coupon",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "membership_price_coupon",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "description",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "variant_picker",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "quantity_selector",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "buy_buttons",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24,
+              "show_installment_payment": false
+            }
+          },
+          {
+            "type": "benefit_text",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "quike_chat",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "bundled_sale",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "recommend_products",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "free_gift",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          },
+          {
+            "type": "auto_extended_warranty",
+            "settings": {
+              "padding_top": 24,
+              "padding_bottom": 24,
+              "mb_padding_type": "default",
+              "padding_top_mb": 24,
+              "padding_bottom_mb": 24
+            }
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,114 @@
+{% style %}
+  .hero-animation-box{
+    max-width: 1440px;
+  }
+  .hero-animation-info{
+    padding-top: 1.75rem
+  }
+  .v5-hero-animation-container{
+    gap: 1rem
+  }
+  @media (min-width: 768px) {
+    .hero-animation-sections {
+      height: 690px;
+    }
+    .hero-animation-info{
+      padding-top: 5.125rem
+    }
+    .v5-hero-animation-container {
+      gap: 4.5rem
+      opacity: 0;
+      transform: translateY(200px);
+      transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+    }
+    .v5-hero-animation-container.animate {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @media (max-width: 768.98px) {
+    .v5-hero-animation-container {
+      padding: 1.8125rem 0.71875rem 0;
+    }
+  }
+{% endstyle %}
+
+<div id="hero-animation-{{ block.id }}" class="hero-animation-sections w-full h-full">
+  <div class="hero-animation-box relative mx-auto w-full h-full"> 
+    {%- render 'diff-end-img', 
+      pc_img: block.settings.bg_image, 
+      mb_img: block.settings.bg_mb_image, 
+      class: 'w-full h-full object-cover object-center block',
+      pc_img_width: 1440,
+      mb_img_width: 750
+    -%}
+    <div class="hero-animation-info absolute left-0 top-0 w-full h-full">
+      <div class="v5-hero-animation-container flex justify-center w-full">   
+        {%- content_for 'blocks' -%}
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const blockId = 'hero-animation-{{ block.id }}';
+    const block = document.getElementById(blockId);
+    const container = block.querySelector('.v5-hero-animation-container');
+
+    
+    function checkScroll() {
+      const blockTop = block.getBoundingClientRect().top;
+
+      const blockHeight = block.getBoundingClientRect().height;
+
+      // 向下滑动触发点：当block进入视口超过二分之一
+      const enterTriggerPoint = window.innerHeight - blockHeight / 2;
+
+      if (blockTop < enterTriggerPoint) {
+        container.classList.add('animate');
+        // 移除滚动事件监听器，避免重复触发
+        window.removeEventListener('scroll', checkScroll);
+      }
+    }
+    window.addEventListener('scroll', checkScroll);
+    // 初始检查，确保页面加载时如果已经在block位置，也能触发动画
+    checkScroll();
+  });
+</script>
+
+{% schema %}
+{
+	"name": "图文动效",
+	"tag": "div",
+	"settings": [
+		{
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "PC背景图片",
+      "info": "建议尺寸：1440 * 690"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_mb_image",
+      "label": "MB背景图片",
+      "info": "建议尺寸：750 * 750"
+    }
+	],
+  "blocks": [
+    {
+      "type": "_hero-animation-text"
+    }
+  ],
+	"presets": [
+    {
+      "name": "图文动效",
+      "category": "V5.0",
+      "blocks": [
+        { "type": "_hero-animation-text" },
+        { "type": "_hero-animation-text" },
+        { "type": "_hero-animation-text" }
+      ]
+    }
+  ]
+}
+{% endschema %}

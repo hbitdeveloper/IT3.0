@@ -1,0 +1,154 @@
+{% comment %} FAQ {% endcomment %}
+{%- assign product = faq.product -%}
+
+{%- assign faq_num = 0 -%}
+{%- for item in product.metafields.custom.faq.value -%}
+  {%- assign faq_num = faq_num | plus: 1 -%}
+{%- endfor -%}
+<div class="indoor-faq-box" style="background: {{ faq.block_bg }}">
+  <div
+    class="indoor-faq"
+    data-isunfold="{{ faq.is_unfold }}"
+    anchor="{{ faq.anchor_id  | url_decode | strip | replace: ' ', ''}}"
+  >
+    <product-faq class="bg-deep">
+      <div
+        class="produc-detail--faq product-block-section"
+        {% if faq.block_bg != blank and faq.block_bg != 'rgba(0,0,0,0)' %}
+          data-invert="true"
+        {% endif %}
+      >
+        {% comment %} faq {% endcomment %}
+        <div class="faq-title">{{ faq.title | escape }}</div>
+        <ul>
+          {% if product != blank %}
+            {%- for item in product.metafields.custom.faq.value -%}
+              <li>
+                <div class="faq-header flex">
+                  <span>{{ item.title | escape }}</span>
+                  <div class="toggle_btn"></div>
+                </div>
+                <div class="faq-content rte">{% if item.answer_new != blank %} {{item.answer_new | metafield_tag }} {% else %} {{item.answer | escape}} {% endif %}</div>
+              </li>
+            {%- endfor -%}
+          {% else %}
+            {% comment %} 自定义faq {% endcomment %}
+            {%- for i in (0..19) -%}
+              {% assign question_index = 'question_' | append: forloop.index %}
+              {% assign answer_index = 'answer_' | append: forloop.index %}
+              {% if faq[question_index] != blank %}
+                {%- assign faq_num = faq_num | plus: 1 -%}
+                <li>
+                  <div class="faq-header flex">
+                    <span>{{ faq[question_index] }}</span>
+                    <div class="toggle_btn"></div>
+                  </div>
+                  <div class="faq-content">{{ faq[answer_index] }}</div>
+                </li>
+              {% endif %}
+            {%- endfor -%}
+          {% endif %}
+        </ul>
+
+        {% if faq.is_unfold == false %}
+          {%- if faq_num > 3 -%}
+            <div
+              class="z-button-fill-middle faq--more gap-2"
+              data-less="{{ 'general.action_text.view_less' | t }}"
+              data-more="{{ 'general.action_text.view_more' | t }}"
+            >
+              <span>{{ 'general.action_text.view_more' | t }}</span>
+              <jds-icon name="arrow-down" class="icon-arrow-down"></jds-icon>
+            </div>
+          {%- endif -%}
+        {% endif %}
+      </div>
+    </product-faq>
+  </div>
+</div>
+
+<script defer>
+  if (!customElements.get('product-faq')) {
+    customElements.define(
+      'product-faq',
+      class ProductFaq extends HTMLElement {
+        connectedCallback() {
+          // 延迟执行，确保内部 slot/template 已渲染
+          setTimeout(() => this.init(), 500);
+        }
+
+        init() {
+          const el = this; // 当前 product-faq 实例
+          const faqListItems = Array.from(el.querySelectorAll('.produc-detail--faq > ul > li'));
+          const faqHeaders = Array.from(el.querySelectorAll('.faq-header'));
+          const moreBtn = el.querySelector('.faq--more');
+          const isUnfold = el.closest('.indoor-faq')?.getAttribute('data-isunfold') === 'true';
+          const faqTitleDom = el.querySelector('.faq-title');
+
+          // 默认隐藏多余 FAQ 项
+          if (!isUnfold) {
+            faqListItems.slice(3).forEach((li) => {
+              li.style.display = 'none';
+            });
+          }
+
+          // 绑定每项的展开收起事件
+          faqHeaders.forEach((header) => {
+            if (header.__faqClickHandler) {
+              header.removeEventListener('click', header.__faqClickHandler);
+            }
+
+            const handler = function () {
+              const content = header.nextElementSibling && header.nextElementSibling.classList.contains('faq-content')
+                ? header.nextElementSibling
+                : header.parentElement?.querySelector('.faq-content');
+
+              if (content) {
+                const isHidden = window.getComputedStyle(content).display === 'none';
+                content.style.display = isHidden ? 'block' : 'none';
+              }
+
+              header.classList.toggle('active');
+
+              const scope = header.closest('.legal-person-faq');
+              if (!scope) return;
+              if (typeof gaPushDataLayer !== 'function') return;
+
+              gaPushDataLayer('section_FAQ_user_clicks', {
+                "module": faqTitleDom ? (faqTitleDom.textContent || '').trim() : '',
+                "position": (header.textContent || '').trim(),
+                "type": header.classList.contains("active") ? "open" : "fold",
+              })
+            };
+
+            header.__faqClickHandler = handler;
+            header.addEventListener('click', handler);
+          });
+
+          // 绑定“查看更多/收起”按钮
+          if (moreBtn) {
+            if (moreBtn.__faqMoreHandler) {
+              moreBtn.removeEventListener('click', moreBtn.__faqMoreHandler);
+            }
+
+            const handler = function () {
+              const isActive = moreBtn.classList.contains('active');
+              const viewMore = moreBtn.getAttribute('data-more') || '查看更多';
+              const viewLess = moreBtn.getAttribute('data-less') || '收起';
+
+              faqListItems.slice(3).forEach((li) => {
+                li.style.display = isActive ? 'none' : '';
+              });
+
+              moreBtn.querySelector('span').textContent = isActive ? viewMore : viewLess;
+              moreBtn.classList.toggle('active');
+            };
+
+            moreBtn.__faqMoreHandler = handler;
+            moreBtn.addEventListener('click', handler);
+          }
+        }
+      }
+    );
+  }
+</script>

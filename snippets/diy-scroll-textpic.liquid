@@ -1,0 +1,75 @@
+
+{{ 'snippets-diy-scroll-textpic.css' | asset_url | stylesheet_tag }}
+
+<jky-vertical-swiper
+    {% if unscroll == true %}data-disabled-scroll{% endif %}
+    {% if mb_spaceBetween != blank %}mb_spaceBetween = "{{mb_spaceBetween}}"{% endif %}
+>
+    {%- if settings.title != blank -%}
+        <div class="title {{settings.page_width | default: 'section-container'}}" style="--mb-title-font:{{ settings.title_font }}vw">{{settings.title | escape}}</div>
+    {%- endif -%}
+
+    <div class="container-textpic {{settings.page_width | default: 'section-container'}}">
+        <div class="left">
+            {%- for i in (0..5) -%}
+                {% assign pc_img_index = 'pc_img_' | append: forloop.index %}
+                {% assign mb_img_index = 'mb_img_' | append: forloop.index %}
+                {%- if settings[pc_img_index] != blank -%}
+                    <picture>
+                        <source media="(min-width: 751px)" srcset="{{settings[pc_img_index] | image_url: width: 1300 }}">
+                        <source media="(max-width: 750px)" srcset="{{settings[mb_img_index] | image_url: width: 750 }}">
+                        <img {% if forloop.index0 == 0 %} class="active"{% endif %} src="{{settings[pc_img_index] | image_url: width: 1200 }}" alt="{{settings[pc_img_index].alt | escape}}">
+                    </picture>
+                {%- endif -%}
+            {%- endfor -%}
+        </div>
+        <div class="right">
+            {%- for i in (0..5) -%}
+                {% assign pc_img_index = 'pc_img_' | append: forloop.index %}
+                {% assign heading_index = 'heading_' | append: forloop.index %}
+                {% assign description_index = 'description_' | append: forloop.index %}
+                {%- if settings[pc_img_index] != blank -%}
+                    <div class="slides-item">
+                        <div class="slide-name">{{settings[heading_index] | escape}}</div>
+                        <div class="slide-des">{{settings[description_index] | escape}}</div>
+                    </div>
+                {%- endif -%}
+            {%- endfor -%}
+        </div>
+    </div>
+
+    <div class="mb-container">
+        <div class="jky-vertical-swiper swiper">
+            <div class="swiper-wrapper">
+                {%- for i in (0..5) -%}
+                    {% assign pc_img_index = 'pc_img_' | append: forloop.index %}
+                    {% assign mb_img_index = 'mb_img_' | append: forloop.index %}
+
+                    {% assign heading_index = 'heading_' | append: forloop.index %}
+                    {% assign description_index = 'description_' | append: forloop.index %}
+                    {%- if settings[pc_img_index] != blank -%}
+                        <div class="swiper-slide">
+                            <picture>
+                                <source media="(min-width: 751px)" srcset="{{settings[pc_img_index] | image_url: width: 1300 }}">
+                                <source media="(max-width: 750px)" srcset="{{settings[mb_img_index] | image_url: width: 750 }}">
+                                <img src="{{settings[mb_img_index] | image_url: width: 750 }}" alt="{{settings[pc_img_index].alt | escape}}">
+                            </picture>
+
+                            <div class="slide-content--mb">
+                                <div class="slide-content-title">{{settings[heading_index] | escape}}</div>
+                                <div class="slide-content-des">{{settings[description_index] | escape}}</div>
+                            </div>
+                        </div>
+                    {%- endif -%}
+                {%- endfor -%}
+            </div>
+        </div>
+    </div>
+
+    <div class="btns">
+        <div class="prev-btn swiper-btn animate__animated"><div class="arrow-icon"></div></div>
+        <div class="next-btn swiper-btn animate__animated"><div class="arrow-icon"></div></div>
+    </div>
+</jky-vertical-swiper>
+
+<script src="{{ 'snippets-diy-scroll-textpic.js' | asset_url }}" defer></script>

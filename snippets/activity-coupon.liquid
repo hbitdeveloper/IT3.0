@@ -1,0 +1,90 @@
+{% comment %} 活动页-图片组件 {% endcomment %}
+<style>
+    .activity-block--pic {padding-top: var(--padding-top);padding-bottom:var(--padding-bottom);}
+    .activity-block--pic .activity-block--pic-main img {width: 100%;}
+
+    {%- if schema_settings.full_width != true -%}
+    .activity-block--pic .activity-block--pic-main.section-container img {border-radius: var(--pic-radius);}
+    {%- endif -%}
+
+    .activity-block--pic-heading {line-height: 48px;font-size: 40px;padding-left: 40px;padding-right: 40px;text-align: center;font-weight: 600;padding-bottom: var(--padding-content);}
+
+    @media screen and (max-width: 1024px) {
+        .activity-block--pic {padding-top: calc(var(--padding-top) / 3);padding-bottom:calc(var(--padding-bottom) / 3);}
+        .activity-block--pic-heading {line-height: 8vw;font-size: 6.4vw;padding-left: 5.3333vw;padding-right: 5.3333vw;padding-bottom: calc(var(--padding-content) / 2);}
+
+    {%- if schema_settings.full_width != true -%}
+        .activity-block--pic .activity-block--pic-main.section-container img {border-radius: calc(var(--pic-radius) / 2);}
+    {%- endif -%}
+    }
+</style>
+
+<jky-act-coupon coupon="{{schema_settings.coupon | escape}}" msg="{{schema_settings.coupon_msg | escape}}">
+    <div {%if schema_settings.anchor_id != blank%}anchor={{schema_settings.anchor_id | escape}}{%endif%} class="activity-block--pic color-{{ schema_settings.color_scheme }}" style="background:var(--color-background);--pic-radius: {{schema_settings.pic_radius}}px;--padding-bottom:{{schema_settings.padding_bottom}}px;--padding-top:{{schema_settings.padding_top}}px;--padding-content: {{schema_settings.padding_content}}px;">
+        <div class="activity-block--pic-main {%unless schema_settings.full_width == true%}activity-container{%endunless%}" {% if schema_settings.coupon != blank %}style="cursor: pointer;"{% endif %}>
+            {%- if schema_settings.title != blank -%}
+                <div class="activity-block--pic-heading" style="color:var(--color-text);">{{schema_settings.title | newline_to_br}}</div>
+            {%- endif -%}
+
+            <div class="activity-block--pic-box relative">
+                {%- 
+                    render 'responsive-image', 
+                    image: schema_settings.pc_img, 
+                    width: 1312, 
+                    mimage: schema_settings.mb_img, 
+                    mwidth: 600, 
+                    image_class: "w-full object-cover" 
+                -%}
+            </div>
+        </div>
+    </div>
+</jky-act-coupon>
+<script>
+    (function () {
+        function onReady(fn) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fn, { once: true })
+                return
+            }
+            fn()
+        }
+
+        onReady(function () {
+            if (!customElements.get('jky-act-coupon')) {
+                customElements.define('jky-act-coupon', class JkyActCoupon extends HTMLElement {
+                    constructor() {
+                        super()
+                        this.code = this.getAttribute("coupon")
+                        this.msg = this.getAttribute("msg")
+                        this.trigger = this.querySelector(".activity-block--pic-main")
+                        this.isMobile = window.innerWidth <= 1024
+                        this.init()
+                    }
+                    copyString(value, cb) {
+                        const textarea = document.createElement('textarea')
+                        textarea.readOnly = 'readonly'
+                        textarea.style.position = 'absolute'
+                        textarea.style.left = '-9999px'
+                        textarea.value = value
+                        document.body.appendChild(textarea)
+                        textarea.select()
+                        const result = document.execCommand('Copy')
+                        document.body.removeChild(textarea)
+                        if (result && cb) { cb() }
+                    }
+                    init() {
+                        this.code && this.trigger.addEventListener("click", () => {
+                            this.copyString(this.code, () => {
+                                try {
+                                    this.msg && pushSuccessMessage(this.msg)
+                                } catch(e) {
+                                    console.error(e)
+                                }
+                            })
+                        })
+                    }
+                })
+            }
+        })
+    })()
+</script>

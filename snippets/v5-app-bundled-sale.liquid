@@ -1,0 +1,968 @@
+{% comment %}
+    产品详情页 - 添加捆绑销售
+    Accepts: product, block, is_diy (optional)
+    Usage: {% render 'v5-app-bundled-sale', product: product, block: block, is_diy: true %}
+{% endcomment %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign is_diy = is_diy | default: false
+-%}
+
+{% comment %} open_bundled_sale {% endcomment %}
+{%- if settings.open_bundled_sale == true -%}
+  {% assign current_variant = product.selected_or_first_available_variant %}
+  {% capture bundled_sale_root_id %}bundled-sale-{{ section.id }}-{{ block.id }}{% endcapture %}
+  {% assign bundle_info = current_variant.metafields.custom.bundle_info.value %}
+  {% assign bundle_title = '' %}
+  {% assign bundle_total = 0 %}
+  {% assign bundle_goods_list = blank %}
+  {% assign show_bundle_sale = false %}
+  {% if bundle_info != blank %}
+    {% assign bundle_title = bundle_info.title | default: '' %}
+    {% assign bundle_goods_list = bundle_info.bundleGoodsList %}
+    {% assign bundle_total = bundle_info.total | default: bundle_goods_list.size | plus: 0 %}
+    {% if bundle_goods_list != blank and bundle_total > 0 %}
+      {% assign show_bundle_sale = true %}
+    {% endif %}
+  {% endif %}
+
+  <div id="{{ bundled_sale_root_id }}" class="w-full"{% unless show_bundle_sale %} style="display:none;"{% endunless %}>
+    {% style %}
+      jky-v5-app-bundled-sale [data-app-bundled-sale-title] pre {
+        white-space: normal;
+      }
+      jky-v5-app-bundled-sale input[type="checkbox"] {
+        cursor: pointer;
+        position: relative;
+      }
+      jky-v5-app-bundled-sale input[type="checkbox"]::after {
+        content: ' ';
+        width: 100%;
+        height: 100%;
+        border-radius: 2px;
+        background-color: #fff;
+        border: 1px solid #D8D8D8;
+        visibility: visible;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+      jky-v5-app-bundled-sale input[type="checkbox"]::before {
+        content: '';
+        width: 35%;
+        height: 55%;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -60%) rotate(45deg);
+        opacity: 0;
+        z-index: 1;
+        box-sizing: border-box;
+      }
+      jky-v5-app-bundled-sale input[type="checkbox"]:checked::before {
+        opacity: 1;
+      }
+      jky-v5-app-bundled-sale input[type="checkbox"]:checked::after {
+        content: ' ';
+        background-color: #242F20;
+        border: none;
+      }
+      jky-v5-app-bundled-sale input[type="checkbox"]:active,
+      jky-v5-app-bundled-sale input[type="checkbox"]:focus {
+        background-color: transparent;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+        -webkit-user-select: none;
+        -moz-user-focus: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+      jky-v5-app-bundled-sale ul {
+        width: calc(100% + 1rem);
+      }
+      jky-v5-app-bundled-sale ul > :last-child {
+        margin-bottom: 1px;
+      }
+      jky-v5-app-bundled-sale ul label.active{
+        border: solid 1px #242F20;
+        box-shadow: inset 0 0 0 0.5px #242F20;
+      }
+      /* 滚动条宽度 */
+      jky-v5-app-bundled-sale ul::-webkit-scrollbar {
+        width: 0.375rem;
+      }
+      /* 滚动条滑块 */
+      jky-v5-app-bundled-sale ul::-webkit-scrollbar-thumb {
+        background-color: #C9C9CB; /* 滑块颜色 */
+        border-radius: 10px; /* 滑块圆角 */
+      }
+      /* 滚动条轨道 */
+      jky-v5-app-bundled-sale ul::-webkit-scrollbar-track {
+        background-color: transparent; /* 滚动条轨道透明 */
+      }
+      @media screen and (max-width: 1023.98px) {
+        jky-v5-app-bundled-sale ul {
+          width: calc(100% + 0.75rem);
+        }
+      }
+
+      jky-v5-app-bundled-sale [data-bundle-variant-templates] {
+        display: none;
+      }
+    {% endstyle %}
+
+    <jky-v5-app-bundled-sale
+      class="flex flex-col gap-y-4 lg:gap-y-6 section-padding"
+      style="{{ style }}"
+      data-product-title="{{ product.title | escape }}"
+      data-variant-id="{{ current_variant.id }}"
+      data-variant-title="{{ current_variant.title | escape }}"
+      data-is-diy="{{ is_diy }}"
+    >
+      <div data-bundle-body>
+        {% if show_bundle_sale %}
+          <div class="font-semibold text-[#242F20] text-xl lg:text-2xl mb-4" data-app-bundled-sale-title>{{ bundle_title }}</div>
+          <ul class="flex flex-col max-h-[16.875rem] gap-y-4 pr-1 overflow-y-auto lg:max-h-[23.3125rem] lg:pr-2.5" data-app-bundled-sale-list>
+            {% if is_diy %}
+              {% for item in bundle_goods_list %}
+                {% assign index = forloop.index0 %}
+                {% assign item_title = item.sellerName | default: item.title %}
+                {% assign item_price = item.price | default: 0 %}
+                {% assign item_origin_price = item.originPrice | default: 0 %}
+                {% assign item_price_cents = item_price | times: 100 %}
+                {% assign item_origin_price_cents = item_origin_price | times: 100 %}
+                {% assign item_stock = item.stock | default: 1 | plus: 0 %}
+                {% assign item_sku_id = item.skuId | default: 0 %}
+                {% assign item_goods_id = item.goodsId | default: 0 %}
+                {% assign item_default_chosen = item.defaultChosen | default: 0 | plus: 0 %}
+                {% assign item_positioning_tag = item.positioningTag | default: '' %}
+                {% assign item_positioning_desc = item.positioningDesc | default: '' %}
+                {% assign item_positioning_desc_color = item.positioningDescColor | default: '#999999' %}
+                {% assign item_image = item.image | default: '' | remove: '`' | strip %}
+                {% assign item_image_base = item_image | split: '?' | first %}
+                {% capture item_product_json %}{"goodsId":{{ item_goods_id | json }},"title":{{ item_title | json }},"price":{{ item_price | json }},"originPrice":{{ item_origin_price | json }},"image":{{ item_image | json }}}{% endcapture %}
+
+                <label skuId="{{ item_sku_id }}" for="add-on-{{ item_sku_id }}--{{ index }}" class="w-full flex shrink-0 items-start lg:items-center flex-row border-solid border-[#C6C7C8] gap-x-3 border min-h-[6.375rem] lg:gap-x-4 px-2.5 pb-5 lg:px-4 lg:pb-6 {% if item_positioning_tag != blank %}pt-10 lg:pt-10{% else %}pt-5 lg:pt-6{% endif %} lg:min-h-[7.5rem] cursor-pointer relative {% if item_default_chosen == 1 %}active{% endif %}">
+                  {% if item_positioning_tag != blank %}
+                    <span class="absolute right-[-1px] top-[-1px] bg-[#242F20] text-white font-semibold text-[0.75rem] lg:text-[1rem] leading-[1.75rem] h-7 px-2 lg:px-3">{{ item_positioning_tag }}</span>
+                  {% endif %}
+                  <div class="flex items-center gap-x-2.5 lg:gap-x-4">
+                    <input skuId="{{ item_sku_id }}" type="checkbox" id="add-on-{{ item_sku_id }}--{{ index }}" title="{{ item_title | escape }}" price="{{ item_price_cents | money | escape }}" class="w-4 h-4 lg:w-5 lg:h-5" {% if item_default_chosen == 1 %}checked{% endif %}>
+                    <img class="w-12 h-12 lg:w-[4.5rem] lg:h-[4.5rem] object-contain cursor-pointer" src="{{ item_image_base }}?width=144" alt="{{ item_title | escape }}" loading="lazy" data-product="{{ item_product_json | escape }}" data-action="show-modal">
+                  </div>
+                  <div class="flex flex-col flex-1">
+                    <h4 class="text-[#242F20] font-semibold text-sm lg:text-xl cursor-pointer" data-product="{{ item_product_json | escape }}" data-action="show-modal">{{ item_title }}</h4>
+                    <p class="flex flex-row items-center lg:hidden mt-2">
+                      <em class="text-[#242F20] font-semibold not-italic text-base lg:text-xl">{{ item_price_cents | money }}</em>
+                      {% if item_origin_price > item_price %}
+                        <span class="text-[#999999] font-normal text-xs ml-2 line-through lg:text-base">{{ item_origin_price_cents | money }}</span>
+                      {% endif %}
+                    </p>
+                    {% if item_positioning_desc != blank %}
+                      <p class="text-[#999999] font-semibold mt-3 lg:mt-0 text-xs lg:text-base" style="color:{{ item_positioning_desc_color }};">{{ item_positioning_desc }}</p>
+                    {% endif %}
+                    <div class="w-full lg:hidden {% if item_default_chosen == 1 %}flex{% else %}hidden{% endif %} justify-end mt-3 lg:mt-1" data-quantity-input-wrap-mb>
+                      <div class="flex border-solid border-[#E2E3E3] border">
+                        <button
+                          aria-label="Decrease quantity for {{ item_title | escape }}"
+                          class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                          disabled
+                          data-button-minus
+                          data-sku-title="{{ item_title | escape }}"
+                          data-sku-price="{{ item_price_cents | money | escape }}"
+                        >
+                          <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                              <g transform="translate(-1053.000000, -594.000000)">
+                                <g transform="translate(1053.000000, 594.000000)">
+                                  <rect x="0" y="0" width="56" height="56"></rect>
+                                  <g transform="translate(7.000000, 26.000000)" fill="#333" fill-rule="nonzero">
+                                    <path d="M2.24098777,4.36809816 L39.3054147,4.36809816 C39.7082889,4.36809816 40.0817869,4.27048703 40.4259086,4.07526476 C40.7700303,3.8800425 41.0428097,3.61567902 41.2442468,3.28217432 C41.445684,2.94866961 41.5464025,2.57856074 41.5464025,2.17184769 C41.5464025,1.78140316 41.445684,1.41942855 41.2442468,1.08592384 C41.0428097,0.752419143 40.7700303,0.48805566 40.4259086,0.292833396 C40.0817869,0.0976111321 39.7082889,0 39.3054147,0 L2.24098777,0 C1.83811357,0 1.46881221,0.0976111321 1.1330837,0.292833396 C0.7973552,0.48805566 0.524575789,0.752419143 0.314745474,1.08592384 C0.104915158,1.41942855 0,1.78140316 0,2.17184769 C0,2.57856074 0.104915158,2.94866961 0.314745474,3.28217432 C0.524575789,3.61567902 0.7973552,3.8800425 1.1330837,4.07526476 C1.46881221,4.27048703 1.83811357,4.36809816 2.24098777,4.36809816 Z"></path>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </svg>
+                        </button>
+                        <input
+                          aria-label="purchase quantity"
+                          class="flex-center font-semibold text-center border-0 border-solid border-[#E2E3E3] border-x-[1px] w-8 h-7 lg:w-11 lg:h-8 text-base lg:text-xl"
+                          type="number"
+                          value="1"
+                          readonly
+                          data-quantity-input
+                          data-max="{{ item_stock }}"
+                          data-sku-id="{{ item_sku_id }}"
+                          data-sku-title="{{ item_title | escape }}"
+                          data-sku-price="{{ item_price_cents | money | escape }}"
+                        />
+                        <button
+                          class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                          {% if item_stock <= 1 %}disabled{% endif %}
+                          aria-label="Increase quantity for {{ item_title | escape }}"
+                          data-button-plus
+                          data-sku-title="{{ item_title | escape }}"
+                          data-sku-price="{{ item_price_cents | money | escape }}"
+                        >
+                          <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                              <g transform="translate(-931.000000, -594.000000)">
+                                <g transform="translate(931.000000, 594.000000)">
+                                  <rect x="0" y="0" width="56" height="56"></rect>
+                                  <g transform="translate(7.000000, 7.000000)" fill="#333" fill-rule="nonzero">
+                                    <path d="M0,20.7484663 C0,21.3688244 0.222420135,21.8969672 0.667260404,22.3328946 C1.11210067,22.768822 1.63667646,22.9867856 2.24098777,22.9867856 L18.5322135,22.9867856 L18.5322135,39.2586131 C18.5322135,39.8622049 18.750437,40.386156 19.1868841,40.8304666 C19.6233311,41.2747772 20.1521035,41.4969325 20.7732013,41.4969325 C21.394299,41.4969325 21.927268,41.2747772 22.3721083,40.8304666 C22.8169485,40.386156 23.0393687,39.8622049 23.0393687,39.2586131 L23.0393687,22.9867856 L39.3054147,22.9867856 C39.909726,22.9867856 40.4343018,22.768822 40.8791421,22.3328946 C41.3239824,21.8969672 41.5464025,21.3688244 41.5464025,20.7484663 C41.5464025,20.1281081 41.3239824,19.5957737 40.8791421,19.1514631 C40.4343018,18.7071525 39.909726,18.4849972 39.3054147,18.4849972 L23.0393687,18.4849972 L23.0393687,2.23831939 C23.0393687,1.63472764 22.8169485,1.11077648 22.3721083,0.666465886 C21.927268,0.222155295 21.394299,0 20.7732013,0 C20.1521035,0 19.6233311,0.222155295 19.1868841,0.666465886 C18.750437,1.11077648 18.5322135,1.63472764 18.5322135,2.23831939 L18.5322135,18.4849972 L2.24098777,18.4849972 C1.63667646,18.4849972 1.11210067,18.7071525 0.667260404,19.1514631 C0.222420135,19.5957737 0,20.1281081 0,20.7484663 Z"></path>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="hidden lg:flex flex-col items-end lg:gap-y-1 lg:min-w-[6.875rem]">
+                    <em class="text-[#242F20] font-semibold not-italic lg:text-xl">{{ item_price_cents | money }}</em>
+                    {% if item_origin_price > item_price %}
+                      <span class="text-[#999999] font-normal line-through lg:text-base">{{ item_origin_price_cents | money }}</span>
+                    {% endif %}
+                    <div class="mt-3 lg:mt-1 hidden {% if item_default_chosen == 1 %}lg:flex{% endif %}" data-quantity-input-wrap-pc>
+                      <div class="flex border-solid border-[#E2E3E3] border">
+                        <button
+                          class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                          disabled
+                          aria-label="Decrease quantity for {{ item_title | escape }}"
+                          data-button-minus
+                          data-sku-title="{{ item_title | escape }}"
+                          data-sku-price="{{ item_price_cents | money | escape }}"
+                        >
+                          <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                              <g transform="translate(-1053.000000, -594.000000)">
+                                <g transform="translate(1053.000000, 594.000000)">
+                                  <rect x="0" y="0" width="56" height="56"></rect>
+                                  <g transform="translate(7.000000, 26.000000)" fill="#333" fill-rule="nonzero">
+                                    <path d="M2.24098777,4.36809816 L39.3054147,4.36809816 C39.7082889,4.36809816 40.0817869,4.27048703 40.4259086,4.07526476 C40.7700303,3.8800425 41.0428097,3.61567902 41.2442468,3.28217432 C41.445684,2.94866961 41.5464025,2.57856074 41.5464025,2.17184769 C41.5464025,1.78140316 41.445684,1.41942855 41.2442468,1.08592384 C41.0428097,0.752419143 40.7700303,0.48805566 40.4259086,0.292833396 C40.0817869,0.0976111321 39.7082889,0 39.3054147,0 L2.24098777,0 C1.83811357,0 1.46881221,0.0976111321 1.1330837,0.292833396 C0.7973552,0.48805566 0.524575789,0.752419143 0.314745474,1.08592384 C0.104915158,1.41942855 0,1.78140316 0,2.17184769 C0,2.57856074 0.104915158,2.94866961 0.314745474,3.28217432 C0.524575789,3.61567902 0.7973552,3.8800425 1.1330837,4.07526476 C1.46881221,4.27048703 1.83811357,4.36809816 2.24098777,4.36809816 Z"></path>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </svg>
+                        </button>
+                        <input
+                          aria-label="purchase quantity"
+                          class="flex-center font-semibold text-center border-0 border-solid border-[#E2E3E3] border-x-[1px] w-8 h-7 lg:w-11 lg:h-8 text-base lg:text-xl"
+                          type="number"
+                          value="1"
+                          readonly
+                          data-quantity-input
+                          data-max="{{ item_stock }}"
+                          data-sku-id="{{ item_sku_id }}"
+                          data-sku-title="{{ item_title | escape }}"
+                          data-sku-price="{{ item_price_cents | money | escape }}"
+                        />
+                        <button
+                          class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                          {% if item_stock <= 1 %}disabled{% endif %}
+                          aria-label="Increase quantity for {{ item_title | escape }}"
+                          data-button-plus
+                          data-sku-title="{{ item_title | escape }}"
+                          data-sku-price="{{ item_price_cents | money | escape }}"
+                        >
+                          <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                              <g transform="translate(-931.000000, -594.000000)">
+                                <g transform="translate(931.000000, 594.000000)">
+                                  <rect x="0" y="0" width="56" height="56"></rect>
+                                  <g transform="translate(7.000000, 7.000000)" fill="#333" fill-rule="nonzero">
+                                    <path d="M0,20.7484663 C0,21.3688244 0.222420135,21.8969672 0.667260404,22.3328946 C1.11210067,22.768822 1.63667646,22.9867856 2.24098777,22.9867856 L18.5322135,22.9867856 L18.5322135,39.2586131 C18.5322135,39.8622049 18.750437,40.386156 19.1868841,40.8304666 C19.6233311,41.2747772 20.1521035,41.4969325 20.7732013,41.4969325 C21.394299,41.4969325 21.927268,41.2747772 22.3721083,40.8304666 C22.8169485,40.386156 23.0393687,39.8622049 23.0393687,39.2586131 L23.0393687,22.9867856 L39.3054147,22.9867856 C39.909726,22.9867856 40.4343018,22.768822 40.8791421,22.3328946 C41.3239824,21.8969672 41.5464025,21.3688244 41.5464025,20.7484663 C41.5464025,20.1281081 41.3239824,19.5957737 40.8791421,19.1514631 C40.4343018,18.7071525 39.909726,18.4849972 39.3054147,18.4849972 L23.0393687,18.4849972 L23.0393687,2.23831939 C23.0393687,1.63472764 22.8169485,1.11077648 22.3721083,0.666465886 C21.927268,0.222155295 21.394299,0 20.7732013,0 C20.1521035,0 19.6233311,0.222155295 19.1868841,0.666465886 C18.750437,1.11077648 18.5322135,1.63472764 18.5322135,2.23831939 L18.5322135,18.4849972 L2.24098777,18.4849972 C1.63667646,18.4849972 1.11210067,18.7071525 0.667260404,19.1514631 C0.222420135,19.5957737 0,20.1281081 0,20.7484663 Z"></path>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              {% endfor %}
+            {% else %}
+              {% for item in bundle_goods_list %}
+                {% assign index = forloop.index0 %}
+                {% assign item_title = item.sellerName | default: item.title %}
+                {% assign item_price = item.price | default: 0 %}
+                {% assign item_origin_price = item.originPrice | default: 0 %}
+                {% assign item_price_cents = item_price | times: 100 %}
+                {% assign item_origin_price_cents = item_origin_price | times: 100 %}
+                {% assign item_stock = item.stock | default: 1 | plus: 0 %}
+                {% assign item_sku_id = item.skuId | default: 0 %}
+                {% assign item_goods_id = item.goodsId | default: 0 %}
+                {% assign item_positioning_desc = item.positioningDesc | default: '' %}
+                {% assign item_positioning_desc_color = item.positioningDescColor | default: '#999999' %}
+                {% assign item_image = item.image | default: '' | remove: '`' | strip %}
+                {% capture item_product_json %}{"goodsId":{{ item_goods_id | json }},"title":{{ item_title | json }},"price":{{ item_price | json }},"originPrice":{{ item_origin_price | json }},"image":{{ item_image | json }}}{% endcapture %}
+
+                <li class="w-full flex shrink-0 items-start lg:items-center flex-row border-0 border-solid border-b-[1px] border-[#E2E3E3] pb-4 gap-x-2 lg:gap-x-4">
+                  <script type="application/json" id="BundleList-{{ index }}">{"skuId":{{ item_sku_id }},"goodsId":{{ item_goods_id }},"title":{{ item_title | json }},"price":{{ item_price }},"originPrice":{{ item_origin_price }},"positioningDesc":{{ item_positioning_desc | json }},"positioningDescColor":{{ item_positioning_desc_color | json }},"image":{{ item_image | json }},"stock":{{ item_stock }}}</script>
+                  <img class="w-[4.5rem] h-[4.5rem] lg:w-24 lg:h-24 object-contain cursor-pointer" src="{{ item_image }}" alt="" loading="lazy" data-product="{{ item_product_json | escape }}" data-action="show-modal">
+                  <div class="flex flex-col justify-between min-h-[4.5rem] lg:min-h-24 flex-1">
+                    <h4 class="w-full text-[#242F20] font-semibold text-sm lg:text-xl line-clamp-2 cursor-pointer" title="{{ item_title | escape }}" data-product="{{ item_product_json | escape }}" data-action="show-modal">{{ item_title }}</h4>
+                    {% if item_positioning_desc != blank %}
+                      <p class="text-[#999999] mt-2 text-xs lg:text-sm" style="color:{{ item_positioning_desc_color }};">{{ item_positioning_desc }}</p>
+                    {% endif %}
+                    <div class="flex items-center justify-between mt-2 lg:mt-3">
+                      <p class="flex flex-wrap items-center gap-x-1">
+                        <em class="text-[#242F20] font-semibold not-italic text-base lg:text-xl">{{ item_price_cents | money }}</em>
+                        {% if item_origin_price > item_price %}
+                          <span class="text-[#242F20]/65 text-xs lg:text-sm line-through">{{ item_origin_price_cents | money }}</span>
+                        {% endif %}
+                      </p>
+                      <div class="flex items-center gap-x-2 lg:gap-x-4 shrink-0" data-action-wrap>
+                        <div class="flex border-solid border-[#E2E3E3] border">
+                          <button
+                            class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                            disabled
+                            aria-label="Decrease quantity for {{ item_title | escape }}"
+                            data-button-minus
+                            data-sku-title="{{ item_title | escape }}"
+                            data-sku-price="{{ item_price_cents | money | escape }}"
+                          >
+                            <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <g transform="translate(-1053.000000, -594.000000)">
+                                  <g transform="translate(1053.000000, 594.000000)">
+                                    <rect x="0" y="0" width="56" height="56"></rect>
+                                    <g transform="translate(7.000000, 26.000000)" fill="#333" fill-rule="nonzero">
+                                      <path d="M2.24098777,4.36809816 L39.3054147,4.36809816 C39.7082889,4.36809816 40.0817869,4.27048703 40.4259086,4.07526476 C40.7700303,3.8800425 41.0428097,3.61567902 41.2442468,3.28217432 C41.445684,2.94866961 41.5464025,2.57856074 41.5464025,2.17184769 C41.5464025,1.78140316 41.445684,1.41942855 41.2442468,1.08592384 C41.0428097,0.752419143 40.7700303,0.48805566 40.4259086,0.292833396 C40.0817869,0.0976111321 39.7082889,0 39.3054147,0 L2.24098777,0 C1.83811357,0 1.46881221,0.0976111321 1.1330837,0.292833396 C0.7973552,0.48805566 0.524575789,0.752419143 0.314745474,1.08592384 C0.104915158,1.41942855 0,1.78140316 0,2.17184769 C0,2.57856074 0.104915158,2.94866961 0.314745474,3.28217432 C0.524575789,3.61567902 0.7973552,3.8800425 1.1330837,4.07526476 C1.46881221,4.27048703 1.83811357,4.36809816 2.24098777,4.36809816 Z"></path>
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </svg>
+                          </button>
+                          <input
+                            aria-label="purchase quantity"
+                            class="flex-center font-semibold text-center border-0 border-solid border-[#E2E3E3] border-x-[1px] w-8 h-7 lg:w-11 lg:h-8 text-base lg:text-xl"
+                            type="number"
+                            value="1"
+                            readonly
+                            data-quantity-input
+                            data-max="{{ item_stock }}"
+                            data-sku-id="{{ item_sku_id }}"
+                            data-sku-title="{{ item_title | escape }}"
+                            data-sku-price="{{ item_price_cents | money | escape }}"
+                          />
+                          <button
+                            class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                            {% if item_stock <= 1 %}disabled{% endif %}
+                            aria-label="Increase quantity for {{ item_title | escape }}"
+                            data-button-plus
+                            data-sku-title="{{ item_title | escape }}"
+                            data-sku-price="{{ item_price_cents | money | escape }}"
+                          >
+                            <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <g transform="translate(-931.000000, -594.000000)">
+                                  <g transform="translate(931.000000, 594.000000)">
+                                    <rect x="0" y="0" width="56" height="56"></rect>
+                                    <g transform="translate(7.000000, 7.000000)" fill="#333" fill-rule="nonzero">
+                                      <path d="M0,20.7484663 C0,21.3688244 0.222420135,21.8969672 0.667260404,22.3328946 C1.11210067,22.768822 1.63667646,22.9867856 2.24098777,22.9867856 L18.5322135,22.9867856 L18.5322135,39.2586131 C18.5322135,39.8622049 18.750437,40.386156 19.1868841,40.8304666 C19.6233311,41.2747772 20.1521035,41.4969325 20.7732013,41.4969325 C21.394299,41.4969325 21.927268,41.2747772 22.3721083,40.8304666 C22.8169485,40.386156 23.0393687,39.8622049 23.0393687,39.2586131 L23.0393687,22.9867856 L39.3054147,22.9867856 C39.909726,22.9867856 40.4343018,22.768822 40.8791421,22.3328946 C41.3239824,21.8969672 41.5464025,21.3688244 41.5464025,20.7484663 C41.5464025,20.1281081 41.3239824,19.5957737 40.8791421,19.1514631 C40.4343018,18.7071525 39.909726,18.4849972 39.3054147,18.4849972 L23.0393687,18.4849972 L23.0393687,2.23831939 C23.0393687,1.63472764 22.8169485,1.11077648 22.3721083,0.666465886 C21.927268,0.222155295 21.394299,0 20.7732013,0 C20.1521035,0 19.6233311,0.222155295 19.1868841,0.666465886 C18.750437,1.11077648 18.5322135,1.63472764 18.5322135,2.23831939 L18.5322135,18.4849972 L2.24098777,18.4849972 C1.63667646,18.4849972 1.11210067,18.7071525 0.667260404,19.1514631 C0.222420135,19.5957737 0,20.1281081 0,20.7484663 Z"></path>
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </svg>
+                          </button>
+                        </div>
+                        <button aria-label="add to cart" class="jky-v5-button appearance-none bg-primary flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8" data-sku-id="{{ item_sku_id }}" data-add-to-cart-btn data-nm-target="add_to_cart_btn">
+                          <svg class="text-white w-7 h-7 lg:w-8 lg:h-8" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5.71484 8.00781H9.65015L11.2313 27.1924H29.5727L34.6183 12.2102H14.3796" stroke="currentColor" stroke-width="2" stroke-linejoin="bevel"/>
+                            <path d="M17.0781 18.9531H26.0731" stroke="currentColor" stroke-width="2"/>
+                            <path d="M21.5742 23.4453V14.4503" stroke="currentColor" stroke-width="2"/>
+                            <path d="M16.5056 30.8516C16.5056 31.9383 15.6247 32.8192 14.538 32.8192C13.4513 32.8192 12.5703 31.9383 12.5703 30.8516" stroke="currentColor" stroke-width="2"/>
+                            <path d="M28.2009 30.8516C28.2009 31.9383 27.32 32.8192 26.2333 32.8192C25.1466 32.8192 24.2656 31.9383 24.2656 30.8516" stroke="currentColor" stroke-width="2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            {% endif %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div data-bundle-variant-templates>
+        {% for variant in product.variants %}
+          {% assign variant_bundle_info = variant.metafields.custom.bundle_info.value %}
+          {% assign variant_bundle_title = '' %}
+          {% assign variant_bundle_goods_list = blank %}
+          {% assign variant_bundle_total = 0 %}
+          {% assign variant_show_bundle_sale = false %}
+          {% if variant_bundle_info != blank %}
+            {% assign variant_bundle_title = variant_bundle_info.title | default: '' %}
+            {% assign variant_bundle_goods_list = variant_bundle_info.bundleGoodsList %}
+            {% assign variant_bundle_total = variant_bundle_info.total | default: variant_bundle_goods_list.size | plus: 0 %}
+            {% if variant_bundle_goods_list != blank and variant_bundle_total > 0 %}
+              {% assign variant_show_bundle_sale = true %}
+            {% endif %}
+          {% endif %}
+          <template data-bundle-template data-variant-id="{{ variant.id }}">
+            {% if variant_show_bundle_sale %}
+              <div class="font-semibold text-[#242F20] text-xl lg:text-2xl mb-4" data-app-bundled-sale-title>{{ variant_bundle_title }}</div>
+              <ul class="flex flex-col max-h-[16.875rem] gap-y-4 pr-1 overflow-y-auto lg:max-h-[23.3125rem] lg:pr-2.5" data-app-bundled-sale-list>
+                {% if is_diy %}
+                  {% for item in variant_bundle_goods_list %}
+                    {% assign index = forloop.index0 %}
+                    {% assign item_title = item.sellerName | default: item.title %}
+                    {% assign item_price = item.price | default: 0 %}
+                    {% assign item_origin_price = item.originPrice | default: 0 %}
+                    {% assign item_price_cents = item_price | times: 100 %}
+                    {% assign item_origin_price_cents = item_origin_price | times: 100 %}
+                    {% assign item_stock = item.stock | default: 1 | plus: 0 %}
+                    {% assign item_sku_id = item.skuId | default: 0 %}
+                    {% assign item_goods_id = item.goodsId | default: 0 %}
+                    {% assign item_default_chosen = item.defaultChosen | default: 0 | plus: 0 %}
+                    {% assign item_positioning_tag = item.positioningTag | default: '' %}
+                    {% assign item_positioning_desc = item.positioningDesc | default: '' %}
+                    {% assign item_positioning_desc_color = item.positioningDescColor | default: '#999999' %}
+                    {% assign item_image = item.image | default: '' | remove: '`' | strip %}
+                    {% assign item_image_base = item_image | split: '?' | first %}
+                    {% capture item_product_json %}{"goodsId":{{ item_goods_id | json }},"title":{{ item_title | json }},"price":{{ item_price | json }},"originPrice":{{ item_origin_price | json }},"image":{{ item_image | json }}}{% endcapture %}
+
+                    <label skuId="{{ item_sku_id }}" for="add-on-{{ item_sku_id }}--{{ index }}" class="w-full flex shrink-0 items-start lg:items-center flex-row border-solid border-[#C6C7C8] gap-x-3 border min-h-[6.375rem] lg:gap-x-4 px-2.5 pb-5 lg:px-4 lg:pb-6 {% if item_positioning_tag != blank %}pt-10 lg:pt-10{% else %}pt-5 lg:pt-6{% endif %} lg:min-h-[7.5rem] cursor-pointer relative {% if item_default_chosen == 1 %}active{% endif %}">
+                      {% if item_positioning_tag != blank %}
+                        <span class="absolute right-[-1px] top-[-1px] bg-[#242F20] text-white font-semibold text-[0.75rem] lg:text-[1rem] leading-[1.75rem] h-7 px-2 lg:px-3">{{ item_positioning_tag }}</span>
+                      {% endif %}
+                      <div class="flex items-center gap-x-2.5 lg:gap-x-4">
+                        <input skuId="{{ item_sku_id }}" type="checkbox" id="add-on-{{ item_sku_id }}--{{ index }}" title="{{ item_title | escape }}" price="{{ item_price_cents | money | escape }}" class="w-4 h-4 lg:w-5 lg:h-5" {% if item_default_chosen == 1 %}checked{% endif %}>
+                        <img class="w-12 h-12 lg:w-[4.5rem] lg:h-[4.5rem] object-contain cursor-pointer" src="{{ item_image_base }}?width=144" alt="{{ item_title | escape }}" loading="lazy" data-product="{{ item_product_json | escape }}" data-action="show-modal">
+                      </div>
+                      <div class="flex flex-col flex-1">
+                        <h4 class="text-[#242F20] font-semibold text-sm lg:text-xl cursor-pointer" data-product="{{ item_product_json | escape }}" data-action="show-modal">{{ item_title }}</h4>
+                        <p class="flex flex-row items-center lg:hidden mt-2">
+                          <em class="text-[#242F20] font-semibold not-italic text-base lg:text-xl">{{ item_price_cents | money }}</em>
+                          {% if item_origin_price > item_price %}
+                            <span class="text-[#999999] font-normal text-xs ml-2 line-through lg:text-base">{{ item_origin_price_cents | money }}</span>
+                          {% endif %}
+                        </p>
+                        {% if item_positioning_desc != blank %}
+                          <p class="text-[#999999] font-semibold mt-3 lg:mt-0 text-xs lg:text-base" style="color:{{ item_positioning_desc_color }};">{{ item_positioning_desc }}</p>
+                        {% endif %}
+                        <div class="w-full lg:hidden {% if item_default_chosen == 1 %}flex{% else %}hidden{% endif %} justify-end mt-3 lg:mt-1" data-quantity-input-wrap-mb>
+                          <div class="flex border-solid border-[#E2E3E3] border">
+                            <button
+                              class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                              disabled
+                              aria-label="Decrease quantity for {{ item_title | escape }}"
+                              data-button-minus
+                              data-sku-title="{{ item_title | escape }}"
+                              data-sku-price="{{ item_price_cents | money | escape }}"
+                            >
+                              <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                  <g transform="translate(-1053.000000, -594.000000)">
+                                    <g transform="translate(1053.000000, 594.000000)">
+                                      <rect x="0" y="0" width="56" height="56"></rect>
+                                      <g transform="translate(7.000000, 26.000000)" fill="#333" fill-rule="nonzero">
+                                        <path d="M2.24098777,4.36809816 L39.3054147,4.36809816 C39.7082889,4.36809816 40.0817869,4.27048703 40.4259086,4.07526476 C40.7700303,3.8800425 41.0428097,3.61567902 41.2442468,3.28217432 C41.445684,2.94866961 41.5464025,2.57856074 41.5464025,2.17184769 C41.5464025,1.78140316 41.445684,1.41942855 41.2442468,1.08592384 C41.0428097,0.752419143 40.7700303,0.48805566 40.4259086,0.292833396 C40.0817869,0.0976111321 39.7082889,0 39.3054147,0 L2.24098777,0 C1.83811357,0 1.46881221,0.0976111321 1.1330837,0.292833396 C0.7973552,0.48805566 0.524575789,0.752419143 0.314745474,1.08592384 C0.104915158,1.41942855 0,1.78140316 0,2.17184769 C0,2.57856074 0.104915158,2.94866961 0.314745474,3.28217432 C0.524575789,3.61567902 0.7973552,3.8800425 1.1330837,4.07526476 C1.46881221,4.27048703 1.83811357,4.36809816 2.24098777,4.36809816 Z"></path>
+                                      </g>
+                                    </g>
+                                  </g>
+                                </g>
+                              </svg>
+                            </button>
+                            <input
+                              aria-label="purchase quantity"
+                              class="flex-center font-semibold text-center border-0 border-solid border-[#E2E3E3] border-x-[1px] w-8 h-7 lg:w-11 lg:h-8 text-base lg:text-xl"
+                              type="number"
+                              value="1"
+                              readonly
+                              data-quantity-input
+                              data-max="{{ item_stock }}"
+                              data-sku-id="{{ item_sku_id }}"
+                              data-sku-title="{{ item_title | escape }}"
+                              data-sku-price="{{ item_price_cents | money | escape }}"
+                            />
+                            <button
+                              class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                              {% if item_stock <= 1 %}disabled{% endif %}
+                              data-button-plus
+                              aria-label="Increase quantity for {{ item_title | escape }}"
+                              data-sku-title="{{ item_title | escape }}"
+                              data-sku-price="{{ item_price_cents | money | escape }}"
+                            >
+                              <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                  <g transform="translate(-931.000000, -594.000000)">
+                                    <g transform="translate(931.000000, 594.000000)">
+                                      <rect x="0" y="0" width="56" height="56"></rect>
+                                      <g transform="translate(7.000000, 7.000000)" fill="#333" fill-rule="nonzero">
+                                        <path d="M0,20.7484663 C0,21.3688244 0.222420135,21.8969672 0.667260404,22.3328946 C1.11210067,22.768822 1.63667646,22.9867856 2.24098777,22.9867856 L18.5322135,22.9867856 L18.5322135,39.2586131 C18.5322135,39.8622049 18.750437,40.386156 19.1868841,40.8304666 C19.6233311,41.2747772 20.1521035,41.4969325 20.7732013,41.4969325 C21.394299,41.4969325 21.927268,41.2747772 22.3721083,40.8304666 C22.8169485,40.386156 23.0393687,39.8622049 23.0393687,39.2586131 L23.0393687,22.9867856 L39.3054147,22.9867856 C39.909726,22.9867856 40.4343018,22.768822 40.8791421,22.3328946 C41.3239824,21.8969672 41.5464025,21.3688244 41.5464025,20.7484663 C41.5464025,20.1281081 41.3239824,19.5957737 40.8791421,19.1514631 C40.4343018,18.7071525 39.909726,18.4849972 39.3054147,18.4849972 L23.0393687,18.4849972 L23.0393687,2.23831939 C23.0393687,1.63472764 22.8169485,1.11077648 22.3721083,0.666465886 C21.927268,0.222155295 21.394299,0 20.7732013,0 C20.1521035,0 19.6233311,0.222155295 19.1868841,0.666465886 C18.750437,1.11077648 18.5322135,1.63472764 18.5322135,2.23831939 L18.5322135,18.4849972 L2.24098777,18.4849972 C1.63667646,18.4849972 1.11210067,18.7071525 0.667260404,19.1514631 C0.222420135,19.5957737 0,20.1281081 0,20.7484663 Z"></path>
+                                      </g>
+                                    </g>
+                                  </g>
+                                </g>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="hidden lg:flex flex-col items-end lg:gap-y-1 lg:min-w-[6.875rem]">
+                        <em class="text-[#242F20] font-semibold not-italic lg:text-xl">{{ item_price_cents | money }}</em>
+                        {% if item_origin_price > item_price %}
+                          <span class="text-[#999999] font-normal line-through lg:text-base">{{ item_origin_price_cents | money }}</span>
+                        {% endif %}
+                        <div class="mt-3 lg:mt-1 hidden {% if item_default_chosen == 1 %}lg:flex{% endif %}" data-quantity-input-wrap-pc>
+                          <div class="flex border-solid border-[#E2E3E3] border">
+                            <button
+                              class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                              disabled
+                              aria-label="Decrease quantity for {{ item_title | escape }}"
+                              data-button-minus
+                              data-sku-title="{{ item_title | escape }}"
+                              data-sku-price="{{ item_price_cents | money | escape }}"
+                            >
+                              <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                  <g transform="translate(-1053.000000, -594.000000)">
+                                    <g transform="translate(1053.000000, 594.000000)">
+                                      <rect x="0" y="0" width="56" height="56"></rect>
+                                      <g transform="translate(7.000000, 26.000000)" fill="#333" fill-rule="nonzero">
+                                        <path d="M2.24098777,4.36809816 L39.3054147,4.36809816 C39.7082889,4.36809816 40.0817869,4.27048703 40.4259086,4.07526476 C40.7700303,3.8800425 41.0428097,3.61567902 41.2442468,3.28217432 C41.445684,2.94866961 41.5464025,2.57856074 41.5464025,2.17184769 C41.5464025,1.78140316 41.445684,1.41942855 41.2442468,1.08592384 C41.0428097,0.752419143 40.7700303,0.48805566 40.4259086,0.292833396 C40.0817869,0.0976111321 39.7082889,0 39.3054147,0 L2.24098777,0 C1.83811357,0 1.46881221,0.0976111321 1.1330837,0.292833396 C0.7973552,0.48805566 0.524575789,0.752419143 0.314745474,1.08592384 C0.104915158,1.41942855 0,1.78140316 0,2.17184769 C0,2.57856074 0.104915158,2.94866961 0.314745474,3.28217432 C0.524575789,3.61567902 0.7973552,3.8800425 1.1330837,4.07526476 C1.46881221,4.27048703 1.83811357,4.36809816 2.24098777,4.36809816 Z"></path>
+                                      </g>
+                                    </g>
+                                  </g>
+                                </g>
+                              </svg>
+                            </button>
+                            <input
+                              aria-label="purchase quantity"
+                              class="flex-center font-semibold text-center border-0 border-solid border-[#E2E3E3] border-x-[1px] w-8 h-7 lg:w-11 lg:h-8 text-base lg:text-xl"
+                              type="number"
+                              value="1"
+                              readonly
+                              data-quantity-input
+                              data-max="{{ item_stock }}"
+                              data-sku-id="{{ item_sku_id }}"
+                              data-sku-title="{{ item_title | escape }}"
+                              data-sku-price="{{ item_price_cents | money | escape }}"
+                            />
+                            <button
+                              class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                              {% if item_stock <= 1 %}disabled{% endif %}
+                              aria-label="Increase quantity for {{ item_title | escape }}"
+                              data-button-plus
+                              data-sku-title="{{ item_title | escape }}"
+                              data-sku-price="{{ item_price_cents | money | escape }}"
+                            >
+                              <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                  <g transform="translate(-931.000000, -594.000000)">
+                                    <g transform="translate(931.000000, 594.000000)">
+                                      <rect x="0" y="0" width="56" height="56"></rect>
+                                      <g transform="translate(7.000000, 7.000000)" fill="#333" fill-rule="nonzero">
+                                        <path d="M0,20.7484663 C0,21.3688244 0.222420135,21.8969672 0.667260404,22.3328946 C1.11210067,22.768822 1.63667646,22.9867856 2.24098777,22.9867856 L18.5322135,22.9867856 L18.5322135,39.2586131 C18.5322135,39.8622049 18.750437,40.386156 19.1868841,40.8304666 C19.6233311,41.2747772 20.1521035,41.4969325 20.7732013,41.4969325 C21.394299,41.4969325 21.927268,41.2747772 22.3721083,40.8304666 C22.8169485,40.386156 23.0393687,39.8622049 23.0393687,39.2586131 L23.0393687,22.9867856 L39.3054147,22.9867856 C39.909726,22.9867856 40.4343018,22.768822 40.8791421,22.3328946 C41.3239824,21.8969672 41.5464025,21.3688244 41.5464025,20.7484663 C41.5464025,20.1281081 41.3239824,19.5957737 40.8791421,19.1514631 C40.4343018,18.7071525 39.909726,18.4849972 39.3054147,18.4849972 L23.0393687,18.4849972 L23.0393687,2.23831939 C23.0393687,1.63472764 22.8169485,1.11077648 22.3721083,0.666465886 C21.927268,0.222155295 21.394299,0 20.7732013,0 C20.1521035,0 19.6233311,0.222155295 19.1868841,0.666465886 C18.750437,1.11077648 18.5322135,1.63472764 18.5322135,2.23831939 L18.5322135,18.4849972 L2.24098777,18.4849972 C1.63667646,18.4849972 1.11210067,18.7071525 0.667260404,19.1514631 C0.222420135,19.5957737 0,20.1281081 0,20.7484663 Z"></path>
+                                      </g>
+                                    </g>
+                                  </g>
+                                </g>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  {% endfor %}
+                {% else %}
+                  {% for item in variant_bundle_goods_list %}
+                    {% assign index = forloop.index0 %}
+                    {% assign item_title = item.sellerName | default: item.title %}
+                    {% assign item_price = item.price | default: 0 %}
+                    {% assign item_origin_price = item.originPrice | default: 0 %}
+                    {% assign item_price_cents = item_price | times: 100 %}
+                    {% assign item_origin_price_cents = item_origin_price | times: 100 %}
+                    {% assign item_stock = item.stock | default: 1 | plus: 0 %}
+                    {% assign item_sku_id = item.skuId | default: 0 %}
+                    {% assign item_goods_id = item.goodsId | default: 0 %}
+                    {% assign item_positioning_desc = item.positioningDesc | default: '' %}
+                    {% assign item_positioning_desc_color = item.positioningDescColor | default: '#999999' %}
+                    {% assign item_image = item.image | default: '' | remove: '`' | strip %}
+                    {% capture item_product_json %}{"goodsId":{{ item_goods_id | json }},"title":{{ item_title | json }},"price":{{ item_price | json }},"originPrice":{{ item_origin_price | json }},"image":{{ item_image | json }}}{% endcapture %}
+
+                    <li class="w-full flex shrink-0 items-start lg:items-center flex-row border-0 border-solid border-b-[1px] border-[#E2E3E3] pb-4 gap-x-2 lg:gap-x-4">
+                      <script type="application/json" id="BundleList-{{ index }}">{"skuId":{{ item_sku_id }},"goodsId":{{ item_goods_id }},"title":{{ item_title | json }},"price":{{ item_price }},"originPrice":{{ item_origin_price }},"positioningDesc":{{ item_positioning_desc | json }},"positioningDescColor":{{ item_positioning_desc_color | json }},"image":{{ item_image | json }},"stock":{{ item_stock }}}</script>
+                      <img class="w-[4.5rem] h-[4.5rem] lg:w-24 lg:h-24 object-contain cursor-pointer" src="{{ item_image }}" alt="" loading="lazy" data-product="{{ item_product_json | escape }}" data-action="show-modal">
+                      <div class="flex flex-col justify-between min-h-[4.5rem] lg:min-h-24 flex-1">
+                        <h4 class="w-full text-[#242F20] font-semibold text-sm lg:text-xl line-clamp-2 cursor-pointer" title="{{ item_title | escape }}" data-product="{{ item_product_json | escape }}" data-action="show-modal">{{ item_title }}</h4>
+                        {% if item_positioning_desc != blank %}
+                          <p class="text-[#999999] mt-2 text-xs lg:text-sm" style="color:{{ item_positioning_desc_color }};">{{ item_positioning_desc }}</p>
+                        {% endif %}
+                        <div class="flex items-center justify-between mt-2 lg:mt-3">
+                          <p class="flex flex-wrap items-center gap-x-1">
+                            <em class="text-[#242F20] font-semibold not-italic text-base lg:text-xl">{{ item_price_cents | money }}</em>
+                            {% if item_origin_price > item_price %}
+                              <span class="text-[#242F20]/65 text-xs lg:text-sm line-through">{{ item_origin_price_cents | money }}</span>
+                            {% endif %}
+                          </p>
+                          <div class="flex items-center gap-x-2 lg:gap-x-4 shrink-0" data-action-wrap>
+                            <div class="flex border-solid border-[#E2E3E3] border">
+                              <button
+                                class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                                disabled
+                                aria-label="Decrease quantity for {{ item_title | escape }}"
+                                data-button-minus
+                                data-sku-title="{{ item_title | escape }}"
+                                data-sku-price="{{ item_price_cents | money | escape }}"
+                              >
+                                <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <g transform="translate(-1053.000000, -594.000000)">
+                                      <g transform="translate(1053.000000, 594.000000)">
+                                        <rect x="0" y="0" width="56" height="56"></rect>
+                                        <g transform="translate(7.000000, 26.000000)" fill="#333" fill-rule="nonzero">
+                                          <path d="M2.24098777,4.36809816 L39.3054147,4.36809816 C39.7082889,4.36809816 40.0817869,4.27048703 40.4259086,4.07526476 C40.7700303,3.8800425 41.0428097,3.61567902 41.2442468,3.28217432 C41.445684,2.94866961 41.5464025,2.57856074 41.5464025,2.17184769 C41.5464025,1.78140316 41.445684,1.41942855 41.2442468,1.08592384 C41.0428097,0.752419143 40.7700303,0.48805566 40.4259086,0.292833396 C40.0817869,0.0976111321 39.7082889,0 39.3054147,0 L2.24098777,0 C1.83811357,0 1.46881221,0.0976111321 1.1330837,0.292833396 C0.7973552,0.48805566 0.524575789,0.752419143 0.314745474,1.08592384 C0.104915158,1.41942855 0,1.78140316 0,2.17184769 C0,2.57856074 0.104915158,2.94866961 0.314745474,3.28217432 C0.524575789,3.61567902 0.7973552,3.8800425 1.1330837,4.07526476 C1.46881221,4.27048703 1.83811357,4.36809816 2.24098777,4.36809816 Z"></path>
+                                        </g>
+                                      </g>
+                                    </g>
+                                  </g>
+                                </svg>
+                              </button>
+                              <input
+                                aria-label="Purchase quantity"
+                                class="flex-center font-semibold text-center border-0 border-solid border-[#E2E3E3] border-x-[1px] w-8 h-7 lg:w-11 lg:h-8 text-base lg:text-xl"
+                                type="number"
+                                value="1"
+                                readonly
+                                data-quantity-input
+                                data-max="{{ item_stock }}"
+                                data-sku-id="{{ item_sku_id }}"
+                                data-sku-title="{{ item_title | escape }}"
+                                data-sku-price="{{ item_price_cents | money | escape }}"
+                              />
+                              <button
+                                class="appearance-none bg-[#F5F5F5] flex-center w-7 h-7 lg:w-8 lg:h-8 disabled:opacity-40 disabled:cursor-not-allowed"
+                                {% if item_stock <= 1 %}disabled{% endif %}
+                                aria-label="Increase quantity for {{ item_title | escape }}"
+                                data-button-plus
+                                data-sku-title="{{ item_title | escape }}"
+                                data-sku-price="{{ item_price_cents | money | escape }}"
+                              >
+                                <svg class="text-[#242F20] w-3.5 h-3.5" viewBox="0 0 56 56" version="1.1" xmlns="http://www.w3.org/2000/svg">
+                                  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <g transform="translate(-931.000000, -594.000000)">
+                                      <g transform="translate(931.000000, 594.000000)">
+                                        <rect x="0" y="0" width="56" height="56"></rect>
+                                        <g transform="translate(7.000000, 7.000000)" fill="#333" fill-rule="nonzero">
+                                          <path d="M0,20.7484663 C0,21.3688244 0.222420135,21.8969672 0.667260404,22.3328946 C1.11210067,22.768822 1.63667646,22.9867856 2.24098777,22.9867856 L18.5322135,22.9867856 L18.5322135,39.2586131 C18.5322135,39.8622049 18.750437,40.386156 19.1868841,40.8304666 C19.6233311,41.2747772 20.1521035,41.4969325 20.7732013,41.4969325 C21.394299,41.4969325 21.927268,41.2747772 22.3721083,40.8304666 C22.8169485,40.386156 23.0393687,39.8622049 23.0393687,39.2586131 L23.0393687,22.9867856 L39.3054147,22.9867856 C39.909726,22.9867856 40.4343018,22.768822 40.8791421,22.3328946 C41.3239824,21.8969672 41.5464025,21.3688244 41.5464025,20.7484663 C41.5464025,20.1281081 41.3239824,19.5957737 40.8791421,19.1514631 C40.4343018,18.7071525 39.909726,18.4849972 39.3054147,18.4849972 L23.0393687,18.4849972 L23.0393687,2.23831939 C23.0393687,1.63472764 22.8169485,1.11077648 22.3721083,0.666465886 C21.927268,0.222155295 21.394299,0 20.7732013,0 C20.1521035,0 19.6233311,0.222155295 19.1868841,0.666465886 C18.750437,1.11077648 18.5322135,1.63472764 18.5322135,2.23831939 L18.5322135,18.4849972 L2.24098777,18.4849972 C1.63667646,18.4849972 1.11210067,18.7071525 0.667260404,19.1514631 C0.222420135,19.5957737 0,20.1281081 0,20.7484663 Z"></path>
+                                        </g>
+                                      </g>
+                                    </g>
+                                  </g>
+                                </svg>
+                              </button>
+                            </div>
+                            <button aria-label="add to cart" class="jky-v5-button appearance-none bg-primary flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8" data-sku-id="{{ item_sku_id }}" data-add-to-cart-btn data-nm-target="add_to_cart_btn">
+                              <svg class="text-white w-7 h-7 lg:w-8 lg:h-8" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5.71484 8.00781H9.65015L11.2313 27.1924H29.5727L34.6183 12.2102H14.3796" stroke="currentColor" stroke-width="2" stroke-linejoin="bevel"/>
+                                <path d="M17.0781 18.9531H26.0731" stroke="currentColor" stroke-width="2"/>
+                                <path d="M21.5742 23.4453V14.4503" stroke="currentColor" stroke-width="2"/>
+                                <path d="M16.5056 30.8516C16.5056 31.9383 15.6247 32.8192 14.538 32.8192C13.4513 32.8192 12.5703 31.9383 12.5703 30.8516" stroke="currentColor" stroke-width="2"/>
+                                <path d="M28.2009 30.8516C28.2009 31.9383 27.32 32.8192 26.2333 32.8192C25.1466 32.8192 24.2656 31.9383 24.2656 30.8516" stroke="currentColor" stroke-width="2"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </li>
+                  {% endfor %}
+                {% endif %}
+              </ul>
+            {% endif %}
+          </template>
+        {% endfor %}
+      </div>
+
+      <script type="application/json" data-bundle-info>
+        {
+          {% for variant in product.variants %}
+            "{{ variant.id }}": {{ variant.metafields.custom.bundle_info.value | json }}{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        }
+      </script>
+
+      <!-- 产品详情弹窗 -->
+      <div class="fixed inset-0 fix flex-col justify-center items-center z-[9999999999] hidden bg-black bg-opacity-70 overflow-hidden" id="bundle-product-modal">
+        <div id="loading-box" class="relative  bg-white overflow-y-auto box-border">
+          <div class="flex flex-col items-center justify-center h-full">
+            <svg class="icon animate-spin [animation-duration:1.5s] h-12 w-12" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+              <path d="M843.307 742.24c0 3.217 2.607 5.824 5.824 5.824s5.824-2.607 5.824-5.824a5.823 5.823 0 0 0-5.824-5.824 5.823 5.823 0 0 0-5.824 5.824zM714.731 874.912c0 6.398 5.186 11.584 11.584 11.584s11.584-5.186 11.584-11.584-5.186-11.584-11.584-11.584-11.584 5.186-11.584 11.584zM541.419 943.2c0 9.614 7.794 17.408 17.408 17.408s17.408-7.794 17.408-17.408-7.794-17.408-17.408-17.408-17.408 7.794-17.408 17.408z m-186.56-9.152c0 12.795 10.373 23.168 23.168 23.168s23.168-10.373 23.168-23.168-10.373-23.168-23.168-23.168-23.168 10.373-23.168 23.168zM189.355 849.12c0 16.012 12.98 28.992 28.992 28.992s28.992-12.98 28.992-28.992-12.98-28.992-28.992-28.992-28.992 12.98-28.992 28.992zM74.731 704.736c0 19.228 15.588 34.816 34.816 34.816s34.816-15.588 34.816-34.816-15.588-34.816-34.816-34.816-34.816 15.588-34.816 34.816z m-43.008-177.28c0 22.41 18.166 40.576 40.576 40.576s40.576-18.166 40.576-40.576-18.166-40.576-40.576-40.576-40.576 18.166-40.576 40.576z m35.392-176.128c0 25.626 20.774 46.4 46.4 46.4s46.4-20.774 46.4-46.4c0-25.626-20.774-46.4-46.4-46.4-25.626 0-46.4 20.774-46.4 46.4z m106.176-142.016c0 28.843 23.381 52.224 52.224 52.224s52.224-23.381 52.224-52.224c0-28.843-23.381-52.224-52.224-52.224-28.843 0-52.224 23.381-52.224 52.224z m155.904-81.344c0 32.024 25.96 57.984 57.984 57.984s57.984-25.96 57.984-57.984-25.96-57.984-57.984-57.984-57.984 25.96-57.984 57.984z m175.104-5.056c0 35.24 28.568 63.808 63.808 63.808s63.808-28.568 63.808-63.808c0-35.24-28.568-63.808-63.808-63.808-35.24 0-63.808 28.568-63.808 63.808z m160.32 72.128c0 38.421 31.147 69.568 69.568 69.568s69.568-31.147 69.568-69.568-31.147-69.568-69.568-69.568-69.568 31.147-69.568 69.568z m113.92 135.488c0 41.638 33.754 75.392 75.392 75.392s75.392-33.754 75.392-75.392-33.754-75.392-75.392-75.392-75.392 33.754-75.392 75.392z m45.312 175.488c0 44.854 36.362 81.216 81.216 81.216s81.216-36.362 81.216-81.216c0-44.854-36.362-81.216-81.216-81.216-44.854 0-81.216 36.362-81.216 81.216z" fill="#bfbfbf"></path>
+            </svg> 
+          </div>
+        </div>
+
+        <div id="pop-box" class="relative bg-white overflow-x-hidden overflow-y-auto box-border">
+          <style>
+            #loading-box{
+              padding: 48px 64px;
+            }
+            #loading-box,#pop-box{
+              width: 640px;
+              max-height: calc(100vh - 128px);
+              border-radius: var(--theme-btn-border-radius, 0.5rem);
+            }
+            #pop-box::-webkit-scrollbar-track {
+              border-radius: 0;
+            }
+            #pop-box::-webkit-scrollbar-thumb {
+              border-radius: 0;
+            }
+            @media (min-width: 768.1px) and (max-width: 1023.99px) {
+              #loading-box, #pop-box {
+                width: 94%;
+              }
+            }
+            @media (max-width: 768px) {
+              ##loading-box{
+                padding: 2.25rem 0.5rem 1rem 0.5rem;
+              }
+              #loading-box, #pop-box {
+                width: 20.4375rem;
+                max-height: calc(100dvh - 4rem);
+                border-radius: var(--theme-btn-border-radius, 0.75rem);
+              }
+            }
+          </style>
+          <!-- 关闭按钮 -->
+          <svg id="modal-close" class="icon absolute right-2 top-2 md:right-4 md:top-4 w-5 h-5 md:w-10 md:h-10 cursor-pointer z-20" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <title>XX</title>
+              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g>
+                      <rect x="0" y="0" width="40" height="40"></rect>
+                      <line x1="8" y1="9" x2="32" y2="33" stroke="#242F20" stroke-width="2" stroke-linecap="round"></line>
+                      <line x1="32" y1="9" x2="8" y2="33" stroke="#242F20" stroke-width="2" stroke-linecap="round"></line>
+                  </g>
+              </g>
+          </svg>
+
+          <div class="pop-box-swiper w-full h-auto">
+            <!-- 轮播组件 -->
+            <div class="relative flex justify-center items-center" id="modal-carousel">
+              <!-- 左侧按钮 -->
+              <svg class="carousel-prev border border-solid border-[#242F20] rounded-full mr-[0.71875rem] md:mr-[48px] cursor-pointer" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect class="icon-bg" x="0.5" y="0.5" width="40" height="40" rx="20" fill="white" fill-opacity="0.5"/>
+                <g>
+                  <path d="M28.5 20.25H16.2578" stroke="#242F20" stroke-width="1.6" />
+                  <path d="M19.0078 14L12.7581 20.2498L19.0078 26.4995" stroke="#242F20" stroke-width="1.6" />
+                </g>
+              </svg>
+              <!-- 轮播容器 -->
+              <div class="carousel-container flex items-center justify-center box-border shrink-0 overflow-hidden">
+                <div class="carousel-wrapper w-full h-full flex transition-transform duration-300" id="modal-carousel-wrapper"></div>
+              </div>
+              <style>
+                .pop-box-swiper{
+                  padding: 3rem 4rem 0;
+                }
+                .carousel-prev{
+                  margin-right: 48px;
+                  width: 40px;
+                  height: 40px
+                }
+                .carousel-container{
+                  width: 240px;
+                  height: 240px
+                }
+                .carousel-wrapper {
+                  will-change: transform;
+                }
+                .carousel-item {
+                  min-width: 100%;
+                  padding: 0 2px;
+                }
+                @media (min-width: 768.1px) and (max-width: 1023.99px) {
+                  .pop-box-swiper{
+                    padding: 3rem 2rem 0;
+                  }
+                }
+                @media (max-width: 768px) {
+                  .pop-box-swiper{
+                    padding: 2.25rem 0.5rem 0 0.5rem
+                  }
+                  .carousel-container{
+                    width: 13.75rem;
+                    height: 13.75rem
+                  }
+                  .carousel-prev{
+                    margin-right: 0.71875rem;
+                    width: 1.875rem;
+                    height: 1.875rem;
+                  }
+                }
+              </style>
+              <!-- 右侧按钮 -->
+              <svg class="carousel-next border border-solid border-[#242F20] rounded-full ml-[0.71875rem] md:ml-[48px] cursor-pointer"  width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect class="icon-bg" x="0.5" y="0.5" width="40" height="40" rx="20" fill="white" fill-opacity="0.5"/>
+                <g>
+                  <path d="M11.5 20.25H23.7422" stroke="#242F20" stroke-width="1.6"/>
+                  <path d="M20.9922 14L27.2419 20.2498L20.9922 26.4995" stroke="#242F20" stroke-width="1.6"/>
+                </g>
+              </svg>
+            </div>
+            <!-- 轮播计数器 -->
+              <div class="pop-box-swiper-num flex flex-col items-center">
+                <div class="mt-2 text-sm text-[#666]" id="modal-carousel-counter"></div>
+              </div>
+            <!-- 产品标题 -->
+            <h3 class="pop-box-product-text md:text-2xl text-[#242F20] font-semibold md:mb-2 line-clamp-2 md:p-[0]" id="modal-title"></h3>
+            <!-- 产品价格 -->
+            <div id="modal-price" class="flex justify-ceter items-center md:mb-3 md:p-[0]">
+              <div class="discount-price md:text-2xl mr-[0.75rem] md:mr-4 font-semibold"></div>
+              <div class="original-price text-[#999] md:text-base font-medium line-through"></div>
+            </div>
+            <style>
+              .carousel-next {
+                margin-left: 48px;
+                width: 40px;
+                height: 40px
+              }
+              .pop-box-swiper-num{
+                margin-top: 0.375rem;
+                margin-bottom: 16px;
+              }
+              .discount-price {
+                color: var(--jds-color-primary);
+              }
+              @media (max-width: 768px) {
+                .carousel-next {
+                  margin-left: 0.71875rem;
+                  width: 1.875rem;
+                  height: 1.875rem;
+                }
+                .pop-box-swiper-num{
+                  margin-top: 0.53125rem;
+                  margin-bottom: 0.71875rem;
+                }
+                .pop-box-product-text{
+                  padding: 0 0.5rem;
+                  margin-bottom: 0.75rem;
+                  line-height: 1.21875rem;
+                  font-size: 1rem;
+                }
+                #modal-price{
+                  margin-bottom: 0.75rem;
+                  padding: 0 0.5rem;
+                }
+                .discount-price{
+                  margin-right: 0.75rem;
+                  line-height: 1.25rem;
+                  font-size: 1.25rem;
+                }
+                .original-price{
+                  line-height: 1.375rem;
+                  font-size: 0.875rem;
+                }
+              }
+            </style>
+          </div>
+          <!-- 产品描述 -->
+          <div class="pop-box-desc w-full">
+            <div id="modal-description" class="w-full md:text-base text-[#666] md:pr-12 overflow-x-hidden md:overflow-y-auto font-normal"></div>
+            <style>
+              .pop-box-desc{
+                padding: 0 0.75rem 3rem 4rem;
+              }
+              @media (min-width: 768.1px) and (max-width: 1023.99px) {
+                .pop-box-desc{
+                  padding:  0 0.75rem 2rem 2rem;
+                }
+              }
+              #modal-description * {
+                font-size: 1rem !important;          
+                line-height: 1.5rem !important;
+                overflow-wrap: break-word;
+                hyphens: auto;
+                color: #242F20;
+              }
+              #modal-description{
+                height: 172px;
+                min-height: 10.3125rem;
+              }
+              @media (max-width: 768px) {
+                .pop-box-desc{
+                  padding: 0 1rem 1rem
+                }
+                #modal-description *{
+                  font-size: 0.875rem !important;          
+                  line-height: 1.375rem !important;
+                  color: #666;
+                }
+                #modal-description{
+                  height: auto;
+                  line-height: 1.375rem;
+                  font-size: 0.875rem;
+                }
+              }
+              #modal-description ul,
+              #modal-description ol,
+              #modal-description p,
+              #modal-description div,
+              #modal-description li,
+              #modal-description table { 
+                width: 100%!important;
+              }
+              .product-main-block .product-info-container #modal-description .product__description{
+                background: none;
+                padding: 0;
+              }
+              .product-main-block .product-info-container #modal-description .product__description ul{
+                margin-bottom: 1rem;
+              }
+              #modal-description h1 strong,
+              #modal-description h2 strong,
+              #modal-description h3 strong,
+              #modal-description h4 strong,
+              #modal-description h5 strong,
+              #modal-description h6 strong {
+                display: inline-block;
+                margin-bottom: 6px;
+                line-height: 26px;
+                font-size: 16px;
+                font-weight: 600;
+              }
+              #modal-description ul li p {
+                display: inline;
+              }
+              #modal-description::-webkit-scrollbar {
+                width: 6px;
+              }
+              #modal-description::-webkit-scrollbar-track {
+                background: transparent;
+                border-radius: 4px;
+              }
+              #modal-description::-webkit-scrollbar-thumb {
+                background: #B2B2B2;
+                border-radius: 4px;
+              }
+            </style>
+          </div>
+        </div>
+      </div>
+    </jky-v5-app-bundled-sale>
+  </div>
+  {% render 'lazy-load-asset-group',
+    script: 'snippet-v5-app-bundled-sale.min.js',
+    strategy: 'idle',
+    delay: 1800
+  %}
+{% endif %}

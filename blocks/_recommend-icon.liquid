@@ -1,0 +1,116 @@
+
+{% comment %} 计算有效的 icon-item 数量 {% endcomment %}
+{% assign valid_items_count = 0 %}
+{% for i in (1..4) %}
+  {% assign title_setting = 'product_title_' | append: i %}
+  {% assign product_title = block.settings[title_setting] %}
+  {% if product_title != blank %}
+    {% assign valid_items_count = valid_items_count | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+<div class="product-icons-container flex items-start justify-center lg:mb-[1rem] mb-[1rem] lg-[0.5rem] gap-[0.375rem]">
+  {% assign current_item_index = 0 %}
+  {% for i in (1..4) %}
+    {% assign icon_setting = 'product_icon_' | append: i %}
+    {% assign title_setting = 'product_title_' | append: i %}
+    {% assign product_icon = block.settings[icon_setting] %}
+    {% assign product_title = block.settings[title_setting] %}
+
+    {% if product_title != blank %}
+      {% assign current_item_index = current_item_index | plus: 1 %}
+      <div class="product-icon-item flex flex-col items-center justify-center text-center">
+        {%- if product_icon != blank -%}
+          <div class="icon-wrapper rounded-lg lg:w-[3rem] lg:h-[3rem] lg:mb-[0.125rem] mb-[0.25rem] flex items-center justify-center">
+              {%- 
+                render 'responsive-image', 
+                image: product_icon, 
+                width: 48, 
+                mwidth: 40, 
+                image_class: "block w-auto h-full m-auto",
+                picture_class: "lg:w-[3rem] lg:h-[3rem] w-[2.5rem] h-[2.5rem] object-contain"
+            -%}
+          </div>
+        {%- else -%}
+          <div class="icon-wrapper rounded-lg lg:w-[3rem] lg:h-[3rem] lg:mb-[0.125rem] mb-[0.25rem] flex items-center justify-center">
+            <img 
+              class="object-contain lg:w-[3rem] lg:h-[3rem] w-[2.5rem] h-[2.5rem]"
+              src="{{ 'placeholder.webp' | asset_url }}" width="48" height="48"
+              alt="{{ product_title }}"
+            >
+          </div>
+        {%- endif -%}
+        {%- if product_title != blank -%}
+          <div class="icon-text line-clamp-3 text-[#999999] jds-c1 lg:leading-[1rem] lg:max-w-[5.5rem] max-w-[4.171875rem]">
+            {{ product_title }}
+          </div>
+        {%- endif -%}
+      </div>
+      {%- if valid_items_count > 1 and current_item_index < valid_items_count -%}
+        <div class="icon-divider w-px lg:h-6 h-5 lg:mt-[0.865rem] mt-[0.5rem] bg-[#E5E5E5]"></div>
+      {%- endif -%}
+    {% endif %}
+  {% endfor %}
+</div>
+{% schema %}
+{
+  "name": "主推产品Icon",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "建议最多配置4个图标"
+    },
+    {
+      "type": "image_picker",
+      "id": "product_icon_1",
+      "label": "产品图标1(48x48 单位px)"
+    },
+    {
+      "type": "text",
+      "id": "product_title_1",
+      "label": "商品标题1",
+      "default": "Capacity 1500WH 2.5 hs Quick"
+    },
+    {
+      "type": "image_picker",
+      "id": "product_icon_2",
+      "label": "产品图标2(48x48 单位px)"
+    },
+    {
+      "type": "text",
+      "id": "product_title_2",
+      "label": "商品标题2",
+      "default": "Capacity 1500WH 2.5 hs Quick"
+
+    },
+    {
+      "type": "image_picker",
+      "id": "product_icon_3",
+      "label": "产品图标3(48x48 单位px)"
+    },
+    {
+      "type": "text",
+      "id": "product_title_3",
+      "label": "商品标题3",
+      "default": "Capacity 1500WH 2.5 hs Quick"
+    },
+    {
+      "type": "image_picker",
+      "id": "product_icon_4",
+      "label": "产品图标4(48x48 单位px)"
+    },
+    {
+      "type": "text",
+      "id": "product_title_4",
+      "label": "商品标题4",
+      "default": "Capacity 1500WH 2.5 hs Quick"
+    }
+  ],
+  "presets": [
+    {
+      "name": "主推产品Icon"
+    }
+  ]
+}
+{% endschema %}

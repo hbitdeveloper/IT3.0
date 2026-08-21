@@ -1,0 +1,578 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+  {% render 'size-radius', settings: block.settings %}
+{%- endcapture -%}
+
+{%-liquid
+  assign pcimage = block.settings.poster_pc
+  assign pcimage_ratio = '56.25%'
+  assign mimage = block.settings.poster_mb
+  assign mbimage_ratio = '177.7%'
+
+  assign img_pc_h = block.settings.pc_height
+  assign img_pc_w = 1920
+
+  assign img_mb_h = block.settings.mb_height
+  assign img_mb_w = 750
+
+  if pcimage
+    assign pcimage_ratio = 1 | divided_by: pcimage.aspect_ratio | times: 100 | append: '%'
+    if block.settings.pc_media_fill
+      assign img_pc_w = 1920
+    else
+      assign img_pc_w = img_pc_h | times: pcimage.aspect_ratio
+    endif
+  endif
+
+  if mimage
+    assign img_mb_w = img_mb_h | times: mimage.aspect_ratio
+    assign mbimage_ratio = 1 | divided_by: mimage.aspect_ratio | times: 100 | append: '%'
+    if block.settings.mb_media_fill
+      assign img_mb_w = 750
+    else
+      assign img_mb_w = img_mb_h | times: mimage.aspect_ratio
+    endif
+  endif
+
+  unless block.settings.pc_media_fill
+    if block.settings.pc_height < 0
+      assign imgHeightPc = pcimage.height | default: 640
+    else
+      assign imgHeightPc = block.settings.pc_height
+    endif
+
+    if block.settings.fixed_height
+        assign imgHeightPc = imgHeightPc | append: 'px'
+    else
+        assign imgHeightPc = imgHeightPc  | divided_by: 16.0 | append: 'rem'
+    endif
+  endunless
+
+  unless block.settings.mb_media_fill
+    if block.settings.mb_height < 0
+      assign imgHeightMb = mimage.height | default: 500
+    else
+      assign imgHeightMb = block.settings.mb_height
+    endif
+    assign imgHeightMb = imgHeightMb | divided_by: 32.0 | append: 'rem'
+  endunless
+
+  if block.settings.link_target
+    assign linkTarget = '_blank'
+  else
+    assign linkTarget = '_self'
+  endif
+
+  assign childPosition = ''
+  assign showChild = false
+
+  if block.settings.child_top > -1000
+    assign showChild = true
+    assign childTop = block.settings.child_top | divided_by: 16.0 | append: 'rem;' | prepend: ' --child-top:'
+    assign childPosition = childPosition | append: childTop
+  endif
+
+  if block.settings.child_bottom > -1000
+    assign showChild = true
+    assign childBottom = block.settings.child_bottom | divided_by: 16.0 | append: 'rem;' | prepend: ' --child-bottom:'
+    assign childPosition = childPosition | append: childBottom
+  endif
+
+  if block.settings.child_left > -1000
+      assign showChild = true
+      assign childLeft = block.settings.child_left | divided_by: 16.0 | append: 'rem;' | prepend: ' --child-left:'
+      assign childPosition = childPosition | append: childLeft
+  endif
+
+  if block.settings.child_right > -1000
+      assign showChild = true
+      assign childRight = block.settings.child_right | divided_by: 16.0 | append: 'rem;' | prepend: ' --child-right:'
+      assign childPosition = childPosition | append: childRight
+  endif
+
+  if showChild
+      assign childClasses = ' lg:block'
+  else
+      assign childClasses = ' lg:hidden'
+  endif
+
+  assign showChildMb = false
+  if block.settings.child_top_mb > -1000
+      assign showChildMb = true
+      assign childTopMb = block.settings.child_top_mb | divided_by: 32.0 | append: 'rem;' | prepend: ' --mb-child-top:'
+      assign childPosition = childPosition | append: childTopMb
+  endif
+  if block.settings.child_bottom_mb > -1000
+      assign showChildMb = true
+      assign childBottomMb = block.settings.child_bottom_mb | divided_by: 32.0 | append: 'rem;' | prepend: ' --mb-child-bottom:'
+      assign childPosition = childPosition | append: childBottomMb
+  endif
+  if block.settings.child_left_mb > -1000
+      assign showChildMb = true
+      assign childLeftMb = block.settings.child_left_mb | divided_by: 32.0 | append: 'rem;' | prepend: ' --mb-child-left:'
+      assign childPosition = childPosition | append: childLeftMb
+  endif
+  if block.settings.child_right_mb > -1000
+      assign showChildMb = true
+      assign childRightMb = block.settings.child_right_mb | divided_by: 32.0 | append: 'rem;' | prepend: ' --mb-child-right:'
+      assign childPosition = childPosition | append: childRightMb
+  endif
+  if showChildMb
+      assign childClasses = childClasses | append: ' block'
+  else
+      assign childClasses = childClasses | append: ' hidden'
+  endif
+-%}
+
+<div
+  class="v-blocks-image relative section-padding max-w-full {{block.settings.page_width}}"
+  {{ block.shopify_attributes }}
+  data-img_pc_w="{{ img_pc_w }}"
+  style="background: {{block.settings.bg_color | default: 'transparent' }};{{style}}">
+    {% if block.settings.link != blank %}
+        <a href="{{ block.settings.link }}" target={{ linkTarget }}
+    {% else %}
+        <div
+    {% endif %}
+      class="block blocks-image-wrap relative blocks-radius overflow-hidden  pb-[var(--mb-height)] lg:pb-[var(--pc-height)]" 
+      style="--pc-height:{% if block.settings.pc_media_fill %}{{ pcimage_ratio}}{% else %}{{ imgHeightPc }}{% endif %};--mb-height: {% if block.settings.mb_media_fill %}{{ mbimage_ratio}}{% else %}{{ imgHeightMb }}{% endif %};"
+    >
+        {%- if pcimage != blank or mimage != blank -%}
+            {% render 'diff-end-img',
+              picture_class:'',
+              class: 'blocks-radius blocks-image-pic w-full h-full top-0 left-0 absolute object-cover',
+              anchor: block.settings.anchor,
+              pc_img: pcimage,
+              mb_img: mimage,
+              pc_img_width: img_pc_w | default: 1920,
+              mb_img_width: img_mb_w | default: 750,
+              placeholder_name: 'hero-apparel-1',
+              alt: pcimage.alt | default: 'jackery',
+              load_scene: block.settings.load_scene | default: 'default',
+            %}
+        {%- else -%}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg placeholder w-full h-full top-0 left-0 absolute object-cover' }}
+        {%- endif -%}
+
+    {% if block.settings.link != blank %}
+        </a>
+    {% else %}
+        </div>
+    {% endif %}
+
+    {% capture child_blocks_output %}
+      {% content_for 'blocks' %}
+    {% endcapture %}
+    {% assign child_blocks_output = child_blocks_output | strip %}
+    {% if child_blocks_output != '' %}
+        <div class="v-image-child-container absolute {{ childClasses }} lg:top-[var(--child-top)] lg:bottom-[var(--child-bottom)] lg:left-[var(--child-left)] lg:right-[var(--child-right)]
+        top-[var(--mb-child-top)] bottom-[var(--mb-child-bottom)] left-[var(--mb-child-left)] right-[var(--mb-child-right)]" style="{{ childPosition }}">
+            {{ child_blocks_output }}
+        </div>
+    {% endif %}
+
+</div>
+
+{% schema %}
+{
+  "name": "V-图片",
+  "blocks": [
+    {
+      "type": "@theme"
+    }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "page_width",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+            "value": "section-container-lg",
+            "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "w-full",
+      "label": "组件宽度"
+    },
+    { "type": "color", "id": "bg_color", "label": "背景颜色"},
+
+    {
+      "type": "url",
+      "id": "link",
+      "label": "图片跳转链接"
+    },
+    {
+      "type": "checkbox",
+      "id": "link_target",
+      "label": "新窗口打开链接",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "PC图片配置"
+    },
+    { "type": "image_picker", "id": "poster_pc", "label": "图片地址"},
+    {
+      "type": "checkbox",
+      "id": "pc_media_fill",
+      "label": "PC端媒体资源比例适配",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "pc_height",
+      "label": "图片高度",
+      "default": 640,
+      "visible_if": "{{ block.settings.pc_media_fill == false }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "fixed_height",
+      "label": "固定图片高度",
+      "info": "当屏幕宽度在1025-1439之间时，默认情况下图片高度会等比缩小，开启后图片高度不随屏幕宽度变化而变化",
+      "default": false,
+      "visible_if": "{{ block.settings.pc_media_fill == false }}"
+    },
+    {
+      "type": "header",
+      "content": "MB图片配置"
+    },
+    { "type": "image_picker", "id": "poster_mb", "label": "图片地址"},
+    {
+      "type": "checkbox",
+      "id": "mb_media_fill",
+      "label": "MB端媒体资源比例适配",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "mb_height",
+      "label": "图片高度",
+      "default": 500,
+      "visible_if": "{{ block.settings.mb_media_fill == false }}"
+    },
+    {
+      "type": "header",
+      "content": "图片加载场景配置"
+    },
+    {
+      "type": "select",
+      "id": "load_scene",
+      "label": "图片加载场景",
+      "options": [
+        { "value": "lcp", "label": "首屏关键图（LCP）" },
+        { "value": "default", "label": "普通图（默认）" },
+        { "value": "defer", "label": "次要/延后图" }
+      ],
+      "default": "default",
+    },
+    {
+      "type": "paragraph",
+      "content": "1. 首屏关键图（LCP）:用于首页主 KV、首屏主图"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 普通图（默认）：用于绝大多数图片（列表、内容图）"
+    },
+    {
+      "type": "paragraph",
+      "content": "3. 次要/延后图（低优先级）：用于轮播非首张、备用图、装饰图"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "PC边距"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "右边距",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "MB边距"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "上边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "下边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_left_mb",
+      "label": "左边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right_mb",
+      "label": "右边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "圆角"
+    },
+    {
+      "type": "range",
+      "id": "radius_1",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_2",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_3",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_4",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "MB圆角"
+    },
+    {
+      "type": "select",
+      "id": "mb_radius_type",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB圆角"
+    },
+    {
+      "type": "range",
+      "id": "radius_mb_1",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_radius_type == 'custom' }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "radius_mb_2",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_radius_type == 'custom' }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "radius_mb_3",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_radius_type == 'custom' }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "radius_mb_4",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_radius_type == 'custom' }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "PC子组件位置"
+    },
+    {
+      "type": "number",
+      "id": "child_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "左",
+      "default": -1000,
+      "info": "小于-999将会取消该方向的位置定位"
+    },
+    {
+      "type": "number",
+      "id": "child_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "上",
+      "default": -1000,
+      "info": "小于-999将会取消该方向的位置定位"
+    },
+    {
+      "type": "number",
+      "id": "child_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "右",
+      "default": -1000,
+      "info": "小于-999将会取消该方向的位置定位"
+    },
+    {
+      "type": "number",
+      "id": "child_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "下",
+      "default": -1000,
+      "info": "小于-999将会取消该方向的位置定位"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "MB子组件位置"
+    },
+    {
+      "type": "number",
+      "id": "child_left_mb",
+      "label": "左",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": -1000,
+      "info": "小于-999将会取消该方向的位置定位"
+    },
+    {
+      "type": "number",
+      "id": "child_top_mb",
+      "label": "上",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": -1000,
+      "info": "小于-999将会取消该方向的位置定位"
+    },
+    {
+      "type": "number",
+      "id": "child_right_mb",
+      "label": "右",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": -1000,
+      "info": "小于-999将会取消该方向的位置定位"
+    },
+    {
+      "type": "number",
+      "id": "child_bottom_mb",
+      "label": "下",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": -1000,
+      "info": "小于-999将会取消该方向的位置定位"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-图片",
+      "category": "Basic"
+    }
+  ]
+}
+{% endschema %}

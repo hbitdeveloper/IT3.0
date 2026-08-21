@@ -1,0 +1,154 @@
+{% assign slides = section.blocks | where: 'type', 'slide_item' %}
+{% assign size = slides.size %}
+{% assign small_v = false %}
+{% assign large_v = false %}
+{% assign small_icon = false %}
+{% assign large_icon = false %}
+
+{% if size <= 5 and section.settings.video_size == 'video_small' %}
+  {% assign small_v = true %}
+{% endif %}
+
+{% if size <= 0 and section.settings.video_size == 'video_large' %}
+  {% assign large_v = true %}
+{% endif %}
+{% if size > 5 and section.settings.video_size == 'video_small' %}
+  {% assign small_icon = true %}
+{% endif %}
+
+{% if size > 1 and section.settings.video_size == 'video_large' %}
+  {% assign large_icon = true %}
+{% endif %}
+<section
+  class="w-full flex-center bg-white px-40 pt-80 {% if size > 2 %} pb-200 {% else %} pb-80 {% endif %} lg:px-0 lg:j-py-50 xl:a-py-50"
+  data-photovolatic-find-out-video-size="{{ section.settings.video_size }}"
+>
+  <div class="w-full flex-center flex-col lg:j-w-1200 xl:a-w-1200 relative">
+    <h2 class="w-full text-center font-600 text-#1A1A1A mb-60 text-48 leading-60 lg:text-#1A1A1A lg:j-px-40 xl:a-px-40 lg:j-text-40 lg:j-leading-48 lg:j-mb-30 xl:a-text-40 xl:a-leading-48 xl:a-mb-30">
+      {{ section.settings.title | newline_to_br }}
+    </h2>
+
+    {% comment %} PC Swiper {% endcomment %}
+    <div
+      class="hidden lg:block swiper w-full h-full findout-pc-swiper lg:j-rounded-12 xl:a-rounded-12"
+      data-size="{{ size }}"
+      data-video-size="{{ section.settings.video_size }}"
+    >
+      <div class="swiper-wrapper no-swiping {% if small_v or large_v %} flex-center lg:gap-x-[12px] {% endif %}">
+        {% for block in slides %}
+          <div
+            class="swiper-slide bg-#C4C4C4 lg:j-h-430 lg:j-rounded-12 {% if section.settings.video_size == 'video_small' %} !xl:a-w-240 !lg:j-w-240 {% else %} !xl:a-w-l-240 !lg:j-w-l-240 {% endif %} xl:a-h-430 xl:a-rounded-12 overflow-hidden"
+            data-video-src="{{ block.settings.video_url }}"
+            data-controls="{{ block.settings.controls }}"
+            data-loop="{{ block.settings.loop }}"
+            data-index="{{ forloop.index0 }}"
+            data-section-title="{{ section.settings.title | escape }}"
+          >
+            {%
+              render 'jky-video',
+              video_url: block.settings.video_url,
+              poster: block.settings.poster,
+              autoplay: false,
+              controls: block.settings.controls,
+              loop: block.settings.loop
+            %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% comment %} PC Navigation {% endcomment %}
+    {% if small_icon or large_icon %}
+      <div class="hidden lg:flex swiper-button-prev swiper-findout-pc-button-prev swiper-btn"></div>
+      <div class="hidden lg:flex swiper-button-next swiper-findout-pc-button-next swiper-btn"></div>
+    {% endif %}
+
+    {% comment %} Mobile Swiper {% endcomment %}
+    <div class="block lg:hidden swiper w-full h-full findout-mb-swiper rounded-24" data-size="{{ size }}">
+      <div class="swiper-wrapper no-swiping {% if size < 2%} flex-center gap-x-[12px] {% endif %}">
+        {% for block in slides %}
+          <div
+            class="swiper-slide bg-#C4C4C4 {% if section.settings.video_size == 'video_small' %}  w-480 h-860 {% else %} w-l-480 h-l-860 {% endif %} rounded-24 overflow-hidden"
+            data-video-src="{{ block.settings.video_url }}"
+            data-controls="{{ block.settings.controls }}"
+            data-loop="{{ block.settings.loop }}"
+            data-index="{{ forloop.index0 }}"
+            data-section-title="{{ section.settings.title | escape }}"
+          >
+            {%
+              render 'jky-video',
+              video_url: block.settings.video_url,
+              poster: block.settings.poster,
+              autoplay: false,
+              controls: block.settings.controls,
+              loop: block.settings.loop
+            %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% comment %} Mobile Navigation {% endcomment %}
+    {% if size > 1 %}
+      <div class="flex lg:hidden swiper-button-prev swiper-findout-mb-button-prev"></div>
+      <div class="flex lg:hidden swiper-button-next swiper-findout-mb-button-next"></div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "photovolatic Find out",
+  "class": "section-photovolatic section-photovolatic-find-out",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "Title",
+      "default": "Find out what users think about the Jackery \n All in One Solar Generator for Home"
+    }, {
+      "type": "select",
+      "id": "video_size",
+      "label": "选择视频样式:",
+      "default": "video_small",
+      "options": [
+        {
+          "value": "video_small",
+          "label": "竖屏"
+        }, {
+          "value": "video_large",
+          "label": "横屏"
+        }
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide_item",
+      "name": "Slide item",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "poster",
+          "label": "封面图片"
+        }, {
+          "type": "url",
+          "id": "video_url",
+          "label": "视频地址"
+        }, {
+          "type": "checkbox",
+          "id": "loop",
+          "label": "循环播放？",
+          "default": true
+        }, {
+          "type": "checkbox",
+          "id": "controls",
+          "label": "显示播放控件？",
+          "default": true
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

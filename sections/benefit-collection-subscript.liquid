@@ -1,0 +1,401 @@
+<style>
+  /* 活动页特殊样式 */
+  .activity-main-container .olight-subscript .jky-12th-container .content-box .tooltip-text {
+    z-index: 2;
+  }
+</style>
+
+{% if section.settings.code_1 == blank %}
+  <style>
+    .modal-container.modal .modal-content {
+      max-height: 40vh;
+    }
+  </style>
+{% endif %}
+
+{% assign type = section.settings.type %}
+
+<div class="olight-box"  style="background: {{ section.settings.bgColor }}"  anchor-target="{{ section.settings.anchor | escape }}">
+  <div
+    class="olight-subscript"
+  >
+    <div class="jky-12th-container">
+      <div class="img-box">
+        {%- if section.settings['left-img'] != blank -%}
+          {% render 'responsive-image', image: section.settings['left-img'], image_class: 'left-img' %}
+        {%- endif -%}
+      </div>
+      <div class="content-box">
+        <div class="for-mb-position">
+          <div class="just-bottom">
+            {% assign titleColor = '<em style="color: ' | append: section.settings.title_color | append: '">' %}
+            <div class="title text-overflow-4" data-title="{{ section.settings.title_subscribe | strip_html }}">
+              {{ section.settings.title_subscribe | replace: '<em>', titleColor }}
+            </div>
+            {%- if section.settings.notes != blank -%}
+              <span class="tooltip-box">
+                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-ga-event="promo_collection_user_clicks" data-ga-action="mouseenter" data-ga-params-module="Email Subscribe" data-ga-params-position="" data-ga-params-button_name="Question Mark"><defs><path d="M11.933 1c6.039 0 10.934 4.89 10.934 10.92 0 6.031-4.895 10.92-10.934 10.92C5.895 22.84 1 17.951 1 11.92 1 5.89 5.895 1 11.933 1zm0 1.49c-5.215 0-9.442 4.222-9.442 9.43 0 5.209 4.227 9.431 9.442 9.431s9.443-4.222 9.443-9.43c0-5.21-4.228-9.432-9.443-9.432zm0 7.197c.412 0 .746.333.746.744v6.701a.745.745 0 01-1.491 0v-6.7c0-.412.334-.745.745-.745zm0-3.723a1.242 1.242 0 11.002 2.483 1.242 1.242 0 01-.002-2.483z" id="prefix__a"/></defs><g fill="none" fill-rule="evenodd"><path d="M0 0h24v24H0z"/><use fill="#666" fill-rule="nonzero" xlink:href="#prefix__a"/></g></svg>
+                <div class="tooltip-text">{{ section.settings.notes }}</div>
+              </span>
+            {%- endif -%}
+          </div>
+        </div>
+
+        {% assign subTitleColor = '<em style="color: ' | append: section.settings.subtitle_color | append: '">' %}
+        <div class="sub-title text-overflow-3">
+          {{ section.settings.subtitle | replace: '<em>', subTitleColor }}
+        </div>
+
+        <div class="subscribe-main">
+          <jky-form
+            onsubmitcall="(e)=>toOlightSubscribe(e)"
+            jky-form-id="5000 plus"
+            class="subscribe-email footer-subscribe-box"
+          >
+            <form data-action="/osconsumerapi/v1/notice/subscribe" data-notscroll="true">
+              <div class="form-container newbee-form newbee-form_{{section.id}}">
+                {% comment %} 邮箱 {% endcomment %}
+                <div class="input-btn">
+                  <div class="form-row flex  full">
+                    <div class="form-item required form-item_const" data-field="input">
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="{{'newsletter.email_placeholder' | t}}"
+                        data-error="{{'newsletter.email_empty_info' | t}}"
+                        data-value="email"
+                        data-reg="email"
+                        data-regerror="{{'newsletter.email_error_info' | t}}"
+                      >
+                    </div>
+                  </div>
+
+                  <div class="newbee-form_submit flex full" data-loading="{{ section.settings.subscribe_loading_btn }}">
+                    <button
+                      class="form_sub_btn z-button-middle olight-submit-btn"
+                      data-success="{{'newsletter.success' | t}}"
+                      data-subscribed="{{ section.settings.subscribe_btn_after }}"
+                      data-emailid="{{ section.settings.email_id }}"
+                      data-show_modal="{{ section.settings.show_modal }}"
+                    >
+                      {{ section.settings.subscribe_btn }}
+                    </button>
+                  </div>
+                </div>
+
+                {% comment %} 隐私协议 {% endcomment %}
+                <div class="form-row privacy form-row_check_box flex full">
+                  <div
+                    class="form-item required five-kwh-privacy"
+                    data-field="check_box"
+                    data-error="{{'newsletter.policy_empty_info' | t}}"
+                    data-color="{{ section.settings.subscribe_privacy_color }}"
+                  >
+                    {% render 'jky-formField-checkbox',
+                      key: section.settings.subscribe_privacy,
+                      value: 'agree_recevie'
+                    %}
+                  </div>
+                </div>
+
+                <div style="display: none;" class="form-row flex  full">
+                  <div class="form-item form-item_const" data-field="input">
+                    <input
+                      type="text"
+                      id="tags"
+                      name="tags"
+                      data-error=""
+                      data-value="tags"
+                      data-reg=""
+                      value="{{ section.settings.tags }}"
+                      data-regerror=""
+                    >
+                  </div>
+                </div>
+
+                <div style="display: none;" class="form-row flex full">
+                  <div class="form-item form-item_const" data-field="input">
+                    <input
+                      type="text"
+                      id="componentName"
+                      name="componentName"
+                      data-value="componentName"
+                      value="优惠信息集合订阅"
+                    >
+                  </div>
+                </div>
+
+                <div style="display: none;" class="form-row flex full page-url">
+                  <div class="form-item form-item_const" data-field="input">
+                    <input
+                      type="text"
+                      id="pageUrl"
+                      name="pageUrl"
+                      data-value="pageUrl"
+                      value=""
+                    >
+                  </div>
+                </div>
+              </div>
+            </form>
+          </jky-form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% comment %} 弹窗 {% endcomment %}
+  <div class="olight-subscript-modal">
+    <div class="modal-box">
+      {% assign modalColor = '<em style="color: ' | append: section.settings.modal_title_color | append: '">' %}
+      <div class="modal-title">{{ section.settings.modal_title | replace: '<em>', modalColor }}</div>
+      {% assign modalSubColor = '<em style="color: ' | append: section.settings.modal_sub_title_color | append: '">' %}
+      <div class="modal-sub-title">
+        {{ section.settings.modal_sub_title | replace: '<em>', modalSubColor }}
+      </div>
+
+      {% if section.settings.code_1 != blank %}
+        <div class="coupon-top">
+          <img
+            class="coupon-img"
+            data-src="{{ section.settings.icon_1 | image_url: width: 176 }}"
+            alt="{{ section.settings.icon_1 }}"
+            loading="lazy"
+          >
+          <div class="coupon-box">
+            <div class="code">{{ section.settings.code_1 }}</div>
+            <div class="required">{{ section.settings.limit_1 }}</div>
+            <div class="date">{{ section.settings.date_1 }}</div>
+            <div
+              class="rules"
+              data-ga-event="section_subscribe_banner_user_clicks"
+              data-ga-action="mouseenter"
+              data-ga-params-module="Email Subscribe"
+              data-ga-params-position="{{ section.settings.code_1 }}"
+              data-ga-params-button_name="{{ section.settings.rule_1 }}"
+            >
+              {{ section.settings.rule_1 }}
+              <div class="coupon-pkg-rules-tip">
+                <h3
+                  class="header"
+                >
+                  {{ 'newCustomer.rules' | t }}
+                </h3>
+                <div class="modal-tip-content">
+                  {{ section.settings.rule_detail_1 }}
+                </div>
+                <span class="angle"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if section.settings.code_2 != blank %}
+        <div class="coupon-bottom">
+          <img
+            class="coupon-img"
+            src="{{ section.settings.icon_2 | image_url: width: 176 }}"
+            alt="{{ section.settings.icon_2 }}"
+            loading="lazy"
+          >
+          <div class="coupon-box">
+            <div class="code">{{ section.settings.code_2 }}</div>
+            <div class="required">{{ section.settings.limit_2 }}</div>
+            <div class="date">{{ section.settings.date_2 }}</div>
+            <div
+              class="rules"
+              data-ga-event="section_subscribe_banner_user_clicks"
+              data-ga-action="mouseenter"
+              data-ga-params-module="Email Subscribe"
+              data-ga-params-position="{{ section.settings.code_2 }}"
+              data-ga-params-button_name="{{ section.settings.rule_2 }}"
+            >
+              {{ section.settings.rule_2 }}
+              <div class="coupon-pkg-rules-tip">
+                <h3
+                  class="header"
+                >
+                  {{ 'newCustomer.rules' | t }}
+                </h3>
+                <div class="modal-tip-content">
+                  {{ section.settings.rule_detail_2 }}
+                </div>
+                <span class="angle"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      {% if section.settings.modal_btn != blank %}
+        <a
+          href="javascript:void(0);"
+          class="modal-olight-submit"
+          data-ga-event="section_subscribe_banner_user_clicks"
+          data-ga-action="click"
+          data-ga-params-module="Email Subscribe"
+          data-ga-params-button_name="{{ section.settings.modal_btn }}"
+        >
+          {{- section.settings.modal_btn -}}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "BC Subscribe",
+  "tag": "section",
+  "class": "olight-subscript-section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "color_background", "id": "bgColor", "label": "组件背景色" },
+    { "type": "image_picker", "id": "left-img", "label": "左边占位图片" },
+    { "type": "richtext", "id": "title_subscribe", "label": "标题【斜体=文案突出】" },
+    { "type": "color", "id": "title_color", "label": "标题颜色" },
+    { "type": "richtext", "id": "subtitle", "label": "副标题【斜体=文案突出】" },
+    { "type": "color", "id": "subtitle_color", "label": "副标题颜色" },
+    { "type": "text", "id": "subscribe_btn", "label": "订阅按钮文案" },
+    { "type": "text", "id": "subscribe_btn_after", "label": "订阅后按钮文案" },
+    { "type": "text", "id": "subscribe_loading_btn", "label": "订阅按钮Loading文案" },
+    { "type": "richtext", "id": "subscribe_privacy", "label": "订阅隐私协议" },
+    { "type": "color", "id": "subscribe_privacy_color", "label": "订阅隐私协议颜色" },
+    { "type": "richtext", "id": "notes", "label": "注释语" },
+    { "type": "number", "id": "email_id", "label": "发送邮件ID" },
+    { "type": "text", "id": "tags", "label": "订阅标签", "default": "bar-subcribe,bar-subscibe-olight" },
+    { "type": "checkbox", "id": "show_modal", "label": "是否弹窗", "default": true },
+    { "type": "header", "content": "弹窗配置" },
+    { "type": "richtext", "id": "modal_title", "label": "弹窗大标题【斜体=文案突出】" },
+    { "type": "color", "id": "modal_title_color", "label": "弹窗大标题颜色" },
+    { "type": "richtext", "id": "modal_sub_title", "label": "弹窗小标题【斜体=文案突出】" },
+    { "type": "color", "id": "modal_sub_title_color", "label": "弹窗小标题颜色" },
+    { "type": "text", "id": "modal_btn", "label": "弹窗按钮文案" },
+    { "type": "header", "content": "优惠券1配置" },
+    { "type": "image_picker", "id": "icon_1", "label": "优惠券图片" },
+    { "type": "text", "id": "code_1", "label": "券码文案" },
+    { "type": "text", "id": "limit_1", "label": "限制" },
+    { "type": "text", "id": "date_1", "label": "有效期文案" },
+    { "type": "text", "id": "rule_1", "label": "rules" },
+    { "type": "richtext", "id": "rule_detail_1", "label": "rules详细文案" },
+    { "type": "header", "content": "优惠券2配置" },
+    { "type": "image_picker", "id": "icon_2", "label": "优惠券图片" },
+    { "type": "text", "id": "code_2", "label": "券码文案" },
+    { "type": "text", "id": "limit_2", "label": "限制" },
+    { "type": "text", "id": "date_2", "label": "有效期文案" },
+    { "type": "text", "id": "rule_2", "label": "rules" },
+    { "type": "richtext", "id": "rule_detail_2", "label": "rules详细文案" }
+  ],
+  "presets": [
+    {
+      "name": "优惠集合-订阅",
+      "category": "优惠信息集合页"
+    }
+  ]
+}
+{% endschema %}
+
+<script defer>
+  $(document).ready(function () {
+    // 动态修改提交loading的文案
+    $('.olight-subscript').each(function () {
+      $('.page-url input').val(window.location.href);
+      let loading_btn = $(this).find('.newbee-form_submit').data('loading') || 'LOADING';
+      const styleSheet = document.styleSheets[0];
+      const className = `loading-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Add a unique class to the button
+      $(this).find('button').addClass(className);
+
+      // Insert the CSS rule for this specific button
+      styleSheet.insertRule(`.${className}.loading::after { content: "${loading_btn}"; }`, styleSheet.cssRules.length);
+
+      // 获取当前 .olight-subscript 中的 data-color 属性
+      let color = $(this).find('.newbee-form .form-row .five-kwh-privacy').data('color');
+
+      // 设置当前 .olight-subscript 中 .jky-agree 和 .jky-agree a 的颜色
+      $(this).find('.newbee-form .form-row .form-item label .jky-agree').css('color', color);
+      $(this).find('.newbee-form .form-row .form-item label .jky-agree a').css('color', color);
+      $(this).find('.newbee-form .form-row .form-item label .jky-agree p').css('color', color);
+    });
+
+    const $svg = $('.olight-box svg');
+    const titleText = $('.olight-box').parent().prev().find('.title').text() || '';
+    if(titleText){
+       $svg.attr('data-ga-params-position', titleText);
+    }
+  });
+
+  function toOlightSubscribe(data) {
+    if (data.response && data.response.code === 200) {
+      $('.olight-subscript .olight-submit-btn').prop('disabled', true).css('background', '#FECAB2');
+      let show_modal = $('.olight-subscript .form_sub_btn').data('show_modal');
+      if (show_modal) {
+        const popupHtml = document.querySelector('.olight-subscript-modal');
+        const uniqueId = `olight-modal`;
+        window.ZModle.getInstance(popupHtml, {
+          id: uniqueId,
+          class: 'olight-modal-coupon',
+        });
+        $('.olight-modal-coupon .olight-subscript-modal').show();
+
+        // 关闭弹窗
+        $(document).on('click', '.modal-olight-submit', function () {
+          $('.olight-modal-coupon .close').trigger('click');
+        });
+      } else {
+        const msg = $('.olight-subscript .newbee-form_submit button').data('success') || data.response.message;
+        pushSuccessMessage(msg);
+      }
+
+      let email = $('.olight-subscript input[type=email]').val();
+      let emailId = $('.olight-subscript .form_sub_btn').data('emailid');
+      let subscribed = $('.olight-subscript .form_sub_btn').data('subscribed');
+      $('.olight-subscript .form_sub_btn').text(subscribed);
+      fetch(`${window.pageInfo.api}/osconsumerapi/v1/email/notice`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          cr: window?.pageInfo?.cr,
+          lang: window?.pageInfo?.lang,
+        },
+        body: JSON.stringify({
+          email,
+          emailId,
+          shopifyShopId: window.pageInfo.shopId,
+        }),
+      })
+        .then((response) => response.json())
+        .then((res) => {
+          if (res.code === 200) {
+          } else {
+            window?.pushErrorMessage(res.message || 'Network Error');
+          }
+        })
+        .catch((e) => {
+          window?.pushErrorMessage(e);
+        });
+
+      //埋码
+      const title = $('.olight-box').parent().prev().find('.title').text() || '';
+      let params = {
+        module: 'Email Subscribe',
+        position: title,
+        button_name: 'Subscribe',
+      };
+
+      window.dataLayer.push({ event_parameters: null });
+      window.dataLayer.push({
+        event: 'ga4Event',
+        event_name: 'promo_collection_user_clicks',
+        event_parameters: {
+          current_page: window.location.href, // current page url
+          ...params,
+        },
+      });
+    }
+  }
+</script>

@@ -1,0 +1,79 @@
+{% doc %}
+  Renders a single search product result list item.
+
+  @param {object} product_item - Search result product item
+  @param {boolean} [lazy_load] - Whether the product image should lazy load
+
+  @example
+  {% render 'v5-search-product-result-item', product_item: item, lazy_load: true %}
+{% enddoc %}
+
+{%- liquid
+  assign product_title_lc = product_item.title | downcase
+  assign product_is_kit = false
+  if product_title_lc contains 'solar generator' or product_title_lc contains 'solar-generator'
+    assign product_is_kit = true
+  endif
+-%}
+<li
+  class="w-full focus-zoom-container flex items-center border-0 border-b-[1px] border-solid border-[#E8E8E5] gap-x-4 pb-4 lg:gap-x-10 lg:pb-6"
+  data-product-id="{{ product_item.id }}"
+  data-product-handle="{{ product_item.handle }}"
+  data-product-available="{{ product_item.available }}"
+  data-is-kit="{% if product_is_kit %}true{% else %}false{% endif %}"
+>
+  {%- assign product_image_src = '' -%}
+  {%- assign product_image_load_scene = 'lcp' -%}
+  {%- if lazy_load -%}
+    {%- assign product_image_load_scene = 'defer' -%}
+  {%- endif -%}
+  {%- if product_item.featured_media != blank -%}
+    {%- render 'diff-end-img',
+      picture_class: 'w-20 h-20 lg:w-[10.375rem] lg:h-[10.375rem] shrink-0 overflow-hidden',
+      class: 'object-cover focus-zoom w-20 h-20 lg:w-[10.375rem] lg:h-[10.375rem] shrink-0',
+      pc_img: product_item.featured_media,
+      mb_img: product_item.featured_media,
+      pc_img_width: 332,
+      mb_img_width: 160,
+      alt: product_item.featured_media.alt | default: product_item.title,
+      load_scene: product_image_load_scene
+    -%}
+  {%- else -%}
+    {%- assign product_image_src = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/placeholder.png' -%}
+    {%- render 'diff-end-img',
+      picture_class: 'w-20 h-20 lg:w-[10.375rem] lg:h-[10.375rem] shrink-0 overflow-hidden',
+      class: 'object-cover focus-zoom w-20 h-20 lg:w-[10.375rem] lg:h-[10.375rem] shrink-0',
+      pc_img: product_image_src,
+      mb_img: product_image_src,
+      pc_img_width: 332,
+      mb_img_width: 160,
+      alt: product_item.title,
+      load_scene: product_image_load_scene
+    -%}
+  {%- endif -%}
+  <div class="flex-1 flex flex-col gap-y-3 lg:gap-y-4">
+    <h2 class="font-semibold text-black/90 line-clamp-2 text-xs lg:text-xl">{{ product_item.title | escape }}</h2>
+    <p class="text-xs lg:text-base text-black/90">
+      {%- if product_item.metafields.custom.product_features_info != blank -%}
+        {{ product_item.metafields.custom.product_features_info | metafield_tag | strip_html }}
+      {%- endif -%}
+    </p>
+    <div class="w-full flex items-center justify-between lg:justify-start lg:gap-x-10 lg:h-8">
+      <div>{%- render 'v5-price', product: product_item -%}</div>
+      <a href="{{ product_item.url }}" class="flex items-center gap-x-1 lg:gap-x-2 font-semibold text-primary text-xs lg:text-xl">
+        {{ 'general.action_text.shop_now' | t }}
+        <svg class="text-primary w-3.5 h-3.5 lg:w-4 lg:h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g clip-path="url(#clip0_4559_7516)">
+            <path d="M-1 9.25H11.2422" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M8.49219 3L14.7419 9.24976L8.49219 15.4995" stroke="currentColor" stroke-width="1.6"/>
+          </g>
+          <defs>
+            <clipPath id="clip0_4559_7516">
+              <rect width="16" height="16" fill="white"/>
+            </clipPath>
+          </defs>
+        </svg>
+      </a>
+    </div>
+  </div>
+</li>

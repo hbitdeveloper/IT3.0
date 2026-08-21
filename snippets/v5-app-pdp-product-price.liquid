@@ -1,0 +1,101 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign target = product.selected_or_first_available_variant
+  assign compare_at_price = target.compare_at_price | default: target.price
+  assign price = target.price | default: 1999
+  assign money_price = price
+
+  # if target == product and product.price_varies
+    # assign money_price = 'products.product.price.from_price_html' | t: price: money_price
+  # endif
+
+
+  # 产品价格直降
+  assign price_class_name = 'price'
+
+  # 开启了价格直降
+  if show_product_direct_way
+    assign price_class_name = 'djp'
+    # 方案一
+    if product_direct_way == 'way_one'
+      assign dsf = target.metafields.custom.dsf
+      if dsf != blank
+        assign money_price = dsf | times: 100
+      endif
+    # 方案二
+    elsif product_direct_way == 'way_two'
+      if settings.open_auto_discount_price
+        assign auto_dis_price = target.metafields.custom.auto_discount_price | times: 1
+        if auto_dis_price > 0 and auto_dis_price < price
+          assign money_price = auto_dis_price
+        else
+          assign money_price = price
+        endif
+      endif
+    endif
+  endif
+
+  # 建议零售价
+  assign msrp = 'products.product.price.msrp' | default: '' | t
+-%}
+
+{% comment %} Promi 插件代码 {% endcomment %}
+<div class="pm-price-wrapper" pm-section-id="{{ section.id }}">
+  <div {{ block.shopify_attributes }} id="{{ price_class_name }}-{{ sectionId }}" class="section-padding flex flex-wrap items-center gap-x-3 gap-y-1 {% if msrp != blank %}flex flex-wrap gap-x-3 lg:block{% endif %}" style="{{ style }}">
+    <span class="inline-block align-middle text-[#242F20] font-semibold text-2xl lg:text-[2rem] lg:leading-[3rem]">{{ money_price | money }}</span>
+    
+    {%- if show_product_direct_way and product_direct_way == 'way_one' -%}
+      {% comment %} 供 爬虫 抓取 {% endcomment %}
+      <span class="price hidden">{{ compare_at_price | money }}</span>
+    {%- endif -%}
+
+    {%- unless product.price_varies == false and product.compare_at_price_varies %}
+      {%- if compare_at_price > money_price -%}
+        <span class="{% if msrp != blank %}inline-flex flex-col items-start lg:flex-row lg:inline-block lg:align-middle lg:ml-1{% else %} inline-block align-middle mt-1 {% endif %} text-black/65 text-xs -ml-1 lg:text-sm lg:mt-2 line-through">
+          {%- if msrp != blank -%}
+            <span class="mr-1 leading-none">{{ msrp | escape }}</span>
+          {%- endif -%}
+          <span>{{ compare_at_price | money }}</span>
+        </span>
+      {%- endif -%}
+    {%- endunless -%}
+
+    {% comment %} 显示折扣价 {% endcomment %}
+    {%- if settings.show_discount_amount -%}
+      {%- unless product.price_varies == false and product.compare_at_price_varies %}
+        {%- if compare_at_price > money_price -%}
+          {%- assign amount_discount = compare_at_price | minus: money_price | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+          <span class="inline-flex items-center font-semibold text-primary bg-[#F5F5F3] text-base lg:text-lg px-2 py-1 {% if msrp != blank %}lg:ml-2{% endif %} price__save">{{settings.discount_amount_format | replace: '()', amount_discount}}</span>
+        {%- endif -%}
+      {%- endunless -%}
+    {%- endif -%}
+
+
+    {% comment %} 方案三 {% endcomment %}
+    {%- if show_product_direct_way and product_direct_way == 'way_three' -%}
+      {%- liquid
+        if settings.open_auto_discount_price
+          assign auto_dis_price = target.metafields.custom.auto_discount_price | times: 1
+          if auto_dis_price > 0 and auto_dis_price < price
+            assign money_price = auto_dis_price
+          else
+            assign money_price = price
+          endif
+        endif
+      -%}
+      <br/>
+      <div class="w-full mt-3 lg:mt-2">
+        <p class="w-max flex items-center bg-[#F5F5F3]">
+          <span class="font-medium flex items-center justify-center px-3 py-2 text-base lg:px-3 lg:py-2.5 lg:text-lg text-primary">{{ product_direct_way_three_text | escape }}</span>
+          <span class="font-semibold flex items-center justify-center px-2.5 text-xl lg:px-4 lg:text-2xl bg-primary text-white">{{ money_price | money }}</span>
+        </p>
+      </div>
+    {%- endif -%}
+  </div>
+  {%- if tax_fee_explanation != blank -%}
+    <div style="color: #626262;" class="product-tax_fee_explanation font-normal lg:text-lg text-sm lg:my-2 my-1">{{ section.settings.tax_fee_explanation }}</div>
+  {%- endif -%}
+</div>

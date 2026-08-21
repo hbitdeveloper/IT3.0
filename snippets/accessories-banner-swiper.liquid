@@ -1,0 +1,168 @@
+<style>
+    .image-swiper {
+        background: #FFF;
+        padding: 0;
+        height: 800px;
+    }
+    .image-container {
+        width: 100%;
+        height: 700px;
+    }
+    .image-container .swiper-slide {
+        background: #FFFFFF;
+        width: 1200px;
+        transition: all .3s;
+        height: 700px;
+        max-width: 100%;
+        padding: 0 25px;
+    }
+    .image-container .swiper-slide>img {
+        max-height: 700px;
+    }
+    .image-container .swiper-slide .image-swiper-content::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: transparent;
+    }
+    .image-container .swiper-slide-active .image-swiper-content::before {
+        background: var(--primary-color);
+    }
+    .image-container .swiper-slide-active {
+        padding: 0;
+    }
+    .image-swiper-content {
+        padding: 28px 50px;
+        flex: 1;
+        box-shadow: 0px 3px 11px 0px rgba(85,85,85,0.2);
+    }
+    .image-swiper-name {
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: #333;
+    }
+    .image-swiper-des {
+        max-width: 800px;
+    }
+    .image-swiper .slideshow-pagination {
+        bottom: 50px;
+    }
+    .image-swiper .image-imgblock {
+        overflow: hidden;
+    }
+    .image-swiper .ani-fade-img .image-imgblock img {
+        animation: zoom-fade 2s cubic-bezier(.26,.54,.32,1) 0s forwards;
+    }
+    .image-swiper .image-imgblock img {
+        height: 700px;
+        width: 100%;
+        object-fit: cover;
+    }
+    .image-swiper .image-imgblock img {
+        transition: transform 0.5s ease;
+     }
+    .image-swiper .image-imgblock:hover img {
+        transform: scale(1.05);
+    }
+    @keyframes zoom-fade {
+      from {
+        -webkit-transform: scale(1.4,1.4);
+                transform: scale(1.4,1.4);
+      }
+      to {
+        -webkit-transform: scale(1,1);
+                transform: scale(1,1);
+      }
+    }
+    @media screen and (max-width: 768px) {
+        .image-swiper {
+            background: #F5F5F5;
+            height: auto;
+            padding-bottom: 13.866666666666667vw !important;
+        }
+        .image-container {
+            height: auto;
+            width: 85vw;
+            margin: 0 auto;
+        }
+        .image-container .swiper-slide {
+            width: 100%;
+            overflow: hidden;
+            height: auto;
+            padding: 0;
+            opacity: 0;
+        }
+        .image-container .swiper-slide>img {
+            max-height: 76vw;
+        }
+        .image-container .swiper-slide .image-swiper-content::before {
+            height: 4px;
+        }
+        .image-container .swiper-slide-active {
+            position: relative;
+            z-index: 9;
+            margin: 0;
+            opacity: 1;
+            box-shadow: 0px 1px 10px 6px rgba(98,98,98,0.1);
+        }
+        .image-swiper-content {
+            padding: 5.3vw;
+            text-align: center;
+            background: #fff;
+        }
+        .image-swiper-name {
+            margin-bottom: 3.4vw;
+        }
+        .image-swiper-des {
+            display: none;
+        }
+        .image-swiper-content .justify-between {
+            justify-content: center;
+        }
+        .image-swiper .image-imgblock img {
+            height: 76vw;
+            overflow: hidden;
+        }
+        .image-swiper .slideshow-pagination {
+            bottom: 6.666666666666667vw;
+        }
+    }
+    
+</style>
+    
+    <div class="{{ groupId }} image-swiper page-section-swiper relative swiper">
+        <div class="image-container relative">
+            <div class="swiper-wrapper">
+                {% for block in blocks %}
+                    {% if block.type == 'products-banner'%}
+                        <div class="swiper-slide flex flex-col">
+                            {% if block.settings.product_link != blank %}
+                                <a class="image-imgblock relative" href="{{block.settings.product_link}}">
+                                    {% render 'responsive-image', image: block.settings.product_pc_img, mimage: block.settings.product_mb_img, image_class: '', nolazy: 'no' %}
+                                </a>
+                            {% else %}
+                                <div class="image-imgblock relative">
+                                    {% render 'responsive-image', image: block.settings.product_pc_img, mimage: block.settings.product_mb_img, image_class: '', nolazy: 'no' %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {%endif%}
+                {% endfor %}
+            </div>
+    
+            <div class="index-container absolute slideshow-navigation">
+                <div class="slideshow-navigation-button prev bruce-test">
+                    {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+                </div>
+                <div class="slideshow-navigation-button next">
+                    {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+                </div>
+            </div>
+        </div>
+    
+        <div class="slideshow-pagination"></div>
+    </div>
+    

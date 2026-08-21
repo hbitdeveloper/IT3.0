@@ -1,0 +1,129 @@
+{% comment %} 
+    新品plus活动产品详情页使用：
+    Dependencies：
+        settings.new_product_coupon_variants        变体id or 产品id
+        products.product.new_product_get_copoun     按钮多语言
+        settings.new_product_coupon_url             活动购买链接
+{% endcomment %}
+
+{% assign is_new = false %}
+{% for variant in product.variants %}
+    {% assign vv = variant.id | append: '' %}
+    {% if settings.new_product_coupon_variants contains vv %}
+        {% assign is_new = true %}
+    {% endif %}
+{% endfor %}
+
+{% assign vv = product.id | append: '' %}
+{% if product.variants.size == 1 and product.variants[0].title == 'Default Title' and settings.new_product_coupon_variants contains vv %}
+    {% assign is_new = true %}
+{% endif %}
+
+{% if is_new == true %}
+    <style>
+        .new-product-getCoupon {display: none;}
+        .new-product-getCoupon button {
+            color: var(--normal-color);
+            background-color: var(--primary-color);
+            text-decoration: none;
+            height: var(--action-button);
+            border-radius: calc(var(--action-button) / 2);
+            cursor: pointer;
+            font-size: var(--jky-text-base);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 16px;
+        }
+    </style>
+    <a class="new-product-getCoupon" href="{{settings.new_product_coupon_url}}">
+        <button>{{ 'products.product.new_product_get_copoun' | t }}</button>
+    </a>
+
+    <script defer>
+        function hasVariant(variants) {
+            if(variants.length === 1 && variants[0].title == 'Default Title') {
+                return false
+            }
+            return true
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let product_variants = {{product.variants | json}}
+            let current_v = {{product.selected_variant | json}} || {{product.selected_or_first_available_variant | json}} || {{product.variants | first | json}} || {{product.variants | first | json}} || {};
+            let availableIDs = '{{settings.new_product_coupon_variants}}'.split(',')
+
+            function handleVariant(current = current_v) {
+                const id = hasVariant(product_variants) ? current.id : {{product.id}};
+                const flag = availableIDs.some(v => Number(v) == id && !current.available)
+                if (!flag) {
+                    document.querySelectorAll('.new-product-getCoupon').forEach(el => {
+                        el.style.display = 'none'
+                    });
+                    document.querySelectorAll('.product-single__form .add-to-cart').forEach(el => {
+                        el.style.display = 'block'
+                    });
+                    document.querySelectorAll('.product-single__form .shopify-payment-button').forEach(el => {
+                        el.style.display = 'block'
+                    });
+
+                    const radio = document.querySelector(`.variant-input-wrap input[type="radio"][value="${current.id}"]`);
+                    const shortageEls = document.querySelectorAll('.product-main-block .shortage');
+
+                    if (radio && radio.nextElementSibling?.className === 'disabled') {
+                        shortageEls.forEach(el => el.style.display = 'block');
+                    } else {
+                        shortageEls.forEach(el => el.style.display = 'none');
+                    }
+                } else {
+                    document.querySelectorAll('.new-product-getCoupon').forEach(el => {
+                        el.style.display = 'block'
+                    });
+                    document.querySelectorAll('.product-main-block .shortage').forEach(el => {
+                        el.style.display = 'none'
+                    });
+                    document.querySelectorAll('.product-single__form .add-to-cart').forEach(el => {
+                        el.style.display = 'none'
+                    });
+                    document.querySelectorAll('.product-single__form .shopify-payment-button').forEach(el => {
+                        el.style.display = 'none'
+                    });
+                }
+            }
+
+            handleVariant()
+
+            document.querySelectorAll(".variant-input-wrap input[type='radio'][name='id']").forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const v = e.target.value;
+                    const target = product_variants.find(variant => variant.id == v);
+                    handleVariant(target);
+                });
+            });
+
+            hasVariant(product_variants) && product_variants.forEach(item => {
+                const flag = availableIDs.some(v => Number(v) == item.id && !item.available)
+
+                if (flag) {
+                    const target = document.querySelector(`.variant-input-wrap input[type="radio"][value="${item.id}"]`);
+
+                    if (target) {
+                        const iEl = target.nextElementSibling?.querySelector('i');
+                        if (iEl) {
+                            iEl.textContent = target.getAttribute('money');
+                        }
+                    }
+                }
+            })
+
+            setTimeout(() => {
+                document.querySelectorAll('.sticky-cart-container').forEach(el => {
+                    el.style.zIndex = '-999';
+                    el.style.opacity = '0';
+                });
+            }, 1000);
+        })
+    </script>
+{% endif %}

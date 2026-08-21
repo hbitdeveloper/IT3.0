@@ -1,0 +1,200 @@
+{% assign slides = section.blocks | where: 'type', 'slide_item' %}
+
+<section class="w-full flex-center flex-col bg-white lg:bg-#F5F3EF px-30 py-40 lg:px-0 lg:j-py-84 xl:a-py-84">
+  <ul class="w-full flex-center flex-col lg:flex-row items-stretch mx-auto gap-20 lg:j-w-1280 xl:a-w-1280 lg:j-gap-40 xl:a-gap-40">
+    {% for block in slides %}
+      {% if block.settings.product.available == true %}
+        {% assign variants = block.settings.product.variants %}
+        {% assign image = block.settings.product.featured_image %}
+        {% assign title = block.settings.product.title %}
+        {% assign description = block.settings.product.description %}
+        {% assign price = blank %}
+        {% assign href = blank %}
+
+        {%- for variant in variants -%}
+          {% if variant.sku == block.settings.skuId and block.settings.skuId != blank %}
+            {% assign price = variant.price %}
+            {% if variant.featured_image != blank %}
+              {% assign image = variant.featured_image %}
+            {% endif %}
+            {% if variant.title != 'Default Title' %}
+              {% assign title = variant.title %}
+            {% endif %}
+            {% if variant.description != blank %}
+              {% assign description = variant.description | replace: '<div>', '<p>' | replace: '</div>', '</p>' %}
+            {% endif %}
+            {% if variant.url != blank %}
+              {% assign href = variant.url %}
+            {% endif %}
+          {% endif %}
+        {%- endfor -%}
+
+        {% if price == blank %}
+          {% assign availableVariant = block.settings.product.first_available_variant %}
+          {% assign price = availableVariant.price %}
+
+          {% if availableVariant.featured_image != blank %}
+            {% assign image = availableVariant.featured_image %}
+          {% endif %}
+
+          {% if availableVariant.title != 'Default Title' %}
+            {% assign title = availableVariant.title %}
+          {% endif %}
+
+          {% if availableVariant.description != blank %}
+            {% assign description = availableVariant.description | replace: '<div>', '<p>' | replace: '</div>', '</p>' %}
+          {% endif %}
+
+          {% if availableVariant.url != blank %}
+            {% assign href = availableVariant.url %}
+          {% endif %}
+        {% endif %}
+
+        {% comment %} 如果有配置，以配置的为准 {% endcomment %}
+        {% if block.settings.product_img != blank %}
+          {% assign image = block.settings.product_img %}
+        {% endif %}
+
+        {% if block.settings.product_title != blank %}
+          {% assign title = block.settings.product_title %}
+        {% endif %}
+
+        {% if block.settings.product_description != blank %}
+          {% assign description = block.settings.product_description %}
+        {% endif %}
+
+        <li
+            class="
+              w-full bg-#F5F3EF lg:bg-white lg:shadow-[0_4px_8px_0_rgba(0,0,0,0.1)] overflow-hidden relative
+              pb-50 rounded-24 lg:j-w-620 lg:j-rounded-12 lg:j-pb-104 xl:a-w-620 xl:a-rounded-12 xl:a-pb-104
+            "
+        >
+            {% if title != blank %}
+              <h2
+                class="
+                  block lg:hidden text-#1A1A1A line-clamp-3 font-600 text-48 leading-64 px-20 mt-50 mb-20
+                  lg:px-0 lg:j-text-32 lg:j-leading-40 lg:j-mb-15 xl:a-text-32 xl:a-leading-40 xl:a-mb-15
+                "
+              >{{ title | newline_to_br }}</h2>
+            {% endif %}
+            <div class="group w-full h-504 lg:j-h-400 xl:a-h-400 relative cursor-pointer">
+              <img class="w-full h-504 lg:j-h-400 xl:a-h-400 object-contain opacity-100 group-hover:opacity-0" src="{{ image | image_url: width: 620 }}" alt="" loading="lazy">
+              {% if block.settings.product_hover_img != blank %}
+                <img class="opacity-0 group-hover:opacity-100 transition-all duration-300 w-full h-full object-contain absolute left-0 top-0 right-0 bottom-0 z-1" src="{{ block.settings.product_hover_img | image_url: width: 620 }}" alt="" loading="lazy">
+              {% endif %}
+            </div>
+            <div class="px-20 py-30 lg:j-px-25 lg:j-py-20 xl:a-px-25 xl:a-py-20">
+              {% if title != blank %}
+                <h2
+                  class="
+                    hidden lg:block text-#1A1A1A line-clamp-3 font-600 text-48 leading-64 mt-50
+                    lg:mt-0 lg:j-text-32 lg:j-leading-40 lg:j-mb-15 xl:a-text-32 xl:a-leading-40 xl:a-mb-15
+                  "
+                >{{ title | newline_to_br }}</h2>
+              {% endif %}
+              {% if description != blank %}
+                <div class="text-32 leading-44 lg:j-text-18 lg:j-leading-24 xl:a-text-18 xl:a-leading-24 line-clamp-6 lg:line-clamp-4">{{ description }}</div>
+              {% endif %}
+            </div>
+            <div class="w-full flex-between flex-col lg:absolute lg:left-0 lg:bottom-0 lg:flex-row mt-50 gap-10 lg:gap-0 lg:mt-0 lg:j-px-25 lg:j-py-20 xl:a-px-25 xl:a-py-20">
+                <em class="text-primary not-italic font-600 text-64 leading-80 lg:j-text-32 lg:j-leading-40 xl:a-text-32 xl:a-leading-40">
+                  {{ price | money }}
+                </em>
+                <a
+                    href="{{ href }}"
+                    class="
+                        min-w-552 h-128 rounded-64 text-48 leading-72 appearance-none flex-center text-white bg-primary font-600
+                        lg:j-min-w-276 lg:j-h-64 lg:j-rounded-32 lg:j-text-24 lg:j-leading-36
+                        xl:a-min-w-276 xl:a-h-64 xl:a-rounded-32 xl:a-text-24 xl:a-leading-36
+                    "
+                    data-product-link
+                    data-product-title="{{ title | escape }}"
+                    data-product-href="{{ href }}"
+                    data-product-button-text="{{ block.settings.product_button_text | escape }}"
+                >
+                  {{ block.settings.product_button_text | escape }}
+                  <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-48 leading-72 lg:j-text-24 lg:j-leading-36 xl:a-text-24 xl:a-leading-36"></jds-icon>
+                </a>
+            </div>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+  {% if section.settings.button_text != blank %}
+    <a
+      href="{{ section.settings.button_url }}"
+      class="font-600 text-center inline text-primary text-32 leading-48 mt-60 lg:j-text-32 lg:j-leading-40 lg:j-mt-70 xl:a-text-32 xl:a-leading-40 xl:a-mt-70"
+      data-product-view-more
+      data-view-more-href="{{ section.settings.button_url }}"
+      data-view-more-button-text="{{ section.settings.button_text | escape }}"
+    >
+      {{ section.settings.button_text | escape }}
+      <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-32 leading-48 lg:j-text-32 lg:j-leading-40 xl:a-text-32 xl:a-leading-40"></jds-icon>
+    </a>
+  {% endif %}
+</section>
+
+{% schema %}
+  {
+    "name": "photovolatic Product",
+    "class": "section-photovolatic section-photovolatic-product",
+    "settings": [
+      {
+        "type": "textarea",
+        "id": "button_text",
+        "label": "Button Text",
+        "default": "Learn More about Jackery DIY Solar Generator"
+      },
+      {
+        "type": "url",
+        "id": "button_url",
+        "label": "Button Url"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "slide_item",
+        "name": "Slide item",
+        "limit": 2,
+        "settings": [
+          {
+            "type": "product",
+            "id": "product",
+            "label": "Product"
+          },
+          {
+            "type": "text",
+            "id": "skuId",
+            "label": "Product Sku *"
+          },
+          {
+            "type": "image_picker",
+            "id": "product_img",
+            "label": "Product Image"
+          },
+          {
+            "type": "image_picker",
+            "id": "product_hover_img",
+            "label": "Product Hover Image"
+          },
+          {
+            "type": "textarea",
+            "id": "product_title",
+            "label": "Product Title"
+          },
+          {
+            "type": "richtext",
+            "id": "product_description",
+            "label": "Product Description"
+          },
+          {
+            "type": "text",
+            "id": "product_button_text",
+            "label": "Product Button Text",
+            "default": "SHOP NOW"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

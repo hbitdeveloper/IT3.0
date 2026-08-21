@@ -1,0 +1,402 @@
+{% liquid
+  # 相关文章数量
+  assign related_articles_count = article.metafields.custom.related_articles.value.count
+  assign right_flag = false
+  # 广告
+  if settings.article_show_tag_banner
+    assign tag_obj = null
+    if shop.metaobjects.article_item.values_count > 0 and article.tags.size > 0 and settings.article_show_tags
+      for tag in article.tags
+        if tag_obj == null
+          for item in shop.metaobjects.article_item.values
+            if tag == item.tag.value
+              assign tag_obj = item
+              break
+            endif
+          endfor
+        else
+          break
+        endif
+      endfor
+    endif
+    assign img = tag_obj.img.value | default: settings.article_ad_image
+    assign link = tag_obj.link.value | default: settings.article_image_link
+  else
+    assign img = settings.article_ad_image
+    assign link = settings.article_image_link
+  endif
+  # 右侧显示 关联文章/广告位/订阅
+  if related_articles_count > 0  or img != blank or settings.article_subscribe_title != blank
+      assign right_flag = true
+  endif
+  if section.settings.new_jp == true
+    assign right_flag = false
+  endif
+  #  产品swiper Count
+  assign product_swipers_count = article.metafields.custom.article_product_swiper.value.count
+%}
+
+<div
+  class="w-full lg:a-max-w-1200 mx-auto new-article-main {% if right_flag == false %} flex justify-center items-center {% endif %}"
+  data-flag="{{right_flag}}"
+  data-show-h3="{{ settings.article_show_h3 }}"
+  data-product-swipers-count="{{ product_swipers_count | default: 0 }}"
+>
+  <div class="lg:flex justify-between">
+    {% comment %} left {% endcomment %}
+    <div class="px-40 lg:p-0 w-full lg:a-w-800 lg:a-pt-24 lg:border-t-solid lg:a-border-t-1 border-[#dddddd]">
+      {% if article.image and article.metafields.custom.isShowBanner != true %}
+        {%-
+          render 'responsive-image',
+          image: article.image,
+          width: 800,
+          mwidth: 322,
+          image_class: "w-full article-top-img",
+          loading: "eager",
+          fcp: true
+        -%}
+      {% endif %}
+
+      {%- if article.excerpt -%}
+        <div class="mt-40 mb-80 text-#333333 text-32 leading-40 font-400 lg:font-400  lg:a-text-16 lg:a-leading-24 lg:a-mt-24 lg:a-mb-64 text-wrap">
+          {{ article.excerpt }}
+        </div>
+      {%- endif -%}
+      {% comment %} 锚点 {% endcomment %}
+      <div class="bg-[#F5F5F5] p-32 lg:a-px-44 lg:a-py-24 mb-20 lg:a-mb-30 rounded-10 lg:a-rounded-10 table-content-box [content-visibility:auto] [contain-intrinsic-size:auto_331px]">
+        <div class="font-bold text-32 mb-14 lg:a-text-24 lg:a-mb-16 text-#333333">{{ settings.table_of_contents }}</div>
+        <div class="table-content"></div>
+        <div class="article-view-more">
+          <span> {{ 'general.action_text.view_more' | t }} </span>
+          {% render 'icon-arrow', width: 16, height: 16, color: 'var(--jds-color-primary)' %}
+        </div>
+      </div>
+
+      <div class="article__body rte rte--indented-images [content-visibility:auto] [contain-intrinsic-size:auto_800px]"{% unless settings.enable_article_schema %} itemprop="articleBody"{% endunless %}>
+        {% assign content = article.content %}
+        {% assign content = content | replace: '<img ', '<img loading="lazy" ' %}
+        {{ content }}
+      </div>
+
+      {% comment %} 展示用电时长仅供参考文案 {% endcomment %}
+      {%- if settings.article_tip != blank -%}
+        <div class="article-tip [content-visibility:auto] [contain-intrinsic-size:auto_55px]"> {{ settings.article_tip }} </div>
+      {%- endif -%}
+
+      {% comment %} Shop products from this article {% endcomment %}
+      {% assign shop_products_count = article.metafields.custom.related_collection.value | split: ',' | size %}
+      {%- if shop_products_count > 0 -%}
+        <div class="mt-80 mb-40 lg:a-my-64 [content-visibility:auto] [contain-intrinsic-size:auto_140px]">
+          <div class="text-#333 font-bold my-40 text-44 lg:a-my-24 lg:a-text-32">{{ settings.shop_products }}</div>
+          <div class="lg:flex lg:items-center lg:justify-between items-stretch">
+            {% for item in article.metafields.custom.related_collection.value limit: 3 %}
+              <div class="flex items-center bg-[#FFF6F2] px-24 py-14 mb-32 lg:mb-0 lg:a-p-10 min-h-120 lg:a-min-h-80 cursor-pointer border-var(--jds-color-primary) hover:lg:a-border-b-2 {% if forloop.length == 2 %}lg:a-w-392{% else %}lg:a-w-256{%- endif -%} ">
+                <img class="w-90 h-90 lg:a-w-54 lg:a-h-54" src="{{item.file | image_url: width: 90, height: 90}}" width="90" height="90" alt="{{item.alt}}">
+                <a class="shop-product" {% if item.target == true %} target="_blank" {% endif %} href="{{item.link}}">
+                  <div class="color-[#333333] font-semibold text-28 leading-36 ml-24 lg:text-base lg:a-leading-19 lg:a-ml-10 line-clamp-2 lg:line-clamp-3">
+                    {{ item.title }}
+                  </div>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {%- endif -%}
+
+      {% comment %} 导航下的产品 {% endcomment %}
+      {%- assign product_size = article.metafields.custom.article_product.value.count -%}
+      {%- if product_size > 0 -%}
+          {%- if settings.shop_products != blank -%}
+            <div class="article-product-title text-#333 font-bold my-40 text-44 lg:a-my-24 lg:a-text-32 [content-visibility:auto] [contain-intrinsic-size:auto_36px]">{{ settings.shop_products }}</div>
+          {%- endif -%}
+          <div class="article-collection-after-product [content-visibility:auto] [contain-intrinsic-size:auto_499px]">
+          <div class="collection-800">
+            <div class="product-container {% if product_size == 2 %}two-product{% endif %} ">
+              {% for item in article.metafields.custom.article_product.value %}
+                {% assign product = item.product.value %}
+                {%- if product.available == true -%}
+                  {% assign current_variant = product.variants
+                    | where: 'available', true
+                    | where: 'sku', item.sku
+                    | first
+                  %}
+                  {% if current_variant == blank %}
+                    {% assign current_variant = product.selected_or_first_available_variant %}
+                  {% endif %}
+                      {%
+                        render 'article-product',
+                        product: product,
+                        variant: current_variant,
+                        title: item.title,
+                        features_info: item.product_features_info,
+                        target: item.target | default: '_blank'
+                      %}
+
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+      </div>
+      {%- endif -%}
+
+      {% comment %} 关联产品 {% endcomment %}
+      {% assign relatedproducts_count = article.metafields.custom.related_products.value.count %}
+      {%- if relatedproducts_count > 0 -%}
+        {% comment %} style="display: none;" {% endcomment %}
+        <div >
+          {% for item in article.metafields.custom.related_products.value %}
+            <div
+              class="blog-product-item"
+              data-product-id="{{item.key}}"
+              data-title="{{item.title}}"
+              data-description="{{ item.description }}"
+              data-clas="{{item.class}}"
+            ></div>
+          {% endfor %}
+        </div>
+      {%- endif -%}
+      {% if blog.comments_enabled? %}
+        <link rel="stylesheet" href="{{ 'sections-article-template-comments-full.css' | asset_url }}" media="print" onload="this.media='all'">
+        <div class="hidden lg:block [content-visibility:auto] [contain-intrinsic-size:auto_1270px]">
+          {% assign number_of_comments = article.comments_count %}
+          {% if comment and comment.created_at %}
+            {% assign number_of_comments = article.comments_count | plus: 1 %}
+          {% endif %}
+
+          {% if number_of_comments > 0 %}
+            <hr class="hr--large">
+            <h2 class="text-spacing jky-text-2xl font-bold comment__title">
+              {{ 'blogs.comments.with_count' | t: count: number_of_comments }}
+            </h2>
+          {% endif %}
+
+          {%- paginate article.comments by 5 -%}
+            <div id="comments">
+              {% if comment and comment.errors == blank %}
+                <hr class="hr--clear">
+                <p class="note note--success">
+                  {% if blog.moderated? %}
+                    {{ 'blogs.comments.success_moderated' | t }}
+                  {% else %}
+                    {{ 'blogs.comments.success' | t }}
+                  {% endif %}
+                </p>
+              {% endif %}
+
+              {% if number_of_comments > 0 %}
+                <ul class="no-bullets">
+                  {%- if comment.status == 'pending' -%}
+                    <li id="Comment-{{ comment.id }}" class="article__comment">
+                      {%- render 'comment', comment: comment -%}
+                    </li>
+                  {%- endif -%}
+
+                  {%- for comment in article.comments -%}
+                    <li id="Comment-{{ comment.id }}" class="article__comment">
+                      {%- render 'comment', comment: comment -%}
+                    </li>
+
+                    {% unless forloop.last %}
+                      <li><hr class="hr--clear"></li>
+                    {% endunless %}
+                  {%- endfor -%}
+                </ul>
+
+                {%- if paginate.pages > 1 -%}
+                  {%- render 'pagination', paginate: paginate, anchor: '#comments' -%}
+                {% endif %}
+              {% endif %}
+
+              <hr class="hr--large">
+
+                <h2 class="text-spacing jky-text-2xl font-bold comments__title">{{ 'blogs.comments.title' | t }}</h2>
+
+              <div class="form-vertical">
+                {% form 'new_comment', article %}
+                  {{ form.errors | default_errors }}
+                  <div class="grid grid--small">
+                    <div class="grid__item medium-up--one-half">
+                      <label for="CommentAuthor">{{ 'blogs.comments.name' | t }}</label>
+                      <input
+                        class="input-full{% if form.errors contains 'author' %} error{% endif %}"
+                        type="text"
+                        name="comment[author]"
+                        id="CommentAuthor"
+                        value="{{ form.author }}"
+                        autocapitalize="words"
+                      >
+                    </div>
+                    <div class="grid__item medium-up--one-half">
+                      <label for="CommentEmail">{{ 'blogs.comments.email' | t }}</label>
+                      <input
+                        class="input-full{% if form.errors contains 'email' %} error{% endif %}"
+                        type="email"
+                        name="comment[email]"
+                        id="CommentEmail"
+                        value="{{ form.email }}"
+                        autocorrect="off"
+                        autocapitalize="off"
+                      >
+                    </div>
+                  </div>
+
+                  <label for="CommentBody">{{ 'blogs.comments.message' | t }}</label>
+                  <textarea
+                    class="input-full{% if form.errors contains 'body' %} error{% endif %}"
+                    name="comment[body]"
+                    id="CommentBody"
+                  >{{ form.body }}</textarea>
+                  {% if blog.moderated? %}
+                    <p>
+                      <small>{{ 'blogs.comments.moderated' | t }}</small>
+                    </p>
+                  {% endif %}
+                  <input type="submit" class="btn" value="{{ 'blogs.comments.post' | t }}">
+                {% endform %}
+              </div>
+            </div>
+            {% assign sp_paginate_by = paginate.page_size %}
+          {%- endpaginate -%}
+        </div>
+      {% endif %}
+    </div>
+    {% comment %} right {% endcomment %}
+    {%- if right_flag -%}
+      <div class=" [content-visibility:auto] [contain-intrinsic-size:auto_800px] px-40 pt-80 border-t-solid border-t-20 border-[#F5F5F5] lg:a-border-t-1 lg:border-[#dddddd] lg:p-0 lg:a-w-320 lg:a-pt-24 lg:sticky self-start new-article-main-right">
+        {% comment %} 根据tag判断是否具有图片和链接地址，如果有则取出第一个tag的图片和链接，没有则用默认的全局配置 {% endcomment %}
+          {%- liquid
+            if settings.article_show_tag_banner
+              assign tag_obj = null
+              if shop.metaobjects.article_item.values_count > 0 and article.tags.size > 0 and settings.article_show_tags
+                for tag in article.tags
+                  if tag_obj == null
+                    for item in shop.metaobjects.article_item.values
+                      if tag == item.tag.value
+                        assign tag_obj = item
+                        break
+                      endif
+                    endfor
+                  else
+                    break
+                  endif
+                endfor
+              endif
+              assign img = tag_obj.img.value | default: settings.article_ad_image
+              assign link = tag_obj.link.value | default: settings.article_image_link
+            else
+              assign img = settings.article_ad_image
+              assign link = settings.article_image_link
+            endif
+          -%}
+
+        {%- if img != blank -%}
+          <a class="article-image" href="{{link}}" target="{% if settings.article_new_blank %}_blank{% else %}_self{% endif %}" rel="noopener noreferrer">
+            {%- assign img_class = "mb-96 lg:a-mb-40 w-100%" -%}
+            {%- if settings.jky_theme_version == "v4" -%}
+              {%- assign img_class = "mb-96 lg:a-mb-40 w-100% rounded-24 lg:a-rounded-12" -%}
+            {%- endif -%}
+
+            {%-
+              render 'responsive-image',
+              image: img,
+              width: 320,
+              mwidth: 600,
+              image_class: img_class,
+              loading: "eager",
+              fcp: true
+            -%}
+        </a>
+        {%- endif -%}
+
+        {%- if settings.article_subscribe_title != blank -%}
+          <div class="mb-[1.875rem]">
+            {% render 'subscribe-v1', id: 'subscrible', tag: settings.article_subscribe_tag, klaviyo_id: settings.article_klaviyo_id %}
+          </div>
+        {%- endif -%}
+
+        {%- if related_articles_count > 0 -%}
+          <div class="color-[#333333] font-semibold text-44 mb-40 lg:a-text-24 lg:a-mb-20">{{ settings.related_articles }}</div>
+          <div class="border-solid border-b-1 border-[#dddddd] ">
+            {% for item in article.metafields.custom.related_articles.value %}
+              <div class="flex cursor-pointer mb-40 lg:a-mb-20 hover:bg-[#F5F5F5]">
+                <div class="w-160 h-160 lg:a-w-90 lg:a-h-90 overflow-hidden flex-none">
+                  {% render 'diff-end-img', pc_img: item.image.value, mb_img: item.image.value, pc_img_width: 90, mb_img_width: 80, class: 'w-full h-full object-cover rounded-12 lg:a-rounded-8', alt: item.title %}
+                </div>
+                <div class="flex flex-col justify-between ml-32 lg:a-ml-10">
+                  <a
+                    class="related-article font-600 text-28 leading-38 color-[#333333] lg:text-base hover:underline line-clamp-3"
+                    target="{% if item.target %}_blank{% else %}_self{% endif %}"
+                    href="{{item.link}}"
+                  >
+                    <div>{{ item.title }}</div>
+                  </a>
+                  <a
+                    class="related-article text-26 lg:text-sm font-regular color-[#666666] hover:underline"
+                    target="{% if item.target %}_blank{% else %}_self{% endif %}"
+                    href="{{item.blog_link}}"
+                  >
+                    <div>{{ item.blog }}</div>
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {%- endif -%}
+
+      </div>
+    {%- endif -%}
+  </div>
+
+  {% comment %} 产品swiper {% endcomment %}
+  {%- if product_swipers_count > 0 -%}
+    <div class="product-swipers">
+      {% for swiper in article.metafields.custom.article_product_swiper.value %}
+        <div class="swiper products-swiper product-swiper-{{ forloop.index }}" data-swiper-class="{{ swiper.class }}">
+          <div class="swiper-wrapper">
+            {% for item in swiper.product_list.value %}
+              {% assign product = item.product.value %}
+              {%- if product.available == true -%}
+                {% assign current_variant = product.variants
+                  | where: 'available', true
+                  | where: 'sku', item.sku
+                  | first
+                %}
+                {% if current_variant == blank %}
+                  {% assign current_variant = product.selected_or_first_available_variant %}
+                {% endif %}
+                <div class="swiper-slide">
+                  {%
+                    render 'article-swiper-product',
+                    product: product,
+                    variant: current_variant,
+                    title: item.title,
+                    features_info: item.product_features_info,
+                    target: item.target | default: '_blank'
+                  %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div class="swiper-pagination product-swiper--pagination-{{ forloop.index }}"></div>
+          <div class="swiper-button-next product-swiper--next-{{ forloop.index }}"></div>
+          <div class="swiper-button-prev product-swiper--prev-{{ forloop.index }}"></div>
+        </div>
+      {% endfor %}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+  {
+    "name": "Article Template Main",
+
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "new_jp",
+        "label": "是否是日本通知页样式",
+        "default": false
+      }
+    ]
+  }
+{% endschema %}

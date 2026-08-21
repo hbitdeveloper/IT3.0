@@ -1,0 +1,78 @@
+{% assign screen_width = request.params.screen_width %}
+{% if settings.title != blank or settings.sub_title != blank %}
+<section class="five-kwh-app-list {{ screen_width }} five-kwh-app-list-{{ index }} relative" anchor="{{ settings.anchor_id  | url_decode | strip | replace: ' ', '' }}"
+         data-index="{{ index }}" style="background: {{ settings.bgColor }}">
+    <div class="app-list-text five-main-container">
+        {% assign titleColor = '<em style="color: ' | append: settings.title_color | append: '">' %}
+        {% assign subTitleColor = '<em style="color: ' | append: settings.subtitle_color | append: '">' %}
+        {% if settings.title != blank %}
+            <div class="five-kwh-title ">
+                {{ settings.title | replace: '<em>', titleColor }}
+            </div>
+        {% endif %}
+        {% if settings.sub_title != blank %}
+            <div class="five-kwh-subtitle">{{ settings.sub_title | replace: '<em>', subTitleColor }}</div>
+        {% endif %}
+    </div>
+    <div class="app-list-box absolute">
+    </div>
+    <div class="app-list-controls five-main-container">
+        <div class="show-pc">
+            <div class="app-list-content">
+                {%- for i in (0..7) -%}
+                    {% assign app_pc_url_index = 'app_pc_url_' | append: forloop.index %}
+                    {% assign app_title_index = 'app_title_' | append: forloop.index %}
+                    {% assign app_pc_image_index = 'app_pc_image_' | append: forloop.index %}
+                    {% if settings[app_pc_url_index] != blank or settings[app_title_index] != blank %}
+                        <div class="app-list-item"
+                             data-apppcvideo="{{ settings[app_pc_url_index] }}"
+                             {% if settings[app_pc_image_index] != blank %}
+                                data-apppcimage="{{ settings[app_pc_image_index] | image_url: width: 1920 }}"
+                             {% endif %}
+                             data-apptitle="{{ settings[app_title_index] }}"
+                             data-loop="{{ settings.loop }}">
+                            <div class="app-item-title text-overflow-2">{{ settings[app_title_index] }}</div>
+                            {% if settings[app_pc_url_index] != blank %}
+                                <label class="toggle-switch">
+                                    <input type="checkbox" class="toggle-checkbox">
+                                    <div class="toggle-switch-background">
+                                        <div class="toggle-switch-handle"></div>
+                                    </div>
+                                </label>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {%- endfor -%}
+            </div>
+        </div>
+        <div class="show-mb">
+            <div class="app-list-content">
+            {%- for i in (0..7) -%}
+                {% assign app_mb_url_index = 'app_mb_url_' | append: forloop.index %}
+                {% assign app_title_index = 'app_title_' | append: forloop.index %}
+                {% assign app_mb_image_index = 'app_mb_image_' | append: forloop.index %}
+                {% if settings[app_mb_url_index] != blank or settings[app_title_index] != blank %}
+                    <div class="app-list-item"
+                         data-appmbvideo="{{ settings[app_mb_url_index] }}"
+                         {% if settings[app_mb_image_index] != blank %}
+                             data-appmbimage="{{ settings[app_mb_image_index] | image_url: width: 750 }}"
+                         {% endif %}
+                         data-apptitle="{{ settings[app_title_index] }}"
+                         data-loop="{{ settings.loop }}">
+                        <div class="app-item-title text-overflow-2">{{ settings[app_title_index] }}</div>
+                        {% if settings[app_mb_url_index] != blank %}
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="toggle-checkbox">
+                                <div class="toggle-switch-background">
+                                    <div class="toggle-switch-handle"></div>
+                                </div>
+                            </label>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {%- endfor -%}
+        </div>
+        </div>
+    </div>
+</section>
+{% endif %}

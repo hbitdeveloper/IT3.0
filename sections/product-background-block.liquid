@@ -1,0 +1,264 @@
+<style>
+    main .section-keyword-choose-house {padding-top: var(--p-detail-t);background: var(--gray-color);max-width:unset;margin:0;}
+    .keyword-choose-house-tabs .tab-item, .keyword-choose-house-content {background: #f0f0f0;}
+    .keyword-choose-house-tabs .tab-active {background: var(--primary-color);}
+
+    .product-background-block .product-title em, .product-background-block .product-title strong, .product-background-block .product-title b{color: var(--primary-color);font-weight:bold;}
+    .product-background-block .product-background img{width: 100%;object-fit: cover;object-position: top;}
+    .product-background-block .grid-wrapper {margin-top: -80px;display: grid;grid-template-columns: repeat(3, 1fr);grid-row-gap: var(--appliance-gap);background: var(--normal-color);border-radius: var(--g-radius);padding: var(--content-distance);}
+    .product-background-block .grid-wrapper dt {grid-column-start: 1; grid-column-end: 4;}
+    .product-background-block .grid-wrapper dt:after {content: ""; display: inline-block; width: 100%; height: 1px;background: var(--text-disable-color); margin: var(--content-distance) 0;}
+    .product-background-block .grid-wrapper dd {text-align: center;display:flex;flex-direction:column;justify-content:space-between;}
+    .product-background-block .grid-wrapper dd img {width: var(--appliance-icon); height: var(--appliance-icon); margin: 0 auto;}
+    .product-background-block .grid-wrapper p.name {line-height:1.1;padding-top:4px;flex: 1;display: flex;flex-direction: column;align-items: center;justify-content: space-between;}
+    .product-background-block .grid-wrapper p.name span {word-break: break-word;}
+    .product-background-block .image-text-wrapper {margin-top: -80px;}
+
+    .image-card{background: var(--normal-color);border-radius: var(--g-radius);overflow: hidden;}
+    .image-card img{width: 100%;}
+    .image-card b, .image-card strong, .image-card em {color:var(--primary-color);font-weight:bold;}
+    .image-card .image-card-title *{line-height:1.1;margin-bottom:24px;}
+    .image-card .image-card-intro *{line-height:1.1;}
+    .image-card.top-img {flex-direction:column;border-radius: var(--g-radius);overflow: hidden;}
+    .image-card.bottom-img {flex-direction:column-reverse;border-radius: var(--g-radius);overflow: hidden;}
+    .image-card .image-card-text{background: #fff;}
+    .image-card.top-img .image-card-text,.image-card.bottom-img .image-card-text{padding: 20px 50px;color: var(--text-black);}
+    .image-card:not(:first-child) {margin-top: 24px;}
+    .image-card.left-img .image-card-text{display:flex;flex-direction: column;align-items: center;justify-content: center;padding: 16px 38px;}
+    .image-card.right-img{flex-direction: row-reverse;}
+    .image-card.right-img .image-card-text{display:flex;flex-direction: column;align-items: flex-start;justify-content: center;padding: 16px 38px;}
+
+    .image-card.all-img picture {width: 100%;}
+    .image-card.all-img img {width: 100%;object-fit:cover;}
+
+    .image-card.left-img .image-card-text,.image-card.left-img picture, .image-card.right-img .image-card-text, .image-card.right-img picture {width:50%;}
+
+    @media screen and (max-width: 1024px) {
+        .product-background-block .image-text-wrapper{margin-top: -50px;}
+        .product-background-block .product-background img{max-height: unset;min-height: 300px;}
+        .product-background-block .grid-wrapper {margin-top: -40px;}
+        .image-card.top-img .image-card-text,.image-card.bottom-img .image-card-text{padding: 12px;}
+        .image-card.left-img{flex-direction:column;}
+        .image-card.right-img{flex-direction:column-reverse;padding:16px;}
+        .image-card.left-img .image-card-text{padding:16px;justify-content: flex-start;}
+        .image-card .image-card-title *{margin-bottom:8px;}
+
+        .image-card.left-img, .image-card.right-img{align-items:center;padding: 0 0;}
+        .image-card.left-img picture, .image-card.right-img picture, .image-card.left-img .image-card-text, .image-card.right-img .image-card-text{width: 100%;padding-left: 0;padding-right: 0;}
+        .image-card.left-img .image-card-text, .image-card.right-img .image-card-text{width: 100%;padding: 16px;}
+    }
+</style>
+
+<figure {% if section.settings.anchor != blank %} data-anchor="{{section.settings.anchor}}" {% endif %} class="{% if section.settings.full_width_w == false %}section-container {% endif %} relative product-b {% if section.settings.section_type %} product-p-t{% endif %}" style="padding-bottom:{{section.settings.padding_bottom}}px;">
+
+  {% if section.settings.title != blank %}
+    <h2 class="section-container product-title">
+        {{ section.settings.title | replace: '<p>', '<p class="jky-text-2xl font-500 text-center">' }}
+    </h2>
+  {% endif %}
+
+  {%- if section.settings.appliance_bg != blank and section.settings.m_appliance_bg != blank -%}
+  <div class="product-background">
+    {% render 'responsive-image', image: section.settings.appliance_bg, mimage: section.settings.m_appliance_bg %}
+  </div>
+
+  {%- endif -%}
+
+  {% assign appliance_device = section.blocks | where: 'type', "appliance_device" %}
+  {%- if appliance_device.size > 0 -%}
+    <dl class="grid-wrapper section-container relative" {%- if section.settings.appliance_bg == blank or section.settings.m_appliance_bg == blank -%}style="margin-top:0;"{%- endif -%}>
+        {%- if section.settings.appliance_intro != blank -%}
+            <dt>
+            {{ section.settings.appliance_title | replace: '<b>', '<b class="main-color">' }}
+            <p class="jky-text-base">{{ section.settings.appliance_intro }}</p>
+            </dt>
+        {%- endif -%}
+
+        {% for block in appliance_device %}
+            <dd>
+                {% render 'responsive-image', image: block.settings.device_icon %}
+
+
+                <p class="name jky-text-sm">
+                    <span>{{ block.settings.device }}</span>
+                    <span>({{ block.settings.wattage }}W)</span>
+                </p>
+                <span class="jky-text-lg font-bold" style="color: var(--primary-color);">{{ block.settings.duration }}</span>
+            </dd>
+        {% endfor %}
+    </dl>
+  {%- endif -%}
+
+  {% comment %} 更多电器 {% endcomment %}
+  {% assign more_appliances = section.blocks | where: 'type', "more_appliances" %}
+  {% render 'product-detail-appliances', title: section.settings.more_appliances_title, subtitle: section.settings.more_appliances_subtitle, blocks: more_appliances, %}
+
+
+  {% assign image_text = section.blocks | where: 'type', "image_text" %}
+  {%- if image_text.size > 0 -%}
+    <div class="image-text-wrapper" {%- if section.settings.appliance_bg == blank or section.settings.m_appliance_bg == blank -%}style="margin-top:0;"{%- endif -%}>
+        {% for block in image_text %}
+            <div class="image-card flex section-container {{ block.settings.img_type}}">
+                {% render 'responsive-image', image: block.settings.image %}
+
+
+                {%- if block.settings.img_type != 'all-img' -%}
+                    {%- if block.settings.title != blank or block.settings.intro != blank -%}
+                        <div class="image-card-text">
+                            {%- if block.settings.title != blank -%}
+                                <h2 class="image-card-title">{{block.settings.title | replace: '<p>', '<p class="title jky-text-2xl font-500">'}}</h2>
+                            {%- endif -%}
+
+                            {%- if block.settings.intro != blank -%}
+                                <div class="image-card-intro">{{block.settings.intro | replace: '<p>', '<p class="intro jky-text-base">'}}</div>
+                            {%- endif -%}
+                        </div>
+                    {%- endif -%}
+                {%- endif -%}
+            </div>
+        {% endfor %}
+    </div>
+  {%- endif -%}
+</figure>
+{% schema %}
+{
+    "name": "product background block", "class": "product-background-block product-section-block", "tag": "div",
+    "settings": [
+        {
+          "type": "checkbox",
+          "id": "section_type",
+          "default": false,
+          "label": "是否为大版块？",
+          "info": "大版块与上一个模块之间间距大，小版块与上一模块间距较小"
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 10,
+            "label": "底部填充距离",
+            "default": 0
+        },
+        {
+            "type": "select",
+            "id": "anchor",
+            "label": "锚点设置",
+            "info": "非锚点section请清空此项",
+            "options": [
+                {
+                "value": "",
+                "label": "非锚点section"
+                },
+                {
+                "value": "anchor__1",
+                "label": "第一个section锚点"
+                },
+                {
+                "value": "anchor__2",
+                "label": "第二个section锚点"
+                },
+                {
+                "value": "anchor__3",
+                "label": "第三个section锚点"
+                },
+                {
+                "value": "anchor__4",
+                "label": "第四个section锚点"
+                }
+            ],
+            "default": ""
+        },
+        {
+          "type": "checkbox",
+          "id": "full_width_w",
+          "default": true,
+          "label": "是设置全屏？",
+          "info": "最大宽度设置为全屏宽度？"
+        },
+        {
+        "type": "richtext", "id": "title", "label": "Block Title",
+        "default": "<p>Large capacity supports <b>90%</b> of device</p>"
+        },
+        {"type": "image_picker", "id": "appliance_bg", "label": "PC Background Image"},
+        {"type": "image_picker", "id": "m_appliance_bg", "label": "Mobile Background Image"},
+        {
+            "type": "text", "id": "appliance_intro", "label": "Device Intro",
+            "default": "The rechargeable SG1000Pro can support up to 90% of appliances, like micro-wave oven, cpap, e-bike or even a sump pump. Also provide 2* USB-C & 2* 100W PD ports, delivering steady and quick chargingfor phones, iPads, laptops and so on.",
+            "info": "设置电器icon的说明，没有电器icon的不用设置这个！block Appliance Device 和 Image with text二选一！"
+        },
+        {"type": "textarea", "id": "more_appliances_title", "label": "More Appliances Title"},
+        {"type": "textarea", "id": "more_appliances_subtitle", "label": "More Appliances Sub Title"}
+    ],
+    "blocks": [
+        {
+            "type": "appliance_device", "name": "Appliance Device", "settings": [
+                {"type": "text", "id": "device", "label": "Device Name", "default": "Blender"},
+                {"type": "number", "id": "wattage", "label": "Wattage", "default": 300},
+                {"type": "text", "id": "duration", "label": "Usage Duration", "default": "2.5 H"},
+                {"type": "image_picker", "id": "device_icon", "label": "Device Icon"}
+            ]
+        },
+        {
+            "type": "more_appliances", "name": "More Appliances",
+            "settings": [
+                {"type": "text", "id": "appliance_scope", "label": "Appliance Scope"},
+                {"type": "textarea", "id": "appliance_name_1", "label": "Appliance 1 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_2", "label": "Appliance 2 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_3", "label": "Appliance 3 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_4", "label": "Appliance 4 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_5", "label": "Appliance 5 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_6", "label": "Appliance 6 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_7", "label": "Appliance 7 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_8", "label": "Appliance 8 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_9", "label": "Appliance 9 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "},
+                {"type": "textarea", "id": "appliance_name_10", "label": "Appliance 10 Name and Power", "info": "请用英文冒号:区隔 Name 和 Power "}
+            ]
+        },
+        {
+            "type": "image_text", "name": "Image with text", "settings": [
+                {
+                    "type": "select",
+                    "id": "img_type",
+                    "options": [
+                        {
+                            "value": "top-img",
+                            "label": "上图下文"
+                        },
+                        {
+                            "value": "bottom-img",
+                            "label": "下图上文"
+                        },
+                        {
+                            "value": "all-img",
+                            "label": "全图"
+                        },
+                        {
+                            "value": "left-img",
+                            "label": "左图右文"
+                        },
+                        {
+                            "value": "right-img",
+                            "label": "右图左文"
+                        }
+                    ],
+                    "default": "top-img",
+                    "label": "图文模式"
+                },
+                {"type": "image_picker", "id": "image", "label": "Image", "info": "全图建议尺寸1200*674，上下图文建议尺寸1200*460，左右图文建议尺寸720*405"},
+                {
+                    "type": "richtext", "id": "title", "label": "Heading",
+                    "default": "<p>Go <em>green</em> without noise</p>"
+                },
+                {
+                    "type": "richtext", "id": "intro", "label": "Intro",
+                    "default": "<p>The weight of E1000Pro is 25.4lbs, which is 30% lighter than the same model in the industry, and the volume is small. The folding design of the solar panel is convenient for travel and storage.</p>"
+                }
+            ]
+        }
+    ],
+    "presets": [{
+        "name": "product background block"
+    }]
+}
+{% endschema %}

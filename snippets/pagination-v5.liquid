@@ -1,0 +1,142 @@
+{% comment %}
+    Renders a set of links for paginated results. Must be used within paginate tags.
+
+    Usage:
+    {% paginate results by 2 %}
+      {% render 'pagination', paginate: paginate, anchor: '#yourID' %}
+    {% endpaginate %}
+
+    Accepts:
+    - paginate: {Object}
+    - anchor: {String} (optional) This can be added so that on page reload it takes you to wherever you've placed your anchor tag.
+{% endcomment %}
+
+<div class="pagination-wrapper flex justify-center items-center pt-6 gap-4 lg:pt-10 text-base" data-pagination="v5">
+  <nav class="pagination" aria-label="{{ 'general.pagination.label' | t }}">
+    <ul class="flex items-center justify-center gap-6 lg:gap-4">
+      <li class="flex items-center justify-center">
+        {%- if paginate.current_page > 1 and paginate.previous -%}
+          <a class="flex w-[1.875rem] h-[1.875rem] lg:w-10 lg:h-10" href="{{ paginate.previous.url }}{{ anchor }}" aria-label="{{ 'general.pagination.previous' | t }}" data-page="{{ paginate.current_page | minus: 1 }}">
+            {%- render 'v5-icon-arrow-left' -%}
+          </a>
+        {%- else -%}
+          <a class="flex w-[1.875rem] h-[1.875rem] lg:w-10 lg:h-10 opacity-35 pointer-events-none" aria-disabled="true" tabindex="-1" aria-label="{{ 'general.pagination.previous' | t }}" data-page="{{ paginate.current_page | minus: 1 }}">
+            {%- render 'v5-icon-arrow-left' -%}
+          </a>
+        {%- endif -%}
+      </li>
+
+      {%- assign total = paginate.pages -%}
+      {%- assign current = paginate.current_page -%}
+      {%- assign last_page = total -%}
+
+      <li class="block lg:hidden text-base text-[#242F20] font-normal">
+        Page {{ current }} of {{ total }}
+      </li>
+
+      {%- if total > 5 -%}
+        {%- comment -%} First page {%- endcomment -%}
+        <li class="hidden lg:block">
+          {%- if current == 1 -%}
+            <a role="link" aria-disabled="true" class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base text-[#242F20]" aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: 1 }}" data-page="1">1</a>
+          {%- else -%}
+            {%- assign url_1 = '' -%}
+            {%- for part in paginate.parts -%}
+              {%- if part.title == 1 and part.is_link -%}
+                {%- assign url_1 = part.url -%}
+              {%- endif -%}
+            {%- endfor -%}
+            <a href="{{ url_1 }}{{ anchor }}" class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base text-[#A9AAAC] hover:text-[#8A8A8A]" aria-label="{{ 'general.pagination.page' | t: number: 1 }}" data-page="1">1</a>
+          {%- endif -%}
+        </li>
+
+        {%- assign near_start = 2 -%}
+        {%- assign near_end = total | minus: 1 -%}
+        {%- if current <= near_start -%}
+          {%- assign start = 2 -%}
+          {%- assign tmp_end = 4 -%}
+          {%- assign end_limit = total | minus: 1 -%}
+          {%- if tmp_end > end_limit -%}{%- assign tmp_end = end_limit -%}{%- endif -%}
+          {%- assign end = tmp_end -%}
+        {%- elsif current >= near_end -%}
+          {%- assign tmp_start = total | minus: 3 -%}
+          {%- if tmp_start < 2 -%}{%- assign tmp_start = 2 -%}{%- endif -%}
+          {%- assign start = tmp_start -%}
+          {%- assign end = total | minus: 1 -%}
+        {%- else -%}
+          {%- assign start = current | minus: 1 -%}
+          {%- assign end = current | plus: 1 -%}
+        {%- endif -%}
+
+        {%- if start > 2 -%}
+          <li class="hidden lg:block"><span class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center font-semibold text-base text-[#A9AAAC]">…</span></li>
+        {%- endif -%}
+
+        {%- for i in (start..end) -%}
+          {%- if i > 1 and i < total -%}
+            <li class="hidden lg:block">
+              {%- if i == current -%}
+                <a role="link" aria-disabled="true" class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base text-[#242F20]" aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: i }}" data-page="{{ i }}">{{ i }}</a>
+              {%- else -%}
+                {%- assign url_i = '' -%}
+                {%- for part in paginate.parts -%}
+                  {%- if part.title == i and part.is_link -%}
+                    {%- assign url_i = part.url -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                <a href="{{ url_i }}{{ anchor }}" class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base text-[#A9AAAC] hover:text-[#8A8A8A]" aria-label="{{ 'general.pagination.page' | t: number: i }}" data-page="{{ i }}">{{ i }}</a>
+              {%- endif -%}
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- assign total_minus_1 = total | minus: 1 -%}
+        {%- if end < total_minus_1 -%}
+          <li class="hidden lg:block"><span class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center font-semibold text-base text-[#A9AAAC]">…</span></li>
+        {%- endif -%}
+
+        <li class="hidden lg:block">
+          {%- if current == last_page -%}
+            <a role="link" aria-disabled="true" class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base text-[#242F20]" aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: last_page }}" data-page="{{ last_page }}">{{ last_page }}</a>
+          {%- else -%}
+            {%- assign url_last = '' -%}
+            {%- for part in paginate.parts -%}
+              {%- if part.title == last_page and part.is_link -%}
+                {%- assign url_last = part.url -%}
+              {%- endif -%}
+            {%- endfor -%}
+            <a href="{{ url_last }}{{ anchor }}" class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base text-[#A9AAAC] hover:text-[#8A8A8A]" aria-label="{{ 'general.pagination.page' | t: number: last_page }}" data-page="{{ last_page }}">{{ last_page }}</a>
+          {%- endif -%}
+        </li>
+      {%- else -%}
+        {%- for i in (1..total) -%}
+          <li class="hidden lg:block">
+            {%- if i == current -%}
+              <a role="link" aria-disabled="true" class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base text-[#242F20]" aria-current="page" aria-label="{{ 'general.pagination.page' | t: number: i }}" data-page="{{ i }}">{{ i }}</a>
+            {%- else -%}
+              {%- assign url_i2 = '' -%}
+              {%- for part in paginate.parts -%}
+                {%- if part.title == i and part.is_link -%}
+                  {%- assign url_i2 = part.url -%}
+                {%- endif -%}
+              {%- endfor -%}
+              <a href="{{ url_i2 }}{{ anchor }}" class="w-[3.75rem] h-[3.75rem] rounded-full flex text-center justify-center items-center cursor-pointer font-semibold text-base text-[#A9AAAC] hover:text-[#8A8A8A]" aria-label="{{ 'general.pagination.page' | t: number: i }}" data-page="{{ i }}">{{ i }}</a>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      {%- endif -%}
+
+      <li>
+        {%- if paginate.current_page < paginate.pages and paginate.next -%}
+          <a class="flex" href="{{ paginate.next.url }}{{ anchor }}" aria-label="{{ 'general.pagination.next' | t }}" data-page="{{ paginate.current_page | plus: 1 }}">
+            {%- render 'v5-icon-arrow-right', class: '!w-[1.875rem] !h-[1.875rem] lg:!w-10 lg:!h-10' -%}
+          </a>
+        {%- else -%}
+          <a class="flex opacity-35 pointer-events-none" aria-disabled="true" tabindex="-1" aria-label="{{ 'general.pagination.next' | t }}" data-page="{{ paginate.current_page | plus: 1 }}">
+            {%- render 'v5-icon-arrow-right', class: '!w-[1.875rem] !h-[1.875rem] lg:!w-10 lg:!h-10' -%}
+          </a>
+        {%- endif -%}
+      </li>
+    </ul>
+  </nav>
+</div>

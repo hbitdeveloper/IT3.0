@@ -1,0 +1,175 @@
+
+{% assign slides = section.blocks | where: 'type', 'slide_item' %}
+{% assign size = slides.size %}
+
+<section class="w-full flex-center bg-white px-40 pt-80 {% if size > 2 %} pb-200 {% else %} pb-80 {% endif %} lg:px-0 lg:j-py-50 xl:a-py-50">
+    <div class="w-full flex-center flex-col lg:j-w-1200 xl:a-w-1200 relative">
+        <h2 class="w-full text-center font-600 text-#1A1A1A mb-60 text-48 leading-60 lg:text-#1A1A1A lg:j-px-40 xl:a-px-40 lg:j-text-40 lg:j-leading-48 lg:j-mb-30 xl:a-text-40 xl:a-leading-48 xl:a-mb-30">
+            {{ section.settings.title | newline_to_br }}
+        </h2>
+
+        {% comment %} PC Swiper {% endcomment %}
+        <div class="hidden lg:block swiper w-full h-full commentlist-pc-swiper lg:j-rounded-12 xl:a-rounded-12" data-size="{{ size }}">
+            <div class="swiper-wrapper no-swiping {% if size <= 5%} flex-center lg:gap-x-[12px] {% endif %}">
+                {% for block in slides %}
+                    <div class="swiper-slide bg-#C4C4C4 !lg:j-w-240 lg:j-h-430 lg:j-rounded-12 !xl:a-w-240 xl:a-h-430 xl:a-rounded-12 overflow-hidden"
+                         data-index="{{ forloop.index0 }}"
+                         data-comment-profile="{{ block.settings.header_img | image_url: width: 54 }}"
+                         data-header-name="{{ block.settings.header_name }}"
+                         data-auth-title="{{ block.settings.auth_title | newline_to_br }}"
+                         data-issue-time="{{ block.settings.issue_time }}"
+                         data-user-auth="{{ block.settings.hide_auth_icon }}"
+                         data-see-more="{{ section.settings.see_more }}"
+                         data-description="{{ block.settings.description | escape }}"
+                         data-comment-link="{{ block.settings.comment_link }}"
+                         data-likes="{{ block.settings.likes }}"
+                         data-comment="{{ block.settings.comment }}"
+                         data-image-one="{{ block.settings.header_img_one | image_url: width: 460 }}"
+                         data-image-two="{{ block.settings.header_img_two | image_url: width: 460 }}"
+                         data-image-three="{{ block.settings.header_img_three | image_url: width: 460 }}"
+                         data-image-four="{{ block.settings.header_img_four | image_url: width: 460 }}"
+                         data-image-five="{{ block.settings.header_img_five | image_url: width: 460 }}"
+                         data-image-six="{{ block.settings.header_img_six | image_url: width: 460 }}">
+                        {% render 'responsive-image',
+                                image: block.settings.poster,
+                                mimage: block.settings.poster,
+                                image_class: 'comment-list-image'
+                        %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% comment %} PC Navigation {% endcomment %}
+        {% if size > 5%}
+            <div class="hidden lg:flex swiper-button-next swiper-commentlist-pc-button-next"></div>
+            <div class="hidden lg:flex swiper-button-prev swiper-commentlist-pc-button-prev"></div>
+        {% endif %}
+
+        {% comment %} Mobile Swiper {% endcomment %}
+        <div class="block lg:hidden swiper w-full h-full commentlist-mb-swiper rounded-24" data-size="{{ size }}">
+            <div class="swiper-wrapper no-swiping {% if size < 2%} flex-center gap-x-[12px] {% endif %}">
+                {% for block in slides %}
+                    <div class="swiper-slide bg-#C4C4C4 w-480 h-860 rounded-24 overflow-hidden"
+                         data-index="{{ forloop.index0 }}"
+                         data-comment-profile="{{ block.settings.header_img | image_url: width: 60 }}"
+                         data-header-name="{{ block.settings.header_name }}"
+                         data-auth-title="{{ block.settings.auth_title | newline_to_br }}"
+                         data-issue-time="{{ block.settings.issue_time }}"
+                         data-user-auth="{{ block.settings.hide_auth_icon }}"
+                         data-see-more="{{ section.settings.see_more }}"
+                         data-description="{{ block.settings.description | escape }}"
+                         data-comment-link="{{ block.settings.comment_link }}"
+                         data-likes="{{ block.settings.likes }}"
+                         data-comment="{{ block.settings.comment }}"
+                         data-image-one="{{ block.settings.header_img_one | image_url: width: 460 }}"
+                         data-image-two="{{ block.settings.header_img_two | image_url: width: 460 }}"
+                         data-image-three="{{ block.settings.header_img_three | image_url: width: 460 }}"
+                         data-image-four="{{ block.settings.header_img_four | image_url: width: 460 }}"
+                         data-image-five="{{ block.settings.header_img_five | image_url: width: 460 }}"
+                         data-image-six="{{ block.settings.header_img_six | image_url: width: 460 }}"
+                    >
+                        {% render 'responsive-image',
+                                image: block.settings.poster,
+                                mimage: block.settings.poster,
+                                image_class: 'comment-list-image rounded-24'
+                        %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% assign image_count = product.images | size %}
+
+        <div class="gallery gallery-{{ image_count }}">
+            {% for image in product.images %}
+                <img src="{{ image.src | image_url: width: 1200 }}" alt="{{ image.alt }}" class="gallery-image gallery-image-{{ forloop.index }}">
+            {% endfor %}
+        </div>
+
+        {% comment %} Mobile Navigation {% endcomment %}
+        {% if size > 1 %}
+            <div class="flex lg:hidden swiper-button-next swiper-commentlist-mb-button-next"></div>
+            <div class="flex lg:hidden swiper-button-prev swiper-commentlist-mb-button-prev"></div>
+        {% endif %}
+
+    </div>
+</section>
+
+{% schema %}
+{
+  "name": "photovolatic Comment List",
+  "class": "section-photovolatic section-photovolatic-comment-list",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "Title",
+      "default": "Find out what users think about the Jackery \n All in One Solar Generator for Home"
+    },
+    {
+      "type": "text",
+      "id": "see_more",
+      "label": "See More Title",
+      "default": "see more"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide_item",
+      "name": "Slide item",
+      "settings": [
+        {"type": "image_picker", "id": "poster", "label": "封面图片"},
+        {"type": "image_picker", "id": "header_img", "label": "头像"},
+        {
+          "type": "text",
+          "id": "header_name",
+          "label": "Comment Name",
+          "default": "Jackery"
+        },
+        {
+          "type": "text",
+          "id": "auth_title",
+          "label": "Authentication Title",
+          "default": "Top contributor"
+        },
+        {
+          "type": "text",
+          "id": "issue_time",
+          "label": "Issue time",
+          "default": "May 6 at 4:20PM"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Comment Description"
+        },
+        {
+          "type": "url",
+          "id": "comment_link",
+          "label": "Comment Link"
+        },
+        {"type": "image_picker", "id": "header_img_one", "label": "评论图片1"},
+        {"type": "image_picker", "id": "header_img_two", "label": "评论图片2"},
+        {"type": "image_picker", "id": "header_img_three", "label": "评论图片3"},
+        {"type": "image_picker", "id": "header_img_four", "label": "评论图片4"},
+        {"type": "image_picker", "id": "header_img_five", "label": "评论图片5"},
+        {"type": "image_picker", "id": "header_img_six", "label": "评论图片6"},
+        {
+          "type": "text",
+          "id": "likes",
+          "label": "Likes",
+          "default": "10"
+        },
+        {
+          "type": "text",
+          "id": "comment",
+          "label": "Comment",
+          "default": "10 comments"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+

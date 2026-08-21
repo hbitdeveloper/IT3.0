@@ -1,0 +1,661 @@
+
+<style>
+	#shopify-section-{{ section.id }} {
+		{% if section.settings.background_type == 'color' %}
+      background: {{ section.settings.bg_color }}
+    {% else %}
+      background-image: url("{{ section.settings.bg_image | image_url }}");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    {% endif %}
+	}
+  .v5-general-ing-text-tit,
+  .v5-general-img-text-desc{
+    line-height: 1.3;
+  }
+  .v5-general-card-group .swiper-slide{
+    width: 232px
+  }
+  .v5-general-card-image{
+    height: 271px;
+  }
+  .general-card-slide-set-title,
+  .general-card-img_text_set-title{
+    line-height: 1.1;
+  }
+  .v5-general-card-imgText-image{
+    height: 353px;
+  }
+  .general-card-img_text_set-desc{
+    line-height: 1.2;
+  }
+  @media (min-width: 1440px) {
+    .v5-general-card-image{
+      width: 336px;
+    }
+    .v5-general-card-imgText-image{
+      width: 792px;
+    }
+  }
+  @media (min-width: 1024px) and (max-width: 1440px) {
+    .v5-general-card-imgText-image{
+      width: 66%;
+    }
+  }
+  @media (max-width: 767.99px) {
+    #shopify-section-{{ section.id }} .v5-carousel-card-tit{
+      font-size: 1.75rem;
+    }
+    .v5-general-card-group .swiper-slide{
+      width: 17.5rem
+    }
+    .v5-general-card-image{
+      height: 14.5rem;
+    }
+    .v5-general-card-imgText-image{
+      height: 14.3125rem;
+    }
+  }
+</style>
+
+{% assign set = section.settings %}
+
+<div 
+	{% if set.anchor != blank %} anchor-target="{{set.anchor | escape}}"{% endif %}
+	class="section-container"
+	style="padding-top: {{ set.padding_top }}px; padding-bottom: {{ set.padding_bottom }}px;"
+>
+	{%- if set.heading != blank -%}
+    <h2 class="v5-general-ing-text-tit font-semibold md:text-5xl text-center lg:mb-16 mb-8 mx-auto">
+      {{ set.heading | replace: '\n', '<br>' | strip }}
+    </h2>
+  {%- endif -%}
+  
+  {%- assign slide_blocks = section.blocks | where: 'type', 'v5-general-card-slide' -%}
+  {%- if slide_blocks.size > 0 -%}
+    <div class="v5-general-card-group w-full mx-auto">
+      <div class="container mx-auto">
+        <div class="relative w-full">
+          <div class="swiper overflow-hidden w-full" data-mfj-swiper>
+            <div class="swiper-wrapper" >
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'v5-general-card-slide' -%}
+                  {%- assign slide_set = block.settings -%}
+
+                  <div class="swiper-slide h-auto overflow-hidden relative shrink-0" style="height: auto !important;">
+    
+										<div class="v5-general-card-slide	
+											{% if slide_set.desc != blank %}has-desc{% endif %} 
+											overflow-hidden shadow-md h-full flex flex-col" 
+											style="width:100%; background-color: {{ slide_set.card_bg }};"
+                      id="card-{{ block.id }}">
+                      {%- style -%}
+                        #card-{{ block.id }} {
+                          padding: {{ slide_set.pc_card_padding | default: '24px 24px 24px 24px' }};
+                        }
+                        @media only screen and (max-width: 749.98px) {
+                          #card-{{ block.id }} {
+                            padding: {{ slide_set.mb_card_padding | default: '16px 16px 16px 16px' }};
+                          }
+                        }
+                      {%- endstyle -%}
+                      <div class="v5-general-card-image mb-6 relative w-full">
+                        {%- if slide_set.pcimage != blank or slide_set.mimage != blank -%} 
+                          {% if slide_set.border_radius != blank and slide_set.border_radius > 0 %}
+                            {% assign img_style = 'border-radius: ' | append: slide_set.border_radius | append: 'px;' %}
+                          {% endif %}
+                          {% render 'diff-end-img',
+                            class: 'w-full h-full max-w-none object-cover object-center block',
+                            style: img_style,
+                            pc_img: slide_set.pcimage,
+                            mb_img: slide_set.mimage,
+                            pc_img_width: 336,
+                            mb_img_width: 496 
+                          %}
+                        {%- else -%}
+                          <div class="w-full h-full" style="border-radius: {{ slide_set.border_radius }}px; overflow: hidden;">
+                            {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full block object-cover' }}
+                          </div>
+                        {%- endif -%}
+                      </div>
+                      <div class="flex-grow">
+                        {%- if slide_set.sub_title != blank -%}
+                          <div class="md:text-base text-sm leading-none font-semibold uppercase overflow-hidden truncate mb-4" 
+                            style="color: {{ slide_set.sub_title_color }};">
+                            {{ slide_set.sub_title }}
+                          </div>
+                        {%- endif -%}
+                        {%- if slide_set.title != blank -%}
+                          <div class="general-card-slide-set-title md:text-2xl text-base font-semibold" 
+                            style="color: {{ slide_set.title_color }};" id="card-tit-{{ block.id }}">
+                            {{ slide_set.title }}
+                          </div>
+                          {%- style -%}
+                            #card-tit-{{ block.id }} {
+                              margin-bottom: {{ slide_set.title_margin_bottom }}px;
+                            }
+                          {%- endstyle -%}
+                        {%- endif -%}
+                        {%- if slide_set.desc != blank -%}
+                          <div class="v5-general-img-text-desc text-sm line-clamp-3 mb-6 break-words hidden md:block" style="color:{{ slide_set.desc_color }}">
+                            {{ slide_set.desc }}
+                          </div>
+                        {%- endif -%}
+                      </div>
+                      {%- if slide_set.button_text != blank -%}
+                        <div class="mt-auto" style="text-align: {{ slide_set.button_align }};">
+                          <a href="{{ slide_set.button_link }}" class="inline-block text-base font-semibold text-center transition-all duration-300 hover:opacity-80 hover:-translate-y-1" 
+                            style="
+                              width: 136px;
+                              height: 36px;
+                              line-height: 36px;
+                              background-color: {{ slide_set.button_bg | default: 'transparent' }}; 
+                              color: {{ slide_set.button_text_color | default: '#000000' }}; 
+                              border: {{ slide_set.button_border_width | default: 1 }}px solid {{ slide_set.button_border_color | default: '#ffffff' }};">
+                            {{ slide_set.button_text }}
+                          </a>
+                        </div>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+  
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'v5-general-card-imgText' -%}
+      {%- assign img_text_set = block.settings -%}
+      <div class="v5-general-card-imgText container mx-auto" style="padding-top: {{ img_text_set.padding_top }}px;">
+        <div class="v5-general-card-imgText-box flex flex-col md:flex-row {% if img_text_set.reverse %}md:flex-row-reverse{% endif %}">
+          <div class="v5-general-card-imgText-image w-full">
+            {%- if img_text_set.pcimage != blank or img_text_set.mimage != blank -%}
+              {% render 'diff-end-img',
+                class: 'w-full h-full max-w-none object-cover object-center',
+                pc_img: img_text_set.pcimage,
+                mb_img: img_text_set.mimage,
+                pc_img_width: 792,
+                mb_img_width: 686  
+              %}
+            {%- else -%}
+              {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full' }}
+            {%- endif -%}
+          </div>
+          <div class="v5-general-card-imgText-text flex-1 md:h-[353px] flex flex-col justify-center py-6 px-4 md:py-0"
+            style="background: {{ img_text_set.bg_color }};">
+            {%- style -%}
+              {% if img_text_set.reverse %}
+                .v5-general-card-imgText-text { 
+                  padding-left: 1.5rem;
+                  padding-right: 3rem;
+                }
+              {% else %}
+                .v5-general-card-imgText-text { 
+                  padding-left: 3rem;
+                  padding-right: 1.5rem;
+                }
+              {% endif %}
+            {%- endstyle -%}
+            {%- if img_text_set.sub_title != blank -%}
+              <span class="self-start justify-self-start text-xs md:text-base leading-none font-semibold uppercase overflow-hidden truncate px-4 py-1.5 mb-5"
+                style="background: {{ img_text_set.sub_title_bg }}; color: {{ img_text_set.sub_title_color }}">
+                {{ img_text_set.sub_title }}
+              </span> 
+            {%- endif -%}
+            {%- if img_text_set.title != blank -%}
+              <div class="general-card-img_text_set-title md:text-4xl text-2xl font-semibold line-clamp-3 mb-5 break-words"
+                style="color: {{ img_text_set.title_color }}">
+                {{ img_text_set.title }}
+              </div>
+            {%- endif -%}
+            {%- if img_text_set.desc != blank -%}
+              <div class="general-card-img_text_set-desc md:text-sm text-xs line-clamp-3 mb-6 break-words">
+                {{ img_text_set.desc }}
+              </div>
+            {%- endif -%}
+          
+            {%- if img_text_set.button_text != blank -%}
+              <div style="text-align: {{ img_text_set.button_align }};">
+                <a href="{{ img_text_set.button_link }}" class="inline-block text-center text-base font-semibold transition-all duration-300 hover:opacity-80 hover:-translate-y-1" 
+                  style="
+                    width: 99px;
+                    height: 36px;
+                    line-height: 36px;
+                    background-color: {{ img_text_set.button_bg | default: 'transparent' }}; 
+                    color: {{ img_text_set.button_text_color | default: '#000000' }}; 
+                    border: {{ img_text_set.button_border_width | default: 1 }}px solid {{ img_text_set.button_border_color | default: '#ffffff' }};">
+                  {{ img_text_set.button_text }}
+                </a>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+</div>
+
+<script type="module">
+ // 在 theme.js 或单独的 JS 文件里（非 section inline）
+  document.addEventListener('DOMContentLoaded', () => {
+    initAllGeneralCardSwipers();
+  });
+
+  // 监听 section 动态加载（编辑器 + AJAX）
+  document.addEventListener('shopify:section:load', (e) => {
+    if (e.target.querySelector('.v5-general-card-group')) {
+      initAllGeneralCardSwipers();
+    }
+  });
+
+  function initAllGeneralCardSwipers() {
+    document.querySelectorAll('.v5-general-card-group .swiper:not(.swiper-initialized)').forEach(container => {
+      if (container.swiper) container.swiper.destroy(true, true);
+
+      const section = container.closest('[id^="shopify-section-"]');
+      const sectionId = section ? section.id.replace('shopify-section-', '') : '';
+      const blocksSize = parseInt(container.dataset.blocksSize || '0'); // 你可以加 data-blocks-size="{{ section.blocks.size }}" 到 .swiper 上
+
+      const options = {
+        slidesPerView: 'auto',
+        spaceBetween: 16,
+        breakpoints: {
+          750: { spaceBetween: 16 },
+          1024: { slidesPerView: 3, spaceBetween: 24 }
+        },
+        loop: blocksSize > 3,
+        lazy: { loadPrevNext: true, loadPrevNextAmount: 2 },
+        observer: true,
+        observeParents: true
+      };
+
+      new Swiper(container, options);
+      container.classList.add('swiper-initialized'); // 标记已初始化，避免重复
+    });
+  }
+</script>
+
+{% schema %}
+{
+	"name": "v5-活动页-图文卡片",
+	"tag": "section",
+	"settings": [
+		{
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+		{
+      "type": "number",
+      "id": "padding_top",
+      "label": "PC上边距",
+      "default": 64
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "PC下边距",
+      "default": 64
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "MB上边距",
+      "default": 64
+    },
+		{
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "MB下边距",
+      "default": 64
+    },
+		{
+      "type": "text",
+      "id": "heading",
+      "label": "标题文案",
+      "default": "Expert Advice",
+    	"info": "需要换行，请使用 \\n" 
+    },
+		// 添加背景类型选择
+		{
+      "type": "select",
+      "id": "background_type",
+      "label": "背景类型",
+      "options": [
+        { "value": "color", "label": "背景颜色" },
+        { "value": "image", "label": "背景图片" }
+      ],
+      "default": "color"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "背景图片",
+      "visible_if": "{{ section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色",
+      "default": "#fff",
+      "visible_if": "{{ section.settings.background_type == 'color' }}"
+    },
+	],
+	"blocks": [
+		{
+        "type": "v5-general-card-slide",
+        "name": "图文卡片",
+        "settings": [
+          {
+            "type": "color",
+            "id": "card_bg",
+            "label": "卡片背景颜色",
+            "default": "#242F20"
+          },
+          {
+            "type": "text",
+            "id": "pc_card_padding",
+            "label": "PC边距（内）",
+            "info": "单位：px，格式：上下 左右。例：24px 24px 24px 24px",
+          },
+          {
+            "type": "text",
+            "id": "mb_card_padding",
+            "label": "MB边距（内）",
+            "info": "单位：px，格式：上下 左右。例：16px 16px 16px 16px",
+          },
+          {
+            "type": "number",
+            "id": "padding_sides",
+            "label": "左右边距（内）",
+            "default": 24
+          },
+          {
+            "type": "image_picker",
+            "id": "pcimage",
+            "info": "建议图片尺寸：336 x 271 ",
+            "label": "PC图片"
+          },
+          {
+            "type": "image_picker",
+            "id": "mimage",
+            "info": "建议图片尺寸：248 x 232",
+            "label": "MB图片"
+          },
+          {
+            "type": "number",
+            "id": "border_radius",
+            "label": "图片圆角",
+            "default": 0
+          },
+          {
+            "type": "text",
+            "id": "sub_title",
+            "label": "副标题",
+            "default": "副标题"
+          },
+          {
+            "type": "color",
+            "id": "sub_title_color",
+            "label": "副标题颜色",
+            "default": "#ff0000"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "主标题",
+            "default": "主标题"
+          },
+          {
+            "type": "color",
+            "id": "title_color",
+            "label": "主标题颜色",
+            "default": "#fff"
+          },
+          {
+            "type": "number",
+            "id": "title_margin_bottom",
+            "label": "主标题下边距",
+          },
+          {
+            "type": "textarea",
+            "id": "desc",
+            "label": "描述"
+          },
+          {
+            "type": "color",
+            "id": "desc_color",
+            "label": "描述字体演示",
+					  "default": "#000000"
+          },
+          {
+            "type": "text",
+            "id": "button_text",
+            "label": "按钮文字",
+					  "default": "Shop Now"
+          },
+          {
+            "type": "url",
+            "id": "button_link",
+            "label": "按钮链接"
+          },
+          {
+            "type": "color",
+            "id": "button_bg",
+            "label": "按钮背景颜色",
+            "default": "transparent"
+          },
+          {
+            "type": "color",
+            "id": "button_text_color",
+            "label": "按钮文字颜色",
+            "default": "#fff"
+          },
+          {
+            "type": "select",
+            "id": "button_align",
+            "label": "按钮位置",
+            "options": [
+              {
+                "value": "left",
+                "label": "左对齐"
+              },
+              {
+                "value": "center",
+                "label": "居中"
+              },
+              {
+                "value": "right",
+                "label": "右对齐"
+              }
+            ],
+            "default": "left"
+          },
+          {
+            "type": "color",
+            "id": "button_border_color",
+            "label": "按钮边框颜色",
+            "default": "#ffffff"
+          },
+          {
+            "type": "number",
+            "id": "button_border_width",
+            "label": "按钮边框宽度",
+            "default": 1
+          }
+        ]
+      },
+      {
+        "type": "v5-general-card-imgText",
+        "name": "左图右文组",
+        "settings": [
+          {
+            "type": "number",
+            "id": "padding_top",
+            "label": "上边距",
+            "default": 40
+          },
+          {
+            "type": "checkbox",
+            "id": "reverse",
+            "label": "调换顺序",
+            "default": false
+          },
+          {
+            "type": "image_picker",
+            "id": "pcimage",
+            "info": "建议图片尺寸：792 x 353",
+            "label": "PC图片"
+          },
+          {
+            "type": "image_picker",
+            "id": "mimage",
+            "info": "建议图片尺寸：343 x 229",
+            "label": "MB图片"
+          },
+          {
+            "type": "color",
+            "id": "bg_color",
+            "label": "文本背景颜色",
+            "default": "#fff"
+          },
+          {
+            "type": "text",
+            "id": "sub_title",
+            "label": "副标题",
+            "default": "副标题"
+          },
+          {
+            "type": "color",
+            "id": "sub_title_bg",
+            "label": "副标题背景",
+            "default": "#93161B"
+          },
+          {
+            "type": "color",
+            "id": "sub_title_color",
+            "label": "副标题颜色",
+            "default": "#fff"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "主标题",
+            "default": "主标题"
+          },
+          {
+            "type": "color",
+            "id": "title_color",
+            "label": "主标题颜色",
+            "default": "#000000"
+          },
+          {
+            "type": "textarea",
+            "id": "desc",
+            "label": "描述"
+          },
+          {
+            "type": "text",
+            "id": "button_text",
+            "label": "按钮文字"
+          },
+          {
+            "type": "url",
+            "id": "button_link",
+            "label": "按钮链接"
+          },
+          {
+            "type": "color",
+            "id": "button_bg",
+            "label": "按钮背景颜色",
+            "default": "transparent"
+          },
+          {
+            "type": "color",
+            "id": "button_text_color",
+            "label": "按钮文字颜色",
+            "default": "#000000"
+          },
+          {
+            "type": "select",
+            "id": "button_align",
+            "label": "按钮位置",
+            "options": [
+              {
+                "value": "left",
+                "label": "左对齐"
+              },
+              {
+                "value": "center",
+                "label": "居中"
+              },
+              {
+                "value": "right",
+                "label": "右对齐"
+              }
+            ],
+            "default": "left"
+          },
+          {
+            "type": "color",
+            "id": "button_border_color",
+            "label": "按钮边框颜色",
+            "default": "#ffffff"
+          },
+          {
+            "type": "number",
+            "id": "button_border_width",
+            "label": "按钮边框宽度",
+            "default": 1
+          }
+        ]
+      }
+	],
+	"presets": [
+    {
+      "name": "v5-活动页-图文卡片",
+			"blocks": [
+					{
+						"type": "v5-general-card-slide",
+						"settings": {
+              "pc_card_padding": "24px 24px 24px 24px",
+              "mb_card_padding": "16px 16px 16px 16px",
+              "title_margin_bottom": 24,
+							"button_text": "Learn More",
+						}
+					},
+					{
+						"type": "v5-general-card-slide",
+						"settings": {
+              "pc_card_padding": "24px 24px 24px 24px",
+              "mb_card_padding": "16px 16px 16px 16px",
+              "title_margin_bottom": 24,
+							"button_text": "Learn More",
+						}
+					},
+					{
+						"type": "v5-general-card-slide",
+						"settings": {
+              "pc_card_padding": "24px 24px 24px 24px",
+              "mb_card_padding": "16px 16px 16px 16px",
+              "title_margin_bottom": 24,
+							"button_text": "Learn More",
+						}
+					},
+					{
+						"type": "v5-general-card-imgText",
+						"settings": {
+							"reverse": false,
+							"button_text": "Join In",
+						}
+					}
+			]
+    }
+  ]
+}
+{% endschema %}

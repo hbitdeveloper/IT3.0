@@ -1,0 +1,265 @@
+{{ 'section-jky-image-text-banner.min.css' | asset_url | stylesheet_tag }}
+{% comment %} 页面banner 后续统一用这个 {% endcomment %}
+{% style %}
+  .jky-image-text-banner {
+    --banner-max-h: 800px;
+    --content-padding-y: 48px;
+    --content-padding-x: 0px;
+    --content-img-w: 155px;
+    --content-img-b: 20px;
+    --content-subtitle-y: 8px;
+    --content-button-top: 20px;
+    --content-text-color: #ffffff;
+    --xinren-h: 100px;
+    --xinren-padding-y: 16px;
+    --fix-img-w: 138px;
+  }
+
+  .jky-image-banner {
+    max-height: var(--banner-max-h);
+  }
+
+  .jky-image-text-banner .section-container {
+    padding: var(--content-padding-y) var(--content-padding-x);
+    color: var(--content-text-color);
+    max-width: 90vw;
+  }
+
+  .jky-banner-content-img {
+    width: var(--content-img-w);
+    margin-bottom: var(--content-img-b);
+  }
+
+  .jky-image-banner-subtitle {
+    margin: var(--content-subtitle-y) 0;
+  }
+
+  .jky-banner-btn {
+    margin-top: var(--content-button-top);
+  }
+
+  .jky-banner-fix-img {
+    width: var(--fix-img-w);
+  }
+
+  .jky-banner-xinren {
+    height: var(--xinren-h);
+    padding: var(--xinren-padding-y) 0;
+  }
+
+  @media screen and (max-width: 1920px) {
+    .jky-image-text-banner {
+      --banner-max-h: 41.5vw;
+      --content-padding-y: 3vw;
+      --content-padding-x: 0px;
+      --content-img-w: 8.073vw;
+      --content-img-b: 0.625vw;
+      --content-subtitle-y: 5px;
+      --content-button-top: 1.041vw;
+      --xinren-h: 100px;
+      --xinren-padding-y: 16px;
+      --fix-img-w: 7.2vw;
+    }
+
+    .jky-image-text-banner .jky-text-3xl {
+      font-size: 2.916vw;
+      line-height: 1.1 !important;
+    }
+
+    .jky-image-text-banner .jky-text-xl {
+      font-size: 1.46vw;
+      line-height: 1.1 !important;
+    }
+
+    .jky-image-text-banner .jky-text-xl {
+      font-size: 1.25vw;
+      line-height: 1.1 !important;
+    }
+  }
+
+  @media screen and (max-width: 1024px) {
+    .jky-image-text-banner {
+      --banner-max-h: 202.9vw;
+      --content-padding-y: 17vw;
+      --content-padding-x: 0px;
+      --content-img-w: 78px;
+      --content-img-b: 12px;
+      --content-subtitle-y: 5px;
+      --content-button-top: 18px;
+      --xinren-h: 100px;
+      --xinren-padding-y: 16px;
+      --fix-img-w: 19vw;
+    }
+
+    .jky-image-text-banner .jky-text-3xl {
+      font-size: 30px;
+    }
+
+    .jky-banner-xinren img {
+      max-width: 86vw;
+    }
+  }
+
+{% endstyle %}
+
+<div 
+  class="jky-image-text-banner-container relative jky-image-text-banner-container_{{section.id}} {% if section.settings.type == 'embed' %}embed-component{% endif %}" 
+  data-handle="{{ section.settings.handle }}"
+  section-index="{{ section.index }}"
+  {% if section.settings.anchor != blank %}anchor-target="{{ section.settings.anchor | escape }}"{% endif %}
+>
+  {%-liquid
+      assign is_lcp = false
+      if section.index < 2
+          assign is_lcp = true
+      endif
+  -%}
+  {%- 
+    render "responsive-image", 
+    mimage: section.settings.m_image, 
+    image: section.settings.image,
+    image_class: "jky-image-banner w-full object-cover",
+    fcp: is_lcp
+  -%}
+
+  <div class="jky-image-text-banner absolute top-0 bottom-0 h-full">
+    {% if section.settings.full_click == true and section.settings.banner_link != blank %}
+      <a href="{{section.settings.banner_link}}" class="absolute top-0 bottom-0 w-full block z-[2]"></a>
+    {% endif %}
+    <div class="section-container {{section.settings.desktop_content_position}} relative h-full flex flex-col" style="color: {{section.settings.banner_color}};">
+      {% if section.settings.content_img != blank %}
+        {% render "responsive-image", mimage: section.settings.content_img, image: section.settings.content_img, width: 310, mwidth: 155, image_class: "jky-banner-content-img" %}
+      {% endif %}
+
+      {% if section.settings.title != blank %}
+        <h2 class="font-bold jky-text-3xl">{{ section.settings.title | newline_to_br  }}</h2>
+      {% endif %}
+
+      {% if section.settings.subtitle != blank %}
+        <h3 class="font-500 jky-text-xl jky-image-banner-subtitle">{{ section.settings.subtitle | newline_to_br  }}</h3>
+      {% endif %}
+
+      {% if section.settings.banner_content != blank %}
+        <p class="font-400 jky-text-lg jky-image-banner-des">{{ section.settings.banner_content | newline_to_br  }}</p>
+      {% endif %}
+
+      {% if section.settings.btn_txt != blank %}
+        {% if section.settings.banner_link != blank %}
+          <a href="{{section.settings.banner_link}}" class="z-button-big jky-banner-btn">{{ section.settings.btn_txt }}</a>
+        {% else %}
+          <button class="z-button-big jky-banner-btn">{{ section.settings.btn_txt }}</button>
+        {% endif %}
+      {% endif %}
+
+      {% if section.settings.fixed_img != blank %}
+        {% render "responsive-image", mimage: section.settings.fixed_img, image: section.settings.fixed_img, width: 240, mwidth: 84, image_class: "jky-banner-fix-img absolute top-0 right-0" %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if section.settings.xinren_img != blank %}
+  <div class="jky-banner-xinren flex justify-center w-full">
+    {% render "responsive-image", mimage: section.settings.m_xinren_img, image: section.settings.xinren_img, image_class: "jky-banner-xinren-img h-full", picture_class: "w-full flex justify-center" %}
+  </div>
+{% endif %}
+
+{% schema %}
+  {
+    "name": "JKY Image text banner",
+    "class": "section jky-image-text-banner",
+    "settings": [
+      {
+        "type": "select",
+        "id": "type",
+        "label": "类型",
+        "default": "independent",
+        "options": [
+          {
+            "value": "embed",
+            "label": "内嵌使用"
+          },
+          {
+            "value": "independent",
+            "label": "独立使用"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "handle",
+        "label": "Handle（当前页面唯一的handle）",
+        "default": "embed-component-01"
+      },
+      { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+      {"type": "image_picker", "id": "image", "label": "Banner Image"},
+      {"type": "image_picker", "id": "m_image", "label": "Mobile Banner Image"},
+      {"type": "image_picker", "id": "content_img", "label": "Content Image", "info": "内容区图片，没有可留空"},
+      {"type": "textarea", "id": "title", "label": "Heading"},
+      {"type": "textarea", "id": "subtitle", "label": "Sub Heading"},
+      {"type": "textarea", "id": "banner_content", "label": "Banner Description"},
+      {"type": "text", "id": "btn_txt", "label": "Button text"},
+      {"type": "image_picker", "id": "fixed_img", "label": "Tag Image", "info": "标签图片，没有可留空"},
+      {"type": "image_picker", "id": "xinren_img", "label": "信任状 Image"},
+      {"type": "image_picker", "id": "m_xinren_img", "label": "信任状 Mobile Image"},
+      {"type": "url", "id": "banner_link", "label": "Banner Link"},
+      {"type": "checkbox", "id": "full_click", "label": "banner可点击跳转?", "default": true},
+      {
+        "type": "select",
+        "id": "desktop_content_position",
+        "options": [
+          {
+            "value": "top-left",
+            "label": "顶部左对齐"
+          },
+          {
+            "value": "items-end text-right",
+            "label": "顶部右对齐"
+          },
+          {
+            "value": "items-center text-center",
+            "label": "顶部居中"
+          },
+          {
+            "value": "justify-center",
+            "label": "中间左对齐"
+          },
+          {
+            "value": "justify-center items-center text-center",
+            "label": "中间居中"
+          },
+          {
+            "value": "justify-center items-end text-right",
+            "label": "中间右对齐"
+          },
+          {
+            "value": "justify-end",
+            "label": "底部左对齐"
+          },
+          {
+            "value": "justify-end items-center text-center",
+            "label": "底部居中"
+          },
+          {
+            "value": "justify-end items-end text-right",
+            "label": "底部右对齐"
+          }
+        ],
+        "default": "top-left",
+        "label": "banner文案内容排列位置"
+      },
+      {
+        "type": "color",
+        "id": "banner_color",
+        "label": "Banner文案颜色",
+        "default": "#FFFFFF"
+      }
+    ],
+    "blocks": [],
+    "presets": [
+      {
+        "name": "通用banner组件"
+      }
+    ]
+  }
+{% endschema %}

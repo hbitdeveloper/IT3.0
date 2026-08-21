@@ -1,0 +1,93 @@
+{% comment %}
+    产品详情页4.0 - 横幅文案折叠组件
+    
+    Params: current_variant_id: 当前变体
+
+    Accepts: product
+    Usage:
+    {% render 'app-product-extra-text', current_variant_id: product.selected_or_first_available_variant.id  %}
+{% endcomment %}
+
+{% comment %} <style>
+  /* 未加载js前，隐藏组件。优化 Web Components 的无样式内容闪现 (FOUC) 问题 */
+  product-extra-text:not(:defined) { display: none; }
+</style> {% endcomment %}
+
+<product-extra-text data-current-variant-id="{{ current_variant_id }}">
+  <script type="application/json">
+  {% assign product_extra_text_list = shop.metaobjects.product_extra_text_4_0.values %}
+  [
+    {%- assign first_valid = true -%}
+    {%- for item in product_extra_text_list -%}
+      {%- assign is_valid = false -%}
+
+      {%- comment %} 情况1：无时间限制 {% endcomment -%}
+      {% if item.start_time == blank and item.end_time == blank %}
+        {% assign is_valid = true %}
+      {% else %}
+        {% assign now_time = 'now' | date: '%s' | plus: 0 %}
+        {% assign start_time = nil %}
+        {% assign end_time = nil %}
+
+        {% if item.start_time != blank %}
+          {% assign start_time = item.start_time | date: '%s' | plus: 0 %}
+        {% endif %}
+        {% if item.end_time != blank %}
+          {% assign end_time = item.end_time | date: '%s' | plus: 0 %}
+        {% endif %}
+
+        {%- comment %} 判断时间范围 {% endcomment -%}
+        {% if start_time != nil and end_time != nil %}
+          {% if now_time >= start_time and now_time <= end_time %}
+            {% assign is_valid = true %}
+          {% endif %}
+        {% elsif start_time != nil %}
+          {% if now_time >= start_time %}
+            {% assign is_valid = true %}
+          {% endif %}
+        {% elsif end_time != nil %}
+          {% if now_time <= end_time %}
+            {% assign is_valid = true %}
+          {% endif %}
+        {% endif %}
+      {% endif %}
+
+      {%- if is_valid -%}
+        {%- if first_valid -%}
+          {% assign first_valid = false %}
+        {%- else -%}
+          ,
+        {%- endif -%}
+
+        {%- assign sku_id_list = '' -%}
+        {%- for sku in item.product_sku_id.value -%}
+          {%- if forloop.first -%}
+            {%- assign sku_id_list = sku.id -%}
+          {%- else -%}
+            {%- assign sku_id_list = sku_id_list | append: ',' | append: sku.id -%}
+          {%- endif -%}
+        {%- endfor -%}
+
+        {
+          "order": {{ item.order.value | json }},
+          "product_sku_id": {{ sku_id_list | json }},
+          "title": {{ item.title | metafield_tag | json }},
+          "title_color": {{ item.title_color.value | json }},
+          "title_highlight_color": {{ item.title_highlight_color.value | json }},
+          "icon": {{ item.icon | image_url: width: 48 | json }},
+          "description": {{ item.description | metafield_tag | json }},
+          "description_color": {{ item.description_color.value | json }},
+          "description_highlight_color": {{ item.description_highlight_color.value | json }},
+          "style": {{ item.style | json }},
+          "start_time": {{ item.start_time.value | date: '%s' | json }},
+          "end_time": {{ item.end_time.value | date: '%s' | json }}
+        }
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+</script>
+
+
+  <script src="{{ 'plugin-app-product-extra-text.min.js' | asset_url }}" defer></script>
+</product-extra-text>
+

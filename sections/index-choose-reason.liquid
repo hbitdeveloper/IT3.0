@@ -1,0 +1,162 @@
+        <style>
+            .index-choose-reason {
+            background: #F1F1F1;
+            }
+            .index-choose-reason .section-container {
+            padding: 116px 0;
+            }
+            .index-choose-reason .section-container .subtitle {
+            margin-top: 16px;
+            margin-bottom: 50px;
+            }
+            .index-choose-reason .section-container .choose-list {
+            column-gap: 16px;
+            }
+            .index-choose-reason .section-container .choose-list:last-child {
+            margin-top: 16px;
+            }
+            .index-choose-reason .section-container .choose-list .choose-content {
+            width: 280px;
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 40px 40px 80px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            }
+            .index-choose-reason .section-container .choose-list .choose-content .choose-title {
+            margin-bottom: 16px;
+            }
+            .index-choose-reason .section-container .choose-list .choose-content .choose-des {
+            margin-top: auto;
+            min-height: 56px;
+            height: auto;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            }
+            html[lang=ja] .index-choose-reason .section-container .choose-list .choose-content .jky-text-xl{
+                font-size: 24px;
+            }
+            .index-choose-reason .section-container .choose-list .choose-content img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            margin-bottom: 48px;
+            }
+            @media screen and (max-width: 1024px) {
+            .index-choose-reason .section-container {
+                padding: 40px 0;
+            }
+            .index-choose-reason .section-container .subtitle {
+                margin-top: 8px;
+                margin-bottom: 28px;
+            }
+            .index-choose-reason .section-container .choose-list {
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .index-choose-reason .section-container .choose-list:last-child {
+                margin-top: 10px;
+            }
+            .index-choose-reason .section-container .choose-list .choose-content {
+                width: calc(50% - 5px);
+                border-radius: 10px;
+                padding: 24px 10px 24px 10px;
+            }
+            .index-choose-reason .section-container .choose-list .choose-content .choose-title {
+                margin-bottom: 8px;
+            }
+            .index-choose-reason .section-container .choose-list .choose-content img {
+                width: 44px;
+                height: 44px;
+                margin-bottom: 12px;
+            }
+            }
+        </style>
+        <div class="index-choose-container section-container">
+            <h2 class="jky-text-2xl font-bold text-center">{{section.settings.title}}</h2>
+            <div class="jky-text-sm font-500 subtitle text-center">{{section.settings.subtitle | newline_to_br}}</div>
+
+            {% assign itemCount = section.blocks.size %}
+            {% assign startIdx = 0 %}
+            {% if itemCount > 4 %}
+                {% assign startIdx = itemCount | minus: 4 %}
+            {% endif %}
+            {% assign endIdx = itemCount| minus: 1 %}
+
+                <div class="choose-list flex justify-center">
+                    {% for block in section.blocks limit:4 %}
+                    <div class="choose-content">
+                        {% render 'responsive-image', image: block.settings.image, width: 90, mwidth: 44 %}
+
+                        <h3 class="choose-title jky-text-xl">{{block.settings.title | newline_to_br}}</h3>
+                        <div class="choose-des jky-text-sm font-400">{{block.settings.content | newline_to_br}}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            {% if startIdx != 0 %}
+                    <div class="choose-list flex justify-center" ss="{{startIdx}}" ee="{{endIdx}}" sss="{{section.blocks[4].settings.title}}">
+                    {% for i in (4..endIdx) %}
+                    {% assign block = section.blocks[i] %}
+                                <div class="choose-content">
+                                    {% render 'responsive-image', image: block.settings.image, width: 90, mwidth: 44 %}
+
+                                    <h3 class="choose-title jky-text-xl">{{block.settings.title | newline_to_br}}</h3>
+                                    <div class="choose-des jky-text-sm font-400">{{block.settings.content | newline_to_br}}</div>
+                                </div>
+                            {% endfor %}
+                    {% endif %}
+                    </div>
+        </div>
+
+{% schema %}
+  {
+    "name": "Index Choose Reason",
+    "tag": "section",
+    "class": "section index-choose-reason",
+    "disabled_on": {
+      "templates": ["collection"]
+    },
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Why did you choose Jackie?"
+      }, {
+        "type": "textarea",
+        "id": "subtitle",
+        "label": "Sub heading",
+        "default": "To unlock the potential of the outdoors"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "choose_item",
+        "name": "Choose Item",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Icon"
+          }, {
+            "type": "textarea",
+            "id": "title",
+            "label": "Title"
+          }, {
+            "type": "textarea",
+            "id": "content",
+            "label": "Content"
+          }
+        ]
+      }
+    ],
+    "presets": [{
+        "name": "Index Choose Reason"
+    }]
+  }
+{% endschema %}

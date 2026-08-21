@@ -1,0 +1,166 @@
+{{ 'sections-v5-collection-list.css' | asset_url | stylesheet_tag }}
+{%-liquid
+    assign shop_now_label = section.settings.shop_now
+    assign shop_now_label_escape = shop_now_label | escape
+    assign open_in_new_tab = section.settings.open_in_new_tab | default: false
+-%}
+<div style="background: {{section.settings.bg_color | default: 'transparent' }};">
+    <div class="collection-list-v5-inner {{section.settings.page_width}} lg:pt-24 pt-10 lg:pb-12 pb-8">
+        {%- if section.settings.heading != blank -%}
+            <h2 style="color: #242F20;" class="font-semibold lg:text-5xl text-center lg:mb-16 mb-4 lg:max-w-5xl max-w-full mx-auto">{{ section.settings.heading | replace: "\n", "<br>" | strip}}</h2>
+        {%- endif -%}
+
+        <div class="flex lg:gap-x-6 gap-x-4 flex-nowrap snap-x collection-list-v5-scroll">
+            {%- for block in section.blocks -%}
+                {%-liquid
+                  assign block_title = block.settings.title
+                  assign block_title_escape = block.settings.title | escape
+                  assign block_collection = block.settings.cate_collection
+                  assign collection_url = block_collection.url
+                  assign cate_img = block.settings.cate_img
+
+                  if cate_img != blank
+                    assign cate_img_width = cate_img.width
+                    assign cate_img_height = cate_img.height
+                    assign cate_img_alt = cate_img.alt | default: block_title_escape
+                  endif
+                -%}
+                <div class="collection-list-v5-item flex flex-col items-center lg:text-center text-left lg:px-6 justify-between gap-y-2">
+                    <div class="w-full">
+                        <a
+                            data-ga-event="5.0_homepage_user_clicks"
+                            data-ga-action="click"
+                            data-ga-params-module="Category Education"
+                            data-ga-params-position="{{ block_title_escape }}"
+                            data-ga-params-button_name="{{ shop_now_label_escape }}"
+                            data-ga-params-link="{{ collection_url | escape }}"
+                            {% if open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %} href="{{ collection_url }}" class="collection-list-v5-item_img-content block relative overflow-visible w-full">
+                            <img
+                                data-srcset="
+                                    {%- if cate_img_width >= 200 -%}{{ cate_img | image_url: width: 200 }} 200w,{%- endif -%}
+                                    {%- if cate_img_width >= 300 -%}{{ cate_img | image_url: width: 300 }} 300w,{%- endif -%}
+                                    {%- if cate_img_width >= 500 -%}{{ cate_img | image_url: width: 500 }} 500w,{%- endif -%}
+                                    {%- if cate_img_width >= 1000 -%}{{ cate_img | image_url: width: 1000 }} 1000w,{%- endif -%}
+                                    {{ cate_img | image_url }} {{ cate_img_width }}w
+                                "
+                                src="{{ cate_img | image_url: width: 10 }}"
+                                sizes="(min-width: 1024px) 200px, 33vw"
+                                alt="{{ cate_img_alt }}"
+                                class="mb-4 w-full h-full object-cover image-lazy-loading"
+                                loading="lazy"
+                                width="{{ block.settings.cate_img.width }}"
+                                height="{{ block.settings.cate_img.height }}"
+                            >
+                        </a>
+
+                        <div style="height: 1px;" class="bg-primary w-full mb-4 mt-4 relative z-[1]"></div>
+                        <a
+                            data-ga-event="5.0_homepage_user_clicks"
+                            data-ga-action="click"
+                            data-ga-params-module="Category Education"
+                            data-ga-params-position="{{ block_title_escape }}"
+                            data-ga-params-button_name="{{ shop_now_label_escape }}"
+                            data-ga-params-link="{{ collection_url | escape }}"
+                            title="{{ block_title }}" {% if open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %} href="{{ collection_url }}" style="color: #242F20;" class="font-semibold lg:text-xl text-base line-clamp-2 relative z-[1]">{{block_title}}</a>
+                    </div>
+
+                    <a
+                        data-ga-event="5.0_homepage_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="Category Education"
+                        data-ga-params-position="{{ block_title_escape }}"
+                        data-ga-params-button_name="{{ shop_now_label_escape }}"
+                        data-ga-params-link="{{ collection_url | escape }}"
+                        {% if open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}
+                        class="collection-list-v5--shopnow flex w-full text-primary font-semibold text-sm items-center gap-x-2 lg:bg-primary lg:h-12 lg:justify-center lg:text-white lg:text-xl lg:opacity-0 transition-all duration-200 ease-in-out"
+                        href="{{ collection_url }}"
+                    >
+                        <span>{{ shop_now_label }}</span>
+                        <svg class="w-4 lg:hidden" width="16" height="14" viewBox="0 0 16 14" fill="none">
+                            <path d="M-1 6.81592H11.2422" stroke="var(--jds-color-primary)" stroke-width="1.6"/>
+                            <path d="M8.49219 0.565918L14.7419 6.81567L8.49219 13.0654" stroke="var(--jds-color-primary)" stroke-width="1.6"/>
+                        </svg>
+                    </a>
+                </div>
+            {%- endfor -%}
+        </div>
+    </div>
+</div>
+
+{% schema %}
+{
+    "name": "V5-产品分类",
+    "class": "v5-collection-list",
+    "tag": "section",
+    "limit": 1,
+    "enabled_on": {
+        "templates": ["page","index"]
+    },
+    "settings": [
+        { "type": "checkbox", "id": "open_in_new_tab", "label": "是否新开标签页", "default": false },
+        { "type": "inline_richtext", "id": "heading", "label": "大标题", "default": "Shop by Category", "info": "需要换行，请使用 \\n " },
+        { "type": "text", "id": "shop_now", "label": "立即购买按钮Label", "default": "Shop Now" },
+
+        {
+            "type": "select",
+            "id": "page_width",
+            "options": [
+                {
+                "value": "section-container",
+                "label": "版心/1200px"
+                },
+                {
+                "value": "section-container-lg",
+                "label": "大版心/1312px"
+                },
+                {
+                "value": "w-full",
+                "label": "铺满/100%"
+                }
+            ],
+            "default": "section-container-lg",
+            "label": "PC的组件宽度",
+            "info": "MB端组件宽度固定和设计稿一致，不可修改"
+        },
+        { "type": "color_background", "id": "bg_color", "label": "背景颜色" }
+    ],
+    "blocks": [
+        {
+            "type": "product_cate",
+            "name": "产品分类",
+            "limit": 5,
+            "settings": [
+                {"type": "text", "id": "title", "label": "标题"},
+                {"type": "image_picker", "id": "cate_img", "label": "产品分类图"},
+                {"type": "collection", "id": "cate_collection", "label": "产品系列"}
+            ]
+        }
+    ],
+    "presets": [
+        {
+            "name": "V5-产品分类",
+            "category": "V5.0",
+            "blocks": [
+                {
+                    "type": "product_cate",
+                    "settings": {
+                        "cate_collection": "all"
+                    }
+                },
+                {
+                    "type": "product_cate",
+                    "settings": {
+                        "cate_collection": "all"
+                    }
+                },
+                {
+                    "type": "product_cate",
+                    "settings": {
+                        "cate_collection": "all"
+                    }
+                }
+            ]
+        }
+    ]
+}
+{% endschema %}

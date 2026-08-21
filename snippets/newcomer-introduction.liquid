@@ -1,0 +1,70 @@
+<div class="newcomer-main-container newcomer-introduction newcomer-introduction-{{ index }}" anchor="{{ settings.anchor_id  | url_decode | strip | replace: ' ', ''}}">
+    <div class="introduction-content">
+        <div class="introduction-video">
+            {% comment %} 视频展示 {% endcomment %}
+            {% if settings.videoSrc != blank or settings.poster != blank %}
+                {%- render 'jky-video',
+                        video_url: settings.videoSrc,
+                        poster: settings.poster,
+                        isHidePauseBtn: false,
+                        class: 'newcomer-video-box pc-block',
+                        autoplay: settings.autoplay,
+                        controls: settings.controls,
+                        loop: true
+                -%}
+            {% endif %}
+
+            {% if settings.videoSrcMB != blank or settings.posterMB != blank %}
+            {%- render 'jky-video',
+                    video_url: settings.videoSrcMB,
+                    poster: settings.posterMB,
+                    isHidePauseBtn: false,
+                    class: 'newcomer-video-box mb-block',
+                    autoplay: settings.autoplay,
+                    controls: settings.controls,
+                    loop: true
+            -%}
+            {% endif %}
+        </div>
+        <div class="introduction-body">
+            {% for i in (0..2) %}
+                {% assign title = 'title_' | append: forloop.index %}
+                {% assign subTitle = 'subTitle_' | append: forloop.index %}
+                {% if settings[title] != blank or settings[subTitle] != blank %}
+                    <div class="text-content">
+                        <div class="introduction-title">
+                            <div class="title-index">{{ forloop.index }}</div>
+                            <div class="title">{{ settings[title] }}</div>
+                        </div>
+                        <div class="introduction-subtitle">
+                            {{ settings[subTitle] }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if settings.description != blank %}
+            <div class="introduction-description">
+                {{ settings.description }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+<style>
+    .newcomer-introduction-{{ index }}{
+        padding-top:{{ settings.pc_padding_top }}px;
+        padding-bottom:{{ settings.pc_padding_bottom }}px;
+    }
+    @media screen and (min-width: 1024px) and (max-width: 1439.98px){
+        .newcomer-introduction-{{ index }}{
+            padding-top: calc( {{ settings.pc_padding_top }}  * 100vw / 1440 );
+            padding-bottom: calc( {{ settings.pc_padding_bottom }}  * 100vw / 1440 );
+        }
+    }
+    @media screen and (max-width: 1023.98px){
+        .newcomer-introduction-{{ index }}{
+            padding-top: calc( {{ settings.mb_padding_top }}  * 100vw / 750 );
+            padding-bottom: calc( {{ settings.mb_padding_bottom }}  * 100vw / 750 );
+        }
+    }
+</style>

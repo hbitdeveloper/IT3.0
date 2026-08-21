@@ -1,0 +1,135 @@
+<div
+  class="olight-sence {%if section.settings.is_gift_block == true%} gift-anchor gift-anchor--mb{%endif%}"
+  anchor="{{ section.settings.anchor | escape }}"
+>
+  {% render 'new-title',
+    class: 'sence-title',
+    title: section.settings.title,
+    type: section.settings.type,
+    bgColor: section.settings.background
+  %}
+  <div class="jky-12th-container">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when 'indoor_img_text' -%}
+          {% comment %} 图文版块 {% endcomment %}
+          {% render 'indoor-img-text', imgtext: block.settings, index: forloop.index %}
+      {%- endcase -%}
+    {%- endfor -%}
+
+    {% assign product_list = section.blocks | where: 'type', 'Product_Item' %}
+    {%- if product_list.size > 0 -%}
+      {% render 'olight-sence-product', product_list: product_list, module_title: section.settings.title %}
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Olight Sence",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "二级标题定位锚点" },
+    { "type": "text", "id": "title", "label": "标题" },
+    { "type": "color", "id": "background", "label": "标题背景色", "default": "#DBEEF9" },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "标题类型",
+      "options": [
+        { "value": "1", "label": "小档" },
+        { "value": "2", "label": "大档" }
+      ],
+      "default": "1"
+    },
+    { "type": "checkbox", "id": "new_window", "label": "新开标签页", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "Product_Item",
+      "name": "Product Item",
+      "limit": 4,
+      "settings": [
+                    { "type": "product", "id": "product", "label": "推荐产品" },
+                    { "type": "image_picker", "id": "image", "label": "产品图(276*276)" },
+                    { "type": "text", "id": "title", "label": "标题"},
+                    { "type": "text", "id": "desc", "label": "卖点"},
+                    { "type": "text", "id": "price", "label": "现价"},
+                    { "type": "text", "id": "origin_price", "label": "划线价"},
+                    { "type": "url", "id": "link", "label": "跳转地址" }
+                ]
+    },
+    {
+      "type": "indoor_img_text",
+      "name": "图文",
+      "settings": [
+        {
+          "type": "select",
+          "id": "position",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "左图右文"
+            },
+            {
+              "value": "right",
+              "label": "右图左文"
+            }
+          ]
+        },
+
+        {
+          "type": "image_picker",
+          "id": "pc-img",
+          "label": "PC Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb-img",
+          "label": "MB Image"
+        },
+
+        { "type": "color_background", "id": "bg-color", "label": "文案背景色" },
+        {
+          "type": "richtext",
+          "id": "title",
+          "label": "PC Title"
+        },
+        {
+          "type": "richtext",
+          "id": "title-mb",
+          "label": "MB Title"
+        },
+        {
+          "type": "color",
+          "id": "title-color",
+          "label": "Title Color"
+        },
+
+        {
+          "type": "richtext",
+          "id": "sub-title",
+          "label": "PC Sub Title"
+        },
+        {
+          "type": "richtext",
+          "id": "sub-title-mb",
+          "label": "MB Sub Title"
+        },
+
+        {
+          "type": "color",
+          "id": "sub-title-color",
+          "label": "Sub Title Color"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Olight Sence"
+    }
+  ]
+}
+{% endschema %}

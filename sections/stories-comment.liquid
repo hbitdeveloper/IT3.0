@@ -1,0 +1,110 @@
+{{ 'section-stories-comment.min.css' | asset_url | stylesheet_tag }}
+
+<div
+  class="jackery-stories-comment {% if section.settings.section_position == true %}position-center-width{% else %}position-left-width{% endif %}">
+  <div class="stories-comment">
+    <div class="comment-title">
+      <span class="comment-num"></span>
+      <span class="comment-name">{{ 'stories.comments.comment' | t }}</span>
+    </div>
+    <div class="comment-body" data-title-id="{{ page.id }}"></div>
+  </div>
+  <div class="stories-post-comment">
+    <div class="post-comment-title">{{ 'stories.comments.title' | t }}</div>
+    <div class="post-comment-form">
+      <jky-form data-success-msg="{{ 'stories.comments.post_success' | t }}">
+        <form data-action="/osconsumerapi/v1/comment/stories/add" class="comment-form">
+          <div class="hidden">
+            <div class="form-item form-item_const" data-field="input">
+              <input type="hidden" name="titleId" data-value="titleId" value="{{ page.id }}">
+            </div>
+            <div class="form-item form-item_const" data-field="input">
+              <input type="hidden" name="titleName" class="titleName" data-value="titleName" value="{{ section.settings.article_title }}">
+            </div>
+          </div>
+          <div class="form-top-input">
+            <div class="form-group form-item form-top-label required" data-field="input">
+              <label for="name">{{ 'stories.comments.name' | t }} <span class="required">*</span></label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="{{ 'stories.comments.name_placeholder' | t }}"
+                data-error="{{ 'stories.comments.name_error' | t }}"
+                data-value="name"
+                data-reg="name"
+                data-regerror="{{ 'stories.comments.name_error' | t }}"
+              >
+            </div>
+
+            <div class="form-group form-item form-top-label required" data-field="input">
+              <label for="email">{{ 'stories.comments.email' | t }} <span
+                  class="required">*</span></label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="{{ 'stories.comments.email_placeholder' | t }}"
+                data-error="{{ 'stories.comments.email_error' | t }}"
+                data-value="email"
+                data-reg="email"
+                data-regerror="{{ 'stories.comments.email_error' | t }}"
+              >
+            </div>
+          </div>
+
+          <div class="form-group form-item required" data-field="textarea" data-value="comment"
+               data-error="{{ 'stories.comments.message_error' | t }}">
+            <label for="comment">{{ 'stories.comments.message' | t }} <span
+                class="required">*</span></label>
+            <textarea
+              id="comment"
+              name="comment"
+              maxlength="2000"
+              placeholder="{{ 'stories.comments.message_placeholder' | t }}"
+            ></textarea>
+          </div>
+          <div class="form-note">{{ 'stories.comments.moderated' | t }}</div>
+
+          <div class="form-footer" data-service="{{ settings.terms_url }}">
+            <jds-button class="post-button form_sub_btn">{{ 'stories.comments.post_button' | t }}</jds-button>
+            <div class="captcha-note">
+              {% capture service_text %}
+                {{ 'stories.comments.service_privacy' | t: service_link: settings.terms_url, privacy_link: settings.policy_url }}
+              {% endcapture %}
+              {{ service_text | strip | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&quot;', '"' | replace: '&#39;', "'" }}
+            </div>
+          </div>
+        </form>
+      </jky-form>
+    </div>
+  </div>
+</div>
+
+<script src="{{ 'section-stories-comment.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "Jackery Strories Comment",
+  "class": "section-page-jackery-comment",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "section_position",
+      "label": "版心是否居中",
+      "default": true,
+      "info": "关闭默认偏左"
+    },
+    {
+      "type": "textarea",
+      "id": "article_title",
+      "label": "Article Title"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Stories Comment"
+    }
+  ]
+}
+{% endschema %}

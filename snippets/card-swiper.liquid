@@ -1,0 +1,112 @@
+<div class="card-swiper page-section-swiper relative">
+        <h2 class="jky-text-2xl section-container text-center card-swiper-title page-section-title font-500">{{title | escape}}</h2>
+        <div class="card-swiper-container relative swiper">
+            <div class="swiper-wrapper">
+                {% for block in blocks %}
+                    {% case block.type %}
+                        {% when 'announced_block' %}
+                        <div class="swiper-slide flex-col">
+                            <div class="image-text-imgblock focus-zoom-container">
+                                <img class="object-cover focus-zoom"
+                                    src="{{block.settings.image | image_url: width: 610 }}" loading="lazy"
+                                    alt="{{block.settings.title | escape}}">
+                            </div>
+                            <div class="card-swiper-slide-content flex flex-col items-center">
+                                <div class="font-bold jky-text-lg card-swiper-slide-title text-overflow-2">
+                                    {% if block.settings.link != blank %}
+                                        <a class="text-black" href="{{block.settings.link}}">{{block.settings.title | escape}}</a>
+                                    {% else %}
+                                        {{block.settings.title | escape}}
+                                    {% endif %}
+                                </div>
+                                <div class="card-swiper-slide-des jky-text-base text-overflow-2">
+                                    {{block.settings.sub_text | escape}}
+                                </div>
+
+                                <div class="flex items-center justify-center" style="width: 100%;">
+                                    {% if block.settings.date != blank %}
+                                        <span class="card-date" style="flex: 1;">{{block.settings.date | escape}}</span>
+                                    {% endif %}
+                                    <a class="slide-link a-button-fill jky-text-base" href="{{block.settings.link}}" data-analytics-title="{{ block.settings.title | escape }}">
+                                        {{ 'general.action_text.view_more' | t }}
+                                        <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endcase %}
+                {% endfor %}
+            </div>
+
+            <div class="index-container absolute slideshow-navigation">
+                <div class="slideshow-navigation-button prev">
+                    {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+                </div>
+                <div class="slideshow-navigation-button next">
+                    {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+                </div>
+            </div>
+        </div>
+
+        <div class="slideshow-pagination"></div>
+</div>
+
+
+<script type="module">
+    class CardSwiper {
+        constructor(el) {
+            this.DOM = {
+                el: el.el,
+                swiperContainer: el.swiperContainer
+            };
+            this.init();
+        }
+        init() {
+            let that = this
+            this.swiper = new Swiper(this.DOM.swiperContainer, {
+                slidesPerView: 'auto',
+                spaceBetween: 0,
+                centeredSlides: true,
+                loop: true,
+                followFinger: false,
+                navigation: {
+                    nextEl: `${this.DOM.el} .slideshow-navigation-button.next`,
+                    prevEl: `${this.DOM.el} .slideshow-navigation-button.prev`,
+                },
+                pagination: {
+                    el: `${this.DOM.el} .slideshow-pagination`,
+                    clickable: true,
+                    bulletClass: 'slideshow-pagination-item',
+                    bulletActiveClass: 'active pagination-active',
+                    clickableClass: 'slideshow-pagination-clickable',
+                    modifierClass: 'slideshow-pagination-',
+                    renderBullet: function (index, className) {
+                        var slideIndex = index,
+                            number = (index <= 8) ? '0' + (slideIndex + 1) : (slideIndex + 1);
+
+                        var paginationItem = '<span class="slideshow-pagination-item">';
+                        paginationItem = (index <= 8) ? paginationItem +
+                            '<span class="pagination-separator"><span class="pagination-separator-loader"></span></span>' :
+                            paginationItem;
+                        paginationItem += '</span>';
+                        return paginationItem;
+                    }
+                },
+                on: {
+                    resize: function () {
+                        setTimeout(() => {
+                            that.swiper.update()
+                        }, 600);
+                    }
+                }
+            })
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        new CardSwiper({
+            swiperContainer: '.card-swiper-container',
+            el: '.card-swiper'
+        });
+    })
+</script>

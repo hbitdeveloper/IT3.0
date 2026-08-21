@@ -1,0 +1,225 @@
+<style>
+    .slide-title {
+        color: var(--text-black);
+        display: block;
+        white-space: normal;
+    }
+    .video-swiper {
+        height: 675px;
+        margin-top: 5vw;
+    }
+    .video-swiper .swiper-slide {
+            width: 1200px;
+            height: 675px;
+            overflow: hidden;
+    }
+    .video-swiper .swiper-slide video {width: 100%;object-fit:cover;}
+    .video-swiper .swiper-slide video,
+    .video-swiper .swiper-slide iframe {cursor: pointer;}
+    .slide-video {
+      background-color: #ededed;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: auto 100vh;
+      bottom: 0;
+      height: 100%;
+      left: 0;
+      object-fit: cover;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 100%;
+    }
+    .video-swiper .swiper-slide picture {width: 100%;}
+    @media screen and (max-width: 768px) {
+        .slideshow-navigation-button {
+          display: none;
+        }
+        .video-swiper {
+            overflow-x: hidden;
+        }
+        .video-swiper .swiper-slide {
+            width: 100%;
+            height:auto;
+        }
+        .video-swiper .swiper-slide iframe {
+            pointer-events: none;
+        }
+
+        .slide-video {
+            top: 50%;
+            transform: translateY(-50%);
+            height: auto;
+            min-height: calc(100vw * 9 / 16);
+        }
+    }
+    .video-swiper .swiper-slide-active {
+        border-bottom: solid 8px var(--primary-color);
+        background: #232526!important;
+        position: relative;
+    }
+    .video-swiper .swiper-slide .slide-image {
+        background-size: cover;
+    }
+    .video-swiper .slide-content {
+        left: 0;
+        max-width: 100%;
+        right: 0;
+        text-align: center;
+        top: 5.1vw;
+    }
+    .video-swiper .slide-title {
+        color: #fff;
+        margin-bottom: 16px;
+        padding-bottom: 0;
+    }
+    .video-swiper .slide-link{
+        display: inline-flex;
+        align-items: center;
+    }
+    .video-swiper .slide-link, .video-swiper .slide-link .iconfont {
+        color: #fff;
+    }
+    .video-swiper .slideshow-pagination-item.active {
+        background: var(--primary-color);
+    }
+    @media screen and (max-width: 768px) {
+        .video-swiper {
+            height: 132.93333vw;
+            margin-top: 8.66667vw;
+        }
+        .video-swiper .slide-content {
+            top: 12vw;
+        }
+        .video-swiper .swiper-slide-active {
+            border-bottom: solid 4px var(--primary-color);
+        }
+        .video-swiper .slide-title {
+            height: auto;
+            margin-bottom: 0;
+            padding-bottom: 0;
+            padding-left: 8.53333vw;
+            padding-right: 8.53333vw;
+        }
+        .video-swiper .slide-link {
+            display: flex;
+            width: max-content;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            .iconfont {
+            font-size: 16px;
+            }
+        }
+        .video-swiper-play {
+            color: #000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .video-swiper-play:hover {
+            color: #4d4d4d;
+        }
+        .video-swiper-play .jackery-icon-playCircle {
+            font-size: 16vw;
+        }
+    }
+</style>
+
+<div class="swiper slideshow video-slideshow relative {% if template == 'page.userGuide' %} video-swiper {% endif %}">
+    <div class="swiper-wrapper">
+        {% for block in blocks %}
+        {%- assign img_url = block.settings.video_pic | image_url: width: 1920 -%}
+
+        <div class="swiper-slide slide swiper_slide_video" poster="{{img_url}}">
+            {%- assign has_product_video = false -%}
+            {%- assign video_type = '' -%}
+            {% if block.settings.video_url contains 'youtube.com/watch' %}
+                {%- assign has_product_video = true -%}
+                {%- assign video_type = 'youtube' -%}
+                {%- assign video_id = block.settings.video_url | split: 'v=' -%}
+                {%- assign video_id = video_id[1] | split: '&' | first -%}
+            {% endif %}
+
+            {% if block.settings.video_url contains 'youtu.be/' %}
+                {%- assign has_product_video = true -%}
+                {%- assign video_type = 'youtube' -%}
+                {%- assign video_id = block.settings.video_url | split: '.be/' -%}
+                {%- assign video_id = video_id[1] | split: '&' | first -%}
+            {% endif %}
+
+            {% if block.settings.video_url contains 'youtube.com/embed' %}
+                {%- assign has_product_video = true -%}
+                {%- assign video_type = 'youtube' -%}
+                {%- assign video_id = block.settings.video_url | split: 'youtube.com/embed/' -%}
+                {%- assign video_id = video_id[1] | split: '?' | first -%}
+            {% endif %}
+
+            {% if block.settings.video_url contains '.mp4' %}
+                {% if block.settings.video_pic == blank %}
+                    {%- assign img_url = 'https://www.jackery.com/cdn/shop/files/compact_portable_1_750x.png?v=1692786483' -%}
+                {% endif %}
+
+                {%- assign has_product_video = true -%}
+                {%- assign video_type = 'mp4' -%}
+            {% endif %}
+
+            {% if has_product_video %}
+                {% if video_type == 'youtube' %}
+                    <div 
+                        id="Videoslide__{{forloop.index}}" 
+                        class="product__video" 
+                        data-video-type="youtube" 
+                        data-video-style="muted"
+                        data-youtube-id="{{video_id}}"
+                    >
+                    </div>
+                {% endif %}
+
+                {% if video_type == 'mp4' %}
+                    <video 
+                        id="Videoslide__{{forloop.index}}" 
+                        class="product__video" 
+                        data-video-type="mp4" 
+                        data-video-style="muted" 
+                        loop
+                        muted
+                        webkit-playsinline="true"
+                        playsinline="true"
+                        data-video-src="{{block.settings.video_url}}"
+                        poster="{{img_url}}"
+                    >
+                        <source
+                            data-src="{{block.settings.video_url}}"
+                            type="video/mp4"
+                        >
+                    </video>
+                {% endif %}
+            {% else %}
+                {% render 'responsive-image', image: block.settings.video_pic, image_class: 'product__video' %}
+            {% endif %}
+
+            <div class="slide-content absolute">
+                <span class="slide-title jky-text-xl font-500">{{ block.settings.title | escape }}</span>
+                <a 
+                    class="slide-link jky-text-sm font-300 underlines-btn" 
+                    href="{{ block.settings.link }}"
+                >
+                    {{ 'general.action_text.view_more' | t }} 
+                    <jds-icon name="arrow-right" class="jackery-icon-arrow-right text-sm font-300"></jds-icon>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="slideshow-pagination"></div>
+    <div class="slideshow-navigation">
+        <div class="slideshow-navigation-button prev">
+            {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+        </div>
+        <div class="slideshow-navigation-button next">
+            {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+        </div>
+    </div>
+</div>

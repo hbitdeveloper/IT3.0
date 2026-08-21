@@ -1,0 +1,112 @@
+{%- doc -%}
+  字体加载
+{%- enddoc -%}
+
+{%- liquid
+  # 判断是否为日本商店主题
+  assign is_jky_theme_jp = false
+  if shop.id == 10015375438 or shop.id == 56124375224
+    assign is_jky_theme_jp = true
+  endif
+
+  # 判断是否为 5.0通用主题 还是 5.0欧洲主题
+  assign is_jky_theme_v5_common = false
+  assign is_jky_theme_v5_eu = false
+  if settings.jky_theme_version == 'v5'
+    assign is_jky_theme_v5_common = true
+  elsif settings.jky_theme_version == 'v5-eu'
+    assign is_jky_theme_v5_eu = true
+  endif
+
+  # 根据商店类型设置字体，默认Poppins，JP站用Noto Sans JP，5.0通用主题用Inter，5.0欧洲主题用Poppins
+  assign font_family = 'Poppins'
+  if is_jky_theme_jp
+    assign font_family = 'Noto Sans JP'
+  elsif is_jky_theme_v5_common
+    assign font_family = 'Inter'
+  elsif is_jky_theme_v5_eu
+    assign font_family = 'Poppins'
+  endif
+
+  # 日本站字体特殊处理
+  assign excluded_classes = '.un-ja-text, .iconfont, .jdgm-widget *, .shogun-icon, .shg-fa, .jackery-login__main *'
+-%}
+
+{%- capture font_face_css -%}
+	{% comment %} 字体图标 {% endcomment %}
+
+  {% unless settings.disable_iconfont | default: false %}
+    @font-face {
+      font-family: "iconfont";
+      src: url({{ 'iconfont.woff2' | asset_url }}) format('woff2'),
+           url({{ 'iconfont.woff' | asset_url }}) format('woff'),
+           url({{ 'iconfont.ttf' | asset_url }}) format('truetype');
+      font-display: swap;
+    }
+  {% endunless %}
+
+  {% comment %} font-family {% endcomment %}
+  {% if is_jky_theme_jp %}
+    {% comment %} JP站点 {% endcomment %}
+    @font-face {
+      font-family: '{{ font_family }}';
+      font-style: normal;
+      font-display: swap;
+    }
+
+    {% comment %} 日本站字体特殊处理 {% endcomment %}
+    html[lang=ja] body *:not({{ excluded_classes }}),
+    html[lang=ja] *:not({{ excluded_classes }}) .gradient .content-for-layout *:not({{ excluded_classes }}) {
+      font-family: '{{ font_family }}';
+    }
+
+    @media screen and (min-width: 1024px) {
+      html[lang=ja] body *:not({{ excluded_classes }}),
+      html[lang=ja] *:not({{ excluded_classes }}) .gradient .content-for-layout *:not({{ excluded_classes }}) {
+        line-height: var(--jp-custom-line-height, calc(100% + 10px));
+      }
+    }
+  {%  elsif is_jky_theme_v5_common %}
+    {% comment %} 5.0通用主题站点 {% endcomment %}
+    html {
+      font-family: '{{ font_family }}', sans-serif;
+      --font-name: '{{ font_family }}';
+    }
+    button {
+      font-family: '{{ font_family }}', sans-serif;
+    }
+
+    .v5-font-oxm {
+      --jds-custom-font-family: Oxanium, sans-serif;
+      --font-name: var(--jds-custom-font-family);
+      font-family: var(--jds-custom-font-family); 
+      text-transform: uppercase;
+    }
+    
+    @media screen and (min-width: 1024px) {
+      .lg\:v5-font-default {
+        --jds-custom-font-family: '{{ font_family }}', sans-serif;
+        --font-name: var(--jds-custom-font-family);
+        font-family: var(--jds-custom-font-family); 
+      }
+    }
+  {%- else -%}
+    {% comment %} 5.0欧洲主题站点或非JP站点 {% endcomment %}
+    html {
+      font-family: '{{ font_family }}';
+      --font-name: '{{ font_family }}';
+    }
+
+    button {
+      font-family: '{{ font_family }}';
+    }
+  {% endif %}
+{%- endcapture -%}
+
+<style>
+  :root{
+    {% comment %} 主题 品牌主色 {% endcomment %}
+    --jds-custom-color-primary: {{ settings.jky_theme_color_primary | default: '#FD5000' }};
+  }
+  {{- font_face_css | strip | strip_newlines | replace: '  ', ' ' | replace: '  ', ' '-}}
+</style>

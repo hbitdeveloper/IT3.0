@@ -1,0 +1,105 @@
+
+<div class="solar-text-img-grid">
+    {%- if section.settings.title != blank -%}
+      <div class="text-img-grid-title">{{ section.settings.title | escape }}</div>
+    {%- endif -%}
+    <div class="text-img-grid-content">
+        {% for block in section.blocks %}
+            <div class="text-img-grid-body">
+                <div class="text-img-grid-ghost">
+                    <div>
+                      <div class="grid-brand_title">{{ block.settings.brand_title | escape }}</div>
+                      <div class="grid-title">{{ block.settings.title | escape }}</div>
+                      <div class="grid-sub-title">{{ block.settings.sub_title | escape }}</div>
+                    </div>
+                    <div class="grid-description">
+                      {% assign brand_color = '<em style="color: var(--jds-color-primary);">' %}
+                      {{ block.settings.description | replace: '<em>', brand_color}}
+                    </div>
+                </div>
+                <div class="text-img-grid-img">
+                    {% render 'responsive-image',image:block.settings.pc_image,mimage: block.settings.mb_image, image_class:'grid-img' %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="{{ 'gsap.js' | asset_url }}" defer></script>
+<script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+
+<script>
+  (function (){
+    function initCesGrid() {
+      const boxTextBox = document.querySelector('.solar-text-img-grid');
+      if (!boxTextBox) return;
+      window.gsap.registerPlugin(window.ScrollTrigger);
+
+      const gridBodies = document.querySelectorAll('.text-img-grid-body');
+      gridBodies.forEach(function (item, index) {
+        item.classList.add('image-' + (index + 1));
+      });
+
+      function createTimeline(imageClass, xValue) {
+        return window.gsap.timeline({
+          scrollTrigger: {
+            trigger: `${imageClass} .text-img-grid-img`,
+            start: "top bottom",
+            end: "+=400",
+            scrub: 3,
+            id: "scrub"
+          }
+        }).to(`${imageClass} .text-img-grid-img`, {
+          duration: 2,
+          x: xValue
+        });
+      }
+      let screenWidth = window.innerWidth;
+
+      let solarGridWidth = boxTextBox.getBoundingClientRect().width;
+
+      const firstBody = document.querySelector('.text-img-grid-body');
+      if (!firstBody) return;
+      let bodyWidth = firstBody.getBoundingClientRect().width;
+      let totalBodiesWidth = bodyWidth * 3;
+      let result = (solarGridWidth - totalBodiesWidth) / 2;
+      let offsetWidth = bodyWidth + result;
+
+      if(screenWidth >= 1024){
+        gridBodies.forEach(function (_, index) {
+          const imageClass = `.image-${index + 1}`;
+          let largeXOffset = screenWidth > 1440 ? 690 : (690 / 1440 * screenWidth);
+          const xValue = (index % 2 === 0) ? largeXOffset : 0-largeXOffset;
+          createTimeline(imageClass, xValue);
+        });
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCesGrid);
+    } else {
+      initCesGrid();
+    }
+  })();
+</script>
+
+{% comment %} Text Img Grid 组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Text Img Grid",
+  "tag": "section",
+  "class": "text-img-grid",
+  "blocks": [{
+    "type": "slide",
+    "name": "Slide Card Image",
+    "settings": [
+      {"type": "text", "id": "brand_title", "label": "橙色标题", "default": "NEW PRODUCT LAUNCH！"},
+      {"type": "text", "id": "title", "label": "标题", "default": "Essential Backup"},
+      {"type": "text", "id": "sub_title", "label": "副标题", "default": "Essential Backup"},
+      {"type": "richtext", "id": "description", "label": "描述"},
+      {"type": "image_picker", "id": "pc_image", "label": "PC Image(670*540)"},
+      {"type": "image_picker", "id": "mb_image", "label": "MB Image"}
+    ]
+  }]
+}
+{% endschema %}

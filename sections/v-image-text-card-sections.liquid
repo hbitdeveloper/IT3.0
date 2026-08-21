@@ -1,0 +1,276 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+{% style %}
+.section-v-cards-sections{
+background: #f4f3ee;
+}
+.hidden-card {
+display: none !important;
+}
+.hidden-by-view-more {
+display: none !important;
+}
+.filter-hidden {
+display: none !important;
+}
+/* 下拉选项选中状态样式 */
+.option-selected {
+background-color: #F5F5F5 !important;
+}
+/* 确保悬停效果在选中状态下也能正常工作 */
+.option-item:hover {
+background-color: #F5F5F5;
+}
+.option-selected:hover {
+background-color: #EEEEEE;
+}
+{% endstyle %}
+{%- comment -%} 定义筛选选项数据 {%- endcomment -%}
+{%- assign all_text = 'csr.all' | t -%}
+{%- assign global_text = 'csr.global' | t -%}
+{%- assign filter_options = 'all:' | append: all_text | append: ',us:US,jp:JP,uk:UK,de:DE,global:' | append: global_text | split: ',' -%}
+
+<jky-v-image-text-cards class="block w-full section-padding relative" style="{{ style }}"
+                        {% if section.settings.belongs_to != blank %}belongs-to-target="{{section.settings.belongs_to | escape}}"{% endif %}
+                        view-more-text="{{ section.settings.view_more | default: 'View More' }}"
+                        view-less-text="{{ section.settings.view_less | default: 'View Less' }}">
+  {% comment %} 筛选器 {% endcomment %}
+  <div
+    class="{{ section.settings.page_width }} flex justify-end">
+    <div class="flex lg:justify-end">
+      <div class="relative inline-block">
+        {% comment %} 下拉框触发器 {% endcomment %}
+        <div id="country-filter-trigger"
+             class="lg:px-[1rem] lg:py-[0.75rem] lg:min-w-[4.5625rem] font-medium lg:max-w-[10.6875rem] border-#EAEAEA rounded-md py-[0.75rem] px-[1rem] mb-[0.5rem] bg-white text-gray-700 cursor-pointer flex items-center justify-between">
+          <span id="selected-country"
+                class="lg:mr-[0.5rem] mr-[0.5rem] rounded-md">{{ 'csr.all' | t }}</span>
+          <jds-icon id="dropdown-arrow" name="arrow-down"
+                    class="font-medium font-[#1A1A1A] transition-transform duration-200"></jds-icon>
+        </div>
+        {% comment %} 下拉选项列表 {% endcomment %}
+        <ul id="country-filter-options"
+            class="absolute lg:min-w-[6rem] min-w-[5.5rem] lg:max-w-[10.6875rem] max-w-[11.0625rem] top-full lg:p-[0.25rem] p-[0.25rem] right-[0rem] lg:right-0 bg-white border border-gray-300 lg:rounded-[0.25rem] rounded-[0.25rem] shadow-lg z-10 hidden">
+          {%- for option in filter_options -%}
+            {%- assign option_parts = option | split: ':' -%}
+            {%- assign option_value = option_parts[0] -%}
+            {%- assign option_text = option_parts[1] -%}
+            <li
+              class="rounded-sm lg:p-[0.75rem] p-[0.75rem] hover:bg-[#F5F5F5] cursor-pointer text-#1A1A1A flex items-center justify-between option-item"
+              data-value="{{ option_value }}"
+              role="option"
+              aria-selected="false">
+              <span>{{ option_text }}</span>
+              <jds-icon name="check"
+                        class="text-[var(--jds-color-primary)] hidden check-icon lg:ml-[0.75rem] ml-[1rem]"></jds-icon>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div
+    {% if section.settings.anchor != blank %}anchor-target="{{ section.settings.anchor | escape }}" {% endif %}
+    class="blocks-tabs-sections"
+    style="background: {{ section.settings.bg_color | default: 'transparent' }};">
+    {% comment %} 卡片容器 {% endcomment %}
+    <div class="{{ section.settings.page_width }} lg:gap-[1.25rem] gap-[0.5rem] flex justify-center flex-wrap" id="cards-container">
+      {% comment %} 显示前3个卡片 {% endcomment %}
+      {% for block in section.blocks limit: 3 %}
+        <div class="card-item lg:w-fit w-full">
+          {% render block %}
+        </div>
+      {% endfor %}
+
+      {% comment %} 隐藏的卡片（超过3个的部分） {% endcomment %}
+      {% if section.blocks.size > 3 %}
+        {% for block in section.blocks offset: 3 %}
+          <div class="card-item lg:w-fit w-full hidden-card">
+            {% render block %}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    {% comment %} 缺省内容 {% endcomment %}
+    {% assign no_things_img = 'csr.no_things_img' | t %}
+    {% assign no_things_text = 'csr.no_things_text' | t %}
+    <div id="empty-state" class="{{ section.settings.page_width }} flex flex-col items-center justify-center py-[3rem] hidden" data-img-url="{{ no_things_img }}" data-text="{{ no_things_text }}">
+      <div id="empty-state-image-container" class="lg:mb-[0.75rem] mb-[1.25rem]">
+      </div>
+
+      <div id="empty-state-text-container">
+      </div>
+    </div>
+
+    {% comment %} View More/Less 按钮 {% endcomment %}
+    {% if section.blocks.size > 3 %}
+      <div class="flex justify-center mt-[2rem]">
+        <div id="view-more-btn"
+             class="flex cursor-pointer text-[var(--jds-color-primary)] font-medium duration-200 items-center gap-[0.5rem]">
+          <span id="btn-text">{{ section.settings.view_more | default: 'View More' }}</span>
+          <jds-icon id="view-more-arrow" name="arrow-down"
+                    class="text-[var(--jds-color-primary)] transition-transform duration-200"></jds-icon>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</jky-v-image-text-cards>
+
+<script defer src="{{ 'jky-v-image-text-cards.js' | asset_url }}"></script>
+{% schema %}
+{
+  "name": "V-Cards组件",
+  "class": "section-v-cards-sections relative z-10",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示"
+    },
+    {
+      "type": "header",
+      "content": "卡片内容设置"
+    },
+    { "type": "checkbox", "id": "open_in_new_tab", "label": "是否新开标签页", "default": false },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container",
+      "label": "组件宽度"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "header",
+      "content": "View More 按钮设置"
+    },
+    {
+      "type": "text",
+      "id": "view_more",
+      "label": "View More 按钮文案",
+      "default": "View More"
+    },
+    {
+      "type": "text",
+      "id": "view_less",
+      "label": "View Less 按钮文案",
+      "default": "View Less"
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    }
+  ],
+  "blocks": [
+    {
+      "type": "_v-cards-blocks"
+    }
+  ],
+  "presets": [
+    {
+      "name": "卡片",
+      "blocks": [
+        {
+          "type": "_v-cards-blocks",
+          "settings": {
+            "style_type": "custom",
+            "bg_color": "",
+            "radius_1": 12,
+            "radius_2": 12,
+            "radius_3": 12,
+            "radius_4": 12,
+            "padding_top": 20,
+            "padding_bottom": 24,
+            "padding_left": 24,
+            "padding_right": 24,
+            "image_poster": "shopify://shop_images/972x650.png",
+            "pc_height": 282,
+            "mb_height": 456,
+            "country_type": "us",
+            "heading": "<p>我是PC卡片的主标题</p>",
+            "mb_heading": "<p>我是MB卡片的主标题</p>",
+            "text_color": "#333333",
+            "active_color": "#fd5000",
+            "heading_des": "<p>我是PC卡片的描述</p>",
+            "mb_heading_des": "<p>我是MB卡片的描述</p>",
+            "text_color_des": "#333333",
+            "active_color_des": "#fd5000",
+            "heading_time": "<p>我是PC卡片的时间</p>",
+            "mb_heading_time": "<p>我是MB卡片的时间</p>",
+            "text_color_time": "#333333",
+            "active_color_time": "#fd5000",
+            "heading_source": "<p>我是PC卡片的出处</p>",
+            "mb_heading_source": "<p>我是MB卡片的出处</p>",
+            "text_color_source": "#333333",
+            "active_color_source": "#fd5000",
+            "button_text": "VIEW MORE",
+            "button_url": ""
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

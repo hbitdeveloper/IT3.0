@@ -1,0 +1,124 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign current_quantity_min = current_variant.quantity_rule.min | default: 1
+  assign current_quantity_step = current_variant.quantity_rule.increment | default: 1
+  assign current_quantity_max = current_variant.quantity_rule.max
+  assign check_against_inventory = true
+
+  if current_variant.inventory_management != 'shopify' or current_variant.inventory_policy == 'continue'
+    assign check_against_inventory = false
+  endif
+
+  if check_against_inventory and current_variant.inventory_quantity != null
+    if current_quantity_max != null
+      assign current_quantity_max = current_quantity_max | at_most: current_variant.inventory_quantity
+    else
+      assign current_quantity_max = current_variant.inventory_quantity
+    endif
+  elsif current_quantity_max == null
+    assign current_quantity_max = 1000000
+  endif
+-%}
+
+<div {{ block.shopify_attributes }} class="v5-app-quantity w-full section-padding" style="{{ style }}">
+  {% style %}
+    .v5-app-quantity quantity-input {
+      max-width: fit-content;
+      border-color: #EEEEEE;
+      border-radius: 0;
+    }
+    .v5-app-quantity quantity-input button {
+      width: 40px;
+      height: 40px;
+      background-color: #F5F5F5;
+      margin: 0 !important;
+      cursor: pointer;
+    }
+    .v5-app-quantity quantity-input button:disabled {
+      background-color: #F8F8F8;
+      cursor: not-allowed;
+    }
+    .v5-app-quantity quantity-input .quantity__input {
+      width: 48px;
+      height: 40px;
+      padding: 2px;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    .v5-app-quantity quantity-input button svg {
+      width: 16px;
+      height: 16px;
+      color: #333;
+    }
+    .v5-app-quantity quantity-input button:disabled svg {
+      color: #999;
+    }
+
+    .v5-app-quantity quantity-input .quantity__button:hover {
+      background-color: #F5F5F5;
+      color: #333;
+      fill: #333;
+    }
+    .v5-app-quantity quantity-input .quantity__button:focus {
+      background-color: #F5F5F5;
+    }
+
+    @media screen and (max-width: 1023.98px) {
+      .v5-app-quantity quantity-input.quantity {
+        height: 9.6vw;
+      }
+      .v5-app-quantity quantity-input button {
+        width: 9.6vw;
+        height: 9.6vw;
+      }
+      .v5-app-quantity quantity-input .quantity__input {
+        width: 11.7333333333333vw;
+        height: 9.6vw;
+        font-size: 4.26666666666667vw;
+      }
+    }
+  {% endstyle %}
+
+  <div class="w-full flex items-center justify-between">
+    <label class="flex-1 font-semibold text-[#242F20] text-xl lg:text-2xl">{{ block.settings.product_quantity_label | escape }}</label>
+    <quantity-input data-v5-app-pdp-quantity class="quantity" data-url="{{ product.url }}">
+      <button
+        class="quantity__button no-js-hidden"
+        name="minus"
+        type="button"
+        disabled
+      >
+        <span class="hidden">{{ 'products.product.quantity.decrease' | t: product: product.title | escape }}</span>
+        {% render 'icon-minus' %}
+      </button>
+      <input
+        class="quantity__input"
+        type="number"
+        name="quantity"
+        data-min="{{ current_quantity_min }}"
+        min="{{ current_quantity_min }}"
+        data-max="{{ current_quantity_max }}"
+        max="{{ current_quantity_max }}"
+        step="{{ current_quantity_step }}"
+        value="{{ current_quantity_min }}"
+      />
+      <button
+        class="quantity__button no-js-hidden"
+        name="plus"
+        type="button"
+        {% if current_quantity_max <= current_quantity_min %}
+          disabled
+        {% endif %}
+      >
+        <span class="hidden">{{ 'products.product.quantity.increase' | t: product: product.title | escape }}</span>
+        {% render 'icon-plus' %}
+      </button
+      >
+    </quantity-input>
+  </div>
+  <div class="add_cart_error_wrapper w-full text-[#FE3A31] text-right mt-2 text-sm lg:text-lg"></div>
+</div>

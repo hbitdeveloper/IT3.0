@@ -1,0 +1,89 @@
+{% assign FAQ = section.blocks | where: 'type', "FAQ" %}
+
+<style>
+.accordion {width: 100%;padding-bottom: 2.6042vw;}
+.accordion .jackery-icon-arrowdown {transition: all 0.3s;}
+.accordion ul li {display: flex; flex-flow: column; border-bottom: var(--border-grey); margin-bottom: 2.6042vw;}
+.accordion ul li:last-of-type {border-bottom: 0;margin-bottom: 0;}
+.accordion ul li h4 {font-weight: 500; display: flex; align-items: center; justify-content: space-between;}
+.accordion ul li input {opacity: 0; display: none;}
+.accordion label {margin-bottom: var(--gap); cursor: pointer;}
+.accordion .a_content {max-height: 0; padding-bottom: 0; overflow-y: hidden; transition: all 0.3s;}
+.accordion .a_content p {font-size: 18px;}
+
+.accordion ul li input:checked ~ label .jackery-icon-arrowdown {transform: rotate(180deg);}
+.accordion ul li input:checked ~ .a_content {max-height: 1000px; padding-bottom: 2.6042vw;}
+
+.faq .accordion {max-width: 800px; margin: 0 auto;}
+
+.accessories-faq-wrap h2{
+  font-weight: 600;
+  padding-top: 120px;
+  padding-bottom: 50px;
+}
+
+@media only screen and (max-width: 768px) {
+  .accordion .a_content p {font-size: 14px;}
+  .accessories-faq-wrap{
+    width: 94.66666666666667vw;
+    margin: -26.666666666666667vw auto 0;
+    background: #ffffff;
+    border-radius: 1.6vw;
+    padding: 8vw 5.333333333333333vw;
+    margin-bottom: 11.466666666666667vw;
+    box-shadow: 0px 6px 20px 0px rgba(85, 85, 85, 0.2);
+  }
+  .accessories-faq-wrap h2{
+    font-size: 6vw;
+    padding: 4vw 0 6vw;
+  }
+}
+</style>
+
+<div class="accessories-faq-wrap" style="background-color: {{ section.settings.background_color }}">
+  <h2 class="text-center jky-text-2xl">{{ section.settings.title | newline_to_br}}</h2>
+
+  {% if FAQ.size > 0 %}
+    <div class="accordion tab-content sg on">
+      <ul>
+        {% for block in FAQ %}
+          <li>
+            <input type="checkbox" id="{{ block.type }}_{{ forloop.index0 }}" {%if forloop.index0 == 0%}checked{%endif%}>
+            <label for="{{ block.type }}_{{ forloop.index0 }}">
+              <h4 class="jky-text-lg">{{ block.settings.title | newline_to_br}}
+                <jds-icon name="arrow-down" class="jackery-icon-arrowdown"></jds-icon>
+              </h4>
+            </label>
+            <div class="a_content">{{ block.settings.content | newline_to_br}}</div>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+
+
+{% schema %}
+{
+  "name": "Accessories FAQ",
+  "class": "manuals faq",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section Background Color",
+      "default": "#FFFFFF"
+    },
+    {"type": "text", "id": "title", "label": "FAQ Title", "default": "FAQ ABOUT ACCESSORIES"}
+  ],
+  "blocks": [
+    {
+      "type": "FAQ", "name": "Page Accessories FAQ", "settings": [
+        {"type": "text", "id": "title", "label": "FAQ title", "default": "title"},
+        {"type": "richtext", "id": "content", "label": "FAQ content", "default": "<p>content</p>"}
+      ]
+    }
+  ]
+}
+{% endschema %}

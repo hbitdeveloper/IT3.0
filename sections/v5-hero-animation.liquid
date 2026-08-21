@@ -1,0 +1,154 @@
+{% style %}
+  .hero-animation-box{
+    max-width: 1440px;
+  }
+  .hero-animation-info{
+    padding-top: 1.75rem
+  }
+  .v5-hero-animation-container {
+    gap: 1rem;
+  }
+  .hero-animation-desc{
+    font-size: 1.3125rem;
+    line-height: 1.3;
+  }
+  .hero-animation-sub-desc{
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+  @media (min-width: 768px) {
+    .hero-animation-sections {
+      height: 690px;
+    }
+    .hero-animation-info{
+      padding-top: 5.125rem
+    }
+    /* 动画样式 */
+    .v5-hero-animation-container {
+      gap: 4.5rem;
+      opacity: 0;
+      transform: translateY(200px);
+      transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+    }
+    .v5-hero-animation-container.animate {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hero-animation-desc{
+      font-size: 2.8125rem;
+    }
+    .hero-animation-sub-desc{
+      font-size: 1.375rem;
+    }
+  }
+  @media (max-width: 768.98px) {
+    .v5-hero-animation-container {
+      padding: 1.8125rem 0.71875rem 0;
+    }
+  }
+{% endstyle %}
+
+<div id="hero-animation-{{ section.id }}" class="hero-animation-sections w-full h-full">
+  <div class="hero-animation-box relative mx-auto w-full h-full"> 
+    {% render 'diff-end-img', 
+      pc_img: section.settings.bg_image, 
+      mb_img: section.settings.bg_mb_image, 
+      class: 'w-full h-full object-cover object-center block',
+      pc_img_width: 1440,
+      mb_img_width: 750 
+    %}
+    <div class="hero-animation-info absolute left-0 top-0 w-full h-full">
+      <div class="v5-hero-animation-container flex justify-center w-full">   
+        {% for block in section.blocks %}
+          {% assign b = block.settings %}
+          <div class="text-center text-[#fff]">
+              <p class="hero-animation-desc font-bold">{{ b.heading_tit }}</p>
+              <p class="hero-animation-sub-desc font-normal">{{ b.heading_desc | replace: '\n', '<br>' | strip }}</p>
+          </div> 
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const sectionId = 'hero-animation-{{ section.id }}';
+    const section = document.getElementById(sectionId);
+    const container = section.querySelector('.v5-hero-animation-container');
+
+    
+    function checkScroll() {
+      const sectionTop = section.getBoundingClientRect().top;
+
+      const sectionHeight = section.getBoundingClientRect().height;
+
+      // 向下滑动触发点：当section进入视口超过二分之一
+      const enterTriggerPoint = window.innerHeight - sectionHeight / 2;
+      console.log('enterTriggerPoint', enterTriggerPoint);
+
+      if (sectionTop < enterTriggerPoint) {
+        container.classList.add('animate');
+        // 移除滚动事件监听器，避免重复触发
+        window.removeEventListener('scroll', checkScroll);
+      }
+    }
+    window.addEventListener('scroll', checkScroll);
+    // 初始检查，确保页面加载时如果已经在section位置，也能触发动画
+    checkScroll();
+  });
+</script>
+
+{% schema %}
+{
+	"name": "v5-Hero-图文动效",
+	"tag": "section",
+	"settings": [
+		{
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "PC背景图片",
+      "info": "建议尺寸：1440 * 690"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_mb_image",
+      "label": "MB背景图片",
+      "info": "建议尺寸：750 * 750"
+
+    }
+	],
+  "blocks": [
+		{
+			"type": "hero-animation-text",
+			"name": "核心卖点",
+			"settings": [				
+        {
+          "type": "text",
+          "id": "heading_tit",
+          "label": "标题",
+          "default": "1.766 €", 
+        },
+        {
+          "type": "text",
+          "id": "heading_desc",
+          "label": "描述",
+          "default": "Jährliche Ersparnis", 
+          "info": "需要换行，请使用 \\n "
+        },
+			]
+		}
+	],
+	"presets": [
+    {
+      "name": "v5-Hero-图文动效",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "hero-animation-text"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

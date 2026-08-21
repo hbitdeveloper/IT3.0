@@ -1,0 +1,203 @@
+{% comment %} 订阅 {% endcomment %}
+<style>
+  .index-subscipt-banner{
+    background-image: url({{ subscript.settings.pc_image | image_url }});
+  }
+
+  html[lang="ja"] .index-subscipt-banner .jky-checkbox-input{
+    padding-top: 0.25rem;
+  }
+  
+  @media screen and (max-width: 1024px) {
+      .index-subscipt-banner{
+          background-image: url({{ subscript.settings.mb_image | image_url }});
+      }
+      
+      html[lang="ja"] .index-subscipt-banner .jky-checkbox-input{
+        padding-top: 0.3rem;
+      }
+  }
+  
+</style>
+<link rel="preload" as="image" href="{{ subscript.settings.pc_image | image_url }}">
+<link rel="preload" as="image" href="{{ subscript.settings.mb_image | image_url }}">
+<img src="{{ subscript.settings.pc_image | image_url }}" style="display:none;" width="1" height="1" alt="预加载PC图">
+<img src="{{ subscript.settings.mb_image | image_url }}" style="display:none;" width="1" height="1" alt="预加载移动图">
+
+<div class="index-subscipt-banner">
+  <div class="banner-big-box {{subscript.settings.pc_position}}" data-direction="{{subscript.settings.pc_position}}">
+    {% comment %} 订阅部分 {% endcomment %}
+      <div class="banner-subscride-box">
+        <div class="title">{{ subscript.settings.subcribe_title }}</div>
+        <div class="sub-title">{{ subscript.settings.subcribe_sub_title }}</div>
+        <div class="subscribe-main">
+          <jky-form
+            onsubmitcall="(e)=>toSubGA(e)"
+            jky-form-id="footer-email-subscribe"
+            class="subscribe-email footer-subscribe-box"
+          >
+            <form data-action="/osconsumerapi/v1/notice/subscribe">
+              <div class="form-container newbee-form newbee-form_{{section.id}}">
+                {% comment %} 邮箱 {% endcomment %}
+                <div class="form-row flex  full">
+                  <div class="form-item required" data-field="input">
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="{{'newsletter.email_placeholder' | t}}"
+                      data-error="{{'newsletter.email_empty_info' | t}}"
+                      data-value="email"
+                      data-reg="email"
+                      data-regerror="{{'newsletter.email_error_info' | t}}"
+                    >
+                    <div class="required-box">
+                      <div class="required-star">*</div>
+                    </div>
+                  </div>
+                </div>
+
+                {% comment %} 电话 {% endcomment %}
+                <div class="form-row flex full">
+                  <div
+                    class="form-item"
+                    data-field="phone_input"
+                  >
+                    {% render "jky-formField-phoneSelect", id: section.id, required: true, error_text: {{'newsletter.phone_error_info' | t}}, value: 'phone' %}
+                  </div>
+                </div>
+                {% comment %} 隐私协议 {% endcomment %}
+                <div class="form-row privacy form-row_check_box flex full">
+                  <div
+                    class="form-item required"
+                    data-field="check_box"
+                    data-error="{{'newsletter.policy_empty_info' | t}}"
+                  >
+                    {% render 'jky-formField-checkbox',
+                      key: subscript.settings.privacy_policy,
+                      value: 'agree_recevie'
+                    %}
+                  </div>
+                </div>
+
+                <div style="display: none;" class="form-row flex  full">
+                  <div class="form-item form-item_const" data-field="input">
+                    <input
+                      type="text"
+                      id="tags"
+                      name="tags"
+                      data-error=""
+                      data-value="tags"
+                      data-reg=""
+                      value="Banner-Subscribe"
+                      data-regerror=""
+                    >
+                  </div>
+                </div>
+
+                <div style="display: none;" class="form-row flex  full">
+                  <div class="form-item form-item_const" data-field="input">
+                    <input
+                      type="text"
+                      id="componentName"
+                      name="componentName"
+                      data-value="componentName"
+                      value="订阅banner"
+                    >
+                  </div>
+                </div>
+    
+                <div style="display: none;" class="form-row flex full page-url">
+                  <div class="form-item form-item_const" data-field="input">
+                    <input
+                      type="text"
+                      id="pageUrl"
+                      name="pageUrl"
+                      data-value="pageUrl"
+                      value=""
+                    >
+                  </div>
+                </div>
+
+                <div class="newbee-form_submit flex full" data-loading="{{subscript.settings.loading_btn}}">
+                  <button class="form_sub_btn z-button-middle" data-success="{{'newsletter.success' | t}}">
+                    {{ subscript.settings.subcribe_btn }}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </jky-form>
+        </div>
+      </div>
+
+    {% comment %} 组件标题 {% endcomment %}
+    <div class="title-box">
+      {% assign titleColor = '<em style="color: ' | append: subscript.settings.title_main_color | append: '">' %}
+      <div class="section-title" data-title="{{subscript.settings.title_main | strip_html}}">
+        {{
+          subscript.settings.title_main
+          | replace: '<em>', titleColor
+          | replace: '<p>', '<span>'
+          | replace: '</p>', '</span><br>'
+        }}
+      </div>
+      {% assign subTitleColor = '<em style="color: ' | append: subscript.settings.sub_title_main_color | append: '">' %}
+      <div class="section-sub">
+        {{
+          subscript.settings.sub_title
+          | replace: '<em>', subTitleColor
+          | replace: '<p>', '<span>'
+          | replace: '</p>', '</span><br>'
+        }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script defer>
+  (function () {
+    function onReady(fn) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+        return;
+      }
+      fn();
+    }
+
+    function ensureLoadingStyle(loadingBtnText) {
+      var styleId = 'index-subscript-banner-loading-style';
+      var styleEl = document.getElementById(styleId);
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = '.banner-subscride-box button.loading::after { content: ' + JSON.stringify(loadingBtnText) + '; }';
+    }
+
+    onReady(function () {
+      document.querySelectorAll('.banner-subscride-box .page-url input').forEach(function (input) {
+        input.value = window.location.href;
+      });
+
+      var loadingHolder = document.querySelector('.banner-subscride-box .newbee-form_submit');
+      var loadingBtn = (loadingHolder && loadingHolder.getAttribute('data-loading')) || 'LOADING';
+      ensureLoadingStyle(loadingBtn);
+    });
+  })();
+  function toSubGA(data) {
+    if (data.response && data.response.code === 200) {
+      const btnEl = document.querySelector('.index-subscipt-banner .newbee-form_submit button');
+      const msg = (btnEl && btnEl.getAttribute('data-success')) || data.response.message;
+      pushSuccessMessage(msg);
+      const title = document.querySelector('.index-subscipt-banner .section-title')?.getAttribute('data-title') || 'single_pic';
+      const buttonName = btnEl && btnEl.textContent ? btnEl.textContent : '';
+      let params = {
+        module: title,
+        type: 'subscribe_ban',
+        button_name: buttonName,
+      };
+      gaPushDataLayer('home_page_banner4.0', params);
+    }
+  }
+</script>

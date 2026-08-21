@@ -1,0 +1,100 @@
+{% comment %}
+    产品详情页 - 添加日站会员价
+
+    Accepts: product
+    Usage:
+    {% render 'app-membership-price-jp' %}
+{% endcomment %}
+
+{% comment %} 全局控制启用：open_membership_price {% endcomment %}
+{%- if settings.open_membership_price == true -%}
+  <style>
+    #app-membership-price-jp {
+      width: 100%;
+      max-width: 91.4666666666667vw;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid {{ block.settings.expand_border_color | default: '#CCC' }};
+    }
+    #app-membership-price-jp.active {
+      border-color: {{ block.settings.collapse_border_color | default: '#FE7705' }};
+      outline: 1px solid {{ block.settings.collapse_border_color | default: '#FE7705' }};
+    }
+    #app-membership-price-jp .title-wrap em {
+      color: {{ block.settings.expand_text_highlight_color | default: '#FF7707' }};
+    }
+    #app-membership-price-jp .title-wrap a {
+      color: #0a59f7;
+    }
+    #app-membership-price-jp .effective-date-wrap em {
+      color: {{ block.settings.effective_date_highlight_color | default: '#FD5000' }};
+    }
+    #app-membership-price-jp [data-member-price-copy].btn--loading::after {
+      width: 1rem;
+      height: 1rem;
+      left: calc(50% - 0.5rem);
+      top: calc(50% - 0.5rem);
+      border-width: 0.125rem;
+      border-color: {{ block.settings.get_and_use_btn_text_color | default: '#FD5000' }};
+      border-top-color: transparent;
+    }
+    .product-coupon-new-wrap[data-show="true"] + .jp-product-membership-price-wrap[data-show="true"] {
+      border-top: 1px solid rgba(0,0,0,0.15); /* 边框颜色 */
+    }
+  </style>
+  {% assign current_variant = product.selected_or_first_available_variant %}
+
+  <div class="w-full jp-product-membership-price-wrap hidden {{ class }}" style="display:none;" {{ block.shopify_attributes }}>
+    <div
+      id="app-membership-price-jp"
+      class="w-full flex flex-col rounded overflow-hidden"
+      data-display-text="{{ product.metafields.my_fields.member_price_display_text }}"
+      data-spu-id='{{ product.id }}'
+      data-spu-title="{{ product.title }}"
+      data-variant-id="{{ current_variant.id }}"
+      data-variant-title="{{ current_variant.title }}"
+    ></div>
+
+    {% comment %} 多语言配置项 {% endcomment %}
+    <script type="application/json" id="membership-price-jp-json">
+      {
+        "get_code_success": {{ block.settings.get_code_success | default: 'このオファーをコピーしてご利用ください。' | json }},
+        "get_code_success_and_copy": {{ block.settings.get_code_success_and_copy | default: 'クーポンが取得され、コードのコピーに成功しました。チェックアウトに進んでご利用ください。' | json }},
+        "copy_code_success": {{ block.settings.copy_code_success | default: 'コードのコピーに成功しました。チェックアウト時にコードを貼り付けてご利用ください。' | json }},
+        "expand_border_color": "{{ block.settings.expand_border_color | default: '#CCC' }}",
+        "expand_bg_color": "{{ block.settings.expand_bg_color | default: '#FFFFFF' }}",
+        "expand_text": {{ block.settings.expand_text | json | replace: '\u003c', '<' | replace: '\u003e', '>' | replace: '\/', '/' }},
+        "expand_text_color": "{{ block.settings.expand_text_color | default: '#1A1A1A' }}",
+        "expand_text_highlight_color": "{{ block.settings.expand_text_highlight_color | default: '#FF7707' }}",
+        "login_btn_text": {{ block.settings.login_btn_text | default: '会員登録/ログイン' | json }},
+        "login_btn_color": "{{ block.settings.login_btn_color | default: '#FFFFFF' }}",
+        "login_btn_bg_color": "{{ block.settings.login_btn_bg_color | default: '#FF7707' }}",
+        "discount_code_text": {{ block.settings.discount_code_text | default: 'コード' | json }},
+        "discount_code_text_color": "{{ block.settings.discount_code_text_color | default: '#FD5000' }}",
+        "get_and_use_btn_text": {{ block.settings.get_and_use_btn_text | default: 'コピーして使用' | json }},
+        "get_and_use_btn_text_color": "{{ block.settings.get_and_use_btn_text_color | default: '#FD5000' }}",
+        "get_and_use_btn_bg_color": "{{ block.settings.get_and_use_btn_bg_color | default: '#FFEEE6' }}",
+        "collapse_border_color": "{{ block.settings.collapse_border_color | default: '#FE7705' }}",
+        "collapse_text_color": "{{ block.settings.collapse_text_color | default: '#1A1A1A' }}",
+        "collapse_bg_color": "{{ block.settings.collapse_bg_color | default: '#FBF2E8' }}",
+        "detail_title_text": {{ block.settings.detail_title_text | default: '割引明細' | json }},
+        "price_text": {{ block.settings.price_text | default: '通常価格' | json }},
+        "discount_text": {{ block.settings.discount_text | default: '会員限定割引額' | json }},
+        "membership_price_text": {{ block.settings.membership_price_text | default: '会員限定特別価格' | json }},
+        "valid_time_text": {{ block.settings.valid_time_text | default: '有効期間' | json }},
+        "effective_date_text": {{ block.settings.effective_date_text | default: '受領および配布後 $start 日後に有効となり、$day 日間有効です。' | json | replace: '\u003c', '<' | replace: '\u003e', '>' | replace: '\/', '/' }},
+        "effective_date_specific_text": {{ block.settings.effective_date_specific_text | default: '受領および配布後当日から有効となり、$day 日間有効です。' | json | replace: '\u003c', '<' | replace: '\u003e', '>' | replace: '\/', '/' }},
+        "effective_date_highlight_color": "{{ block.settings.effective_date_highlight_color | default: '#FD5000' }}"
+      }
+    </script>
+
+    {% comment %} 单变体 或 多变体的 元字段 {% endcomment %}
+    {%- if product.has_only_default_variant == true -%}
+      {%- render "product-variants-json", variant: product.selected_or_first_available_variant, id: "membership-price-jp-variant", show_discount_price: false -%}
+    {%- else -%}
+      {%- render "product-variants-json", variants: product.variants, id: "membership-price-jp-variants", show_discount_price: false -%}
+    {%- endif -%}
+
+    <script src="{{ 'plugin-app-membership-price-jp.min.js' | asset_url }}" defer></script>
+  </div>
+{% endif %}

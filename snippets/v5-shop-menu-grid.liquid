@@ -1,0 +1,237 @@
+{% capture arrow_svg %}
+    <svg 
+        class="w-4 h-4 transition-medium-ease" viewBox="0 0 1024 1024" width="10" height="10"><path d="M604.17061386 93.0426665l402.19903979 402.1990398-402.19903979 410.57818814L512 813.64928061l259.66975621-259.75354784H9.2511995V428.208533h754.03940987L512 176.83413201l92.17061386-83.79146551z" fill="rgba(0,0,0,0.6)"></path>
+    </svg>
+{% endcapture %}
+
+{%- liquid
+  assign menu_title = settings.menu_heading | default: settings.menu_list.title
+  assign menu_title_handle_key = menu_title | handleize | url_encode | strip | replace: ' ', ''
+  assign outer_key = menu_title_handle_key | append: '-' | append: levelid
+-%}
+
+{%- if has_submenu -%}
+    <div 
+        data-key="{{outer_key}}"
+        class="v5-shop-menu-right-content__item hidden {% if for_loop.first %}active{% endif %}" 
+        anchor-shoptarget="{{outer_key}}"
+    >
+        <div style="--index: 1;" class="v5-right-content__header flex items-center h-8 gap-x-6 mb-6 v5-menu-animate">
+            <span class="color-text-main line-clamp-1 font-semibold text-2xl">{{ link.title }}</span>
+            <div class="v5-right-content__header-actions flex h-full items-center gap-x-6">
+                {%- if section.settings.text_shop_all != blank -%}
+                    <a 
+                        href="{{ link.url }}" 
+                        class="color-text-info flex gap-x-2 h-full items-center transition-medium-ease"
+                        data-ga-event="5.0_top_nav_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="Shop Menu"
+                        data-ga-params-position="{{ link.title | escape }}"
+                        data-ga-params-button_name="{{ section.settings.text_shop_all | escape }}"
+                        data-ga-params-link="{{ link.url }}"
+                    >
+                        <span class="font-semibold text-base">{{ section.settings.text_shop_all }}</span>
+                        {{ arrow_svg }} 
+                    </a>
+                {%- endif -%}
+            </div>
+        </div>
+
+        {%- for childlink in link.links -%}
+            {%- liquid
+                if has_lv2
+                    assign level2_id = levelid | append: '-l3-' | append: forloop.index
+                else
+                    assign level2_id = levelid | append: '-l2-' | append: forloop.index
+                endif
+
+                assign childlink_handle = childlink.url | split: '/' | last
+                assign is_collection_child = false
+                if childlink.url contains '/collections/' and childlink_handle != 'all'
+                    assign is_collection_child = true
+                endif
+
+                assign child_key = menu_title_handle_key | append: '-' | append: level2_id
+            -%}
+
+            {%- if is_collection_child -%}
+                <div 
+                    data-key="{{ child_key }}"
+                    anchor-shoptarget="{{ child_key }}"
+                    class="v5-shop-menu-right-content--sub mb-6"
+                >
+                    <div style="--index: {{ forloop.index }};" class="v5-menu-animate v5-content--sub_header flex items-center py-6 gap-x-4">
+                        <span class="color-text-main line-clamp-1 font-semibold text-xl">{{ childlink.title }}</span>
+                        {%- if childlink.object.metafields.custom.v5_shop_menu -%}
+                            <span class="color-text-main-secondery v5-content--sub_header--sub line-clamp-1 font-normal text-base">{{ childlink.object.metafields.custom.v5_shop_menu }}</span>
+                        {%- endif -%}
+                    </div> 
+
+                    {%-liquid
+                        assign current_collection = childlink.object
+                        assign product_size = current_collection.products.size
+
+                        assign show_allblock = false
+                        assign default_nums_allblock = 5
+    
+                        if settings.shop_collection_default == '2'
+                            assign default_nums_allblock = 10
+                        endif
+
+                        assign collection_limit = settings.shop_collection_max
+                        if settings.shop_collection_max > product_size
+                            assign collection_limit = product_size
+                        endif
+
+                        if default_nums_allblock < product_size and default_nums_allblock < settings.shop_collection_max
+                            assign show_allblock = true
+                        endif
+
+                        assign max_rows = settings.shop_collection_default
+                        if settings.shop_collection_max == 5 or product_size <= 5
+                            assign max_rows = 1
+                        endif
+                    -%}
+                    <div class="grid v5-product-card-grid-pc" style="--max-rows: {{ max_rows }};">
+                        {%- assign card_limit = settings.shop_collection_max -%}
+                        {%- assign card_count = 0 -%}
+                        {%- for product in childlink.object.products limit: collection_limit -%}
+                            {%- comment -%}SKU 维度展示：对齐 header-new 的 header_show_sku 开关与过滤规则（available + hide_in_header）{%- endcomment -%}
+                            {%- if card_count >= card_limit -%}{%- break -%}{%- endif -%}
+                            {%- if product.metafields.custom.header_show_sku == true and product.has_only_default_variant != true -%}
+                                {%- for variant in product.variants -%}
+                                    {%- if card_count >= card_limit -%}{%- break -%}{%- endif -%}
+                                    {%- if variant.available and variant.metafields.custom.hide_in_header != true -%}
+                                        {%- assign card_count = card_count | plus: 1 -%}
+                                        {%- assign card_index = card_count -%}
+                                        {%- render 'v5-shop-menu-card',
+                                            product: product,
+                                            variant: variant,
+                                            index: card_index,
+                                            ga_position: link.title,
+                                            ga_title: childlink.title,
+                                            img_class: 'w-full h-full object-contain opacity-0 transition-slow-ease',
+                                            tags_extra_class: 'pb-1'
+                                        -%}
+                                    {%- endif -%}
+                                {%- endfor -%}
+                            {%- else -%}
+                                {%- assign card_count = card_count | plus: 1 -%}
+                                {%- assign card_index = card_count -%}
+                                {%- render 'v5-shop-menu-card',
+                                    product: product,
+                                    index: card_index,
+                                    ga_position: link.title,
+                                    ga_title: childlink.title,
+                                    img_class: 'w-full h-full object-contain opacity-0 transition-slow-ease',
+                                    tags_extra_class: 'pb-1'
+                                -%}
+                            {%- endif -%}
+                        {%- endfor -%}
+                    </div>
+
+                    {%- if show_allblock -%}
+                        <div class="v5-product-card-grid-view_all flex items-center gap-x-2 mt-1 pr-2">
+                            <div class="all-line"></div>
+                            <div class="flex items-center gap-x-1">
+                                <span class="more font-medium text-xs">{{ settings.view_more }}</span>
+                                <span class="less font-medium text-xs hidden">{{ settings.view_less }}</span>
+                                <svg viewBox="0 0 1024 1024" width="16" height="16"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="rgba(0,0,0,0.5)"></path></svg>
+                            </div>
+                        </div>
+                    {%- endif -%}
+                </div>
+            {%- endif -%}
+        {%- endfor -%}
+    </div>
+{%- else -%}
+    <div 
+        data-key="{{outer_key}}"
+        class="v5-shop-menu-right-content__item hidden {% if forloop.first %}active{% endif %}" 
+        anchor-shoptarget="{{outer_key}}"
+    >
+        {%-liquid
+            assign current_collection = link.object
+            assign product_size = current_collection.products.size
+
+            assign show_allblock = false
+            assign default_nums_allblock = 5
+
+            if settings.shop_collection_default == '2'
+                assign default_nums_allblock = 10
+            endif
+
+            assign collection_limit = settings.shop_collection_max
+            if settings.shop_collection_max > product_size
+                assign collection_limit = product_size
+            endif
+
+            if default_nums_allblock < product_size and default_nums_allblock < settings.shop_collection_max
+                assign show_allblock = true
+            endif
+
+            assign max_rows = settings.shop_collection_default
+            if settings.shop_collection_max == 5 or product_size <= 5
+                assign max_rows = 1
+            endif
+        -%}
+        <div class="v5-shop-menu-right-content--sub mb-6">
+                <div style="--index: {{ forloop.index }};" class="v5-menu-animate v5-content--sub_header flex items-center py-6 gap-x-4">
+                    <span class="color-text-main line-clamp-1 font-semibold text-xl">{{ link.title }}</span>
+                    {%- if current_collection.metafields.custom.v5_shop_menu -%}
+                        <span class="color-text-main-secondery v5-content--sub_header--sub line-clamp-1 font-normal text-base">{{ current_collection.metafields.custom.v5_shop_menu }}</span>
+                    {%- endif -%}
+                </div> 
+
+                <div class="grid v5-product-card-grid-pc" style="--max-rows: {{ max_rows }};">
+                    {%- assign card_limit = settings.shop_collection_max -%}
+                    {%- assign card_count = 0 -%}
+                    {%- for product in link.object.products limit: collection_limit -%}
+                        {%- if card_count >= card_limit -%}{%- break -%}{%- endif -%}
+                        {% comment %} 
+                            SPU维度通过元字段【导航中展开SKU】，配置是否展开展示里面的SKU（不配置默认不展开）； 
+                            --按这个来判断是SPU维度还是SKU维度，SPU维度的就走SPU维度的逻辑，SKU维度的就走SKU维度的逻辑
+                        {% endcomment %}
+                        {%- if product.metafields.custom.header_show_sku == true -%}
+                            {%- for variant in product.variants -%}
+                                {%- if card_count >= card_limit -%}{%- break -%}{%- endif -%}
+                                {%- if variant.available and variant.metafields.custom.hide_in_header != true -%}
+                                    {%- assign card_count = card_count | plus: 1 -%}
+                                    {%- assign card_index = card_count -%}
+                                    {%- render 'v5-shop-menu-card',
+                                        product: product,
+                                        variant: variant,
+                                        index: card_index,
+                                        ga_position: link.title,
+                                        ga_title: product.title,
+                                        img_class: 'w-full h-full object-contain'
+                                    -%}
+                                {%- endif -%}
+                            {%- endfor -%}
+                        {%- else -%}
+                            {%- assign card_count = card_count | plus: 1 -%}
+                            {%- assign card_index = card_count -%}
+                            {%- render 'v5-shop-menu-card',
+                                product: product,
+                                index: card_index,
+                                ga_position: link.title,
+                                ga_title: product.title,
+                                img_class: 'w-full h-full object-contain'
+                            -%}
+                        {%- endif -%}
+                    {%- endfor -%}
+                </div> 
+
+                {%- if show_allblock == true -%}
+                    <div class="v5-product-card-grid-view_all flex items-center gap-x-2 mt-1 pr-2">
+                        <div class="all-line"></div>
+                        <div class="flex items-center gap-x-1">
+                            <span class="more font-medium text-xs">{{ settings.view_more }}</span>
+                            <span class="less font-medium text-xs hidden">{{ settings.view_less }}</span>
+                            <svg viewBox="0 0 1024 1024" width="16" height="16"><path d="M818.07039273 512L329.94971923 23.87932647l-111.86098796 101.69180708L604.51759771 512 218.08873127 898.42886645 329.94971923 1010.28985441z" fill="rgba(0,0,0,0.5)"></path></svg>
+                        </div>
+                    </div>
+                {%- endif -%}
+            </div>
+        </div>
+{%- endif -%}

@@ -1,0 +1,92 @@
+{% comment %}
+  支持链接格式：
+  - https://youtu.be/VIDEO_ID?si=abc
+  - https://www.youtube.com/watch?v=VIDEO_ID&si=abc
+  - https://www.youtube.com/shorts/VIDEO_ID?si=abc
+  - https://www.youtube.com/embed/VIDEO_ID?si=abc
+{% endcomment %}
+
+{%- liquid
+  assign video_src = 'https://www.youtube.com/embed/VIDEO_ID?' | replace: 'VIDEO_ID', video
+
+  if autoplay
+    assign video_src = video_src | append: '&autoplay=1&mute=1'
+  endif
+
+  if loop
+    assign video_src = video_src | append: '&playlist=' | append: video | append: '&loop=1'
+  endif
+
+  assign controls_string = 0
+  if controls
+    assign controls_string = 1
+  endif
+
+  assign video_src = video_src | append: '&mute=1&branding=0&autohide=0&cc_load_policy=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&wmode=opaque&controls=' | append: controls_string
+
+  assign video_src = video_src | append: '&enablejsapi=1'
+-%}
+
+<viewport-youtube
+    {% if observe == true %}data-observer{% endif %}
+    {% if api == true %}data-api{% endif %}
+    {% if controls == true %}controls{% endif %}
+    data-pause-all-dom="{{pauseAllDOM | default:'body'}}"
+    class="relative w-full h-full block bg-black"
+>
+    {%- if poster != null -%}
+        {%- liquid
+            assign height = poster.width | divided_by: poster.aspect_ratio | round
+            assign widths = '375, 550, 750, 1100, 1500, 1780, 2000, 3000, 3840'
+            assign fetch_priority = 'auto'
+            if section.index == 1
+                assign fetch_priority = 'high'
+            endif
+
+            assign vsizes = '100vw'
+            if sizes != blank
+                assign vsizes = sizes
+            endif
+
+            assign valt = 'jackery media'
+            if alt != blank
+                assign valt = alt
+            endif
+        -%}
+
+        {{
+            poster
+            | image_url: width: 3840
+            | image_tag: height: height, sizes: vsizes, widths: widths, alt: valt, loading: 'lazy', fetchpriority: fetch_priority, class: 'video-placeholder absolute w-full h-full left-0 top-0 object-cover z-[2] align-bottom'
+        }}
+    {%- else -%}
+        {% if request.design_mode %}
+            {{ 'hero-apparel-3' | placeholder_svg_tag: 'placeholder-svg video-placeholder absolute w-full h-full left-0 top-0 object-cover z-[2] align-bottom' }}
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- liquid
+        assign video_class = "absolute w-full h-full left-0 top-0 object-fill z-[1] align-bottom " | append: class
+    -%}
+
+    <template>
+        <iframe
+          id="viewport-youtube-{{section.id}}-{{block.id}}"
+          class="{{video_class}}"
+          style="{{style}}"
+          data-src="{{video_src}}"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          title="{{ video_alt | default: 'YouTube video player' }}"
+          loading="lazy" fetchpriority="low"
+        ></iframe>
+    </template>
+
+    {%- if autoplay == false or poster != null -%}
+        <div id="player-mask" class="absolute w-full h-full left-0 top-0 object-cover z-[2] align-bottom"></div>
+
+        <div class="video-play-btn absolute z-[3]" {% if type == 'banner' %} style="display:none" {% endif %}>
+            {% render 'icon-play', class: 'w-full h-full rounded-full bg-black hover:bg-[#4d4d4d] transition-[background-color] duration-300', width: 48, height: 48, color: '#FFFFFF' %}
+        </div>
+    {%- endif -%}
+</viewport-youtube>

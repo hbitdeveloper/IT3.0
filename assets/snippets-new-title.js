@@ -1,0 +1,1 @@
+customElements.get("jky-animate-title")||customElements.define("jky-animate-title",class extends HTMLElement{constructor(){super(),window.initLazyScript(this,this.init.bind(this))}init(){new IntersectionObserver((t=>{t.forEach((t=>{t.isIntersecting?t.target.classList.add("title-snippet-show"):t.target.classList.remove("title-snippet-show")}))})).observe(this)}});

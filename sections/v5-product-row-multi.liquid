@@ -1,0 +1,1512 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign data_local = 'de-DE'
+
+  assign time_now = 'now' | date: '%s'
+  # section 默认显示
+  assign is_section_valid_time = true
+  # 倒计时默认不显示
+  assign show_countdown = false
+
+  assign section_begin_time = 0
+  if section.settings.begin_time_str != blank
+    assign section_begin_time = section.settings.begin_time_str | date: '%s'
+  endif
+
+  assign section_end_time = 0
+  if section.settings.end_time_str != blank
+    assign section_end_time = section.settings.end_time_str | date: '%s'
+  endif
+
+  if section_begin_time != 0 and section_end_time != 0
+    if section_end_time > time_now and section_begin_time < time_now
+      assign is_section_valid_time = true
+      assign show_countdown = true
+    else
+      # 只有【开始时间】和【结束时间】都配置了，且过了有效期，才不会显示 section
+      unless section.settings.countdown_hide_section_when_off
+        assign is_section_valid_time = false
+      else
+        assign is_section_valid_time = true
+        assign show_countdown = false
+      endunless
+    endif
+  endif
+
+  # 移动端布局样式
+  assign mb_is_swiper = false
+  assign mb_row_one = false
+  assign mb_row_two = false
+  if section.settings.mb_layout_style == 'one-row-swiper'
+    assign mb_is_swiper = true
+  elsif section.settings.mb_layout_style == 'one-row-one'
+    assign mb_row_one = true
+  else
+    assign mb_row_two = true
+  endif
+
+  # PC端布局样式
+  assign pc_layout_style = section.settings.pc_layout_style
+
+  # 筛选出 v5-product-item 类型的 block
+  assign product_items = section.blocks | where: 'type', 'v5-product-item'
+-%}
+
+{%- if is_section_valid_time -%}
+  <style>
+    .row-paypal {
+      min-height: var(--fk-paypal-height);
+    }
+    .row-splitit {
+      min-height: var(--fk-splitit-height);
+    }
+    .row-klarna {
+      min-height: var(--fk-klarna-height);
+    }
+
+    v5-product-row-multi[section-id="{{ section.id }}"] {
+      background: var(--pc-bg-color);
+      --discount-img-width: calc({{ section.settings.pc_discount_img_width }} / 16 * 1rem);
+      --discount-margin-left: calc({{ section.settings.discount_margin_left_pc }} / 16 * 1rem);
+      --discount-margin-top: calc({{ section.settings.discount_margin_top_pc }} / 16 * 1rem);
+      --subscribe-icon-color: {{ section.settings.subscribe_icon_color | default: '#242F20' }};
+    }
+    v5-product-row-multi[section-id="{{ section.id }}"] jds-tooltip::part(tooltip) {
+      --jds-popover-background-color: #FFF;
+      --jds-popover-padding: 0;
+      --jds-popover-border-radius: 0;
+      --jds-index-popover: 97;
+    }
+    v5-product-row-multi[section-id="{{ section.id }}"] jds-tooltip {
+      max-height: 5.25rem;
+    }
+    v5-product-row-multi[section-id="{{ section.id }}"] .countdown-title-bg-img {
+      position: absolute;
+      z-index: 0;
+      height: 3.375rem;
+      --offset-pc-x: calc(var(--countdown-title-bg-img-offset-pc-x) / 16 * 1rem);
+      {% if section.settings.countdown_title_bg_img_position == 'left' %}
+        left: var(--offset-pc-x);
+      {% else %}
+        right: var(--offset-pc-x);
+      {% endif %}
+      --offset-pc-y: calc(var(--countdown-title-bg-img-offset-pc-y) / 16 * 1rem);
+      top: var(--offset-pc-y);
+    }
+    v5-product-row-multi[section-id="{{ section.id }}"] .countdown-title-text {
+       font-size: calc({{ section.settings.countdown_title_font_size_pc }} / 16 * 1rem);
+    }
+    {%- if section.settings.pc_layout_num == '4' -%}
+      v5-product-row-multi[section-id="{{ section.id }}"] .jky-v5-button.add-to-cart-icon-btn {
+        --border-color: #FFF;
+      }
+    {%- else -%}
+      v5-product-row-multi[section-id="{{ section.id }}"] .jky-v5-button.add-to-cart-icon-btn {
+        --border-color:var(--main-color);
+      }
+    {%- endif -%}
+    @media screen and (max-width: 1023.98px) {
+      .row-paypal {
+        min-height: var(--fk-paypal-height-mb);
+      }
+      .row-splitit {
+        min-height: var(--fk-splitit-height-mb);
+      }
+      .row-klarna {
+        min-height: var(--fk-klarna-height-mb);
+      }
+
+      v5-product-row-multi[section-id="{{ section.id }}"] {
+        background: var(--mb-bg-color);
+        --discount-img-width: calc({{ section.settings.mb_discount_img_width }} / 16 * 1rem);
+        --discount-margin-left: calc({{ section.settings.discount_margin_left_mb }} / 16 * 1rem);
+        --discount-margin-top: calc({{ section.settings.discount_margin_top_mb }} / 16 * 1rem);
+      }
+      v5-product-row-multi[section-id="{{ section.id }}"] .countdown-title-text {
+        font-size: calc({{ section.settings.countdown_title_font_size_mb }} / 16 * 1rem);
+      }
+      v5-product-row-multi[section-id="{{ section.id }}"] jds-tooltip {
+        max-height: unset;
+      }
+      v5-product-row-multi[section-id="{{ section.id }}"] .countdown-title-bg-img {
+        height: 1.875rem;
+        --offset-mb-x: calc(var(--countdown-title-bg-img-offset-mb-x) / 16 * 1rem);
+        {% if section.settings.countdown_title_bg_img_position == 'left' %}
+          left: var(--offset-mb-x);
+        {% else %}
+          right: var(--offset-mb-x);
+        {% endif %}
+        --offset-mb-y: calc(var(--countdown-title-bg-img-offset-mb-y) / 16 * 1rem);
+        top: var(--offset-mb-y);
+      }
+      v5-product-row-multi[section-id="{{ section.id }}"] .jky-v5-button.add-to-cart-icon-btn {
+        --border-color:var(--main-color);
+      }
+    }
+
+    #pc_discount_tag_time {
+        display: block;
+    }
+    #mb_discount_tag_time {
+        display: none;
+    }
+     v5-product-row-multi[section-id="{{ section.id }}"] .discount-tag-box {
+      aspect-ratio: var(--pc-aspect-ratio);
+    }
+    @media (max-width: 1023.99px) {
+      #pc_discount_tag_time {
+          display: none;
+      }
+      #mb_discount_tag_time {
+          display: block;
+      }
+      v5-product-row-multi[section-id="{{ section.id }}"] .discount-tag-box {
+        aspect-ratio: var(--mb-aspect-ratio);
+      }
+    }
+  </style>
+
+  {%- if section.settings.installment_type == 'paypal' and section.settings.installment_paypal_client_id != blank -%}
+    <script>
+      (function () {
+        function initPaypal() {
+          if(window.paypal_script_loaded) return;
+          window.paypal_script_loaded = true;
+          var s = document.createElement('script');
+          var paypal_url = 'https://www.paypal.com/sdk/js?client-id={{ section.settings.installment_paypal_client_id }}&components=messages';
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = paypal_url;
+          var x = document.getElementsByTagName('script')[0];
+          x.parentNode.insertBefore(s, x);
+          x.defer = true;
+        }
+
+        if(window.attachEvent) {
+          window.attachEvent('onload', initPaypal);
+        } else {
+          window.addEventListener('load', initPaypal, false);
+        }
+      })()
+    </script>
+  {%- endif -%}
+
+  {%- if section.settings.installment_type == 'klarna' -%}
+    {% if shop.id == 57272172741 %}
+        {% assign data_local = 'de-DE' %}
+    {% elsif shop.id == 9709262 %}
+        {% assign data_local = 'en-US' %}
+    {% elsif shop.id == 60738666677 %}
+        {% comment %} ca no klarna {% endcomment %}
+        {% assign data_local = '' %}
+    {% elsif shop.id == 73356443969 %}
+        {% assign data_local = 'en-NL' %}
+    {% elsif shop.id == 56981160124 %}
+        {% assign data_local = 'en-GB' %}
+    {% elsif shop.id == 69511053598 %}
+        {% assign data_local = 'fr-FR' %}
+    {% elsif shop.id == 65060929623 %}
+        {% assign data_local = 'nl-NL' %}
+    {% elsif shop.id == 69013700929 %}
+        {% comment %} es no klarna {% endcomment %}
+        {% assign data_local = '' %}
+    {% elsif shop.id == 69511053598 %}
+        {% comment %} fr no klaren-NL {% endcomment %}
+        {% assign data_local = '' %}
+    {% elsif shop.id == 69224431898 %}
+        {% comment %} it no klarna {% endcomment %}
+        {% assign data_local = '' %}
+    {% elsif shop.id == 68984701213 %}
+        {% comment %} au no klarna {% endcomment %}
+        {% assign data_local = '' %}
+    {% elsif shop.id == 68984701213 %}
+        {% comment %} au no klarna {% endcomment %}
+        {% assign data_local = '' %}
+    {% elsif shop.id == 10015375438 %}
+        {% comment %} jp no klarna {% endcomment %}
+        {% assign data_local = '' %}
+    {% elsif shop.id == 10015375438 %}
+        {% comment %} kr no klarna {% endcomment %}
+        {% assign data_local = '60455780502' %}
+    {% endif %}
+
+    {% comment %} 测试店铺demo klarna {% endcomment %}
+    {%- if shop.id == 55005249633 -%}
+      <script>
+        (function () {
+          function initKlarna() {
+            if(window.klarna_script_loaded) return;
+            window.klarna_script_loaded = true;
+            var s = document.createElement('script');
+            var klarna_url = 'https://js.klarna.com/web-sdk/v1/klarna.js';
+            s.type = 'text/javascript';
+            s.async = true;
+            s.src = klarna_url;
+
+            s.id = 'klarna-osm-script-tag';
+            s.dataset.clientId = 'ac2331f4-16bb-5da0-92ca-905d42d651f2';
+            s.dataset.environment = 'production';
+
+            var x = document.getElementsByTagName('script')[0];
+            x.parentNode.insertBefore(s, x);
+            x.defer = true;
+          }
+
+          if(window.attachEvent) {
+            window.attachEvent('onload', initKlarna);
+          } else {
+            window.addEventListener('load', initKlarna, false);
+          }
+        })()
+      </script>
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if section.settings.installment_type == 'splitit' and shop.id == 55005249633 -%}
+    <script>
+      (function () {
+        function initSplitit() {
+          if(window.splitit_script_loaded) return;
+          window.splitit_script_loaded = true;
+          var s = document.createElement('script');
+          var splitit_url = 'https://cdn.shopify.com/proxy/6da4c7acd8056454fa088038cdfbba4216fa9acf2c292a9c3a4905a58e39a8e1/web-components.splitit.com/upstream.js?shop=jackeryuk.myshopify.com&sp-cache-control=cHVibGljLCBtYXgtYWdlPTkwMA';
+          s.type = 'text/javascript';
+          s.async = true;
+          s.src = splitit_url;
+
+          var x = document.getElementsByTagName('script')[0];
+          x.parentNode.insertBefore(s, x);
+          x.defer = true;
+        }
+
+        if(window.attachEvent) {
+          window.attachEvent('onload', initSplitit);
+        } else {
+          window.addEventListener('load', initSplitit, false);
+        }
+      })()
+    </script>
+  {%- endif -%}
+
+  <v5-product-row-multi
+    section-id="{{ section.id }}"
+    class="{% if section.settings.related_v_tabs and section.settings.belongs_to != blank and request.design_mode == false %}!hidden{% endif %} flex flex-col w-full section-padding"
+    {% if section.settings.anchor != blank %}
+      anchor-target="{{ section.settings.anchor | escape}}"
+    {% endif %}
+    {% if section.settings.belongs_to != blank %}
+      belongs-to-target="{{ section.settings.belongs_to | escape }}"
+    {% endif %}
+    data-pc-is-swiper="{{ pc_layout_style }}"
+    data-mb-is-swiper="{{ mb_is_swiper }}"
+    data-countdown-hide-section="{{ section.settings.countdown_hide_section_when_off }}"
+    style="
+      --pc-bg-color:{{ section.settings.pc_bg_color | default: '#FFFFFF' }};
+      --mb-bg-color:{{ section.settings.mb_bg_color | default: '#FFFFFF' }};
+      --main-color:{{ section.settings.main_color | default: '#93161B' }};
+      {{ style }}
+    "
+  >
+    {% comment %} 模块标题、副标题 {% endcomment %}
+    {%- if section.settings.title != blank or section.settings.subtitle != blank -%}
+      <div class="w-full h-fit mx-auto lg:w-[75rem] flex flex-col items-center justify-center gap-y-6 lg:gap-y-4 mb-6 lg:mb-10 px-4 lg:px-0">
+        {% comment %} 模块标题 {% endcomment %}
+        {%- if section.settings.title != blank -%}
+          <h2
+            class="w-full text-center text-[1.75rem] lg:text-5xl un-ja-text text-[#242F20] font-semibold leading-[1.1]"
+            style="color:{{ section.settings.title_color | default: '#242F20' }}"
+          >
+            {{ section.settings.title | newline_to_br }}
+          </h2>
+        {%- endif -%}
+        {% comment %} 副标题 {% endcomment %}
+        {%- if section.settings.subtitle != blank -%}
+          <div class="subtitle w-full flex items-center justify-center">
+            <p
+              class="w-full text-center font-semibold text-sm lg:text-xl un-ja-text"
+              style="color:{{ section.settings.subtitle_color | default: '#242F20' }}"
+            >
+              {{ section.settings.subtitle | newline_to_br }}
+            </p>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {% comment %} 倒计时 {% endcomment %}
+    {%- if show_countdown -%}
+      <div class="w-full mx-auto lg:w-[75rem] flex flex-col lg:flex-row items-center justify-center mb-6 lg:mb-10 gap-4 lg:gap-6 px-4 lg:px-0" data-countdown-row>
+        {%- if section.settings.countdown_title != blank -%}
+          <h2 class="w-fit text-center font-semibold text-white leading-[1.1] un-ja-text relative">
+            {%- if section.settings.countdown_title_bg_img != blank -%}
+              <img
+                class="countdown-title-bg-img"
+                style="
+                  --countdown-title-bg-img-offset-pc-x:{{ section.settings.countdown_title_bg_img_offset_pc_x }};
+                  --countdown-title-bg-img-offset-mb-x:{{ section.settings.countdown_title_bg_img_offset_mb_x }};
+                  --countdown-title-bg-img-offset-pc-y:{{ section.settings.countdown_title_bg_img_offset_pc_y }};
+                  --countdown-title-bg-img-offset-mb-y:{{ section.settings.countdown_title_bg_img_offset_mb_y }};
+                "
+                src="{{ section.settings.countdown_title_bg_img | image_url: height: 54 }}"
+                width="{{ section.settings.countdown_title_bg_img.width }}" height="{{ section.settings.countdown_title_bg_img.height }}"
+                alt="{{ section.settings.countdown_title_bg_img.alt }}" loading="lazy"
+              >
+            {%- endif -%}
+            <span class="countdown-title-text relative z-[1]" style="color:{{ section.settings.countdown_title_color | default: '#FFFFFF' }};">{{ section.settings.countdown_title | escape }}</span>
+          </h2>
+        {%- endif -%}
+        <div
+          class="w-fit max-w-full flex flex-wrap items-center shrink-0"
+          data-count-down
+          data-ends-in-text="{{ section.settings.ends_in_text | escape }}"
+          data-countdown-label-text="{{ section.settings.countdown_label_text | escape }}"
+          data-shopify-time="{{ 'now' | date: "%Y/%m/%d %H:%M:%S" }}"
+          data-begin-time="{{ section.settings.begin_time_str | escape }}"
+          data-end-time="{{ section.settings.end_time_str | escape }}"
+        >
+          <div class="w-[3.25rem] h-[3.25rem] lg:w-16 lg:h-16 skeleton mr-7"></div>
+          <div class="w-[3.25rem] h-[3.25rem] lg:w-16 lg:h-16 skeleton mr-7"></div>
+          <div class="w-[3.25rem] h-[3.25rem] lg:w-16 lg:h-16 skeleton mr-7"></div>
+          <div class="w-[3.25rem] h-[3.25rem] lg:w-16 lg:h-16 skeleton"></div>
+        </div>
+      </div>
+    {%- endif -%}
+
+    {% comment %} 过滤有效商品 {% endcomment %}
+    {%- assign valid_items = 0 -%}
+    {%- for item in product_items -%}
+      {%- if item.settings.product != blank -%}
+        {%- assign valid_product = item.settings.product -%}
+        {%- assign valid_variant_id = item.settings.variant_id -%}
+        {%- assign valid_variant = valid_product.variants | where: 'id', valid_variant_id | first -%}
+        {%- if valid_variant == blank -%}
+          {%- assign valid_variant = valid_product.selected_or_first_available_variant -%}
+        {%- endif -%}
+
+        {% comment %} 过滤有效商品【仅显示有库存商品、或者编辑模式】 {% endcomment %}
+        {%- if valid_variant.available or request.design_mode -%}
+          {%- assign valid_items = valid_items | plus: 1 -%}
+        {%- endif -%}
+      {%- else -%}
+        {% comment %} 过滤有效商品【编辑模式】 {% endcomment %}
+        {%- if request.design_mode -%}
+          {%- assign valid_items = valid_items | plus: 1 -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {% comment %} PC端一行商品数量 {% endcomment %}
+    {%- assign pc_layout_number = section.settings.pc_layout_num | plus: 0 -%}
+      
+    {%- if product_items.size > 0 -%}
+      <div class="w-full mx-auto lg:w-[75rem] relative {% if mb_is_swiper or pc_layout_style == 'swiper' %}swiper{% endif %}">
+        <ul
+          class="
+            flex
+            {% if mb_is_swiper %} swiper-wrapper box-content {% else %} box-border flex-wrap gap-4 pl-4 lg:gap-0 lg:pl-0 lg:flex-nowrap{% endif %}
+            {% if pc_layout_style == 'flex' %}lg:!flex-wrap lg:gap-6 lg:box-border {% else %} swiper-wrapper lg:box-content {% endif %}
+            {% if mb_row_one %}pr-4 lg:pr-0{% endif %}
+          "
+          {% unless mb_is_swiper %}data-view-more-list{% endunless %}
+        >
+          {%- assign item_index = 0 -%}
+          {%- for block in product_items -%}
+            {%- liquid
+              assign curr_product = block.settings.product
+              assign curr_variant_id = block.settings.variant_id
+              assign variant = curr_product.variants | where: 'id', curr_variant_id | first
+              if variant == blank
+                assign variant = curr_product.selected_or_first_available_variant
+              endif
+
+              # SPU 标题
+              assign display_title = curr_product.title
+              if block.settings.product_title != blank
+                assign display_title = block.settings.product_title
+              endif
+
+              # 图片
+              assign base_img = variant.featured_image | default: curr_product.featured_image
+              assign p_img = base_img
+              assign m_img = base_img
+
+              if block.settings.pc_product_image != blank
+                assign p_img = block.settings.pc_product_image
+              endif
+              if block.settings.mb_product_image != blank
+                assign m_img = block.settings.mb_product_image
+              endif
+
+              # 价格、划线价
+              assign price = variant.price | default: 1999
+              assign compare_at_price = variant.compare_at_price | default: price
+
+              # 划线价
+              if compare_at_price < price
+                assign compare_at_price = price
+              endif
+
+              # 设置了产品折扣价，则以 产品折扣价 为准
+              assign price_value = block.settings.price_value | plus: 0
+              if price_value > 0
+                assign price = price_value | times: 100
+              else
+                # 开启了自动折扣
+                if settings.open_auto_discount_price and settings.display_auto_discount_price_in_activity_page
+                  assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1
+                  if auto_discount_price > 0 and auto_discount_price < variant.price
+                    assign price = auto_discount_price
+                  endif
+                endif
+              endif
+
+              # PC 显示个数
+              assign pc_layout_num = section.settings.pc_layout_num
+            -%}
+
+            {%- if variant.available or request.design_mode -%}
+              {%- assign item_index = item_index | plus: 1 -%}
+              <li
+                class="
+                  !h-auto {% if pc_layout_num == '3' %} lg:!w-[24rem] {% else %} lg:!w-[17.625rem] {% endif %}
+                  {% if item_index > section.settings.mb_show_max %}
+                    {% if mb_is_swiper %} !flex {% else %} !hidden {% endif %}
+                  {% else %}
+                    !flex
+                  {% endif %}
+                  {% if item_index > section.settings.pc_show_max %}
+                    {% if pc_layout_style == 'flex' %} lg:!hidden {% else %} lg:!flex {% endif %}
+                  {% else %}
+                    lg:!flex
+                  {% endif %}
+                   flex-col items-center bg-white relative
+                  {% if mb_is_swiper or pc_layout_style == 'swiper' %}swiper-slide{% endif %}
+                  {% if mb_is_swiper %}
+                    !w-[17.5rem] first-of-type:ml-4 mr-4 lg:first-of-type:ml-0 lg:mr-0
+                  {% elsif mb_row_one %}
+                    w-full
+                  {% else %}
+                    !w-[10.21875rem]
+                  {% endif %}
+                  {% if pc_layout_style == 'swiper' %}
+                    lg:mr-6 lg:last-of-type:mr-0
+                  {% endif %}
+                "
+                data-card-item
+              >
+                {% comment %} 产品图片 {% endcomment %}
+                <div class="w-full {% if mb_is_swiper %} h-[12.5rem] {% elsif mb_row_one %} h-[14.25rem] {% else %} h-[10.21875rem] {% endif %} lg:h-[12.5rem] shrink-0">
+                  <a href="{{ curr_product.url }}?variant={{ variant.id }}" class="focus-zoom-container flex w-full h-full overflow-hidden">
+                    {%- assign pc_img_w = 384 -%}
+                    {% if pc_layout_num == '4' %}
+                      {%- assign pc_img_w = 282 -%}
+                    {% endif %}
+                    {%- render 'diff-end-img',
+                      class: 'focus-zoom w-full h-full object-contain',
+                      style: '',
+                      anchor: '',
+                      pc_img: p_img,
+                      mb_img: m_img,
+                      pc_img_width: pc_img_w,
+                      mb_img_width: 343,
+                      placeholder_name: 'hero-apparel-1',
+                      alt: p_img.alt | escape | default: 'product image',
+                      load_scene: block.settings.load_scene | default: 'default',
+                    -%}
+                  </a>
+                  {% comment %} 折扣角标 {% endcomment %}
+                  {%- if section.settings.show_discount_tag and compare_at_price > price -%}
+                    {%- liquid
+                      assign discount_amount = ''
+                      assign discount_percent = ''
+                      
+                      # 1. 基础差价计算
+                      assign diff_price = compare_at_price | minus: price
+                      assign calc_percent = diff_price | times: 100 | divided_by: compare_at_price | floor
+
+                      # 2. 自动折扣逻辑覆盖 (Metafields 优先级最高)
+                      if price_value <= 0 and settings.open_auto_discount_price and settings.display_auto_discount_price_in_activity_page
+                        assign auto_amount = variant.metafields.custom.auto_discount_amount
+                        assign auto_percent = variant.metafields.custom.auto_discount_percentage
+                        
+                        if auto_amount != blank and auto_amount != 0
+                          assign diff_price = auto_amount
+                        endif
+                        if auto_percent != blank and auto_percent != 0
+                          assign calc_percent = auto_percent | floor
+                        endif
+                      endif
+
+                      # 3. 最终格式化赋值
+                      if section.settings.discount_tag_display_style == 'amount'
+                        # 抹除分分位（保留到百位，如 1234 -> 1200），然后转为货币格式
+                        assign discount_amount = diff_price | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros
+                      else
+                        assign discount_percent = calc_percent
+                      endif
+
+                      assign pc_discount_img = section.settings.pc_discount_img
+                      assign mb_discount_img = section.settings.mb_discount_img | default: pc_discount_img
+
+
+                      # 如果是一行三个  则时间显示在角标右边 其他的情况时间展示在角标下方 
+                      assign mb_box_class = "flex-col"
+                      assign pc_aspect_ratio = "130/39"
+                      assign mb_aspect_ratio = "130/39" 
+                      assign pc_margin_top = "0"
+                      assign mb_margin_top = "0"
+                      assign pc_time_class = "ml-1 px-[0.625rem] h-[1.875rem] leading-[1.875rem] text-[1rem] un-ja-text font-medium"
+                      assign mb_time_class = "ml-2 font-medium"
+                      assign pc_time_color = section.settings.main_color | default: '#93161B'
+                      assign mb_time_color = section.settings.main_color | default: '#93161B'
+
+                      if mb_is_swiper 
+                        assign mb_time_class ="ml-2 font-medium text-[0.875rem] un-ja-text"
+                        assign mb_img_url_width = 560
+                      elsif mb_row_one
+                        assign mb_box_class = "flex-row"
+                        assign mb_aspect_ratio = "auto"
+                        assign mb_margin_top =  'calc(var(--discount-margin-top) * -1)'
+                        assign mb_time_color = "white"
+                        assign mb_time_class ="ml-2 h-[1.875rem] px-[0.625rem] leading-[1.875rem] bg-[#000000]/25 text-[1rem] un-ja-text rounded" 
+                        assign mb_img_url_width = 686
+                      else 
+                        assign mb_time_class ="ml-2 font-medium text-[0.75rem] un-ja-text"
+                        assign mb_img_url_width = 327
+                      endif
+
+                      if pc_layout_num == '3' 
+                        assign box_class = "md:flex-row md:items-center" 
+                        assign pc_aspect_ratio = "auto"
+                        assign pc_margin_top = 'calc(var(--discount-margin-top)'
+                        assign pc_img_url_width = 384
+                      else
+                        assign box_class = "md:flex-col" 
+                        assign pc_time_class = "ml-4 text-[0.875rem] un-ja-text font-medium"
+                        assign pc_img_url_width = 282
+                      endif
+
+                    -%}
+
+                    {%- if discount_amount != blank or discount_percent != blank -%}
+                      <div class="absolute left-0 top-3 flex items-start {{ mb_box_class }} {{ box_class }}  [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform]"> 
+                        <div class="discount-tag-box" style=" width:var(--discount-img-width); padding-left:var(--discount-margin-left); padding-top:var(--discount-margin-top); 
+                          --pc-aspect-ratio: {{ pc_aspect_ratio }};
+                          --mb-aspect-ratio: {{ mb_aspect_ratio }};" >
+                          {%- if pc_discount_img != blank or mb_discount_img != blank -%}
+                            <img class="hidden lg:block w-fit h-auto object-contain absolute left-0 top-0 z-0 max-w-none" src="{{ pc_discount_img | image_url: width: pc_img_url_width }}" style="width:var(--discount-img-width);" alt="discount img" width="auto" height="auto">
+                            <img class="block lg:hidden w-fit h-auto object-contain absolute left-0 top-0 z-0 max-w-none" src="{{ mb_discount_img | image_url: width: mb_img_url_width }}" style="width:var(--discount-img-width);" alt="discount img" width="auto" height="auto">
+                          {%- endif -%}
+
+                          {%- if section.settings.discount_tag_display_style == 'amount' -%}
+                            {%- if discount_amount != blank -%}
+                              <span class="relative z-[1] font-semibold text-white text-sm lg:text-base un-ja-text whitespace-nowrap" style="color:{{ section.settings.discount_color | default: '#FFFFFF' }};">{{ section.settings.discount_amount_display_style | replace: '()', discount_amount }}</span>
+                            {%- endif -%}
+                          {%- else -%}
+                            {%- if discount_percent != blank -%}
+                              <span class="relative z-[1] font-semibold text-white text-sm lg:text-base un-ja-text whitespace-nowrap" style="color:{{ section.settings.discount_color | default: '#FFFFFF' }};">{{ section.settings.discount_percent_display_style | replace: '()', discount_percent }}</span>
+                            {%- endif -%}
+                          {%- endif -%}
+                        </div>
+                        {%- if variant.metafields.custom.discount_tag_time != blank -%}
+                          <span id="pc_discount_tag_time" class=" {{ pc_time_class }} " style="color:{{ pc_time_color }}; margin-top: {{ pc_margin_top }}"> 
+                            {{ variant.metafields.custom.discount_tag_time }}
+                          </span>
+                          <span id="mb_discount_tag_time" class=" {{ mb_time_class }} " style="color:{{ mb_time_color }}; margin-top: {{ mb_margin_top }}"> 
+                            {{ variant.metafields.custom.discount_tag_time }}
+                          </span>
+                        {%- endif -%}
+                      </div> 
+                    {%- endif -%}
+                  {%- endif -%}
+
+                  {% comment %} 订阅 {% endcomment %}
+                  {%- if section.settings.show_subscribe == true -%}
+                    <button
+                      class="appearance-none bg-transparent w-6 h-6 lg:w-9 lg:h-9 lg:p-1 absolute {% if mb_row_two %} right-2 {% else %} right-3 {% endif %} lg:right-3 top-3 z-[1] disabled:pointer-events-none [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform]"
+                      data-sku-id="{{ variant.id }}"
+                      data-subsciber-btn
+                    >
+                      <svg class="w-full h-full" width="80" height="74" viewBox="0 0 80 74">
+                        <use id="heart-use" xlink:href="#icon-heart-line"></use>
+                      </svg>
+                    </button>
+                  {%- endif -%}
+                </div>
+                <div class="w-full flex-1 flex flex-col items-start justify-between px-4 {% if mb_row_one %} py-6 {% else %} py-4 {% endif %} lg:p-6 relative {% if mb_row_two %} gap-y-3 {% else %} gap-y-5 {% endif %} lg:gap-y-10">
+                  {% comment %} 产品标题、副标题 {% endcomment %}
+                  <div class="flex flex-col h-[8.75rem] {% if pc_layout_num == '3' %} lg:h-[10.25rem] {% else %} lg:h-[9.75rem] {% endif %}">
+                    {%- assign product_tag = block.settings.product_tag | default: variant.metafields.custom.variant_tag -%}
+                    {%- if product_tag != blank -%}
+                      <span class="text-[var(--main-color)] font-semibold text-sm lg:text-base un-ja-text mb-2">
+                        {{- product_tag | escape -}}
+                      </span>
+                    {%- endif -%}
+                    <a href="{{ curr_product.url }}?variant={{ variant.id }}" class="text-[#242F20] font-semibold un-ja-text {% if pc_layout_num == '4' %} lg:text-xl {% else %} lg:text-2xl {% endif %} {% if mb_row_two %} text-sm line-clamp-3 {% else %} text-base line-clamp-2 {% endif %} lg:line-clamp-2" title="{{ display_title | escape }}">{{ display_title | escape }}</a>
+                    {%- if block.settings.product_selling_info != blank -%}
+                      <div class="text-[#242F20]/90 text-sm lg:text-base un-ja-text mt-3 lg:mt-5 line-clamp-2">{{ block.settings.product_selling_info | newline_to_br }}</div>
+                    {%- else -%}
+                      {%- if variant.metafields.custom.product_features_info != blank -%}
+                        <div class="text-[#242F20]/90 text-sm lg:text-base un-ja-text mt-3 lg:mt-5 line-clamp-2">
+                          {{ variant.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                        </div>
+                      {%- endif -%}
+                    {%- endif -%}
+                  </div>
+
+                  <div class="w-full flex-1 flex flex-col justify-between">
+                    <div class="flex-1 flex flex-col justify-between gap-4 {% if mb_row_one %} mb-6 {% else %} mb-3 {% endif %} lg:mb-6">
+                      {% comment %} 赠品 {% endcomment %}
+                      {%- if section.settings.show_priority == 'gift' -%}
+                        {%- if block.settings.gift_product != blank -%}
+                          {%- liquid
+                              assign curr_gift_product = block.settings.gift_product
+                              assign curr_gift_variant_id = block.settings.gift_variant_id
+                              assign gift_variant = curr_gift_product.variants | where: 'id', curr_gift_variant_id | first
+                              if gift_variant == blank
+                              assign gift_variant = curr_gift_product.selected_or_first_available_variant
+                              endif
+
+                              # 标题
+                              assign gift_display_title = curr_gift_product.title
+                              if gift_variant.title != 'Default Title' and gift_variant.title != blank
+                              assign gift_display_title = gift_variant.title
+                              endif
+
+                              if block.settings.gift_product_title != blank
+                              assign gift_display_title = block.settings.gift_product_title
+                              endif
+
+                              # 图片
+                              assign gift_base_img = gift_variant.featured_image | default: curr_gift_product.featured_image
+                              assign gift_product_image = gift_base_img
+
+                              if block.settings.gift_product_image != blank
+                              assign gift_product_image = block.settings.gift_product_image
+                              endif
+                          -%}
+
+                          {% comment %} PC端，赠品 {% endcomment %}
+                          <jds-tooltip placement="top-end" class="{% if mb_row_two %}hidden{% else %}block{% endif %} {% if pc_layout_num == '4' %} lg:hidden {% else %} lg:block {% endif %} w-full h-16 lg:w-full lg:h-16">
+                            <div
+                              slot="tooltip-trigger"
+                              class="{% if mb_row_one %}w-[19.4375rem]{% else %}w-[15.5rem]{% endif %} h-16 lg:w-[21rem] lg:h-16 flex items-center justify-start px-4 py-3 lg:pl-3 lg:pr-6 bg-[#F5F5F3]"
+                            >
+                              {%- if section.settings.gift_icon != blank -%}
+                                <img
+                                  class="w-9 h-9 object-contain shrink-0"
+                                  src="{{ section.settings.gift_icon | image_url: width: 72 }}"
+                                  width="36"
+                                  height="36"
+                                  alt=""
+                                  loading="lazy"
+                                >
+                              {%- else -%}
+                                {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-9 h-9 object-cover shrink-0' }}
+                              {%- endif -%}
+                              <div class="flex-1 flex flex-col px-4 gap-y-2 lg:gap-y-1">
+                                <p class="font-semibold text-sm lg:text-base un-ja-text text-[var(--main-color)] line-clamp-1">{{ section.settings.gift_text | default: 'FREE GIFT' }}</p>
+                                <p class="text-[#242F20] text-xs lg:text-sm un-ja-text line-clamp-1" title="{{ gift_display_title | escape }}">{{ gift_display_title | escape }}</p>
+                              </div>
+                              <img
+                                class="w-10 h-10 object-contain shrink-0"
+                                src="{{ gift_product_image | image_url: width: 80 }}"
+                                width="40"
+                                height="40"
+                                alt=""
+                                loading="lazy"
+                              >
+                            </div>
+                            <div slot="" class="p-6 max-w-[18.75rem]" style="box-shadow:0 0 24px rgba(0,0,0,0.1)">
+                              <img
+                                class="w-[14.125rem] h-[8.75rem] object-contain"
+                                src="{{ gift_product_image | image_url: width: 422 }}"
+                                width="226"
+                                height="140"
+                                alt=""
+                                loading="lazy"
+                              >
+                              <h2 class="text-[#242F20] font-semibold text-base mt-2 un-ja-text">{{ gift_display_title | escape }}</h2>
+                              {%- if block.settings.gift_product_desription != blank -%}
+                                <div class="text-black/65 text-sm mt-3 un-ja-text">
+                                  {{ block.settings.gift_product_desription | escape }}
+                                </div>
+                              {%- elsif gift_variant.metafields.custom.product_features_info != blank -%}
+                                <div class="text-black/65 text-sm mt-3 un-ja-text">
+                                  {{ gift_variant.metafields.custom.product_features_info | metafield_tag | strip_html }}
+                                </div>
+                              {%- endif -%}
+                            </div>
+                          </jds-tooltip>
+                        {%- else -%}
+                          <div
+                            class="
+                              {% if mb_row_two %}hidden{% else %}
+                                {% if section.settings.show_gift_placeholder %}
+                                  {% if mb_is_swiper %} block {% else %} hidden {% endif %}
+                                {% else %}
+                                  hidden
+                                {% endif %}
+                              {% endif %}
+                              {% if pc_layout_num == '4' %}lg:hidden{% else %} {% if section.settings.show_gift_placeholder %}lg:block{%else%}lg:hidden{% endif %}{% endif %}
+                              {% if mb_row_one %}w-[19.4375rem]{% else %}w-[15.5rem]{% endif %}
+                              h-16 lg:w-full lg:h-16 invisible
+                            "
+                          ></div>
+                        {%- endif -%}
+                        {% comment %} 加价购 {% endcomment %}
+                      {%- elsif section.settings.show_priority == 'price_up' and variant != blank -%}
+                        <div
+                          class="{% if mb_row_two %}hidden{% else %}flex{% endif %} {% if pc_layout_num == '4' %} lg:hidden {% else %} lg:flex {% endif %} items-center justify-start border border-solid border-[#E8E8E5] p-3 gap-x-2.5 w-full {% if mb_row_one %}h-[6.3125rem]{% else %}h-[7.5rem]{% endif %} lg:w-full lg:h-[6.3125rem] shrink-0"
+                          data-sku-id="{{ variant.id }}"
+                          data-show-price-up="{{ section.settings.show_price_up }}"
+                          {% if pc_layout_num == '4' %}
+                            data-pc-not-valid
+                          {% endif %}
+                          {% if mb_row_two %}
+                            data-mb-not-valid
+                          {% endif %}
+                          data-bundle-product
+                        >
+                          <div class="{% if mb_row_one %} w-[3.75rem] h-[3.75rem] {% else %} w-10 h-10 {% endif %} lg:w-[3.75rem] lg:h-[3.75rem] shrink-0 skeleton"></div>
+                            <div class="flex-1 flex flex-col gap-y-3 justify-between">
+                              <div class="{% if mb_row_one %}w-4/5{% else %}w-full{% endif %} h-5 skeleton"></div>
+                              <div class="flex {% if mb_row_one %} items-center justify-between {% else %} flex-col items-start gap-y-3 lg:flex-row lg:items-center lg:justify-between {% endif %}">
+                                <div class="flex items-center gap-x-1">
+                                  <div class="w-12 h-5 skeleton"></div>
+                                  <div class="w-12 h-5 skeleton"></div>
+                                </div>
+                              <div class="w-[5.5rem] lg:w-[5.75rem] h-7 skeleton"></div>
+                            </div>
+                          </div>
+                        </div>
+                      {%- endif -%}
+
+                      {% comment %} 税费 {% endcomment %}
+                      {%- if block.settings.tax_fee_info != blank -%}
+                        <div class="w-full flex item-start font-semibold text-sm lg:text-base">
+                          {{ block.settings.tax_fee_info }}
+                        </div>
+                      {%- endif -%}
+
+                      {% comment %} 价格、折扣码 {% endcomment %}
+                      <div class="flex-1 h-auto flex flex-col item-start justify-between gap-y-2">
+                        <div class="flex items-baseline gap-x-1 flex-wrap">
+                          {%- if section.settings.from_text != blank -%}
+                            <span class="text-sm lg:text-base un-ja-text text-[var(--main-color)]">{{- section.settings.from_text | escape -}}</span>
+                          {%- endif -%}
+                          <span class="font-semibold un-ja-text {% if mb_row_two %} text-base {% else %} text-xl {% endif %} lg:text-[1.75rem] text-[var(--main-color)]">{{- price | money_without_trailing_zeros -}}</span>
+                          {%- if compare_at_price > price -%}
+                            <span class="text-black/65 line-through text-xs lg:text-sm un-ja-text">{{- compare_at_price | money_without_trailing_zeros -}}</span>
+                          {%- endif -%}
+                        </div>
+                        {%- if block.settings.code_value != blank -%}
+                          <div
+                            class="{% if mb_row_two %}hidden{% else %}flex{% endif %} lg:flex flex-wrap items-center cursor-pointer gap-x-2"
+                            data-code="{{ block.settings.code_value | escape  }}"
+                            data-copy-success="{{ section.settings.copy_success | escape }}"
+                            data-copy-checkout="{{ section.settings.copy_checkout }}"
+                            data-sku-id="{{ variant.id }}"
+                            data-code-wrap
+                          >
+                            <span class="text-sm lg:text-base un-ja-text text-[var(--main-color)]">
+                              {{- section.settings.use_code_text | default: 'Use Code' }}:
+                            </span>
+                            <span class="font-semibold text-sm lg:text-base un-ja-text flex items-center gap-x-2 text-[var(--main-color)]">
+                              <span>{{ block.settings.code_value | escape }}</span>
+                              <svg class="w-4 h-4 lg:w-5 lg:h-5" width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_15867_72333)">
+                                  <path d="M100 0H0V100H100V0Z" fill="none"/>
+                                  <path d="M14 78V23H22V78C22 80.2091 23.7909 82 26 82H71.5V90H26C19.3726 90 14 84.6274 14 78Z" fill="var(--main-color)"/>
+                                  <path d="M66.1992 11C66.6398 11 67.0624 11.1749 67.374 11.4863L85.5137 29.626C85.8252 29.9376 85.9999 30.3602 86 30.8008V74.6338C86 76.2906 84.6569 77.6338 83 77.6338H30C28.3431 77.6338 27 76.2906 27 74.6338V14C27 12.3431 28.3431 11 30 11H66.1992ZM62 34H79L62 17V34Z" fill="var(--main-color)"/>
+                                </g>
+                                <defs>
+                                  <clipPath id="clip0_15867_72333">
+                                    <rect width="100" height="100" fill="none"/>
+                                  </clipPath>
+                                </defs>
+                              </svg>
+                            </span>
+                          </div>
+                        {%- endif -%}
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col">
+                      {% comment %} 按钮 {% endcomment %}
+                      <div class="w-full flex items-center">
+                        {%- liquid
+                          assign pc_btn_type = section.settings.pc_show_btn_type
+                          assign mb_btn_type = section.settings.mb_show_btn_type
+                        -%}
+
+                        <a href="{{ curr_product.url }}?variant={{ variant.id }}" class="flex-1 appearance-none flex items-center justify-center px-2 lg:px-6 h-[2.125rem] text-[0.875rem] lg:h-12 lg:text-[1.25rem] un-ja-text leading-[2.125rem] lg:leading-[3rem] text-white font-semibold bg-[var(--main-color)] {% if pc_layout_num == '4' %} lg:text-[var(--main-color)] lg:bg-transparent lg:border lg:border-solid lg:border-[var(--main-color)] {% endif %} {% if pc_btn_type != 'shop_now_and_add_to_cart' %} lg:hidden {% endif %} {% if mb_btn_type != 'shop_now_and_add_to_cart' %} hidden lg:flex {% endif %}">
+                          <span class="w-fit line-clamp-1">{{ section.settings.shop_now_text | default: 'Shop Now' | escape }}</span>
+                        </a>
+                        <button
+                          class="jky-v5-button add-to-cart-icon-btn appearance-none bg-transparent px-2 h-[2.125rem] lg:px-3 lg:h-12 flex items-center justify-center border border-solid border-[var(--main-color)] {% if pc_layout_num == '4' %} lg:bg-[var(--main-color)] {% endif %} {% if pc_btn_type != 'shop_now_and_add_to_cart' %} lg:hidden {% endif %} {% if mb_btn_type != 'shop_now_and_add_to_cart' %} hidden lg:flex {% endif %}"
+                          data-sku-id="{{ variant.id }}"
+                          data-sku-warranty-info="{{ variant.metafields.custom.sku_warranty_info.value | default: variant.metafields.custom.sku_warranty_info | escape }}"
+                          data-add-to-cart-btn
+                        >
+                          {%- assign text_color = 'text-[var(--main-color)]' -%}
+                          {%- if pc_layout_num == '4' -%}
+                            {%- assign text_color = 'text-[var(--main-color)]' | append: ' lg:text-white' -%}
+                          {%- endif -%}
+                          {% render 'v5-icon-cart', stroke_width: 1, class: text_color | append: ' w-[1.75rem] h-[1.75rem] lg:w-10 lg:h-10' %}
+                        </button>
+                        <button
+                          class="jky-v5-button flex-1 appearance-none flex items-center justify-center px-2 lg:px-6 h-[2.125rem] text-[0.875rem] lg:h-12 lg:text-[1.25rem] un-ja-text leading-[2.125rem] lg:leading-[3rem] text-white font-semibold bg-[var(--main-color)] {% if pc_btn_type == 'shop_now_and_add_to_cart' %} lg:hidden {% endif %} {% if mb_btn_type == 'shop_now_and_add_to_cart' %} hidden lg:flex {% endif %}"
+                          data-sku-id="{{ variant.id }}"
+                          data-sku-warranty-info="{{ variant.metafields.custom.sku_warranty_info.value | default: variant.metafields.custom.sku_warranty_info | escape }}"
+                          data-add-to-cart-btn
+                        >
+                          <span class="w-fit line-clamp-1">{{ section.settings.add_to_cart_text | default: 'Add To Cart' | escape }}</span>
+                        </button>
+                      </div>
+                      {%- assign price_num = price | plus: 0.0 -%}
+                      {%- if section.settings.installment_type == 'custom' -%}
+                        {%- if section.settings.installment_text != blank -%}
+                          {% comment %} 分期付款 {% endcomment %}
+                          {% if price_num < 20000 %}
+                            {% comment %} 直接除以 100.0 强制保留小数 {% endcomment %}
+                            {% assign dividend = price_num | divided_by: 100.0 %}
+                            {% assign divisor = 4 %}
+                          {% else %}
+                            {% comment %} 先通过 times 1.1229 得到含息总额，再除以 100 {% endcomment %}
+                            {% assign dividend = price_num | times: 1.1229 | divided_by: 100.0 | plus: 0.0 %}
+                            {% assign divisor = 18.0 %}
+                          {% endif %}
+                          {% comment %} 向上取整 {% endcomment %}
+                          {% assign per_affirm = dividend | divided_by: divisor | ceil %}
+
+                          <div 
+                            class="{% if mb_row_two %}hidden{% else %}flex{% endif %} {% if mb_is_swiper %} h-8 lg:h-auto {% endif %} {% if pc_layout_num == '4' %} lg:hidden {% else %} lg:flex {% endif %} items-baseline text-black/65 text-xs lg:text-sm gap-x-2 mt-3 un-ja-text"
+                            data-ttt="{{ section.settings.installment_type | escape }}"
+                          >
+                            {%- assign per_affirm_price = per_affirm | times: 100 | money_without_trailing_zeros -%}
+                            {%- assign per_affirmplaceholder = '{Installment_per}' -%}
+                            <span>
+                              {{- section.settings.installment_text | replace: per_affirmplaceholder, per_affirm_price -}}
+                            </span>
+                            {%- if section.settings.installment_img != blank -%}
+                              <img
+                                class="w-[1.875rem] h-[0.75rem] lg:w-[3.375rem] lg:h-[1.3125rem] object-contain shrink-0"
+                                src="{{ section.settings.installment_img | image_url: width: 108 }}"
+                                width="54"
+                                height="21"
+                                alt=""
+                                loading="lazy"
+                              >
+                            {%- else -%}
+                              {{
+                                'hero-apparel-1'
+                                | placeholder_svg_tag: 'w-[1.875rem] h-[0.75rem] lg:w-[3.375rem] lg:h-[1.3125rem] object-contain shrink-0'
+                              }}
+                            {%- endif -%}
+                          </div>
+                        {%- endif -%}
+                      {%- elsif section.settings.installment_type == 'klarna' -%}
+                        <div style="--fk-klarna-height: {{ section.settings.fk_klarna_height }}rem; --fk-klarna-height-mb: {{ section.settings.fk_klarna_height_mb }}rem;" class="row-klarna mt-3 {% if mb_row_two %}hidden{% else %}block{% endif %} {% if pc_layout_num == '4' %} lg:hidden {% else %} lg:block {% endif %}">
+                          <klarna-placement data-key="credit-promotion-badge" data-locale="{{ data_local }}" data-purchase-amount="{{ price_num }}"><span></span></klarna-placement>
+                        </div>
+                      {%- elsif section.settings.installment_type == 'paypal' -%}
+                        <div
+                          style="--fk-paypal-height: {{ section.settings.fk_paypal_height }}rem; --fk-paypal-height-mb: {{ section.settings.fk_paypal_height_mb }}rem;"
+                          class="mt-3 w-full row-paypal {% if mb_row_two %}hidden{% else %}block{% endif %} {% if pc_layout_num == '4' %} lg:hidden {% else %} lg:block {% endif %}"
+                          data-pp-message
+                          data-pp-placement="product"
+                          data-pp-amount="{{ price_num | money_without_currency }}"
+                          data-pp-style-layout="text"
+                          data-pp-style-logo-type="primary"
+                          data-pp-style-logo-position="left"
+                        ></div>
+                      {%- elsif section.settings.installment_type == 'splitit' -%}
+                        <div 
+                          style="--fk-splitit-height: {{ section.settings.fk_splitit_height }}px;--fk-splitit-height-mb: {{ section.settings.fk_splitit_height_mb }}px;"
+                          class="mt-3 w-full row-splitit"
+                        >
+                          <spt-one-liner 
+                            installments="{{ section.settings.splitit_installments | default: 6 }}" 
+                            text_custom="{{ section.settings.splitit_text_custom }}" 
+                            learn_more_color="{{ section.settings.splitit_learn_more_color | default: '#4e8cfd' }}" 
+                            hide_icon="{{ section.settings.splitit_hide_icon | default: true }}" 
+                            logo_color="{{ section.settings.splitit_logo_color | default: '#39bca7' }}" 
+                            amount="{{ price_num | money_without_currency | replace: ',', '' }}"
+                          ></spt-one-liner>
+                        </div>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+        {%- if pc_layout_style == 'swiper' and valid_items > pc_layout_number -%}
+          <div class="hidden lg:flex items-center justify-center lg:pt-6 lg:gap-x-10">
+            {%- render 'v5-icon-arrow-left', class: 'swiper-button-prev !relative flex !w-10 !h-10 items-center justify-center bg-white/80 rounded-full shadow-md text-[#242F20] hover:bg-white transition-colors cursor-pointer !mt-0' -%}
+            {%- render 'v5-icon-arrow-right', class: 'swiper-button-next !relative flex !w-10 !h-10 items-center justify-center bg-white/80 rounded-full shadow-md text-[#242F20] hover:bg-white transition-colors cursor-pointer !mt-0' -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if valid_items > section.settings.pc_show_max or valid_items > section.settings.mb_show_max -%}
+        <div class="w-full {% if mb_is_swiper %} hidden {% else %} {% if valid_items > section.settings.mb_show_max %} flex {% else %} hidden {% endif %} {% endif %} items-center justify-center {% if pc_layout_style == 'swiper' %}lg:hidden{% else %} {% if valid_items > section.settings.pc_show_max %} lg:flex {% else %} lg:hidden {% endif %} {% endif %}">
+          <button
+            class="appearance-none bg-transparent flex items-center justify-center gap-x-1 lg:gap-x-2 font-semibold text-[#242F20] text-base lg:text-xl un-ja-text underline underline-offset-4 mt-4 lg:mt-6"
+            style="color: {{ section.settings.view_more_text_color | default: '#242F20' }}"
+            data-view-more-btn
+          >
+            <span>{{ section.settings.view_more_text | default: 'View More' }}</span>
+            <svg class="hidden lg:block w-4 h-4 -mt-0.5 lg:w-6 lg:h-6 lg:-mt-1" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 8.99997L12 18.5L2 8.99997" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+      {%- endif -%}
+
+      {% comment %} 订阅图标 {% endcomment %}
+      <svg style="display: none;">
+        <symbol id="icon-heart-line" viewBox="0 0 80 74">
+          <path d="M0 24.5514C0 17.2425 2.1779 11.4105 5.8838 7.22035C9.568 3.05475 14.5059 0.803047 19.5186 0.179347C26.861 -0.734253 34.986 1.85235 40 7.71545C45.014 1.85245 53.139 -0.733553 60.4814 0.180347C65.494 0.804247 70.4321 3.05575 74.1162 7.22135C77.8221 11.4116 80 17.2435 80 24.5524C80 36.5777 72.7647 45.8585 64.9951 53.3512C61.0822 57.1247 56.798 60.6595 52.9619 63.9215C49.0471 67.2505 45.6103 70.2851 43.0225 73.2711H36.9775C34.3896 70.285 30.953 67.2497 27.0381 63.9205C23.202 60.6583 18.9179 57.1239 15.0049 53.3502C7.2354 45.8572 0.0001 36.5765 0 24.5514ZM8 24.5514C8.0001 33.1584 13.1399 40.4376 20.5576 47.5914C24.2383 51.1411 28.2513 54.4521 32.2197 57.8268C34.9108 60.1153 37.5954 62.445 40 64.8238C42.4047 62.445 45.0891 60.1152 47.7803 57.8268C51.7487 54.4522 55.7617 51.1419 59.4424 47.5924C66.8603 40.4388 72 33.1595 72 24.5524C72 18.8775 70.34 15.0268 68.124 12.5211C65.8863 9.99085 62.818 8.53265 59.4932 8.11885C52.5903 7.25975 45.7487 10.889 43.8145 17.0133H36.1855C34.2513 10.8889 27.4097 7.26005 20.5068 8.11885C17.182 8.53245 14.1136 9.99005 11.876 12.5201C9.66 15.0257 8 18.8765 8 24.5514Z" fill="var(--subscribe-icon-color)"/>
+        </symbol>
+        <symbol id="icon-heart-fill" viewBox="0 0 80 74">
+          <path d="M19.5186 0.179342C26.861 -0.734258 34.986 1.85244 40 7.71544C45.014 1.85254 53.1391 -0.733557 60.4814 0.180243C65.4939 0.804143 70.4321 3.05574 74.1162 7.22134C77.822 11.4115 79.9999 17.2436 80 24.5523C80 36.5776 72.7646 45.8585 64.9951 53.3511C61.0822 57.1246 56.798 60.6595 52.9619 63.9215C49.0472 67.2503 45.6103 70.2851 43.0225 73.2711H36.9775C34.3896 70.285 30.9529 67.2496 27.0381 63.9205C23.202 60.6583 18.9178 57.1238 15.0049 53.3502C7.2355 45.8572 0.0001 36.5764 0 24.5513C0.0001 17.2426 2.1779 11.4104 5.8838 7.22034C9.568 3.05484 14.506 0.803042 19.5186 0.179342Z" fill="var(--subscribe-icon-color)"/>
+        </symbol>
+      </svg>
+    {%- endif -%}
+  </v5-product-row-multi>
+
+  {% comment %} 订阅弹窗 {% endcomment %}
+  {%- if product_items.size > 0 and section.settings.show_subscribe == true -%}
+    {%- render 'v5-common-subscribe-dialog',
+      id: section.id,
+      class: 'v5-product-row-multi-subscibe-dialog',
+      settings: section.settings,
+      pc_dialog_width: '30rem',
+      mb_dialog_width: '100vw'
+    -%}
+  {%- endif -%}
+  <script src="{{ 'section-v5-product-row-multi.min.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "V5-产品组件-一行3个/4个",
+  "class": "v5-product-row-multi",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "checkbox", "id": "related_v_tabs", "label": "是否关联V-Tabs组件", "default": false },
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示",
+      "visible_if": "{{ section.settings.related_v_tabs == true }}"
+    },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 64 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 64 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础配置" },
+    { "type": "color_background", "id": "pc_bg_color", "label": "PC端版块背景色", "default": "#FFFFFF" },
+    { "type": "color_background", "id": "mb_bg_color", "label": "MB端版块背景色", "default": "#F5F5F3" },
+    { "type": "color", "id": "main_color", "label": "主颜色", "default": "#93161B" },
+    { "type": "textarea", "id": "title", "label": "模块标题" },
+    { "type": "color", "id": "title_color", "label": "标题字体颜色", "default": "#242F20" },
+    { "type": "textarea", "id": "subtitle", "label": "模块副标题" },
+    { "type": "color", "id": "subtitle_color", "label": "副标题字体颜色", "default": "#242F20" },
+
+    { "type": "header", "content": "倒计时配置" },
+    { "type": "text", "id": "countdown_title", "label": "倒计时标题", "default": "48-Hour Flash Sale" },
+    { "type": "color", "id": "countdown_title_color", "label": "倒计时标题字体颜色", "default": "#FFFFFF" },
+    { "type": "range", "id": "countdown_title_font_size_pc", "min": 12, "max": 80, "step": 1, "unit": "px", "label": "倒计时标题字体大小(PC)", "default": 48 },
+    { "type": "range", "id": "countdown_title_font_size_mb", "min": 12, "max": 64, "step": 1, "unit": "px", "label": "倒计时标题字体大小(MB)", "default": 28 },
+    { "type": "checkbox", "id": "countdown_hide_section_when_off", "label": "倒计时结束后只隐藏倒计时那一行", "default": false },
+    { "type": "image_picker", "id": "countdown_title_bg_img", "label": "倒计时标题背景图片" },
+    {
+      "type": "select",
+      "id": "countdown_title_bg_img_position",
+      "label": "倒计时标题背景图片位置",
+      "options": [
+        { "value": "left", "label": "左对齐" },
+        { "value": "right", "label": "右对齐" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "number",
+      "id": "countdown_title_bg_img_offset_pc_x",
+      "label": "PC端，倒计时标题背景图片，X轴偏移量",
+      "default": 16
+    },
+    {
+      "type": "number",
+      "id": "countdown_title_bg_img_offset_pc_y",
+      "label": "PC端，倒计时标题背景图片，Y轴偏移量",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "countdown_title_bg_img_offset_mb_x",
+      "label": "MB端，倒计时标题背景图片，X轴偏移量",
+      "default": 16
+    },
+    {
+      "type": "number",
+      "id": "countdown_title_bg_img_offset_mb_y",
+      "label": "MB端，倒计时标题背景图片，Y轴偏移量",
+      "default": 0
+    },
+    {
+      "type": "text",
+      "id": "countdown_label_text",
+      "label": "倒计时\"天、时、分、秒\"多语言",
+      "default": "Days,Hours,Mins,Secs",
+      "info": "用英文','号分隔"
+    },
+    {
+      "type": "text",
+      "id": "begin_time_str",
+      "label": "倒计时\"开始时间\"",
+      "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/09/09 00:00:00"
+    },
+    {
+      "type": "text",
+      "id": "end_time_str",
+      "label": "倒计时\"结束时间\"",
+      "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/09/09 00:00:00"
+    },
+
+    { "type": "header", "content": "布局配置" },
+    { "type": "select", "id": "pc_layout_num", "options": [
+        { "value": "3", "label": "一行3个" },
+        { "value": "4", "label": "一行4个" },
+      ], "default": "3", "label": "PC端，每行数量"
+    },
+    { "type": "select", "id": "pc_layout_style", "options": [
+        { "value": "flex", "label": "平铺" },
+        { "value": "swiper", "label": "轮播" },
+      ], "default": "flex", "label": "PC端，布局类型"
+     },
+    { "type": "select", "id": "mb_layout_style", "options": [
+        { "value": "one-row-one", "label": "一行一个" },
+        { "value": "one-row-two", "label": "一行两个" },
+        { "value": "one-row-swiper", "label": "轮播" },
+      ], "default": "one-row-one", "label": "MB端，布局类型"
+    },
+    { "type": "range", "id": "pc_show_max", "label": "PC端，显示最大数量",
+      "min": 3, "max": 40, "step": 1, "unit": "个", "default": 4,
+      "info": "超过最大数量，将会显示view more按钮。轮播模式下不会生效",
+      "visible_if": "{{ section.settings.pc_layout_style == 'flex' }}"
+    },
+    { "type": "range", "id": "mb_show_max", "label": "MB端，显示最大数量",
+      "min": 2, "max": 40, "step": 1, "unit": "个", "default": 2,
+      "info": "超过最大数量，将会显示view more按钮。轮播模式下不会生效",
+      "visible_if": "{{ section.settings.mb_layout_style != 'one-row-swiper' }}"
+    },
+    { "type": "text", "id": "view_more_text", "label": "View More文案", "default": "View More", "visible_if": "{{ section.settings.pc_layout_style == 'flex' or section.settings.mb_layout_style != 'one-row-swiper' }}" },
+    { "type": "color", "id": "view_more_text_color", "label": "View More文案字体颜色", "default": "#242F20", "visible_if": "{{ section.settings.pc_layout_style == 'flex' or section.settings.mb_layout_style != 'one-row-swiper' }}" },
+
+    { "type": "header", "content": "通用配置" },
+    { "type": "text", "id": "from_text", "label": "价格显示前的文案" },
+    { "type": "text", "id": "use_code_text", "label": "使用Code文案", "default": "Use Code" },
+    { "type": "text", "id": "copy_success", "label": "Copy成功提示文案", "default": "Copy Success" },
+    { "type": "checkbox", "id": "copy_checkout", "label": "Copy成功后跳转到checkout页", "default": false },
+    { "type": "select", "id": "pc_show_btn_type", "options": [
+        { "value": "shop_now_and_add_to_cart", "label": "Shop Now + Add To Cart" },
+        { "value": "add_to_cart", "label": "Add To Cart" }
+      ], "default": "shop_now_and_add_to_cart", "label": "PC端，显示按钮类型"
+    },
+    { "type": "select", "id": "mb_show_btn_type", "options": [
+        { "value": "shop_now_and_add_to_cart", "label": "Shop Now + Add To Cart" },
+        { "value": "add_to_cart", "label": "Add To Cart" }
+      ], "default": "shop_now_and_add_to_cart", "label": "MB端，显示按钮类型"
+    },
+    { "type": "text", "id": "shop_now_text", "label": "Shop Now文案", "default": "Shop Now", "visible_if": "{{ section.settings.pc_show_btn_type == 'shop_now_and_add_to_cart' or section.settings.mb_show_btn_type == 'shop_now_and_add_to_cart' }}" },
+    { "type": "text", "id": "add_to_cart_text", "label": "Add To Cart文案", "default": "Add To Cart" },
+    { "type": "header", "content": "分期付款配置" },
+    {
+      "type": "select",
+      "id": "installment_type",
+      "label": "分期付款类型",
+      "default": "custom",
+      "options": [
+        {
+          "label": "klarna",
+          "value": "klarna"
+        },
+        {
+          "label": "paypal",
+          "value": "paypal"
+        },
+        {
+          "label": "Splitit",
+          "value": "splitit"
+        },
+        {
+          "label": "自定义分期",
+          "value": "custom"
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "id": "splitit_installments",
+      "label": "Splitit分期付款数",
+      "default": 6,
+      "visible_if": "{{ section.settings.installment_type == 'splitit' }}"
+    },
+    {
+      "type": "text",
+      "id": "splitit_text_custom",
+      "label": "splitit分期付款文案",
+      "default": "({price})/mo for 6 months at 0% APR",
+      "visible_if": "{{ section.settings.installment_type == 'splitit' }}"
+    },
+    {
+      "type": "color",
+      "id": "splitit_learn_more_color",
+      "label": "learn more按钮颜色",
+      "default": "#4e8cfd",
+      "visible_if": "{{ section.settings.installment_type == 'splitit' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "splitit_hide_icon",
+      "label": "隐藏按钮图标",
+      "default": true,
+      "visible_if": "{{ section.settings.installment_type == 'splitit' }}"
+    },
+    {
+      "type": "color",
+      "id": "splitit_logo_color",
+      "label": "logo颜色",
+      "default": "#39bca7",
+      "visible_if": "{{ section.settings.installment_type == 'splitit' }}"
+    },
+    {
+      "type": "range",
+      "id": "fk_splitit_height",
+      "label": "splitit分期付款高度",
+      "default": 20,
+      "min": 20,
+      "max": 220,
+      "step": 2,
+      "unit": "px",
+      "visible_if": "{{ section.settings.installment_type == 'splitit' }}"
+    },
+    {
+      "type": "range",
+      "id": "fk_splitit_height_mb",
+      "label": "MB端: splitit分期付款高度",
+      "default": 16,
+      "min": 16,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "visible_if": "{{ section.settings.installment_type == 'splitit' }}"
+    },
+    {
+      "type": "text",
+      "id": "installment_paypal_client_id",
+      "label": "paypal分期付款clientId",
+      "default": "ARZonRAsVMfD8rt6AxLm-ykCYjzcNI7RE1DHtzk_FZNuYVQEBkdTaJ1l4oq4sciMofWaNM_owWP92VMz",
+      "visible_if": "{{ section.settings.installment_type == 'paypal' }}"
+    },
+    {
+      "type": "range",
+      "id": "fk_paypal_height",
+      "label": "paypal分期付款高度",
+      "default": 2.4,
+      "min": 1,
+      "max": 10,
+      "step": 0.1,
+      "unit": "rem",
+      "visible_if": "{{ section.settings.installment_type == 'paypal' }}"
+    },
+    {
+      "type": "range",
+      "id": "fk_paypal_height_mb",
+      "label": "MB端: paypal分期付款高度",
+      "default": 2.4,
+      "min": 1,
+      "max": 10,
+      "step": 0.1,
+      "unit": "rem",
+      "visible_if": "{{ section.settings.installment_type == 'paypal' }}"
+    },
+    {
+      "type": "range",
+      "id": "fk_klarna_height",
+      "label": "klarna分期付款高度",
+      "default": 5,
+      "min": 2.5,
+      "max": 12,
+      "step": 0.1,
+      "unit": "rem",
+      "visible_if": "{{ section.settings.installment_type == 'klarna' }}"
+    },
+    {
+      "type": "range",
+      "id": "fk_klarna_height_mb",
+      "label": "MB端: klarna分期付款高度",
+      "default": 5,
+      "min": 2.5,
+      "max": 12,
+      "step": 0.1,
+      "unit": "rem",
+      "visible_if": "{{ section.settings.installment_type == 'klarna' }}"
+    },
+    {
+      "type": "text",
+      "id": "installment_text",
+      "label": "分期付款文案",
+      "default": "Starting at {Installment_per}/mo or 0% APR with",
+      "info": "{Installment_per}为分期金额变量",
+      "visible_if": "{{ section.settings.installment_type == 'custom' }}"
+    },
+    { "type": "image_picker", "id": "installment_img", "label": "分期付款icon", "info": "建议上传108px*42px的图片", "visible_if": "{{ section.settings.installment_type == 'custom' }}" },
+
+    { "type": "header", "content": "折扣角标配置" },
+    { "type": "checkbox", "id": "show_discount_tag", "label": "显示折扣角标", "default": true },
+    {
+      "type": "select",
+      "id": "discount_tag_display_style",
+      "label": "折扣角标展示形式",
+      "options": [
+        {
+          "label": "优惠金额",
+          "value": "amount"
+        },
+        {
+          "label": "折扣百分比",
+          "value": "percent"
+        }
+      ],
+      "visible_if": "{{ section.settings.show_discount_tag == true }}"
+    },
+    {
+      "type": "text",
+      "id": "discount_amount_display_style",
+      "label": "折扣角标优惠金额展示形式",
+      "default": "() OFF",
+      "info": "示例：-()、() OFF。()最终会显示为\"带货币符号的金额\"",
+      "visible_if": "{{ section.settings.show_discount_tag == true and section.settings.discount_tag_display_style == 'amount' }}"
+    },
+    {
+      "type": "text",
+      "id": "discount_percent_display_style",
+      "label": "折扣角标折扣百分比展示形式",
+      "default": "()% OFF",
+      "info": "示例：-()%、()% OFF。()最终会显示为具体数值",
+      "visible_if": "{{ section.settings.show_discount_tag == true and section.settings.discount_tag_display_style == 'percent' }}"
+    },
+    { "type": "image_picker", "id": "pc_discount_img", "label": "PC端，折扣角标", "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+    { "type": "number", "id": "pc_discount_img_width", "label": "PC端，折扣角标，宽度", "default": 130, "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+    { "type": "image_picker", "id": "mb_discount_img", "label": "MB端，折扣角标", "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+    { "type": "number", "id": "mb_discount_img_width", "label": "MB端，折扣角标，宽度", "default": 92, "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+    { "type": "color", "id": "discount_color", "label": "折扣角标字体颜色", "default": "#FFFFFF", "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+    { "type": "number", "id": "discount_margin_left_pc", "label": "PC端，折扣角标文案，X轴偏移量", "default": 10, "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+    { "type": "number", "id": "discount_margin_top_pc", "label": "PC端，折扣角标文案，Y轴偏移量", "default": 4, "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+    { "type": "number", "id": "discount_margin_left_mb", "label": "MB端，折扣角标文案，X轴偏移量", "default": 5, "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+    { "type": "number", "id": "discount_margin_top_mb", "label": "MB端，折扣角标文案，Y轴偏移量", "default": 2, "visible_if": "{{ section.settings.show_discount_tag == true }}" },
+
+    { "type": "header", "content": "【赠品】和【加价购】配置" },
+    {
+      "type": "select",
+      "id": "show_priority",
+      "label": "仅展示",
+      "options": [
+        { "value": "gift", "label": "赠品" },
+        { "value": "price_up", "label": "加价购" }
+      ],
+      "default": "gift"
+    },
+    { "type": "checkbox", "id": "show_gift_placeholder", "label": "PC端、MB端轮播，显示赠品区域", "default": true, "visible_if": "{{ section.settings.show_priority == 'gift' }}" },
+    { "type": "checkbox", "id": "show_price_up", "label": "PC端、MB端轮播，显示加价购区域", "default": true, "visible_if": "{{ section.settings.show_priority == 'price_up' }}" },
+    {
+      "type": "image_picker",
+      "id": "gift_icon",
+      "label": "赠品图标",
+      "visible_if": "{{ section.settings.show_priority == 'gift' }}"
+    },
+    {
+      "type": "text",
+      "id": "gift_text",
+      "label": "赠品文案",
+      "default": "FREE GIFT",
+      "visible_if": "{{ section.settings.show_priority == 'gift' }}"
+    },
+
+    { "type": "header", "content": "订阅配置" },
+    { "type": "checkbox", "id": "show_subscribe", "label": "是否展示订阅功能", "default": true },
+    { "type": "color", "id": "subscribe_icon_color", "label": "订阅图标颜色", "default": "#242F20" },
+    { "type": "text", "id": "newsletter_heading", "default": "Subscribe Here", "label": "标题" },
+    { "type": "textarea", "id": "newsletter_subheading", "default": "Be the first receive our latest news, how-to user guides, and exclusive! Subscribe now.", "label": "副标题" },
+    { "type": "richtext", "id": "privacy_policy", "label": "Privacy policy" },
+    { "type": "text", "id": "subcribe_btn", "label": "Subscribe Btn", "default": "Subscribe" },
+    { "type": "text", "id": "subscribe_tag", "label": "订阅标签" }
+  ],
+  "blocks": [
+    {
+      "type": "v5-product-item",
+      "name": "产品",
+      "settings": [
+        { "type": "header", "content": "产品配置" },
+        { "type": "product", "id": "product", "label": "选择产品" },
+        {
+          "type": "number",
+          "id": "variant_id",
+          "label": "变体ID(必填)",
+          "visible_if": "{{ block.settings.product != blank }}",
+          "info": "相同商品，变体ID不能重复"
+        },
+        {
+          "type": "text",
+          "id": "product_tag",
+          "label": "产品标签",
+          "visible_if": "{{ block.settings.product != blank }}",
+          "default": "BEST SELLER"
+        },
+        {
+          "type": "textarea",
+          "id": "product_title",
+          "label": "产品标题",
+          "visible_if": "{{ block.settings.product != blank }}"
+        },
+        {
+          "type": "textarea",
+          "id": "product_selling_info",
+          "label": "产品卖点",
+          "visible_if": "{{ block.settings.product != blank }}"
+        },
+        {
+          "type": "image_picker",
+          "id": "pc_product_image",
+          "label": "PC端产品图",
+          "visible_if": "{{ block.settings.product != blank }}",
+          "info": "宽度588, 高度285"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb_product_image",
+          "label": "MB端产品图",
+          "visible_if": "{{ block.settings.product != blank }}",
+          "info": "宽度280, 高度200"
+        },
+        {
+          "type": "select",
+          "id": "load_scene",
+          "label": "图片加载场景",
+          "options": [
+            { "value": "lcp", "label": "首屏关键图（LCP）" },
+            { "value": "default", "label": "普通图（默认）" },
+            { "value": "defer", "label": "次要/延后图" }
+          ],
+          "default": "default",
+        },
+        {
+          "type": "paragraph",
+          "content": "1. 首屏关键图（LCP）:用于首页主 KV、首屏主图"
+        },
+        {
+          "type": "paragraph",
+          "content": "2. 普通图（默认）：用于绝大多数图片（列表、内容图）"
+        },
+        {
+          "type": "paragraph",
+          "content": "3. 次要/延后图（低优先级）：用于轮播非首张、备用图、装饰图"
+        },
+
+        { "type": "header", "content": "【赠品】和【加价购】配置" },
+        { "type": "product", "id": "gift_product", "label": "选择赠品", "info": "Shopify不支持隐藏商品选择器，如果是【加价购】，请忽略此配置项" },
+        {
+          "type": "number",
+          "id": "gift_variant_id",
+          "label": "变体ID(必填)",
+          "visible_if": "{{ block.settings.gift_product != blank and section.settings.show_priority == 'gift' }}",
+          "info": "相同商品，变体ID不能重复"
+        },
+        {
+          "type": "textarea",
+          "id": "gift_product_title",
+          "label": "赠品标题",
+          "visible_if": "{{ block.settings.gift_product != blank and section.settings.show_priority == 'gift' }}"
+        },
+        {
+          "type": "textarea",
+          "id": "gift_product_desription",
+          "label": "赠品描述",
+          "visible_if": "{{ block.settings.gift_product != blank and section.settings.show_priority == 'gift' }}"
+        },
+        {
+          "type": "image_picker",
+          "id": "gift_product_image",
+          "label": "赠品图",
+          "visible_if": "{{ block.settings.gift_product != blank and section.settings.show_priority == 'gift' }}",
+          "info": "宽度280, 高度160"
+        },
+
+        { "type": "header", "content": "折扣价、折扣码配置" },
+        { "type": "text", "id": "price_value", "label": "产品折扣价", "info": "请输入数字，支持2位小数" },
+        { "type": "text", "id": "code_value", "label": "折扣码" },
+        { "type": "text", "id": "tax_fee_info", "label": "税费说明" },
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-产品组件-一行3个/4个",
+      "blocks": [
+        { "type": "v5-product-item" },
+        { "type": "v5-product-item" },
+        { "type": "v5-product-item" }
+      ]
+    }
+  ]
+}
+{% endschema %}

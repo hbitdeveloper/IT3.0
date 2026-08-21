@@ -1,0 +1,397 @@
+{% schema %}
+{
+  "name": "首页-信任状(SEO)",
+  "tag": "section",
+  "class": "section-trust-letter-v5",
+  "settings": [
+    { "type": "color", "id": "text_color", "label": "Main Text Color", "default": "#fd5000" },
+    { "type": "color", "id": "note_color", "label": "Note Text Color", "default": "#999999" },
+    { "type": "header", "content": "外边距（PC）" },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上外边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下外边距",
+      "default": 0
+    },
+    { "type": "header", "content": "外边距（MB）" },
+    {
+      "type": "select",
+      "id": "mb_margin_type",
+      "label": "MB外边距",
+      "options": [
+        { "value": "default", "label": "与PC一致" },
+        { "value": "custom", "label": "单独配置" }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "range",
+      "id": "margin_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上外边距",
+      "default": 0,
+      "visible_if": "{{section.settings.mb_margin_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下外边距",
+      "default": 0,
+      "visible_if": "{{section.settings.mb_margin_type == 'custom' }}"
+    },
+    { "type": "header", "content": "Left Section" },
+    {
+      "type": "richtext",
+      "id": "left_title_1",
+      "label": "Left Title 1 PC",
+      "default": "<p>世界リーディングブランド</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "left_title_1_mb",
+      "label": "Left Title 1 MB",
+      "default": "<p>世界リーディングブランド</p>"
+    },
+    { "type": "text", "id": "left_title_2", "label": "Left Title 2", "default": "販売台数700万台突破" },
+    { "type": "text", "id": "left_title_3", "label": "Left Title 3", "default": "創立14年の実績" },
+    { "type": "richtext", "id": "left_note", "label": "Left Note" },
+    { "type": "header", "content": "Right Section" },
+    { "type": "text", "id": "right_title_1", "label": "Right Title 1", "default": "7年連続" },
+    { "type": "richtext", "id": "right_title_2", "label": "Right Title 2", "default": "<p>日本<br>国内</p>" },
+    { "type": "text", "id": "right_title_3", "label": "Right Title 3", "default": "売上高・販売台数" },
+    { "type": "text", "id": "right_big_text", "label": "Right Big Text", "default": "No.1" },
+    { "type": "richtext", "id": "right_note", "label": "Right Note" }
+  ],
+  "presets": [
+    {
+      "name": "首页-信任状(SEO)",
+      "settings": {
+        "left_note": "<p>※ 出典：フロスト＆サリバン（2025年1月〜12月実績）。世界全ブランドの屋外用ポータブル電源（屋外・緊急時・オフグリッド設計のバッテリー装置）を対象としたオムニチャネル販売量調査（2026年2月完了）<br>※ 2018年1月〜2026年3月までのポータブル電源とソーラーパネル世界累計の販売台数",
+        "right_note": "<p>注釈:2019年から2025年における日本国内の「ポータブル電源およびポータブルソーラーパネル」市場において、各年の年間販売額および年間販売台数が第1位を獲得。 出典:フロスト&サリバン社(2026年3月調査)</p>"
+      }
+    }
+  ]
+}
+{% endschema %}
+
+{%- liquid
+  assign final_margin_top_mb = section.settings.margin_top
+  assign final_margin_bottom_mb = section.settings.margin_bottom
+  if section.settings.mb_margin_type == 'custom'
+    assign final_margin_top_mb = section.settings.margin_top_mb
+    assign final_margin_bottom_mb = section.settings.margin_bottom_mb
+  endif
+-%}
+
+{%- style -%}
+  .section-spacing-{{ section.id }} {
+    margin-top: {{ final_margin_top_mb | times: 1.0 | divided_by: 16 }}rem;
+    margin-bottom: {{ final_margin_bottom_mb | times: 1.0 | divided_by: 16 }}rem;
+  }
+  @media screen and (min-width: 1024px) {
+    .section-spacing-{{ section.id }} {
+      margin-top: {{ section.settings.margin_top | times: 1.0 | divided_by: 16 }}rem;
+      margin-bottom: {{ section.settings.margin_bottom | times: 1.0 | divided_by: 16 }}rem;
+    }
+  }
+{%- endstyle -%}
+
+<style>
+  .trust-letter-v5 .title-box .change-color {
+    color: var(--main-color);
+  }
+
+  .trust-letter-v5 .note-text-pc{
+    transform: translateY(-1.2rem);
+  }
+
+  {% comment %} 当触发动画时，将所有文字变透明，但通过 :not() 伪类强制重置小字的填充色 {% endcomment %}
+  .trust-letter-v5 .title-box.changed {
+    -webkit-text-fill-color: transparent;
+    background: url('https://cdn.shopify.com/s/files/1/0550/0524/9633/files/letter.png?v=1725957319') no-repeat
+      var(--main-color);
+    background-size: auto;
+    background-position: 0 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shark-txt 4.5s linear forwards;
+  }
+
+  @keyframes shark-txt {
+    0% {
+      background-position: -100% 50%;
+    }
+    100% {
+      background-position: calc(100vw + 100%) 50%;
+    }
+  }
+
+  .trust-letter-v5 .note-text p {
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .trust-letter-v5 .letter-text-a {
+    --jp-custom-line-height: 1.2;
+  }
+
+  .trust-letter-v5 .letter-text-b {
+    --jp-custom-line-height: 1;
+  }
+
+  .trust-letter-v5 .letter-text-c {
+    --jp-custom-line-height: 1.1;
+  }
+  @media (max-width: 1023.98px) {
+    html[lang='ja'] .trust-letter-v5 .letter-text-y {
+      transform: translateY(0.08rem);
+    }
+
+    html[lang='ja'] .trust-letter-v5 .note-text-mb{
+      width: 17.1rem;
+    }
+  }
+</style>
+
+<div
+  class="trust-letter-v5 w-full px-6 section-spacing-{{ section.id }}"
+  style="--main-color: {{ section.settings.text_color }}; --note-color: {{ section.settings.note_color }};"
+>
+  {% comment %} PC UI {% endcomment %}
+  <div class="max-w-[86rem] mx-auto hidden lg:block">
+    <div class="title-box flex flex-col lg:flex-row items-center justify-center">
+      {% comment %} Left Section {% endcomment %}
+      <div class="w-full lg:w-[61%] flex flex-col items-center lg:items-start text-center lg:text-left mb-5">
+        <div class="change-color" style="color:{{ section.settings.text_color }}">
+          <div class="lg:text-[2.5rem] leading-[1.2] font-semibold tracking-wider letter-text-a un-ja-text">
+            {{ section.settings.left_title_1 }}
+          </div>
+          <div class="lg:text-[2.5rem] leading-[1.2] font-semibold un-ja-text">
+            <span class="block lg:inline-block ">{{ section.settings.left_title_2 }}</span>
+            <span class="hidden lg:inline-block lg:text-[2.5rem]">x</span>
+            <span class="block lg:inline-block">{{ section.settings.left_title_3 }}</span>
+          </div>
+        </div>
+      </div>
+
+      {% comment %} Divider {% endcomment %}
+      <div class="w-full h-px lg:w-px lg:h-24 bg-[#999999]/60 shrink-0"></div>
+
+      {% comment %} Right Section {% endcomment %}
+      <div class="w-full lg:w-1/2 lg:pl-9 flex flex-col items-center lg:items-start text-center lg:text-left">
+        <div class="flex items-start justify-center lg:justify-start gap-3 md:gap-4" style="color: var(--main-color);">
+          {% comment %} Laurel Left {% endcomment %}
+          {% render 'icon-wheat-ear-left', class: 'w-[3rem] h-auto', color: 'var(--main-color)' %}
+
+          {% comment %} Text Group {% endcomment %}
+          <div
+            class="flex items-center shrink-0 change-color lg:w-[28.5rem] justify-between"
+            style="color:{{ section.settings.text_color }}"
+          >
+            <div class="flex flex-col text-left mr-2 md:mr-3">
+              <div class="text-[1.35rem] md:text-[1.65rem] lg:text-[2.75rem] font-bold leading-none tracking-tight mb-1 un-ja-text letter-text-b">
+                {{ section.settings.right_title_1 }}
+              </div>
+              <div class="flex gap-2">
+                <div class="text-[0.875rem] font-bold leading-none tracking-tight un-ja-text letter-text-b">
+                  {{ section.settings.right_title_2 }}
+                </div>
+                <div class="text-[1.625rem] font-bold leading-[1.2] tracking-tight un-ja-text letter-text-a">
+                  {{ section.settings.right_title_3 }}
+                </div>
+              </div>
+            </div>
+            <div class="text-6xl md:text-[5rem] lg:text-[6rem] font-semibold leading-none tracking-tighter trust-letter-big un-ja-text letter-text-b">
+              {{ section.settings.right_big_text }}
+            </div>
+          </div>
+          {% comment %} Laurel Right {% endcomment %}
+          {% render 'icon-wheat-ear-left', class: 'w-[3rem] h-auto scale-x-[-1]', color: 'var(--main-color)' %}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row items-start justify-start">
+      <div class="w-full lg:w-[61%]">
+        {%- if section.settings.left_note != blank -%}
+          <div class="note-text note-text-pc text-[0.5rem] text-[--note-color] text-left max-w-[35rem] -translate-y-4 un-ja-text letter-text-a">
+            {{ section.settings.left_note }}
+          </div>
+        {%- endif -%}
+      </div>
+      <div class="hidden w-px shrink-0"></div>
+      <div class="w-full lg:w-[28.5rem] lg:pl-4">
+        {%- if section.settings.right_note != blank -%}
+          <div class="note-text text-[0.5rem] text-[--note-color] text-left max-w-[36rem] -translate-y-6 un-ja-text letter-text-a">
+            {{ section.settings.right_note }}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-[86rem] mx-auto">
+    {% comment %} Mobile UI {% endcomment %}
+    <div class="block lg:hidden w-full">
+      <div class="w-full">
+        {% comment %} Top Section for Mobile (Left) {% endcomment %}
+        <div
+          class="change-color w-full flex flex-col items-start text-left"
+          style="color:{{ section.settings.text_color }}"
+        >
+          <div class="text-[1.625rem] font-semibold leading-[1.2] tracking-wider un-ja-text letter-text-a">
+            {{ section.settings.left_title_1_mb }}
+          </div>
+          <div class="text-[1.625rem] font-semibold leading-[1.2] un-ja-text letter-text-a">
+            {{ section.settings.left_title_2 }}
+          </div>
+          <div class="text-[1.625rem] font-semibold leading-[1.2 un-ja-text letter-text-a">
+            {{ section.settings.left_title_3 }}
+          </div>
+        </div>
+
+        {% comment %} Mobile Left Note {% endcomment %}
+        {%- if section.settings.left_note != blank -%}
+          <div class="note-text mt-2 text-[0.5rem] text-[--note-color] text-left w-full un-ja-text letter-text-a">
+            {{ section.settings.left_note }}
+          </div>
+        {%- endif -%}
+
+        {% comment %} Divider {% endcomment %}
+        <div class="w-full h-px bg-[#999999]/60 shrink-0 my-5"></div>
+
+        {% comment %} Bottom Section for Mobile (Right) {% endcomment %}
+        <div class="flex items-start justify-between w-full" style="color: var(--main-color);">
+          {% comment %} Laurel Left {% endcomment %}
+          <div class="w-[1.625rem] shrink-0">
+            {% render 'icon-wheat-ear-left-mb', class: 'w-[1.625rem] h-auto', color: 'var(--main-color)' %}
+          </div>
+
+          <div
+            class="change-color flex items-center justify-center shrink-0 -translate-y-2"
+            style="color:{{ section.settings.text_color }}"
+          >
+            <div class="flex flex-col text-left">
+              <div class="text-[1.875rem] font-bold leading-none tracking-tight mb-1 un-ja-text letter-text-b">
+                {{ section.settings.right_title_1 }}
+              </div>
+
+              <div class="flex gap-0.5">
+                <div class="text-[0.5rem] font-bold leading-none tracking-tight un-ja-text letter-text-b letter-text-y">
+                  {{ section.settings.right_title_2 }}
+                </div>
+                <div class="text-[1rem] font-bold leading-[1.2] tracking-tight un-ja-text letter-text-c">
+                  {{ section.settings.right_title_3 }}
+                </div>
+              </div>
+            </div>
+            <div class="text-[4rem] font-semibold leading-none tracking-tighter un-ja-text letter-text-a">
+              {{ section.settings.right_big_text }}
+            </div>
+          </div>
+
+          {% comment %} Laurel Right {% endcomment %}
+          <div class="w-[1.625rem] shrink-0">
+            {% render 'icon-wheat-ear-left-mb', class: 'w-[1.625rem] h-auto scale-x-[-1]', color: 'var(--main-color)' %}
+          </div>
+        </div>
+
+        {% comment %} Mobile Right Note {% endcomment %}
+        {%- if section.settings.right_note != blank -%}
+          <div class="note-text note-text-mb mt-4 text-[0.5rem] text-[--note-color] text-left w-[16rem] mx-auto -translate-y-9 un-ja-text letter-text-a">
+            {{ section.settings.right_note }}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  (function () {
+    function onReady(fn) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+        return;
+      }
+      fn();
+    }
+
+    function getScrollTop() {
+      return window.scrollY || document.documentElement.scrollTop || 0;
+    }
+
+    function getTitleBoxes() {
+      return Array.from(document.querySelectorAll('.trust-letter-v5 .title-box'));
+    }
+
+    function checkVisible(elements) {
+      if (!elements || elements.length === 0) return;
+
+      var windowHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      var windowTop = getScrollTop();
+      var windowBottom = windowTop + windowHeight;
+      var middleScreenTop = windowTop + windowHeight / 3;
+      var middleScreenBottom = windowBottom - windowHeight / 3;
+
+      elements.forEach(function (element) {
+        var rect = element.getBoundingClientRect();
+        var elementTop = rect.top + windowTop;
+        var elementBottom = elementTop + rect.height;
+
+        if (elementTop <= middleScreenBottom && elementBottom >= middleScreenTop) {
+          element.classList.add('changed');
+        } else {
+          element.classList.remove('changed');
+        }
+      });
+    }
+
+    onReady(function () {
+      var lastScrollTopNew = 0;
+      var ticking = false;
+
+      function update() {
+        var scrollTopNew = getScrollTop();
+        if (scrollTopNew > lastScrollTopNew) {
+          checkVisible(getTitleBoxes());
+        }
+        lastScrollTopNew = scrollTopNew;
+      }
+
+      window.addEventListener(
+        'scroll',
+        function () {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(function () {
+            update();
+            ticking = false;
+          });
+        },
+        { passive: true }
+      );
+    });
+  })();
+</script>

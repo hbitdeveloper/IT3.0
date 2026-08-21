@@ -1,0 +1,433 @@
+{{ 'section-photovolatic-save-electricity.min.css' | asset_url | stylesheet_tag }}
+
+{%- assign save_electricity = section.blocks | where: 'type', 'save_electricity' -%}
+{%- assign image_text = section.blocks | where: 'type', 'image_text' -%}
+{%- assign subscribe = section.blocks | where: 'type', 'subscribe' -%}
+
+{%- assign save_electricity_first = save_electricity | first -%}
+
+<section
+  class="photovolatic-save-electricity-wrap w-full flex items-center justify-center flex-col bg-[#F5F3EF] px-5 py-10 lg:px-0 lg:py-[4.375rem]"
+  data-type="{{ save_electricity_first.settings.compare_type }}"
+  {% if request.design_mode %}
+    data-edit
+  {% endif %}
+>
+  {% comment %} 进度条 {% endcomment %}
+  {% for block in save_electricity %}
+    <div class="w-full rounded-xl p-5 bg-white mx-auto lg:w-[80rem] lg:rounded-xl lg:pl-[3.375rem] lg:pr-[10.625rem] lg:py-[2.1875rem]">
+      {% if block.settings.title != blank %}
+        <h2
+          class="w-full text-center lg:text-left opacity-0 text-[#1A1A1A] font-semibold text-[1.5rem] leading-[2rem] lg:text-[2.5rem] lg:leading-[3rem]"
+          data-label-fade-in
+        >{{ block.settings.title | newline_to_br }}</h2>
+      {% endif %}
+
+      <div class="mt-5 lg:mt-2.5">
+        {% if block.settings.small_title_one != blank %}
+          <div
+            class="opacity-0 font-semibold text-[#1A1A1A] text-[1.25rem] leading-[1.5rem] mb-2.5 lg:text-[1.5rem] lg:leading-[3rem] lg:mb-1.5"
+            data-label-fade-in
+          >
+            {{ block.settings.small_title_one | newline_to_br }}
+          </div>
+        {% endif %}
+
+        {% if block.settings.small_description_one != blank %}
+          <div
+            class="opacity-0 font-semibold text-[1rem] leading-[1.25rem] mb-2.5 lg:text-[1.125rem] lg:leading-[2.25rem] lg:mb-1.5"
+            style="color: {{ block.settings.small_description_one_color | default: '#000000' }}"
+            data-label-fade-in
+          >{{ block.settings.small_description_one | newline_to_br }}</div>
+        {% endif %}
+
+        {% if block.settings.with_storage_number != blank or block.settings.percent_one != blank %}
+          <div class="w-full balcony-progress-bar relative h-[1.375rem] rounded-r-[0.6875rem] lg:h-12 lg:rounded-r-[1.5rem]">
+            <div
+              class="balcony-progress relative h-full rounded-r-[0.6875rem] lg:rounded-r-[1.5rem]"
+              style="background: {{ block.settings.bg_one }};{% if request.design_mode %}width:100%{% endif %}"
+            >
+              <div
+                class="w-full h-full glow-1 relative font-semibold flex items-center justify-end text-sm pr-2.5 lg:text-[1.75rem] lg:pr-5"
+                style="color: {{ block.settings.text_one }}"
+                {% if block.settings.show_currency_icon %}
+                  data-show-currency-icon
+                {% endif %}
+                data-with-storage
+                {% if block.settings.compare_type == 'amount' %}
+                  data-number="{{ block.settings.with_storage_number }}"
+                {% else %}
+                  data-number="{{ block.settings.percent_one }}"
+                {% endif %}
+              >
+                <span>
+                  {% if block.settings.compare_type == 'amount' %}
+                    {{ block.settings.with_storage_number | times: 100 | money_without_trailing_zeros }}
+                  {% else %}
+                    {{ block.settings.percent_one }}%
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="mt-[1.375rem] lg:mt-11">
+        {% if block.settings.small_title_two != blank %}
+          <div class="opacity-0 font-semibold text-[#1A1A1A] text-[1.25rem] leading-[1.5rem] mb-2.5 lg:text-[1.5rem] lg:leading-[3rem] lg:mb-1.5" data-label-fade-in>{{ block.settings.small_title_two | newline_to_br }}</div>
+        {% endif %}
+
+          {% if block.settings.without_storage_number != blank %}
+            <div class="w-full balcony-progress-bar relative h-[1.375rem] rounded-r-[0.6875rem] lg:h-[2.125rem] lg:rounded-r-[1.0625rem]">
+              <div
+                class="balcony-progress relative h-full rounded-r-[0.6875rem] lg:rounded-r-[1.5rem]"
+                style="background: {{ block.settings.bg_two }}"
+              >
+                <div
+                  class="w-full h-full glow-2 relative font-semibold flex items-center justify-end pr-2.5 text-sm lg:text-[1.5rem] lg:pr-[0.9375rem]"
+                  style="color: {{ block.settings.text_two }}"
+                  data-without-storage
+                  {% if block.settings.compare_type == 'amount' %}
+                    data-number="{{ block.settings.without_storage_number }}"
+                  {% else %}
+                    data-number="{{ block.settings.percent_two }}"
+                  {% endif %}
+                >
+                  <span>
+                    {% if block.settings.compare_type == 'amount' %}
+                      {{ block.settings.without_storage_number | times: 100 | money_without_trailing_zeros }}
+                    {% else %}
+                      {{ block.settings.percent_two }}%
+                    {% endif %}
+                  </span>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        {% if block.settings.extra_description != blank %}
+          <div class="opacity-0 mt-5 text-[0.625rem] leading-[0.75rem] lg:mt-[2.1875rem] lg:text-[0.625rem] lg:leading-[0.75rem]" data-label-fade-in>{{ block.settings.extra_description | newline_to_br }}</div>
+        {% endif %}
+    </div>
+  {% endfor %}
+
+
+  {% comment %} 图文 {% endcomment %}
+  {% for block in image_text %}
+    <div class="w-full h-[25rem] mt-10 mx-auto lg:w-[80rem] lg:h-[35rem] lg:mt-10 overflow-hidden relative">
+      {% comment %} image {% endcomment %}
+      {% render 'responsive-image',
+        image: block.settings.pc_img,
+        mimage: block.settings.mb_img,
+        image_class: 'block w-full h-full object-cover rounded-xl overflow-hidden'
+      %}
+      <div class="w-full h-full lg:px-[6.75rem] absolute left-0 top-0">
+        <h2 class="w-full font-semibold text-center text-white/90 text-[1.5rem] leading-[1.75rem] px-5 py-[1.875rem] lg:text-[1.25rem] lg:leading-[3rem] lg:px-0 lg:py-[3.75rem] line-clamp-3">
+          {{ block.settings.title | newline_to_br }}
+        </h2>
+        <div class="w-full font-normal text-center lg:text-left text-white text-base px-5 lg:px-0 lg:text-2xl line-clamp-7">
+          {{ block.settings.sub_title | newline_to_br }}
+        </div>
+        <div class="absolute left-5 bottom-2.5 text-white/80 text-[0.625rem] leading-[0.75rem] max-w-[18.4375rem] lg:left-[6.75rem] lg:bottom-6 lg:text-[0.625rem] lg:leading-[0.875rem] lg:max-w-[57.8125rem]">
+          {{ block.settings.description | newline_to_br }}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+
+  {% comment %} 订阅 {% endcomment %}
+  {% for block in subscribe %}
+    <ul class="mx-auto flex flex-col mt-[3.125rem] gap-10 lg:flex-row lg:mb-0">
+      <li class="bg-white flex items-center justify-start flex-col px-5 py-6 rounded-xl shadow-[0px_4px_15px_6px_rgba(0,0,0,0.05)] lg:shadow-none lg:w-[38.75rem] lg:min-h-[22.5rem] lg:rounded-sm lg:px-[3.5rem] lg:py-6">
+        <h2 class="w-full text-center font-semibold text-[#1A1A1A] text-[1.5rem] leading-[3rem] mb-[3.75rem] lg:text-[2.25rem] lg:leading-[3rem] lg:mb-[2.1875rem]">
+          {{ block.settings.subscribe_title | newline_to_br }}
+        </h2>
+        <p class="w-full text-center font-normal text-[#666] text-base">
+          {{ block.settings.subscribe_description | newline_to_br }}
+        </p>
+        <div class="flex items-center justify-center flex-col lg:flex-row mt-[1.875rem] mb-6 lg:w-[31.875rem] lg:mt-[3.75rem] lg:mb-[3.125rem]">
+          <input
+            class="flex w-[17.25rem] h-[3.25rem] lg:flex-1 border-1 rounded-[1.625rem] text-center lg:text-left lg:w-full appearance-none font-normal text-[#1A1A1A] border-primary border-solid text-sm px-[1.875rem] lg:h-[3.25rem] lg:border-2 lg:rounded-l-[1.625rem] lg:rounded-r-none lg:text-[1.125rem] lg:leading-[1.625rem] lg:px-[1.875rem]"
+            type="email"
+            placeholder="{{block.settings.email_placeholder}}"
+            data-photovolatic-email-input
+          >
+          <button
+            class="appearance-none font-semibold text-white bg-primary min-w-[17.25rem] h-[3.25rem] rounded-[1.625rem] text-base mt-2.5 lg:mt-0 lg:min-w-[11.8125rem] lg:h-[3.25rem] lg:rounded-[1.625rem] lg:text-xl lg:-ml-[1.625rem]"
+            data-photovolatic-subscribe
+            data-section-title="{{ block.settings.subscribe_title | escape }}"
+            data-button-text="{{ block.settings.subscribe_button_text | escape }}"
+          >
+            {{ block.settings.subscribe_button_text | escape }}
+          </button>
+        </div>
+        {% if block.settings.sevice_privacy_text != blank %}
+          <jds-checkbox id="balcony-agree-checkbox" class="J-subscribe-declaration-checkbox flex items-start" value="true">
+            <span
+              class="J-subscribe-declaration-span flex-1 font-normal text-[#999] cursor-pointer text-sm lg:text-sm"
+              data-terms_service="{{ block.settings.terms_service | escape }}"
+              data-terms_service_url="{{ block.settings.terms_service_url }}"
+              data-privacy_policy="{{ block.settings.privacy_policy | escape }}"
+              data-privacy_policy_url="{{ block.settings.privacy_policy_url }}"
+            >
+              {{ block.settings.sevice_privacy_text | escape }}
+            </span>
+          </jds-checkbox>
+        {% endif %}
+      </li>
+      <li class="bg-white flex items-center justify-start flex-col px-5 py-6 rounded-xl shadow-[0px_4px_15px_6px_rgba(0,0,0,0.05)] lg:shadow-none lg:w-[38.75rem] 20 lg:h-[22.5rem] lg:rounded-xl lg:px-[3.5rem] lg:py-6">
+        <h2 class="w-full text-center font-semibold text-[#1A1A1A] text-[1.5rem] leading-[3rem] mb-[1.875rem] lg:text-4xl lg:mb-[2.1875rem]">
+          {{ block.settings.regional_funding_grant_title | newline_to_br }}
+        </h2>
+        <p class="w-full text-center font-normal text-[#666] text-base lg:text-base">
+          {{ block.settings.regional_funding_grant_description | newline_to_br }}
+        </p>
+        <a
+          href="{{ block.settings.regional_funding_grant_button_link }}"
+          class="inline-flex items-center justify-center bg-primary text-white font-semibold mt-[1.875rem] min-w-[17.25rem] h-[3.25rem] rounded-[1.625rem] text-base lg:min-w-[13.75rem] lg:h-[3.375rem] lg:rounded-[1.6875rem] lg:text-xl lg:mt-[3.75rem]"
+          data-photovolatic-funding-grant
+          data-section-title="{{ block.settings.regional_funding_grant_title | escape }}"
+          data-button-text="{{ block.settings.regional_funding_grant_button_text | escape }}"
+        >
+          {{ block.settings.regional_funding_grant_button_text | escape }}
+        </a>
+      </li>
+    </ul>
+  {% endfor %}
+</section>
+
+<script defer src="{{ 'section-photovolatic-save-electricity.min.js' | asset_url }}"></script>
+
+{% schema %}
+  {
+    "name": "Photovolatic Save Electri",
+    "class": "section-photovolatic section-photovolatic-save-electricity",
+    "limit": 1,
+    "blocks": [
+      {
+        "type": "save_electricity",
+        "name": "Save Electricity",
+        "limit": 1,
+        "settings": [
+          {
+            "type": "textarea",
+            "id": "title",
+            "label": "标题",
+            "default": "Save Electricity Costs"
+          },
+          {
+            "type": "richtext",
+            "id": "small_title_one",
+            "label": "第一行小标题",
+            "default": "<p>Jackery DIY Solar Generator for Home <span>(with storage)</span></p>"
+          },
+          {
+            "type": "richtext",
+            "id": "small_description_one",
+            "label": "第一行描述"
+          },
+          {
+            "type": "color",
+            "id": "small_description_one_color",
+            "label": "第一行描述颜色",
+            "default": "#000000"
+          },
+          {
+            "type": "select",
+            "id": "compare_type",
+            "label": "对比类型",
+            "options": [
+              {"value": "amount", "label": "金额对比"},
+              {"value": "percent", "label": "百分比对比"}
+            ],
+            "default": "amount"
+          },
+          {
+            "type": "number",
+            "id": "with_storage_number",
+            "label": "第一行对比金额",
+            "visible_if": "{{ block.settings.compare_type == 'amount' }}"
+          },
+          {
+            "type": "range",
+            "id": "percent_one",
+            "label": "第一行百分比",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "default": 100,
+            "visible_if": "{{ block.settings.compare_type == 'percent' }}"
+          },
+          {
+            "type": "color_background",
+            "id": "bg_one",
+            "label": "第一行对比背景",
+            "default": "linear-gradient(90deg, #FD8600 0%, #FD5000 100%)"
+          },
+          {
+            "type": "color",
+            "id": "text_one",
+            "label": "第一行对比文字颜色",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "checkbox",
+            "id": "show_currency_icon",
+            "label": "显示货币图标",
+            "default": true
+          },
+          {
+            "type": "richtext",
+            "id": "small_title_two",
+            "label": "第二行小标题",
+            "default": "<p>Balcony Solar System <span>(without storage)</span></p>"
+          },
+          {
+            "type": "number",
+            "id": "without_storage_number",
+            "label": "第二行对比金额",
+            "visible_if": "{{ block.settings.compare_type == 'amount' }}"
+          },
+          {
+            "type": "range",
+            "id": "percent_two",
+            "label": "第二行百分比",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "default": 50,
+            "visible_if": "{{ block.settings.compare_type == 'percent' }}"
+          },
+          {
+            "type": "color_background",
+            "id": "bg_two",
+            "label": "第二行对比背景",
+            "default": "linear-gradient(90deg, #EAE9E9FF 0%, #CFBFB8FF 100%)"
+          },
+          {
+            "type": "color",
+            "id": "text_two",
+            "label": "第二行对比文字颜色",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "textarea",
+            "id": "extra_description",
+            "label": "更多描述"
+          }
+        ]
+      },
+      {
+        "type": "image_text",
+        "name": "Image With Text",
+        "limit": 1,
+        "settings": [
+          {
+            "type": "textarea",
+            "id": "title",
+            "label": "Title",
+            "default": "Carbon Emission Reduction"
+          },
+          {
+            "type": "textarea",
+            "id": "sub_title",
+            "label": "Sub Title",
+            "default": "Jackery DIY Solar Generator for Home (with storage) --28,075KG CO2 \n Balcony solar system alone (without storage) --10,528KG CO2"
+          },
+          {
+            "type": "textarea",
+            "id": "description",
+            "label": "Description",
+            "default": "Electricity Savings Calculation Example: \n 1. The Jackery DIY Solar Generator for home generates 1760 kWh x 80% x €0.35 per kWh x 20 years = Save €9,856! \n 2. Other generators without energy storage generates 890kWh x 30% x €0.35 per kWh x 20 years = Save €3,696! \n *Calculations are based on the average price of €0.35 per kWh, in Germany."
+          },
+          {
+            "type": "image_picker",
+            "id": "pc_img",
+            "label": "PC Image"
+          },
+          {
+            "type": "image_picker",
+            "id": "mb_img",
+            "label": "Mobile Image"
+          }
+        ]
+      },
+      {
+        "type": "subscribe",
+        "name": "Subscribe",
+        "limit": 1,
+        "settings": [
+          {
+            "type": "textarea",
+            "id": "subscribe_title",
+            "label": "Subscribe Title",
+            "default": "Subscribe Here"
+          },
+          {
+            "type": "textarea",
+            "id": "subscribe_description",
+            "label": "Description",
+            "default": "Be the first to receive our latest news and exclusive deals! Subscribe now."
+          },
+          {
+            "type": "text",
+            "id": "email_placeholder",
+            "label": "Email Placeholder",
+            "default": "Enter Your Email Address"
+          },
+          {
+            "type": "text",
+            "id": "subscribe_button_text",
+            "label": "Subscribe Button Text",
+            "default": "Subscribe"
+          },
+          {
+            "type": "text",
+            "id": "sevice_privacy_text",
+            "label": "as: I agree to Jackery's {termsService} and {PrivacyPolicy}"
+          },
+          { "type": "text", "id": "terms_service", "label": "terms service text" },
+          { "type": "url", "id": "terms_service_url", "label": "terms service url" },
+          { "type": "text", "id": "privacy_policy", "label": "privacy Policy text" },
+          { "type": "url", "id": "privacy_policy_url", "label": "privacy Policy url" },
+          {
+            "type": "textarea",
+            "id": "regional_funding_grant_title",
+            "label": "Regional Funding Grant Title",
+            "default": "Regional funding grant"
+          },
+          {
+            "type": "textarea",
+            "id": "regional_funding_grant_description",
+            "label": "Regional Funding Grant Description",
+            "default": "Nationwide, regional and urban mini-PV funding - balcony power plant funding 2024:Funding of up to 750€ is possible"
+          },
+          {
+            "type": "text",
+            "id": "regional_funding_grant_button_text",
+            "label": "Regional Funding Grant Button Text",
+            "default": "Learn More"
+          },
+          {
+            "type": "url",
+            "id": "regional_funding_grant_button_link",
+            "label": "Regional Funding Grant Button Link"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Photovolatic Save Electri",
+        "blocks": [
+          {
+            "type": "save_electricity"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

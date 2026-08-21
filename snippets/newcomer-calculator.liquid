@@ -1,0 +1,219 @@
+{% if settings.collection_shop != blank %}
+    {% assign selected_collection = collections[settings.collection_shop] %}
+    {% assign collection_products = selected_collection.products %}
+
+    {% comment %} 初始化产品数组 {% endcomment %}
+    {% assign product_data = '' %}
+    {% assign dropdown_html = '' %}
+
+    {% for product in collection_products %}
+        {% assign capacity = product.metafields.my_fields.wattage %}
+        {% if capacity != blank %}
+            {% comment %} 产品最大功率，单位：W（瓦特） {% endcomment %}
+            {% assign max_power = product.metafields.custom.max_power %}
+
+            {% assign efficiency = 0.8 %}
+            {% assign ac_consumption = 0 %}
+
+            {%- if capacity >= 100 and capacity < 1000 -%}
+                {% assign efficiency = 0.82 %}
+                {% assign ac_consumption = 10 %}
+            {%- elsif capacity>= 1000 and capacity < 1200 -%}
+                {% assign efficiency = 0.82 %}
+                {% assign ac_consumption = 15 %}
+            {%- elsif capacity>= 1200 and capacity < 2100 -%}
+                {% assign efficiency = 0.82 %}
+                {% assign ac_consumption = 18 %}
+            {%- elsif capacity>= 2100 and capacity < 3050 -%}
+                {% assign efficiency = 0.85 %}
+                {% assign ac_consumption = 25 %}
+            {%- elsif capacity>= 3050 and capacity < 5000 -%}
+                {% assign efficiency = 0.85 %}
+                {% assign ac_consumption = 22 %}
+            {%- elsif capacity>= 5000 -%}
+                {% assign efficiency = 0.85 %}
+                {% assign ac_consumption = 50 %}
+            {%- endif  -%}
+
+            {% if product.metafields.custom.efficiency != blank %}
+                {% assign efficiency = product.metafields.custom.efficiency %}
+            {% endif %}
+
+            {% if product.metafields.custom.ac_consumption != blank %}
+                {% assign ac_consumption = product.metafields.custom.ac_consumption %}
+            {% endif %}
+
+            {% assign shortname = product.metafields.custom.shortname | default: product.title %}
+            {% assign words = shortname | split: ' ' %}
+            {% if words.first == 'Jackery' %}
+                {% assign shortname = shortname | remove_first: 'Jackery ' %}
+            {% endif %}
+
+
+            {% comment %} 构建产品数据对象 {% endcomment %}
+            {% capture product_item %}
+                {
+                    "id": "{{ product.id }}",
+                    "title": "{{ product.title | escape }}",
+                    "shortname": "{{ shortname | escape }}",
+                    "capacity": {{ capacity | default: 0 }},
+                    "max_power": {{ max_power | default: 0 }},
+                    "efficiency": {{ efficiency }},
+                    "ac_consumption": {{ ac_consumption }},
+                    "image": "{{ product.metafields.custom.shop_menu_product_image | default: product.featured_image | image_url: width: 200 }}",
+                    "specs": "Capacity {{ capacity }}Wh, Output {{ max_power }}W"
+                }
+            {% endcapture %}
+
+            {% if product_data != '' %}
+                {% assign product_data = product_data | append: ',' | append: product_item %}
+            {% else %}
+                {% assign product_data = product_item %}
+            {% endif %}
+            {% comment %} 同时构建下拉列表HTML {% endcomment %}
+            {% capture dropdown_item %}
+                <div class="dropdown-item"
+                    data-product-id="{{ product.id }}"
+                    data-max-power="{{ max_power | default: 0 }}"
+                    data-capacity="{{ capacity | default: 0 }}"
+                    data-efficiency="{{ efficiency }}"
+                    data-ac-consumption="{{ ac_consumption }}"
+                    data-image="{{ product.metafields.custom.shop_menu_product_image | default: product.featured_image | image_url: width: 200 }}"
+                    data-short-name="{{ shortname }}"
+                    data-equipment="{{ settings.equipment }}">
+                    <div class="item-image">
+                        <img src="{{ product.metafields.custom.shop_menu_product_image | default: product.featured_image | image_url: width: 200 }}" alt="{{ product.title }}" />
+                    </div>
+                    <div class="item-info">
+                        <div class="item-title">{{ shortname }}</div>
+                    </div>
+                </div>
+            {% endcapture %}
+            {% assign dropdown_html = dropdown_html | append: dropdown_item %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+<div 
+    {% if shopify_attributes != blank %}{{shopify_attributes}}{% endif %}
+    class="newcomer-calculator newcomer-calculator-{{ index }}" anchor="{{ settings.anchor_id  | url_decode | strip | replace: ' ', ''}}">
+    <div class="calculator-content newcomer-main-container">
+        <div class="calculator-left">
+            <div class="calculator-index">{{ settings.part_index }}</div>
+            <h3 class="calculator-title">{{ settings.part_title | newline_to_br }}</h3>
+            <div class="calculator-des">{{ settings.part_subtitle | newline_to_br }}</div>
+        </div>
+        <div class="calculator-right">
+            <div class="calculator-result-area">
+                <div class="result-display">
+                    <div class="result-number">
+                        <span class="result-num">00</span>
+                        <span class="result-unit">{{ settings.hour_text }}</span>
+                    </div>
+                    <div class="result-label">{{ settings.expected_text }}</div>
+                </div>
+            </div>
+            <div class="result-circle">
+                <div class="small-circle"></div>
+                <div class="big-circle"></div>
+            </div>
+            <div class="calculator-bottom">
+                <div class="product-selector">
+                    <div class="product-item">
+                        <div class="product-image">
+                            {% render 'responsive-image',
+                                    image: settings.select_poster,
+                                    image_class: 'calculator-image'
+                            %}
+                        </div>
+                        <div class="product-info">
+                            <div class="product-name">
+                                <div class="item-title text-overflow-1">
+                                    {{ settings.select_text }}
+                                </div>
+                                <div class="selector-arrow">
+                                    <jds-icon name="arrow-down" class="icon"></jds-icon>
+                                </div>
+                            </div>
+                            <div class="product-specs text-overflow-1"></div>
+                        </div>
+                    </div>
+                    <div class="product-dropdown-list">
+                        {{ dropdown_html }}
+                    </div>
+                </div>
+
+                <div class="wattage-input-area">
+                    <div class="wattage-icon">
+                        <svg width="139" height="139" viewBox="0 0 139 139" xmlns="http://www.w3.org/2000/svg">
+                            <g fill-rule="nonzero" fill="none">
+                                <path
+                                    d="M45.312 28h49.876c4.571 0 8.312 3.78 8.312 8.4v67.2c0 4.62-3.74 8.4-8.313 8.4H45.313c-4.571 0-8.312-3.78-8.312-8.4V36.4c0-4.62 3.74-8.4 8.312-8.4zm0 4.2c-2.285 0-4.156 1.89-4.156 4.2v67.2c0 2.31 1.87 4.2 4.156 4.2h49.876c2.285 0 4.156-1.89 4.156-4.2V36.4c0-2.31-1.87-4.2-4.157-4.2H45.313z"
+                                    fill="#666" />
+                                <path
+                                    d="M49.469 36.4H91.03c2.286 0 4.156 1.898 4.156 4.217v10.965c0 2.32-1.87 4.217-4.156 4.217H49.47c-2.286 0-4.157-1.898-4.157-4.217V40.617c0-2.32 1.87-4.217 4.157-4.217zm0 4.217v10.965H91.03V40.617H49.47zm-1.247 18.556h9.144c.914 0 1.662.759 1.662 1.687v9.278c0 .927-.748 1.687-1.662 1.687h-9.144c-.915 0-1.663-.76-1.663-1.687V60.86c0-.928.748-1.687 1.663-1.687zm1.662 9.278h5.82v-5.904h-5.82v5.904zm-1.662 6.747h9.144c.914 0 1.662.76 1.662 1.687v9.278c0 .928-.748 1.687-1.662 1.687h-9.144c-.915 0-1.663-.76-1.663-1.687v-9.278c0-.928.748-1.687 1.663-1.687zm1.662 9.278h5.82v-5.904h-5.82v5.904zm15.794-25.303h9.144c.914 0 1.662.759 1.662 1.687v9.278c0 .927-.748 1.687-1.662 1.687h-9.144c-.914 0-1.662-.76-1.662-1.687V60.86c0-.928.748-1.687 1.662-1.687zm1.663 9.278h5.818v-5.904h-5.818v5.904zm-1.663 6.747h9.144c.914 0 1.662.76 1.662 1.687v9.278c0 .928-.748 1.687-1.662 1.687h-9.144c-.914 0-1.662-.76-1.662-1.687v-9.278c0-.928.748-1.687 1.662-1.687zm1.663 9.278h5.818v-5.904h-5.818v5.904zm15.793-25.303h9.144c.914 0 1.663.759 1.663 1.687v9.278c0 .927-.749 1.687-1.663 1.687h-9.144c-.914 0-1.662-.76-1.662-1.687V60.86c0-.928.748-1.687 1.662-1.687zm1.663 9.278h5.819v-5.904h-5.82v5.904z"
+                                    fill="#666" />
+                                <path
+                                    d="M82.303 75.25h9.144c.914 0 1.662.75 1.662 1.668v25.014a1.67 1.67 0 01-1.662 1.668h-9.144a1.67 1.67 0 01-1.662-1.668V76.918a1.67 1.67 0 011.662-1.668zm1.663 3.335v21.68h5.818v-21.68h-5.818z"
+                                    fill="var(--jds-color-primary)" />
+                                <path
+                                    d="M48.026 92.05h9.207c.92 0 1.674.756 1.674 1.68v9.24c0 .924-.753 1.68-1.674 1.68h-9.207c-.921 0-1.674-.756-1.674-1.68v-9.24c0-.924.753-1.68 1.674-1.68zm1.674 9.24h5.859v-5.88h-5.86v5.88zm15.903-9.24h9.207c.921 0 1.674.756 1.674 1.68v9.24c0 .924-.753 1.68-1.674 1.68h-9.207c-.92 0-1.674-.756-1.674-1.68v-9.24c0-.924.753-1.68 1.674-1.68zm1.674 3.36v5.88h5.86v-5.88h-5.86z"
+                                    fill="#666" />
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="wattage-input ui-hrs">
+                        <div class="wattage-title">{{ settings.w_text }}</div>
+                        <div class="wattage-bottom">
+                            <div class="form-box">
+                                <div class="inp-box">
+                                    <input
+                                        name="{{ settings.w_text }}"
+                                        aria-label="{{ settings.w_text }}"
+                                        type="number"
+                                        min="0"
+                                        max=""
+                                        data-max-power=""
+                                        data-ac_consumption=""
+                                        class="power-inp"
+                                        onkeyup="value=value.replace(/[^\d]/g,'')"
+                                        onblur="value=value.replace(/[^\d]/g,'')"
+                                    >
+                                    <span class="unit">W</span>
+                                </div>
+                                <button aria-label="{{settings.button_tip_text}}" type="button" class="btn-enter" disabled>
+                                    <span class="over"></span>
+                                    <span class="hide">Enter</span>
+                                </button>
+                                <div class="btn-tips" data-once-show="false">{{ settings.button_tip_text }}</div>
+                                <div class="error-tips text-ellipsis-1" data-error-tip="{{ settings.errorTips }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="calculator-note">
+                {{ settings.table_description }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .newcomer-calculator-{{ index }}{
+        padding-top:{{ settings.pc_padding_top }}px;
+        padding-bottom:{{ settings.pc_padding_bottom }}px;
+    }
+    @media screen and (min-width: 1024px) and (max-width: 1439.98px){
+        .newcomer-calculator-{{ index }}{
+            padding-top: calc( {{ settings.pc_padding_top }}  * 100vw / 1440 );
+            padding-bottom: calc( {{ settings.pc_padding_bottom }}  * 100vw / 1440 );
+        }
+    }
+    @media screen and (max-width: 1023.98px){
+        .newcomer-calculator-{{ index }}{
+            padding-top: calc( {{ settings.mb_padding_top }}  * 100vw / 750 );
+            padding-bottom: calc( {{ settings.mb_padding_bottom }}  * 100vw / 750 );
+        }
+    }
+</style>

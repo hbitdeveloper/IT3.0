@@ -1,0 +1,394 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+<div {{ block.shopify_attributes }} class="w-full section-padding" style="{{ style }}">
+  {% style %}
+    v5-app-pdp-benefit-text {
+      display: block;
+    }
+    v5-app-pdp-benefit-text button,
+    v5-app-pdp-benefit-text a {
+      appearance: none;
+      background: none;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    /* 用户（商品积分文案） */
+    [v5-app-data-points-item] .product-points-content,
+    [v5-app-data-points-item] .product-points-content .product-points-btn {
+      font-size: 1rem;
+      line-height: 1.5rem;
+      color: rgba(36, 47, 32, 0.65);
+    }
+    [v5-app-data-points-item] .product-points-content .product-points-btn {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    @media screen and (max-width: 1023.98px) {
+      [v5-app-data-points-item] .product-points-content,
+      [v5-app-data-points-item] .product-points-content .product-points-btn {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+      }
+    }
+    /* 订阅弹窗样式 */
+    .v5-app-benefit-popup-subscribe.modal-container.modal .modal-content {
+      border-radius: var(--theme-dialog-border-radius, 18px);
+      width: 480px;
+      overflow-y: auto
+    }
+    .v5-app-benefit-popup-subscribe.modal-container.modal .close {
+      align-items: center;
+      background: 0 0;
+      border-radius: 50%;
+      color: #fff;
+      display: inline-block;
+      display: flex;
+      font-size: 32px;
+      height: 32px;
+      justify-content: center;
+      padding-top: 2px;
+      position: absolute;
+      right: 6px;
+      top: 0;
+      width: 32px
+    }
+    .v5-app-benefit-popup-subscribe.modal-container.modal .modal-content .moadal-header {
+      border-bottom: none
+    }
+    .v5-app-benefit-popup-subscribe.modal-container.modal .modal-content .modal-content-body {
+      padding: 0 40px 60px
+    }
+    .v5-app-benefit-popup-subscribe.modal-container.modal .modal-content .title {
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 34px;
+      margin-bottom: 4px
+    }
+    .v5-app-benefit-popup-subscribe.modal-container.modal .modal-content .subtitle {
+      color: #666;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 25px;
+      margin-bottom: 20px
+    }
+    .v5-app-benefit-popup-subscribe.modal-container.modal .newbee-form_subscribe .form-item {
+      width: 100%
+    }
+    .v5-app-benefit-popup-subscribe.modal-container.modal .newbee-form_subscribe .form_sub_btn {
+      width: 100%;
+      height: 45px
+    }
+  {% endstyle %}
+  <v5-app-pdp-benefit-text class="w-full block" data-product-title="{{ product.title | escape }}">
+    <ul class="w-full flex flex-col bg-[#F5F5F3] p-3 lg:p-4">
+      {% comment %} 物流模块 {% endcomment %}
+      {%- if block.settings.logistics_title != blank or block.settings.logistics_subtitle != blank -%}
+        <li
+          class="flex flex-col py-4 gap-y-2 border-0 border-b-[1px] border-solid border-[#C6C7C8] first-of-type:pt-0 last-of-type:pb-0 last-of-type:border-b-0"
+          v5-app-data-logistics-item
+          data-title="{{ block.settings.logistics_title | escape }}"
+          data-content="{{ block.settings.logistics_dialog | escape | newline_to_br}}"
+          data-btn-text="{{ block.settings.logistics_btn_text | escape }}"
+        >
+          {%- if block.settings.logistics_title != blank -%}
+            <h4 class="text-base font-semibold lg:text-xl text-[#242F20]/90">{{ block.settings.logistics_title | escape }}</h4>
+          {%- endif-%}
+          {%- if block.settings.logistics_subtitle != blank -%}
+            {%- assign logistics_bold = 400 -%}
+            {%- if block.settings.logistics_btn_bold -%}
+              {%- assign logistics_bold = 700 -%}
+            {%- endif -%}
+            {%- assign logistics_button_str = '<button class="appearance-none bg-transparent" style="color:' | append: block.settings.logistics_btn_color | append: ';font-weight:' | append: logistics_bold | append: '">' | append: block.settings.logistics_btn_text | append: '</button>'  %}
+            <p class="text-sm lg:text-base text-black/65">{{ block.settings.logistics_subtitle | replace: '$btn', logistics_button_str }}</p>
+          {%- endif -%}
+        </li>
+      {%- endif -%}
+      {% comment %} 用户模块 {% endcomment %}
+      {%- if section.settings.is_show_point -%}
+        {%- if block.settings.is_show_point_block or block.settings.is_show_global_point -%}
+          <li
+            v5-app-data-points-item
+            class="flex flex-col py-4 gap-y-2 border-0 border-b-[1px] border-solid border-[#C6C7C8] first-of-type:pt-0 last-of-type:pb-0 last-of-type:border-b-0"
+          >
+            {%- if block.settings.points_title != blank -%}
+              <h4 class="text-base font-semibold lg:text-xl text-[#242F20]/90">{{ block.settings.points_title | escape }}</h4>
+            {%- endif-%}
+            {%- render 'product-points-text', block: block, enabled: block.settings.is_show_point_block, gaEventName: '5.0_products_details_page_user_clicks' -%}
+          </li>
+        {%- endif -%}
+      {%- endif -%}
+
+      {% comment %} 通用模块① {% endcomment %}
+      {%- if block.settings.common_title_1 != blank or block.settings.common_subtitle_1 != blank -%}
+        <li class="flex flex-col py-4 gap-y-2 border-0 border-b-[1px] border-solid border-[#C6C7C8] first-of-type:pt-0 last-of-type:pb-0 last-of-type:border-b-0">
+          {%- if block.settings.common_title_1 != blank -%}
+            <h4 class="text-base font-semibold lg:text-xl text-[#242F20]/90">{{ block.settings.common_title_1 | escape }}</h4>
+          {%- endif-%}
+          {%- if block.settings.common_subtitle_1 != blank -%}
+            <p
+              class="text-sm lg:text-base text-black/65"
+              data-title="{{ block.settings.common_title_1 | escape }}"
+              data-v5-app-pdp-benefit-link-wrap
+            >{{ block.settings.common_subtitle_1 }}</p>
+          {%- endif -%}
+        </li>
+      {%- endif -%}
+      {% comment %} 通用模块② {% endcomment %}
+      {%- if block.settings.common_title_2 != blank or block.settings.common_subtitle_2 != blank -%}
+        <li class="flex flex-col py-4 gap-y-2 border-0 border-b-[1px] border-solid border-[#C6C7C8] first-of-type:pt-0 last-of-type:pb-0 last-of-type:border-b-0">
+          {%- if block.settings.common_title_2 != blank -%}
+            <h4 class="text-base font-semibold lg:text-xl text-[#242F20]/90">{{ block.settings.common_title_2 | escape }}</h4>
+          {%- endif-%}
+          {%- if block.settings.common_subtitle_2 != blank -%}
+            <p
+              class="text-sm lg:text-base text-black/65"
+              data-title="{{ block.settings.common_title_2 | escape }}"
+              data-v5-app-pdp-benefit-link-wrap
+            >{{ block.settings.common_subtitle_2 }}</p>
+          {%- endif -%}
+        </li>
+      {%- endif -%}
+      {% comment %} 通用模块③ {% endcomment %}
+      {%- if block.settings.common_title_3 != blank or block.settings.common_subtitle_3 != blank -%}
+        <li class="flex flex-col py-4 gap-y-2 border-0 border-b-[1px] border-solid border-[#C6C7C8] first-of-type:pt-0 last-of-type:pb-0 last-of-type:border-b-0">
+          {%- if block.settings.common_title_3 != blank -%}
+            <h4 class="text-base font-semibold lg:text-xl text-[#242F20]/90">{{ block.settings.common_title_3 | escape }}</h4>
+          {%- endif-%}
+          {%- if block.settings.common_subtitle_3 != blank -%}
+            <p
+              class="text-sm lg:text-base text-black/65"
+              data-title="{{ block.settings.common_title_3 | escape }}"
+              data-v5-app-pdp-benefit-link-wrap
+            >{{ block.settings.common_subtitle_3 }}</p>
+          {%- endif -%}
+        </li>
+      {%- endif -%}
+      {% comment %} 订阅模块 {% endcomment %}
+      {%- if block.settings.subscribe_title != blank or block.settings.subscribe_subtitle != blank -%}
+        <li
+          class="flex flex-col py-4 gap-y-2 border-0 border-b-[1px] border-solid border-[#C6C7C8] first-of-type:pt-0 last-of-type:pb-0 last-of-type:border-b-0"
+          v5-app-data-subscribe-item
+          data-title="{{ block.settings.subscribe_form_title | escape }}"
+          data-content="{{ block.settings.subscribe_form_content | escape }}"
+          data-btn-text="{{ block.settings.subscribe_btn_text | escape }}"
+          data-email_placeholder="{{ block.settings.subscribe_form_input_tips | escape }}"
+          data-subscribe_policy="{{ block.settings.subscribe_form_policy | escape }}"
+          data-email_empty_info="{{ 'newsletter.email_empty_info' | t }}"
+          data-email_error_info="{{ 'newsletter.email_error_info' | t }}"
+          data-policy_empty_info="{{ 'newsletter.policy_empty_info' | t }}"
+          data-tag="{{ block.settings.subscribe_tag | escape }}"
+          data-subscribe_submit="{{ block.settings.subscribe_form_submit_text | escape }}"
+          data-subscribe_reminds_success="{{ block.settings.subscribe_form_submit_success | escape }}"
+          data-subscribe_reminds_error="{{ block.settings.subscribe_form_submit_error | escape }}"
+        >
+          {%- if block.settings.subscribe_title != blank -%}
+            <h4 class="text-base font-semibold lg:text-xl text-[#242F20]/90">{{ block.settings.subscribe_title | escape }}</h4>
+          {%- endif-%}
+          {%- if block.settings.subscribe_subtitle != blank -%}
+            {%- assign subscribe_bold = 400 -%}
+            {%- if block.settings.subscribe_btn_bold -%}
+              {%- assign subscribe_bold = 700 -%}
+            {%- endif -%}
+            {%- assign subscribe_button_str = '<button class="appearance-none bg-transparent" style="color:' | append: block.settings.subscribe_btn_color | append: ';font-weight:' | append: subscribe_bold | append: '">' | append: block.settings.subscribe_btn_text | append: '</button>'  %}
+            <p class="text-sm lg:text-base text-black/65">{{ block.settings.subscribe_subtitle | replace: '$btn', subscribe_button_str }}</p>
+          {%- endif -%}
+        </li>
+      {%- endif -%}
+    </ul>
+  </v5-app-pdp-benefit-text>
+
+  <script type="module">
+    if (!customElements.get('v5-app-pdp-benefit-text')) {
+      customElements.define('v5-app-pdp-benefit-text', class V5AppPdpBenefitText extends HTMLElement {
+        constructor() {
+          super();
+        }
+        connectedCallback() {
+          this.logisticsItem = this.querySelector('[v5-app-data-logistics-item]')
+          this.subscribeItem = this.querySelector('[v5-app-data-subscribe-item]')
+
+          this.v5AppPdpBenefitLinkWraps = this.querySelectorAll('[data-v5-app-pdp-benefit-link-wrap]')
+          
+          if (this.logisticsItem) {
+            // crypto 是浏览器内置的全局对象（无需引入任何库），专门提供加密相关能力，randomUUID() 方法可直接生成符合 RFC 4122 v4 规范 的 UUID（通用唯一标识符）
+            const dialogId = window.crypto.randomUUID()
+
+            this.logisticsItem.querySelector('button')?.addEventListener('click', () => {
+              const jdsDialog = document.querySelector(`jds-dialog[id="${dialogId}"]`);
+              if (!jdsDialog) {
+                const dialog = document.createElement('jds-dialog');
+                dialog.id = dialogId;
+                dialog.style = '--jds-dialog-index:999999999'
+                const content = this.replaceEmptyTagsWithBr(this.logisticsItem.getAttribute('data-content'))
+                dialog.innerHTML = `<div class="jds-rte">${content}</div>`;
+                document.body.appendChild(dialog);
+              }
+
+              // 打开弹窗
+              document.querySelector(`jds-dialog[id="${dialogId}"]`)?.setAttribute('open', true);
+
+              // 数据埋码
+              gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                product_spu_name: this.getAttribute('data-product-title'), // 识别页面产品spu标题名称text
+                module: "Benefit", // 固定名称 Benefit
+                position: this.logisticsItem.getAttribute('data-title'), // 取权益名称text
+                button_name: this.logisticsItem.getAttribute('data-btn-text'), // 按钮文本text
+              })
+            })
+          }
+
+          if (this.subscribeItem) {
+            this.bindEvents = this.bindEvents.bind(this)
+            this.subscribeItem.querySelector('button')?.addEventListener('click', this.bindEvents);
+          }
+
+          this.v5AppPdpBenefitLinkWraps.forEach((wrap) => {
+            wrap.querySelectorAll('a').forEach((link) => {
+              link.addEventListener('click', (e) => {
+                // 数据埋码
+                gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                  product_spu_name: this.getAttribute('data-product-title'), //识别页面产品spu标题名称text
+                  module: "Benefit", // 固定名称 Benefit
+                  position: wrap.getAttribute('data-title'), //识别配置产品sku名称 text
+                  button_name: link.textContent?.trim(), // 按钮内容text
+                  link: link.href // 链接url
+                })
+              })
+            })
+          })
+        }
+        bindEvents() {
+          const strings = {
+            title: this.subscribeItem.getAttribute("data-title"),
+            content: this.subscribeItem.getAttribute("data-content"),
+            email_placeholder: this.subscribeItem.getAttribute("data-email_placeholder"),
+            subscribe_policy: this.subscribeItem.getAttribute("data-subscribe_policy"),
+            email_empty_info: this.subscribeItem.getAttribute("data-email_empty_info"),
+            email_error_info: this.subscribeItem.getAttribute("data-email_error_info"),
+            policy_empty_info: this.subscribeItem.getAttribute("data-policy_empty_info"),
+            tag: this.subscribeItem.getAttribute("data-tag"),
+            subscribe_submit: this.subscribeItem.getAttribute("data-subscribe_submit"),
+            subscribe_reminds_success: this.subscribeItem.getAttribute("data-subscribe_reminds_success"),
+            subscribe_reminds_error: this.subscribeItem.getAttribute("data-subscribe_reminds_error"),
+          }
+
+          const onsubmitcall = (params) => {
+            if (params.response && params.response.code === 200) {
+              const msg = document.querySelector('.v5-app-benefit-popup-subscribe')?.querySelector('jky-form')?.getAttribute('data-success-tips') || 'Success'
+              pushSuccessMessage(msg);
+              document.querySelector('.v5-app-benefit-popup-subscribe')?.querySelector('.close')?.click()
+            } else {
+              const msg = document.querySelector('.v5-app-benefit-popup-subscribe')?.querySelector('jky-form')?.getAttribute('data-error-tips') || params?.response?.message
+              pushErrorMessage(msg);
+            }
+          }
+
+          ZModle.getInstance(
+            `<div class="flex flex-col">
+              <div class="title">${strings.title}</div>
+              <div class="subtitle">${strings.content}</div>
+              <jky-form data-scroll="false" onsubmitcall="" data-success-tips="${strings.subscribe_reminds_success}" data-error-tips="${strings.subscribe_reminds_error}" jky-form-id="product-subscribe-form" class="">
+                <form data-action="/osconsumerapi/v1/notice/subscribe">
+                  <div class="newbee-form newbee-form_subscribe">
+                    <div class="form-row flex full">
+                      <div class="form-item required" data-field="input">
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          placeholder="${strings.email_placeholder}"
+                          data-error="${strings.email_empty_info}" data-value="email" data-reg="email"
+                          data-regerror="${strings.email_error_info}"
+                        >
+                      </div>
+                    </div>
+
+                    <div style="margin-top: 6px;" class="form-row form-row_check_box flex full">
+                      <div class="form-item required" data-field="check_box" data-error="${strings.policy_empty_info}">
+                        <jky-checkbox class="jky-checkbox_subscribe jky-checkbox">
+                          <label class="jky-checkbox">
+                            <span class="jky-checkbox-input">
+                              <input type="checkbox" class="jky-checkbox-original" data-value="agree_recevie_subscribe">
+                              <span class="jky-checkbox-inner"></span>
+                            </span>
+
+                            <span class="jky-checkbox-label">
+                              <span class="jky-agree">${strings.subscribe_policy}</span>
+                            </span>
+                          </label>
+                        </jky-checkbox>
+                      </div>
+                    </div>
+
+                    <div style="display: none;" class="form-row flex  full">
+                      <div class="form-item form-item_const" data-field="input">
+                        <input type="text" id="tags" name="tags" data-error="" data-value="tags" data-reg="" value="${strings.tag || ''}" data-regerror="">
+                      </div>
+                    </div>
+
+                    <div class="newbee-form_submit flex" style="justify-content: flex-start;">
+                      <button class="form_sub_btn z-button-middle">${strings.subscribe_submit}</button>
+                    </div>
+                  </div>
+                </form>
+              </jky-form>
+            </div>`,
+            {
+              id: `v5-app-benefit-popup-subscribe--${Math.random()}`,
+              class: "v5-app-benefit-popup-subscribe",
+              destroyOnClose: true, // 关闭时销毁模态框
+              cb: (el) => {
+                const jkyForm = el.querySelector("jky-form")
+                jkyForm.setAttribute("onsubmitcall", onsubmitcall)
+              }
+            }
+          )
+
+          // 数据埋码
+          gaPushDataLayer('5.0_products_details_page_user_clicks', {
+            product_spu_name: this.getAttribute('data-product-title'), //识别页面产品spu标题名称text
+            module: "Benefit", // 固定名称 Benefit
+            position: this.subscribeItem.getAttribute('data-title'), // 取权益名称text
+            button_name: this.subscribeItem.getAttribute('data-btn-text'), // 按钮文本text
+          })
+        }
+        /**
+        * 替换富文本字符串中严格为空的指定标签（如 h1-h6, p）为 <br> 标签。
+        *
+        * @param {string} htmlString - 包含富文本内容的字符串。
+        * @param {string[]} [tagsToReplace=['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']] - 需要检查和替换的标签名称数组。
+        * @returns {string} 替换后的富文本字符串。
+        */
+        replaceEmptyTagsWithBr(htmlString, tagsToReplace = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']) {
+          if (typeof htmlString !== 'string' || !htmlString) return htmlString || ''
+
+          // 将标签数组转换为正则表达式交替匹配的字符串，例如 'h1|h2|p'
+          const tags = tagsToReplace.join('|');
+
+          // 正则表达式结构解析：
+          // 1. <(tags)>         : 匹配开始标签，例如 <h1> 或 <p class="foo">
+          // 2. ([^>]*?)         : 捕获组 1：匹配标签内的所有属性（非贪婪匹配），[^>]* 表示零个或多个非 > 字符。
+          // 3. >                : 匹配开始标签的结束符号 >
+          // 4. \s* : 匹配零个或多个空白字符（包括空格、换行、制表符）
+          // 5. <\/(\1)>         : 匹配对应的结束标签。(\1) 回溯引用第一个捕获组（标签名），确保匹配的是同种标签。
+          // 标志：
+          // g (global): 全局匹配所有符合条件的标签。
+          // i (case-insensitive): 不区分大小写匹配标签名。
+
+          const regex = new RegExp(`<(${tags})[^>]*?>\\s*<\\/\\1>`, 'gi')
+            
+          // 执行替换操作：将匹配到的整个空标签结构替换为 '<br>'
+          let result = htmlString.replace(regex, '<br>');
+
+          // 考虑自闭合空标签，例如 <p/> 或 <h1/> (虽然在 HTML5 中不常见，但在某些编辑器输出中可能出现)
+          // const selfClosingRegex = new RegExp(`<(${tags})[^>]*?\\/>`, 'gi');
+          // result = result.replace(selfClosingRegex, '<br>');
+
+          return result;
+        }
+      })
+    }
+  </script>
+</div>

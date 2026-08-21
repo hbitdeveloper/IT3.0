@@ -1,0 +1,541 @@
+{% comment %} 产品对比页面 {% endcomment %}
+
+{% comment %} 非首屏内容样式均采用外链形式引入 - 已迁移：assets/product-compare.css {% endcomment %}
+{{ 'product-compare.css' | asset_url | stylesheet_tag }}
+
+<script src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/vue2.7.14.js?v=1700620090" defer></script>
+
+<div
+  id="product-compare"
+  class="product-compare"
+  v-clock>
+  <div class="product-compare-header">
+    <img
+      class="pc-block"
+      src="{{section.settings.compare_pc_banner_image | image_url: width: 1920  }}"
+      alt="Banner"
+      loading="lazy" />
+    <img
+      class="mobile-block"
+      src="{{section.settings.compare_m_banner_image | image_url: width: 750  }}"
+      alt="Banner"
+      loading="lazy">
+    <div class="mb-block">{{ section.settings.compare_header_text }}</div>
+  </div>
+  <div>
+    <div class="layer-container product-compare-main">
+      <div class="title-info pc-block" v-if="!isMobile">
+        <img
+          class="left-icon"
+          src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/1_d4621f27-b474-43ea-902e-f00f790cf09b.png?v=1670915016"
+          alt="Image"
+          loading="lazy">
+        <h2>{{ section.settings.compare_header_text }}</h2>
+        <img
+          class="right-icon"
+          src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/2_55109115-cdac-4786-9031-e7168f04d355.png?v=1670915016"
+          alt="Image"
+          loading="lazy">
+      </div>
+
+      {% if section.settings.compare_checkbox %}
+        <div class="product-comapre-tabs">
+          {% assign blocks = section.blocks %}
+          <div class="product-comapre-tab">
+            {% for block in blocks %}
+              <h3 class="tab {% if forloop.index0 == 0 %} tab-active {%endif%} pc-tab-with-{{ section.settings.pc_line_tab_number | number }} mb-tab-with-{{ section.settings.mb_line_tab_number | number }}" data-index="{{forloop.index}}">
+                {{- block.settings.tabTitle | escape -}}
+              </h3>
+            {% endfor %}
+          </div>
+          <div class="product-comapre-tabs-main">
+            {% for block in blocks %}
+              <div class="product-comapre-tab-main tab-main-{{forloop.index}} {% if forloop.index0 == 0 %} tab-main-active {%endif%}" data-index="{{forloop.index}}">
+                <img
+                  class="pc-block"
+                  src="{{block.settings.pc_image | image_url: width: 1920 }}"
+                  alt="{{block.settings.alt}}"
+                  loading="lazy" />
+                <img
+                  class="mobile-block"
+                  src="{{block.settings.mb_image | image_url: width: 750 }}"
+                  alt="{{block.settings.alt}}"
+                  loading="lazy">
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+      {% endif %}
+      <div class="compare-info">
+        <div class="compare-info-tabs p-b-3">
+          <div
+            class="compare-info-tab"
+            :class="{'active': item.key === selectProductType}"
+            v-for="(item, index) in productTypes"
+            :key="index"
+            @click="handleTabClick(item)">
+            <h3 class="compare-info-tab-title">
+              ${item.title}
+            </h3>
+            <img
+              :src="item.key === selectProductType ? item.imgClickUrl : item.imgUrl"
+              alt="Image"
+              loading="lazy">
+            <div class="compare-info-tab-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-container product-compare-main item-info" :style="{ top: `${itemTop}px`}">
+      <div class="compare-info">
+        <div
+          class="select-item"
+          v-for="(item, index) in selectProductList"
+          :key="index">
+          <div class="title">
+            <span>${regTitle(item.title)}</span>
+            {% comment %} <i class="iconfont jackery-icon-arrowdown"></i> {% endcomment %}
+            <jds-icon name="arrow-down" class="iconfont jackery-icon-arrowdown"></jds-icon>
+          </div>
+          <div class="sub-title">${regSubtitle(item.title)}</div>
+          <select v-model="gids[index]" @change="handleSelect($event, index)">
+            <option v-for="(item1, j) in productAllList" :value="item1.gid">${item1.title}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-container product-compare-main">
+      <div class="compare-info">
+        <div class="compare-info-main">
+          <div
+            class="compare-info-main-info"
+            v-for="(item, index) in selectProductList"
+            :key="index">
+            <div class="select-image">
+              <img
+                :src="item.image"
+                :alt="item.title"
+                loading="lazy">
+            </div>
+            <div class="select-title">${item.title}</div>
+          </div>
+        </div>
+        <div class="compare-info-main p-b-3">
+          <div
+            class="compare-info-main-info"
+            v-for="(item, index) in selectProductList"
+            :key="index">
+            <div class="select-price">${item.price}</div>
+            <div class="border-2 select-button" @click="buyNow(item, '{{section.settings.compare_buy_now_text}}')">
+              <span>{{ section.settings.compare_buy_now_text }}</span>
+              <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+            </div>
+            <div class="select-button learn-more" @click="handleLearnMore(item, '{{section.settings.compare_learn_more_text}}')">
+              <span>{{ section.settings.compare_learn_more_text }}</span>
+              <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-compare-info">
+      <div class="container-fix">
+        <div class="product-compare-info-content">
+          {% comment %} PC端显示 :style="{top: leftFixflag}"{% endcomment %}
+          <div class="product-compare-info-left" v-if="!isMobile">
+            <div class="relative">
+              <div class="left-center">
+                <div
+                  class="product-compare-info-left-content"
+                  v-for="(item, index) in leftTitleList"
+                  :key="index">
+                  <div class="first-title">
+                    <p v-if="item.name === 'Solar Generator'">{{ section.settings.compare_solar_generator }}</p>
+                    <p v-else-if="item.name === 'Portable Power Station'">{{ section.settings.compare_portable_power_station }}</p>
+                    <p v-else-if="item.name === 'Solar Generator'">{{ section.settings.compare_solar_panel }}</p>
+                    <p v-else>${item.name}</p>
+                  </div>
+                  <div
+                    class="second-title"
+                    v-for="(item1, j) in item.list"
+                    :key="j"
+                    @click="handleTitleClick(item.name, item1)">
+                    <p :class="{active: activeTitle === `${handleToLowerTitle(item.name)}-${handleToLowerTitle(item1)}`}">
+                      <span v-if="item1 === 'Best Match'">{{ section.settings.compare_buy_best_match }}</span>
+                      <span v-else>${item1}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% comment %} 主要部分 {% endcomment %}
+          <div class="product-compare-info-center">
+            <div
+              class="product-compare-info-center-content"
+              :class="item.clas"
+              v-for="(item, index) in list"
+              :key="index">
+              <div class="product-compare-info-center-content-header">
+                <h3>${item.name}</h3>
+                {% comment %} <div class="triangle" :style="{'transform': item.flag ? 'rotate(0deg)' : 'rotate(-180deg)'}"
+                                  @click="itemChange(item)"></div> {% endcomment %}
+                {% comment %} <i
+                  class="iconfont jackery-icon-arrowdown"
+                  :style="{'transform': item.flag ? 'rotate(-180deg)' : 'rotate(0deg)'}"
+                  @click="itemChange(item)"></i> {% endcomment %}
+                <jds-icon name="arrow-down" class="iconfont jackery-icon-arrowdown" 
+                  :style="{'transform': item.flag ? 'rotate(-180deg)' : 'rotate(0deg)'}"
+                  @click="itemChange(item)"></jds-icon>
+              </div>
+              <template v-if="item.name === 'Best Match'">
+                <div v-show="item.flag" class="product-compare-best-match">
+                  <div class="info" v-for="(item2, h) in item.value">
+                    <div class="select-image">
+                      <img
+                        :src="item2.image"
+                        :alt="item2.title"
+                        loading="lazy">
+                    </div>
+                    <div class="select-title">${item2.title}</div>
+                  </div>
+                </div>
+                <div v-show="item.flag" class="product-compare-best-match">
+                  <div class="info" v-for="(item2, h) in item.value">
+                    <div class="select-price">${item2.price}</div>
+                    <div
+                      v-if="item2.price"
+                      class="border-2 select-button"
+                      @click="buyNow(item, '{{section.settings.compare_buy_now_text}}')">
+                      <span>{{ section.settings.compare_buy_now_text }}</span>
+                      <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                    </div>
+                    <div
+                      v-if="item2.price"
+                      class="select-button learn-more"
+                      @click="handleLearnMore(item, '{{section.settings.compare_learn_more_text}}')">
+                      <span>{{ section.settings.compare_learn_more_text }}</span>
+                      <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <div v-show="item.flag" class="product-compare-info-center-content-info">
+                  <template v-if="Array.isArray(item.value)">
+                    <div class="info">
+                      <div v-for="(item2, h) in item.value" v-html="handleChangeText(item2)"></div>
+                    </div>
+                  </template>
+                  <template
+                    v-else
+                    v-for="(item1, j) in item.value"
+                    :key="j">
+                    <div class="sub-title">${j}</div>
+                    <div class="info">
+                      <div v-for="(item2, h) in item1" v-html="handleChangeText(item2)"></div>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  {% comment %} 在写一遍，很无奈的需求 {% endcomment %}
+  <div class="max-fix">
+    <div class="product-compare-fun pc-block">
+      <div class="layer-container compare-info-main">
+        <div
+          class="compare-info-main-info"
+          v-for="(item, index) in selectProductList"
+          :index="index">
+          <div class="select-image">
+            <img
+              :src="item.image"
+              :alt="item.title"
+              loading="lazy">
+          </div>
+          <div class="select-title">${item.title}</div>
+        </div>
+      </div>
+      <div class="layer-container compare-info-main">
+        <div
+          class="compare-info-main-info"
+          v-for="(item, index) in selectProductList"
+          :index="index">
+          <div class="select-price">${item.price}</div>
+          <div class="border-2 select-button" @click="buyNow(item, '{{section.settings.compare_buy_now_text}}')">
+            <span>{{ section.settings.compare_buy_now_text }}</span>
+            <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+          </div>
+          <div class="select-button learn-more" @click="handleLearnMore(item, '{{section.settings.compare_learn_more_text}}')">
+            <span>{{ section.settings.compare_learn_more_text }}</span>
+            <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% comment %} 在写一遍，很无奈的需求 {% endcomment %}
+    <div class="product-compare-fun mb-block">
+      <div class="layer-container compare-info-main">
+        <div
+          class="compare-info-main-info"
+          v-for="(item, index) in selectProductList"
+          :index="index">
+          <div class="select-image">
+            <img
+              :src="item.image"
+              :alt="item.title"
+              loading="lazy">
+          </div>
+          <div class="select-title">${item.title}</div>
+          <div class="select-price">${item.price}</div>
+          <div class="border-2 select-button" @click="buyNow(item, '{{section.settings.compare_buy_now_text}}')">
+            <span>{{ section.settings.compare_buy_now_text }}</span>
+            <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+          </div>
+          <div class="select-button learn-more" @click="handleLearnMore(item, '{{section.settings.compare_learn_more_text}}')">
+            <span>{{ section.settings.compare_learn_more_text }}</span>
+            <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% comment %} Help You Choose {% endcomment %}
+  <div class="product-compare-footer">
+    <img
+      class="pc-block"
+      src="{{section.settings.compare_pc_footer_image | image_url: width: 1920 }}"
+      alt="compare-footer"
+      loading="lazy">
+    <img
+      class="mb-block"
+      src="{{section.settings.compare_m_footer_image | image_url: width: 750 }}"
+      alt="compare-footer"
+      loading="lazy">
+    <h2 class="title">{{ section.settings.compare_footer_title }}</h2>
+    <a class="help-your-choose1" @click="handleChoose('{{section.settings.compare_btn_footer_link}}', '{{section.settings.compare_btn_footer_text}}')">
+      <span>{{ section.settings.compare_btn_footer_text }}</span>
+      <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+    </a>
+  </div>
+  {% comment %} 对比抽屉列表 {% endcomment %}
+  <div
+    class="product-compare-menu"
+    @click="handleDrawerOpen"
+    v-if="isMobile">
+    <img
+      src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/icon_54aeec18-0f3a-4478-b09a-2a3d5e71a9ae.png?v=1680155652"
+      alt="compare"
+      loading="lazy">
+  </div>
+  {% comment %} 对比抽屉内容 {% endcomment %}
+  <div
+    class="product-compare-drawer-content"
+    :class="{ open: isOpen}"
+    v-if="isMobile">
+    <div class="info">
+      <span>{{ section.settings.compare_quick_navigation }}</span>
+      <jds-icon name="close" class="iconfont jackery-icon-guanbi icon-close text-xl" @click="handleDrawerClose"></jds-icon>
+    </div>
+    <template v-for="(item, index) in leftTitleList" :key="index">
+      <div class="info">
+        <span v-if="item.name === 'Solar Generator'">{{ section.settings.compare_solar_generator }}</span>
+        <span v-else-if="item.name === 'Portable Power Station'">{{ section.settings.compare_portable_power_station }}</span>
+        <span v-else-if="item.name === 'Solar Generator'">{{ section.settings.compare_solar_panel }}</span>
+        <span v-else>${item.name}</span>
+        <div
+          class="triangle"
+          :style="{'transform': item.name === activeMbTitle ? 'rotate(45deg)' : 'rotate(-135deg)'}"
+          @click="handleMbTransform(item)"></div>
+      </div>
+      <div>
+        <div
+          v-show="item.name === activeMbTitle"
+          class="info second-title"
+          v-for="(item1, j) in item.list"
+          :key="j"
+          @click="handleTitleClick(item.name, item1)">
+          <p :class="{active: activeTitle === `${handleToLowerTitle(item.name)}-${handleToLowerTitle(item1)}`}">
+            <span v-if="item1 === 'Best Match'">{{ section.settings.compare_buy_best_match }}</span>
+            <span v-else>${item1}</span>
+          </p>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore"></script>
+{% comment %} product-compare {% endcomment %}
+<script data-cookieconsent="ignore" defer>
+  const productCompare = {
+    solarGenerator: '{{section.settings.compare_solar_generator}}',
+    portablePowerStation: '{{section.settings.compare_portable_power_station}}',
+    solarPanel: '{{section.settings.compare_solar_panel}}',
+    warrantyKey: "{{'products.product.properties_warranty_key' | t}}",
+    warrantyContent: "{{'products.product.properties_warranty' | t}}"
+  }
+</script>
+<script data-cookieconsent="ignore" src="{{ 'page.product-compare.bundle.js' | asset_url }}" defer></script>
+{% comment %} product-compare {% endcomment %}
+
+{% schema %}
+  {
+    "name": "Page Setting",
+    "tag": "div",
+    "settings": [
+      {
+        "type": "text",
+        "id": "compare_header_text",
+        "label": "Compare Header Text",
+        "default": "Product Compare"
+      },
+      {
+        "type": "image_picker",
+        "id": "compare_pc_banner_image",
+        "label": "Compare PC Header Image"
+      },
+      {
+        "type": "image_picker",
+        "id": "compare_m_banner_image",
+        "label": "Compare Mobile Header Image"
+      },
+
+
+      {
+        "type": "text",
+        "id": "compare_solar_generator",
+        "label": "Solar Generator",
+        "default": "Solar Generator"
+      }, {
+        "type": "text",
+        "id": "compare_portable_power_station",
+        "label": "Portable Power Station",
+        "default": "Portable Power Station"
+      }, {
+        "type": "text",
+        "id": "compare_solar_panel",
+        "label": "Solar Panel",
+        "default": "Solar Panel"
+      }, {
+        "type": "text",
+        "id": "compare_buy_best_match",
+        "label": "Compare Best Match Text",
+        "default": "Best Match"
+      }, {
+        "type": "text",
+        "id": "compare_buy_now_text",
+        "label": "Compare BUY NOW Text",
+        "default": "BUY NOW"
+      }, {
+        "type": "text",
+        "id": "compare_learn_more_text",
+        "label": "Compare LEARN MORE Text",
+        "default": "LEARN MORE"
+      }, {
+        "type": "text",
+        "id": "compare_quick_navigation",
+        "label": "Mobile Quick navigation",
+        "default": "Quick navigation"
+      }, {
+        "type": "textarea",
+        "id": "compare_footer_title",
+        "label": "Compare Footer Title",
+        "default": "Find the Jackery products that suit you best for outdoor exploration"
+      }, {
+        "type": "image_picker",
+        "id": "compare_pc_footer_image",
+        "label": "Compare PC Footer Image"
+      }, {
+        "type": "image_picker",
+        "id": "compare_m_footer_image",
+        "label": "compare Mobile Footer Image"
+      }, {
+        "type": "text",
+        "id": "compare_btn_footer_text",
+        "label": "Compare Button Footer Text",
+        "default": "HELP YOU CHOOSE"
+      }, {
+        "type": "url",
+        "id": "compare_btn_footer_link",
+        "label": "Compare Button Footer Link"
+      }, {
+        "type": "checkbox",
+        "id": "compare_checkbox",
+        "label": "Compare Tabs",
+        "default": false
+      }, {
+        "type": "select",
+        "id": "pc_line_tab_number",
+        "label": "PC Line Tab Number",
+        "options": [
+          {
+            "value": "2",
+            "label": "2"
+          }, {
+            "value": "3",
+            "label": "3"
+          }, {
+            "value": "4",
+            "label": "4"
+          }
+        ]
+      }, {
+        "type": "select",
+        "id": "mb_line_tab_number",
+        "label": "MB Line Tab Number",
+        "options": [
+          {
+            "value": "2",
+            "label": "2"
+          }, {
+            "value": "3",
+            "label": "3"
+          }, {
+            "value": "4",
+            "label": "4"
+          }
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "type": "tab_item",
+        "name": "Tab Item",
+        "settings": [
+          {
+            "type": "text",
+            "id": "tabTitle",
+            "label": "Tab Title",
+            "default": "Tab Title"
+          }, {
+            "type": "image_picker",
+            "id": "pc_image",
+            "label": "PC Image"
+          }, {
+            "type": "image_picker",
+            "id": "mb_image",
+            "label": "MB Image"
+          }, {
+            "type": "text",
+            "id": "alt",
+            "label": "Image Alt",
+            "default": "Image"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

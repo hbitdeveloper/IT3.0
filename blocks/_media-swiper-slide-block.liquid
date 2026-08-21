@@ -1,0 +1,116 @@
+{% comment %} 内容同步于：theme\blocks\_meida-swiper-slide.liquid {% endcomment %}
+{%- liquid
+    assign pcPoster = block.settings.poster_pc
+    assign pcUrl = block.settings.video_pc_url
+    assign mbPoster = block.settings.poster_mb
+    assign mbUrl = block.settings.video_mb_url
+
+    assign desk_width = config.desktop_width
+    assign mobile_width = config.mobile_width
+
+    assign observe = false
+
+
+    if desk_width >= 1312
+        assign desk_width = 1312
+        if config.autoplay == true
+            assign observe = true
+        endif
+    endif
+
+    if mobile_width > 622
+        assign mobile_width = 622
+    endif
+
+    if mobile_width < 300
+        assign mobile_width = 300
+    endif
+    if config.page_width == 'w-full'
+        if desk_width >= 1920
+            assign desk_width = 1920
+            if config.autoplay == true
+                assign observe = true
+            endif
+        endif
+    endif
+-%}
+
+{%- capture sizes -%}
+    (min-width: 1024px) {{desk_width | divided_by: 16.0}}rem, {{mobile_width | divided_by: 32.0}}rem
+{%- endcapture -%}
+
+{% comment %} PC {% endcomment %}
+<div class="hidden pc-slide lg:block h-full w-full overflow-hidden relative will-change-transform" style="border-radius: {{config.desktop_radius | divided_by: 16.0}}rem;width: {{desk_width | divided_by: 16.0}}rem;" observe="{{observe}}">
+    {%- if block.settings.link != blank -%}
+        <a
+            class="absolute z-10 inset-0"
+            {%- if block.settings.open_in_new_tab -%}
+            target="_blank" rel="noopener noreferrer"
+            {%- endif -%}
+            role="link" href="{{block.settings.link}}"></a>
+    {%- endif -%}
+
+    {%- if pcUrl != blank -%}
+        {%- if pcUrl contains "youtube." or pcUrl contains "youtu.be" -%}
+            {%- render 'viewport-youtube', url: pcUrl, observe: observe, api: true, poster: pcPoster, sizes: sizes, loop: config.loop -%}
+        {%- else -%}
+            {%- render 'viewport-video', url: pcUrl, observe: observe, poster: pcPoster, sizes: sizes, loop: config.loop, controls: config.controls -%}
+        {%- endif -%}
+    {%- else -%}
+        {%- if pcPoster != blank -%}
+            {%- render 'responsive-image', image: pcPoster, mimage: mbPoster, image_class: 'w-full h-full object-cover', width: desk_width -%}
+        {%- else -%}
+            {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+        {%- endif -%}
+    {%- endif -%}
+</div>
+
+{% comment %} MB {% endcomment %}
+<div class="block mb-slide relative lg:hidden h-full w-full overflow-hidden will-change-transform" style="border-radius: {{config.mobile_radius | divided_by: 32.0}}rem;width: {{mobile_width | divided_by: 32.0}}rem;">
+    {%- if block.settings.link != blank -%}
+        <a
+            class="absolute z-10 inset-0"
+            {%- if block.settings.open_in_new_tab -%}
+            target="_blank" rel="noopener noreferrer"
+            {%- endif -%}
+            role="link" href="{{block.settings.link}}"></a>
+    {%- endif -%}
+    {%- if mbUrl != blank -%}
+        {%- if mbUrl contains "youtube." -%}
+            {%- render 'viewport-youtube', url: mbUrl, observe: observe, api: true, poster: mbPoster, sizes: sizes, loop: config.loop -%}
+        {%- else -%}
+            {%- render 'viewport-video', url: mbUrl, observe: observe, poster: mbPoster, sizes: sizes, loop: config.loop, controls: config.controls -%}
+        {%- endif -%}
+    {%- else -%}
+        {%- if mbPoster != blank -%}
+            {%- render 'responsive-image', image: pcPoster, mimage: mbPoster, image_class: 'w-full h-full object-cover', width: mobile_width -%}
+        {%- else -%}
+            {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+        {%- endif -%}
+    {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "轮播块",
+  "class": "swiper-slide h-full w-fit",
+  "blocks": [],
+  "settings": [
+    { "type": "url", "id": "link", "label": "跳转链接" },
+    { "type": "checkbox", "id": "open_in_new_tab", "label": "是否新开标签页", "default": false },
+    { "type": "header", "content": "桌面端视频相关配置" },
+    { "type": "image_picker", "id": "poster_pc", "label": "封面地址", "info": "默认推荐尺寸360 * 180多倍图"},
+    { "type": "url", "id": "video_pc_url", "label": "视频地址", "info": "本地视频建议视频大小不超过10MB，不配置则显示图片，youtube视频地址格式：https://www.youtube.com/embed//视频ID?si=跟踪ID" },
+
+    { "type": "header", "content": "移动端视频相关配置" },
+    { "type": "image_picker", "id": "poster_mb", "label": "封面地址", "info": "默认推荐尺寸440 * 544"},
+    { "type": "url", "id": "video_mb_url", "label": "视频地址", "info": "本地视频建议视频大小不超过10MB，不配置则显示图片，youtube视频地址格式：https://www.youtube.com/embed//视频ID?si=跟踪ID" }
+  ],
+  "presets": [
+    {
+      "name": "轮播块",
+      "blocks": []
+    }
+  ]
+}
+{% endschema %}

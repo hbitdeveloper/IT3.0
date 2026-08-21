@@ -1,0 +1,70 @@
+{% comment %} 批量购买-产品 {% endcomment %}
+
+{% comment %} 计算是否有 {% endcomment %}
+{% assign count = 0 %}
+{% for item in section.settings.bulk_program %}
+  {% assign count = count | plus: 1 %}
+{% endfor %}
+
+{%- if count > 0 -%}
+    {{ 'section-bulk-program.min.css' | asset_url | stylesheet_tag }}
+    <div class="bulk-program-main" id="{{ section.settings.anchor | escape }}" data-handle="{{ section.settings.anchor | escape }}">
+        {%- for item in section.blocks -%}
+            {% case item.type %}
+                {% when 'is_show_product' %}
+                    <div class="bulk-program-product">
+                        {% render 'bulk-program--nav', bulk_program: section.settings.bulk_program, attributes: item.shopify_attributes %}
+                        {% render 'bulk-program--product', bulk_program: section.settings.bulk_program, attributes: item.shopify_attributes %}
+                        {% render 'bulk-program--price-list', attributes: item.shopify_attributes %}
+                    </div>
+                {% when 'is_show_tailor' %}
+                    {% render 'bulk-program--tailor', settings: item.settings, bulk_program: section.settings.bulk_program, attributes: item.shopify_attributes %}
+            {% endcase %}
+        {%- endfor -%}
+        {% render 'bulk-program-json', bulk_program: section.settings.bulk_program  %}
+    </div>
+    <script src="{{ 'section-bulk-program.min.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+    {
+        "name": "批量购买-产品",
+        "settings": [
+            { "type": "text", "id": "anchor", "label": "版块锚点", "default": "bulk-program-main", "info": "当前模板需要具有唯一值" },
+            { "type": "metaobject_list", "id": "bulk_program", "label": "批量购买元对象", "metaobject_type": "bulk_program" }
+        ],
+        "limit": 1,
+        "blocks": [
+            {
+                "type": "is_show_product",
+                "name": "开启产品版块",
+                "limit": 1
+            },
+            {
+                "type": "is_show_tailor",
+                "name": "开启定制版块",
+                "limit": 1,
+                "settings": [
+                    { "type": "text", "id": "title", "label": "定制标题", "default": "Tailor Your Power"},
+                    { "type": "richtext", "id": "description", "label": "定制描述" },
+                    { "type": "number", "id": "num", "label": "默认展示行数", "default": 3 },
+                    { "type": "text", "id": "product", "label": "产品", "default": "Product" },
+                    { "type": "text", "id": "quantity", "label": "数量", "default": "Quantity"  },
+                    { "type": "text", "id": "add_product", "label": "添加商品", "default": "Add Product"  },
+                    { "type": "text", "id": "view_quote", "label": "查看报价", "default": "View Quote" },
+                    { "type": "text", "id": "tip", "label": "未选择产品提示语", "default": "Please Select Product" },
+                    { "type": "text", "id": "quantity_tip", "label": "数量为0提示语", "default": "Minimum quantity is 1"}
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "批量购买-产品",
+                "blocks": [
+                    { "type": "is_show_product" },
+                    { "type": "is_show_tailor" }
+                ]
+            }
+        ]
+    }
+{% endschema %}

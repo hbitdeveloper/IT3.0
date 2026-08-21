@@ -1,0 +1,126 @@
+{% comment %}
+  展会集锦列表内容
+  Accepts:
+  - class: 类名.
+  - cate: 分类：upcoming | pastevents | all
+  - blocks: section.blocks
+  - sorted_ids: 排好序的 block.id
+  - progress_text: 进行中的状态标，如 In Progress
+  - coming_text: 未开始的状态标签，如 Upcoming
+  - empty_img: 无数据时的图片
+  - empty_text: 无数据时的文案
+  - open_timeline: 是否开启了时间线
+
+  Usage:
+  {%
+    render
+      'exhibition-list-content',
+      class: 'hide',
+      cate: 'all',
+      blocks: section.blocks,
+      sorted_ids: sorted_all_ids,
+      progress_text: section.settings.progress_text,
+      coming_text: section.settings.coming_text,
+      empty_img: section.settings.empty_img,
+      empty_text: section.settings.empty_text,
+      open_timeline: open_timeline and timeline_year.size > 0,
+  %}
+{% endcomment %}
+
+{% comment %} 当前时间年份 {% endcomment %}
+{%- assign current_year = 'now' | date: '%Y' -%}
+{%- assign show_num = sorted_ids.size -%}
+
+{%- render 'jky-tooltip' -%}
+
+<jky-pagination-content class="{{class}}" cate="{{cate}}" pagination-type="total">
+  <div class="exhibition--list_main">
+      {%- for id in sorted_ids -%}
+          {%- if id != '' -%}
+              {%- for block in blocks -%}
+                  {%- if block.id == id -%}
+                      {%- assign item = block -%}
+                      {%- assign active_type = "" -%}
+                      {%- assign begin_time_str = item.settings.begin_time | date: '%s' -%}
+                      {%- assign end_time_str = item.settings.end_time | date: '%s' -%}
+                      {%- assign begin_time_year = item.settings.begin_time | date: '%Y' -%}
+                      {%- assign time_now = 'now' | date: '%s' -%}
+                      
+                      {%- if begin_time_str < time_now  -%}
+                        {%- if end_time_str > time_now -%}
+                          {% comment %} 进行中 {% endcomment %}
+                          {%- assign active_type = "progress" -%}
+                        {%- endif -%}
+                      {%- else -%}
+                          {% comment %} 未开始 {% endcomment %}
+                          {%- assign active_type = "coming" -%}
+                      {%- endif -%}
+
+                      {% comment %} 开启了时间线，并且开始时间年份 != 当前年份 {% endcomment %}
+                      {%- if open_timeline == true and begin_time_year != current_year -%}
+                        {%- assign show_num = show_num | minus: 1 -%}
+                      {%- endif -%}
+
+                      {%- assign class_value = '' -%}
+                      {%- if open_timeline and begin_time_year != current_year -%}
+                        {%- assign class_value = 'hide' -%}
+                      {%- endif -%}
+
+                      {%- if cate == 'all' -%}
+                        {% render
+                          'exhibition-list-item',
+                          class: class_value,
+                          item: item,
+                          begin_time_year: begin_time_year,
+                          active_type: active_type,
+                          progress_text: progress_text,
+                          coming_text: coming_text,
+                        %}
+                      {%- else -%}
+                        {%- if open_timeline == true -%}
+                          {%- if begin_time_year == current_year -%}
+                            {% render
+                              'exhibition-list-item',
+                              item: item,
+                              begin_time_year: begin_time_year,
+                              active_type: active_type,
+                              progress_text: progress_text,
+                              coming_text: coming_text,
+                            %}
+                          {%- endif -%}
+                        {%- else -%}
+                          {% render
+                            'exhibition-list-item',
+                            item: item,
+                            begin_time_year: begin_time_year,
+                            active_type: active_type,
+                            progress_text: progress_text,
+                            coming_text: coming_text,
+                          %}
+                        {%- endif -%}
+                      {%- endif -%}
+                      {%- break -%}
+                  {%- endif -%}
+              {%- endfor -%}
+          {%- endif -%}
+      {%- endfor -%}
+  </div>
+  
+  {%- if show_num > 0 -%}
+    <ul class="pagination">
+      {% comment %} 分页部分保持不变 {% endcomment %}
+      <div class="prev_page pagination_btn">
+          <svg viewBox="64 64 896 896" focusable="false" data-icon="right" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"></path></svg>
+      </div>
+      <div class="pagination_content"></div>
+      <div class="next_page pagination_btn">
+          <svg viewBox="64 64 896 896" focusable="false" data-icon="right" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"></path></svg>
+      </div>
+    </ul>
+  {%- else -%}
+    <div class="exhibition--list_empty">
+      {% render 'responsive-image', image: empty_img, empty_img, width: 178 %}
+      <p>{{empty_text | escape}}</p>
+    </div>
+  {%- endif -%}
+</jky-pagination-content>

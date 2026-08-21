@@ -1,0 +1,96 @@
+{% comment %}
+    needs:
+        - src\common\components\jky-nav\index.js
+        - src\common\components\jky-nav\index.less
+
+
+    分类tab栏：
+        PC/MB：跟随页面进度切换tab，到边界tab后自动移动当前tab进入可视范围
+        MB：tab栏可拖拽
+
+
+    设置当前默认tab：
+        jky-nav-item元素设置class ‘active’
+        tab对应可视内容：tab上添加自定义属性 ‘target’ 值对应可视版块的自定义属性‘anchor’值
+
+    Accepts:
+        - settings: {Array} tabs数组
+        - class: {String} 模块样式类名
+        - open_trigger: {Boolean} 是否开启埋点事件
+        - trigger_event: {String} 埋点事件名称
+
+
+    Example:
+        <div class="sticky-nav">
+            <div class="container">
+                <jky-nav>
+                    <div class="jky-nav-inner">
+                        <div class="jky-nav-inner--container">
+                            <div class="jky-nav-item active" target="p1">Benefits</div>
+                            <div class="jky-nav-item" target="p2">Scenarios</div>
+                            <div class="jky-nav-item" target="p3">Conversation</div>
+                            <div class="jky-nav-item" target="p4">Winner announcement</div>
+                            <div class="jky-nav-item" target="p5">Benefits Benefits Benefits</div>
+                            <div class="jky-nav-item" target="p6">Scenarios Scenarios Scenarios</div>
+                            <div class="jky-nav-item" target="p7">Conversation Conversation Conversation</div>
+                            <div class="jky-nav-item" target="p8">Winner announcement Winner announcement</div>
+                            <div class="jky-nav-slideline">
+                                <div class="jky-nav-slideline--inner"></div>
+                            </div>
+                        </div>
+                    </div>
+                </jky-nav>
+            </div>
+        </div>
+
+
+        <div anchor="p1" style="height: 100vh;background:pink;"></div>
+        <div anchor="p2" style="height: 100vh;background:skyblue;"></div>
+        <div anchor="p3" style="height: 100vh;background:orange;"></div>
+        <div anchor="p4" style="height: 100vh;background:lightgreen;"></div>
+        <div anchor="p5" style="height: 100vh;background:rgb(139, 26, 45);"></div>
+        <div anchor="p6" style="height: 100vh;background:rgb(59, 31, 180);"></div>
+        <div anchor="p7" style="height: 100vh;background:rgb(214, 12, 39);"></div>
+        <div anchor="p8" style="height: 100vh;background:rgb(1, 109, 1);"></div>
+
+
+    Usage:
+        {%- render 'jky-nav', tabs: blocks_nav -%}
+{% endcomment %}
+
+{%- if tabs.size > 0 -%}
+<div class="sticky-nav {{class}}">
+    <div class="container">
+        <jky-nav>
+            <div class="jky-nav-inner">
+                <div class="jky-nav-inner--container">
+                    {%- for block in tabs -%}
+                        <div
+                            {%if open_trigger == true %}
+                                {% if trigger_event != blank %}
+                                    data-ga-event="{{trigger_event}}"
+                                {% endif %}
+                                data-ga-action="click"
+                                data-ga-params-position="{{block.settings.title | escape}}"
+                                {%if module != blank %}
+                                    data-ga-params-module="{{ module }}"
+                                {% else %}
+                                    data-ga-params-module="Directory"
+                                {% endif %}
+                            {% endif %}
+                             class="jky-nav-item
+                             {%if forloop.index == 1%}
+                                active
+                             {% endif %}"
+                                target="{{block.settings.anchor | escape}}">
+                            {{block.settings.title | escape}}</div>
+                    {%- endfor -%}
+                    <div class="jky-nav-slideline">
+                        <div class="jky-nav-slideline--inner"></div>
+                    </div>
+                </div>
+            </div>
+        </jky-nav>
+    </div>
+</div>
+{%- endif -%}

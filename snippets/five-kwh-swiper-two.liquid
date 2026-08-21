@@ -1,0 +1,196 @@
+{%- assign sizes = 0 -%}
+{%- assign gaTitle = '' -%}
+{% if settings.title != blank %}
+    {%- assign gaTitle = settings.title | strip_html -%}
+{% elsif settings.sub_title != blank %}
+    {%- assign gaTitle = settings.sub_title | strip_html -%}
+{%endif%}
+{%- assign urlTarget = '' -%}
+{% if new_window == true %}
+    {%- assign urlTarget =  '_blank' -%}
+{% else %}
+    {%- assign urlTarget =  '_self' -%}
+{% endif %}
+<section class="five-kwh-swiper-two" anchor="{{ settings.anchor_id  | url_decode | strip | replace: ' ', '' }}" style="background: {{ settings.bgColor }}">
+    <div class="five-kwh-content" data-gatitle="{{ gaTitle }}">
+
+        {% assign titleColor = '<em style="color: ' | append: settings.title_color | append: '">' %}
+        {% assign subTitleColor = '<em style="color: ' | append: settings.subtitle_color | append: '">' %}
+        {% if settings.title != blank %}
+            <div class="five-two-title five-kwh-title five-main-container">
+                {{ settings.title | replace: '<em>', titleColor }}
+            </div>
+        {% endif %}
+        {% if settings.sub_title != blank and settings.swiper_style == 'style-one' %}
+            <div class="five-two-subtitle five-kwh-subtitle five-main-container">{{ settings.sub_title | replace: '<em>', subTitleColor }}</div>
+        {% elsif settings.swiper_style == 'style-two'%}
+            {% render 'responsive-image',
+                image: settings.image_pc_sub,
+                mimage: settings.image_mb_sub,
+                image_class: 'five-kwh-sub-image'
+            %}
+        {% endif %}
+    </div>
+    <div class="five-kwh-box" {{ settings.swiper_style }} data-swiperstyle="{{ settings.swiper_sub_style }}" data-videoplay="{{ settings.video_auto_play }}" data-videoloop="{{ settings.loop }}">
+        <div class="show-pc five-kwh-two-content swiper">
+            <ul class="five-two-list swiper-wrapper">
+                {%- for i in (0..9) -%}
+                    {% assign image_pc_index = 'image_pc_' | append: forloop.index %}
+                    {% assign video_pc_url_index = 'video_pc_url_' | append: forloop.index %}
+                    {%- if settings[image_pc_index] != blank or settings[video_pc_url_index] != blank -%}
+                        {%- assign sizes = sizes | plus: 1 -%}
+                    {%- endif -%}
+                {% endfor %}
+            </ul>
+        </div>
+        {% if sizes > 1 %}
+            <div class="change-slide show-pc">
+                <div
+                    data-ga-event="5000plus_page_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-current_page=""
+                    data-ga-params-module="Picture Display"
+                    data-ga-params-title="{{ gaTitle }}"
+                    data-ga-params-position="right"
+                    class="swiper-button-next swiper-two-pc-button-next swiper-tab-vs-pc-button"></div>
+                <div
+                    data-ga-event="5000plus_page_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-current_page=""
+                    data-ga-params-module="Picture Display"
+                    data-ga-params-title="{{ gaTitle }}"
+                    data-ga-params-position="left"
+                    class="swiper-button-prev swiper-two-pc-button-prev swiper-tab-vs-pc-button"></div>
+            </div>
+        {% endif %}
+        <div class="five-kwh-two-carousel-pc show-pc swiper"
+             data-autoplay="{{ settings.swiper_auto_play }}"
+             data-delay="{{ settings.swiperInterval }}"
+             data-size="{{ sizes }}">
+            <div class="swiper-wrapper">
+                {%- for i in (0..9) -%}
+                    {% assign image_pc_index = 'image_pc_' | append: forloop.index %}
+                    {% assign image_link_index = 'image_link_' | append: forloop.index %}
+                    {% assign sub_image_link_index = 'sub_image_link_' | append: forloop.index %}
+                    {% assign image_sub_pc_index = 'image_sub_pc_' | append: forloop.index %}
+                    {% assign video_pc_url_index = 'video_pc_url_' | append: forloop.index %}
+                    {% assign image_des_index = 'image_des_' | append: forloop.index %}
+                    {%- if settings[image_pc_index] or settings[video_pc_url_index] -%}
+                        <div class="swiper-slide {% if settings.border_radius %}border-radius{% endif %}"
+                             data-description="{{ settings[image_des_index] }}"
+                             data-control="{{ settings.controls }}"
+                             data-target="{{ urlTarget }}"
+                            {% if settings[sub_image_link_index] != blank %}
+                                data-subimagelink="{{ settings[sub_image_link_index] }}"
+                            {% endif %}
+                            {% if settings[image_sub_pc_index] != blank %}
+                                data-subimage="{{ settings[image_sub_pc_index] | image_url: width: 697 }}"
+                            {% endif %}>
+                            {%- if settings[image_pc_index] != blank and settings[image_link_index] != blank -%}
+                                <a href="{{ settings[image_link_index] }}" target="{{ urlTarget }}" class="link-image">
+                                    {%      render 'responsive-image',
+                                            image: settings[image_pc_index],
+                                            image_class: 'five-kwh-video-image hover-image'
+                                    %}
+                                </a>
+                            {% elsif settings[video_pc_url_index] != blank %}
+                                {%-
+                                        render 'jky-video',
+                                        video_url: settings[video_pc_url_index],
+                                        poster: settings[image_pc_index],
+                                        autoplay: false,
+                                        controls: settings.controls,
+                                        loop: settings.loop
+                                -%}
+                            {% elsif settings[image_pc_index] != blank %}
+                                {%      render 'responsive-image',
+                                        image: settings[image_pc_index],
+                                        image_class: 'five-kwh-video-image'
+                                %}
+                            {%- endif -%}
+                        </div>
+                    {%- endif -%}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="five-kwh-two-carousel-mb show-mb swiper"
+             data-autoplay="{{ settings.swiper_auto_play }}"
+             data-delay="{{ settings.swiperInterval }}"
+             data-size="{{ sizes }}">
+            <div class="swiper-wrapper">
+                {%- for i in (0..9) -%}
+                    {% assign image_mb_index = 'image_mb_' | append: forloop.index %}
+                    {% assign image_link_index = 'image_link_' | append: forloop.index %}
+                    {% assign sub_image_link_index = 'sub_image_link_' | append: forloop.index %}
+                    {% assign image_sub_mb_index = 'image_sub_mb_' | append: forloop.index %}
+                    {% assign video_mb_url_index = 'video_mb_url_' | append: forloop.index %}
+                    {% assign image_des_index = 'image_des_' | append: forloop.index %}
+                    {%- if settings[image_mb_index] != blank or settings[video_mb_url_index] != blank -%}
+                        {%- assign sizes = sizes | plus: 1 -%}
+                    {%- endif -%}
+                    {%- if settings[image_mb_index] or settings[video_mb_url_index] -%}
+                        <div class="swiper-slide {% if settings.border_radius %}border-radius{% endif %}"
+                             data-description="{{ settings[image_des_index] }}"
+                             data-control="{{ settings.controls }}"
+                             data-target="{{ urlTarget }}"
+                            {% if settings[sub_image_link_index] != blank %}
+                                data-subimagelink="{{ settings[sub_image_link_index] }}"
+                            {% endif %}
+                            {% if settings[image_sub_mb_index] != blank %}
+                                data-subimage="{{ settings[image_sub_mb_index] | image_url: width: 600 }}"
+                            {% endif %}>
+                            {%- if settings[image_mb_index] != blank and settings[image_link_index] != blank -%}
+                                <a href="{{ settings[image_link_index] }}" target="{{ urlTarget }}">
+                                    {% render 'responsive-image',
+                                            image: settings[image_mb_index],
+                                            image_class: 'five-kwh-video-image hover-image'
+                                    %}
+                                </a>
+                            {% elsif settings[video_mb_url_index] != blank %}
+                                {%-
+                                        render 'jky-video',
+                                        video_url: settings[video_mb_url_index],
+                                        poster: settings[image_mb_index],
+                                        autoplay: false,
+                                        controls: settings.controls,
+                                        loop: settings.loop
+                                -%}
+                            {% elsif settings[image_mb_index] != blank %}
+                                {%      render 'responsive-image',
+                                        image: settings[image_mb_index],
+                                        image_class: 'five-kwh-video-image'
+                                %}
+                            {%- endif -%}
+                        </div>
+                    {%- endif -%}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {%- if settings.swiper_sub_style == 'style-one' -%}
+        <div class="five-kwh-active-des"></div>
+    {% elsif settings.swiper_sub_style == 'style-two' %}
+        <div class="five-kwh-active-image {% if settings.sub_image_size == 'big_size' %}big-size{% elsif settings.sub_image_size == 'small_size' %}small-size{% endif %} {% if settings.border_radius %}border-radius{% endif %}"></div>
+    {%- endif -%}
+    <div class="five-kwh-pagination"></div>
+    <div class="five-kwh-change show-mb">
+        {% if sizes > 1 %}
+            <div
+                    data-ga-event="5000plus_page_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-current_page=""
+                    data-ga-params-module="Picture Display"
+                    data-ga-params-title="{{ gaTitle }}"
+                    data-ga-params-position="right"
+                    class="swiper-button-next swiper-two-mb-button-next swiper-tab-vs-pc-button"></div>
+            <div
+                    data-ga-event="5000plus_page_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-current_page=""
+                    data-ga-params-module="Picture Display"
+                    data-ga-params-title="{{ gaTitle }}"
+                    data-ga-params-position="left"
+                    class="swiper-button-prev swiper-two-mb-button-prev swiper-tab-vs-pc-button"></div>
+        {% endif %}
+    </div>
+</section>

@@ -1,0 +1,85 @@
+{% schema %}
+{
+  "name": "Photovolatic VAT",
+  "tag": "section",
+  "class": "photovolatic-vat-component",
+  "settings": [
+    {
+      "type": "color",
+      "id": "backgroundColor",
+      "label": "Background Color"
+    },
+    {
+      "type": "color",
+      "id": "textColor",
+      "label": "Text Color"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Items",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "text",
+          "id": "vatTitle",
+          "label": "VAT Title"
+        },
+        {
+          "type": "richtext",
+          "id": "vatDescription",
+          "label": "VAT Description",
+          "default": "<p>content</p>"
+        },
+        {
+          "type": "image_picker",
+          "id": "pcBgImg",
+          "label": "Background Image (PC:1920 * 800)"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbBgImg",
+          "label": "Background Image (Mobile:750 * 800)"
+        }
+      ],
+      "limit": 1
+    }
+  ]
+}
+{% endschema %}
+
+<div class="photovolatic-vat-container section-container">
+    <div class="photovolatic-vat-box">
+        {% assign total = section.blocks | size %}
+        <div class="photovolatic-box swiper {% if total > 1 %}more-slide{% else %}single-slide{% endif %}"
+             data-total="{{ total }}">
+            <div class="swiper-wrapper">
+                {% for block in section.blocks %}
+                    <div class="swiper-slide">
+                        <div class="photovolatic-vat-bg">
+                            {% render 'responsive-image',
+                                    image: block.settings.pcBgImg,
+                                    mimage: block.settings.mbBgImg,
+                                    image_class: 'bg-img'
+                            %}
+                        </div>
+                        <div class="vat-content-box">
+                            <div class="vat-title">{{ block.settings.vatTitle }}</div>
+                            <div class="vat-description">{{ block.settings.vatDescription }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% if total > 1 %}
+            <div class="custom-arrow swiper-button-prev"></div>
+            <div class="custom-arrow swiper-button-next"></div>
+        {% endif %}
+    </div>
+</div>
+<style>
+    #shopify-section-{{ section.id }} .vat-content-box{
+        background-color: {{ section.settings.backgroundColor }};
+        color: {{ section.settings.textColor }};
+    }
+</style>

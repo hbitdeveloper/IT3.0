@@ -1,0 +1,237 @@
+{{ 'snippet-activity-pic-swiper.min.css' | asset_url | stylesheet_tag }}
+
+<style>
+    .activity-pic-swiper-{{ index }}{
+        padding: {{settings.pc_padding}}px 0;
+    }
+    .activity-pic-swiper .activity-pic-container .swiper-slide{width:calc(var(--width-pc) * 1px);height: calc(var(--height-pc) * 1px);}
+    body .activity-pic-swiper .swiper-navigation {
+        top: calc((100% - 35px) / 2 - 24px);
+    }
+    @media screen and (max-width: 1440px) {
+        .activity-pic-swiper-{{ index }}{
+            padding: calc({{settings.pc_padding}} / 1440* 100vw) 0;
+        }
+    }
+
+      @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+        .activity-pic-swiper .activity-pic-container .swiper-slide{
+            width:  calc(var(--width-pc) * 100vw / 1440);
+            height: calc(var(--height-pc) * 100vw / 1440);
+        }
+    }
+
+    @media screen and (max-width: 1023.98px) {
+        .activity-pic-swiper-{{ index }}{
+            padding: calc({{settings.mb_padding}} / 750* 100vw) 0;
+        }
+        .activity-pic-swiper .activity-pic-container .swiper-slide{width:var(--width-mb);height: var(--height-mb);}
+
+        body .activity-pic-swiper .swiper-navigation {
+            top: calc((100% - 2.666667vw * 2) / 2 - 1.6vw);
+        }
+    }
+    
+</style>
+
+{%- assign size = 0 -%}
+<div class="activity-pic-swiper activity-pic-swiper-{{ index }}" data-index="{{ index }}" style="background: {{ settings.bgColor }}" {%if settings.anchor_id != blank%}anchor={{settings.anchor_id | escape}}{% endif %}>
+    <div class="activity-container">
+        <div class="activity-pic-container swiper">
+            <div class="swiper-wrapper">
+                {%- for i in (0..9) -%}
+                    {% assign image_pc_index = 'pc_image_' | append: forloop.index %}
+                    {% assign image_mb_index = 'mb_image_' | append: forloop.index %}
+                    {% assign image_url_index = 'img_link_' | append: forloop.index %}
+                    {% assign custom_code_index = 'custom_code_' | append: forloop.index %}
+                    {%- if settings[image_pc_index] != blank or settings[image_mb_index] != blank -%}
+                        {%- assign size = size | plus: 1 -%}
+                        <a
+                                data-ga-event="activity_page_user_clicks"
+                                data-ga-action="click"
+                                data-ga-params-current_page=""
+                                data-ga-params-module="Picture Display"
+                                data-ga-params-position="picture"
+                                data-ga-params-link="{{ settings[image_url_index] }}"
+                                data-ga-params-url=""
+                                data-pcimage="{{ settings[image_pc_index] | image_url: width: 400 }}"
+                                data-mbimage="{{ settings[image_mb_index] | image_url: width: 300 }}"
+                                class="swiper-slide"
+                                style="--width-pc:{{ settings.image_width_pc }};--height-pc:{{ settings.image_height_pc }};--width-mb:calc(({{ settings.image_width_mb }}/750)*100vw);--height-mb:calc(({{ settings.image_height_mb }}/750)*100vw)"
+                                {% if settings[image_url_index] %}
+                                    href="{{ settings[image_url_index] }}"
+                                    target="{% if new_window %}_blank{% else %}_self{% endif %}"
+                                {% endif %}
+
+                                {% if settings[custom_code_index] != blank %}
+                                    data-code='({{settings[custom_code_index]}})'
+                                {% endif %}
+                            >
+                            <div class="activity-item-image {% if settings.border_radius %}border-radius{% endif %}">
+                                {% render 'diff-end-img',
+                                    picture_class:'',
+                                    class: 'activity-image',
+                                    style: '',
+                                    anchor: '',
+                                    pc_img: settings[image_pc_index],
+                                    mb_img: settings[image_mb_index],
+                                    pc_img_width: settings.image_width_pc,
+                                    mb_img_width: settings.image_width_mb,
+                                    placeholder_name: 'hero-apparel-1',
+                                    alt: settings[image_pc_index].alt | settings[image_mb_index].alt | default: 'activity image',
+                                    load_scene: settings.load_scene | default: 'default',
+                                %}
+                            </div>
+                        </a>
+                    {%- endif -%}
+                {% endfor %}
+            </div>
+        </div>
+        {% if size > 1 %}
+            <div class="activity-pagination"></div>
+            <div class="swiper-navigation">
+                <div
+                        data-ga-event="activity_page_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-current_page=""
+                        data-ga-params-module="Picture Display"
+                        data-ga-params-position="left"
+                        class="swiper-button-prev swiper-activity-button-prev swiper-tab-vs-pc-button"></div>
+                <div
+                        data-ga-event="activity_page_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-current_page=""
+                        data-ga-params-module="Picture Display"
+                        data-ga-params-position="right"
+                        class="swiper-button-next swiper-activity-button-next swiper-tab-vs-pc-button"></div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script type="module">
+    (function () {
+        function onReady(fn) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fn, { once: true });
+                return;
+            }
+            fn();
+        }
+
+        function setCurrentPageAttrs(scopeEl) {
+            var href = window.location.href;
+            scopeEl.querySelectorAll('.swiper-button-prev, .swiper-button-next, .swiper-slide, .slideshow-pagination-item').forEach(function (el) {
+                el.setAttribute('data-ga-params-current_page', href);
+            });
+        }
+
+        onReady(function () {
+            var activityPicSwipers = Array.from(document.querySelectorAll('.activity-pic-swiper'));
+            if (activityPicSwipers.length === 0) return;
+
+            activityPicSwipers.forEach(function (rootEl) {
+                var index = rootEl.getAttribute('data-index');
+                var currentComponent = '.activity-pic-swiper-' + index;
+                var currentSwiperEl = rootEl.querySelector('.activity-pic-container');
+                if (!currentSwiperEl || typeof Swiper === 'undefined') return;
+
+                var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+
+                function updatePaginationHighlight(swiper) {
+                    var bullets = rootEl.querySelectorAll('.slideshow-pagination-item');
+                    var activeIndex = swiper.isEnd ? bullets.length - 1 : swiper.realIndex;
+                    bullets.forEach(function (el, i) {
+                        el.classList.toggle('active', i === activeIndex);
+                    });
+                }
+
+                new Swiper(currentSwiperEl, {
+                    spaceBetween: clientWidth > 1024 ? 20 : 24,
+                    slidesPerView: 'auto',
+                    watchSlidesProgress: true,
+                    watchSlidesVisibility: true,
+                    observer: true,
+                    observeParents: true,
+                    lazy: {
+                        loadPrevNext: true,
+                        loadPrevNextAmount: 1
+                    },
+                    allowTouchMove: true,
+                    centeredSlides: false,
+                    loop: false,
+                    navigation: {
+                        prevEl: currentComponent + ' .swiper-activity-button-prev',
+                        nextEl: currentComponent + ' .swiper-activity-button-next'
+                    },
+                    pagination: {
+                        el: currentComponent + ' .activity-pagination',
+                        clickable: true,
+                        bulletClass: 'slideshow-pagination-item',
+                        bulletActiveClass: 'active pagination-active',
+                        clickableClass: 'slideshow-pagination-clickable',
+                        modifierClass: 'slideshow-pagination-',
+                        renderBullet: function (index) {
+                            var paginationItem = '<span class="slideshow-pagination-item" ' +
+                                'data-ga-event="activity_page_user_clicks" ' +
+                                'data-ga-action="click" ' +
+                                'data-ga-params-current_page="" ' +
+                                'data-ga-params-module="Picture Display" ' +
+                                'data-ga-params-position="Points" ' +
+                                'data-tab-item>';
+
+                            if (index <= 10) {
+                                paginationItem += '<span class="pagination-separator"><span class="pagination-separator-loader"></span></span>';
+                            }
+
+                            paginationItem += '</span>';
+                            return paginationItem;
+                        }
+                    },
+                    on: {
+                        slideChange: function () {
+                            updatePaginationHighlight(this);
+                        },
+                        touchMove: function () {
+                            updatePaginationHighlight(this);
+                        },
+                        transitionEnd: function () {
+                            updatePaginationHighlight(this);
+                        }
+                    }
+                });
+
+                setCurrentPageAttrs(rootEl);
+
+                rootEl.querySelectorAll('.swiper-slide').forEach(function (slideEl) {
+                    var pcImage = slideEl.getAttribute('data-pcimage') || '';
+                    var mbImage = slideEl.getAttribute('data-mbimage') || '';
+                    slideEl.setAttribute('data-ga-params-url', clientWidth > 1024 ? pcImage : mbImage);
+
+                    var href = slideEl.getAttribute('href');
+                    var code = slideEl.getAttribute('data-code');
+                    if (!href && code) {
+                        if (slideEl.__activityPicSwiperClickHandler) {
+                            slideEl.removeEventListener('click', slideEl.__activityPicSwiperClickHandler);
+                        }
+
+                        var handler = function (e) {
+                            e.preventDefault();
+                            try {
+                                var cb = eval(code);
+                                if (cb && typeof cb === "function") cb();
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        };
+
+                        slideEl.__activityPicSwiperClickHandler = handler;
+                        slideEl.addEventListener('click', handler);
+                    }
+                });
+
+                setCurrentPageAttrs(rootEl);
+            });
+        });
+    })();
+</script>

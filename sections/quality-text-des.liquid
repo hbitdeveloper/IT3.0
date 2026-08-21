@@ -1,0 +1,174 @@
+<style>
+  .quality-text-des {
+    padding-top: calc(var(--pc-padding-top) * 1px);
+    padding-bottom: calc(var(--pc-padding-bottom) * 1px);
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+    .quality-text-des {
+      padding-top: calc(var(--pc-padding-top) * 100vw / 1440);
+      padding-bottom: calc(var(--pc-padding-bottom) * 100vw / 1440);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .quality-text-des {
+      padding-top: calc(var(--mb-padding-top) * 100vw / 750);
+      padding-bottom: calc(var(--mb-padding-bottom) * 100vw / 750);
+    }
+  }
+</style>
+
+<div
+  class="quality-text-des quality-text-des-{{ section.id }}"
+  anchor="{{ section.settings.anchor | escape }}"
+  style="
+    background: {{ section.settings.bg_color }};
+    --pc-padding-bottom:{{ section.settings.pc_padding_bottom }};--mb-padding-bottom:{{ section.settings.mb_padding_bottom }};
+    --pc-padding-top:{{ section.settings.pc_padding_top }};--mb-padding-top:{{ section.settings.mb_padding_top }};
+  "
+>
+    <div class="quality-swiper-container">
+      <div class="quality-text-des-card swiper quality-text-des-swiper">
+          <div class="swiper-wrapper">
+              {%- for item in section.blocks -%}
+                {% if item.settings['pc-img'] != blank %}
+                  <div class="indoor-img-text swiper-slide">
+                    <div class="indoor-box {{ item.settings.position }}">
+                      <div class="left-box">
+                        {% if item.settings['pc-img'] != blank %}
+                          <img
+                            src="{{ item.settings['pc-img'] | image_url: width: 600}}"
+                            alt="{{ item.settings['pc-img'].alt }}"
+                            class="show-image"
+                            loading="lazy"
+                          >
+                        {% endif %}
+                      </div>
+                      <div class="right-box">
+                        <h3 class="title pc-block" style="color:{{ item.settings.title-color }}">
+                          {{ item.settings.title }}
+                        </h3>
+                        <h3 class="title mobile-block" style="color:{{ item.settings.title-color }}">
+                          {% if item.settings['title-mb'] != blank %}
+                            {{ item.settings['title-mb'] }}
+                          {% else %}
+                            {{ item.settings.title }}
+                          {% endif %}
+                        </h3>
+                        {% assign subColor = '<em style="color: ' | append: item.settings.sub-title-sp-color | append: '">' %}
+                        <div class="sub-title" style="color:{{ item.settings.sub-title-color }}">
+                          {{ item.settings['sub-title'] | replace: '<em>', subColor }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% endif %}
+
+              {%- endfor -%}
+          </div>
+      </div>
+      
+      {% if section.blocks.size > 1 %}
+      <div class="quality-pagination"></div>
+          <div class="swiper-navigation">
+              <div class="swiper-button-prev swiper-activity-button-prev swiper-tab-vs-pc-button"></div>
+              <div class="swiper-button-next swiper-activity-button-next swiper-tab-vs-pc-button"></div>
+          </div>
+      {% endif %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Quality text des",
+  "tag": "section",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "二级标题定位锚点",
+      "info": "搭配二级导航锚点定位,未使用到定位则不配置"
+    },
+    { "type": "color_background", "id": "bg_color", "label": "背景颜色"},
+    { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+    { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC", "default": 40 },
+    { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+    { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB", "default": 48 }
+  ],
+  "blocks": [
+    {
+      "type": "swiper",
+      "name": "quality Item",
+      "settings": [
+        {
+          "type": "select",
+          "id": "position",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "左图右文"
+            },
+            {
+              "value": "right",
+              "label": "右图左文"
+            }
+          ]
+        },
+
+        {
+          "type": "image_picker",
+          "id": "pc-img",
+          "label": "Image(必填)",
+          "info": "654*567"
+        },
+        {
+          "type": "richtext",
+          "id": "title",
+          "label": "PC Title"
+        },
+        {
+          "type": "richtext",
+          "id": "title-mb",
+          "label": "MB Title"
+        },
+        {
+          "type": "color",
+          "id": "title-color",
+          "label": "Title Color"
+        },
+
+        {
+          "type": "richtext",
+          "id": "sub-title",
+          "label": "描述文案"
+        },
+
+        {
+          "type": "color",
+          "id": "sub-title-color",
+          "label": "描述文案整体颜色"
+        },
+        {
+          "type": "color",
+          "id": "sub-title-sp-color",
+          "label": "描述文案突出颜色"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "品质中心 - 图文描述",
+      "blocks": [
+        {
+          "type": "swiper"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

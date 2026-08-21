@@ -1,0 +1,97 @@
+{%- assign sizes = 0 -%}
+<div
+  class="indoor-swiper-one"
+  anchor="{{ swiperone.anchor_id  | url_decode | strip | replace: ' ', ''}}"
+  id="{{ swiperone.anchor_id  | url_decode | strip | replace: ' ', ''}}"
+  data-autoplay="{{ swiperone.autoplay }}"
+  data-delay="{{ swiperone.swiperInterval }}"
+  style="background:{{ swiperone.bg-color }}"
+>
+  {% if swiperone['pc-title'] != blank %}
+    <h2 class="title pc-block indoor-container {{ swiperone.position_title }}" style="color:{{ swiperone.title-color}}">
+      {{ swiperone['pc-title'] }}
+    </h2>
+  {% endif %}
+
+  <h2 class="title mb-block {{ swiperone.position_title_mb }}" style="color:{{ swiperone.title-color}}">
+    {% if swiperone['mb-title'] != blank %}
+      {{ swiperone['mb-title'] }}
+    {% elsif swiperone['pc-title'] != blank %}
+      {{ swiperone['pc-title'] }}
+    {% endif %}
+  </h2>
+
+  {% comment %} Swiper pc {% endcomment %}
+  <div class="swiper mySwiper show-pc">
+    <div class="swiper-wrapper">
+      {%- for i in (0..9) -%}
+        {% assign item-title-index = 'item-title-' | append: forloop.index %}
+        {% assign item-sub-title-index = 'item-sub-title-' | append: forloop.index %}
+        {% assign item-img-index = 'item-img-' | append: forloop.index %}
+        {%- if swiperone[item-title-index] != blank -%}
+          <div class="swiper-slide">
+           {% render 'responsive-image', image: swiperone[item-img-index], image_class: 'indoor-one-image' %}
+            <div class="item-box">
+              <h3 class="item-title text-overflow-1" style="color:{{ swiperone.item-title-color}}">
+                {{ swiperone[item-title-index] }}
+              </h3>
+              <div class="item-subtext text-overflow-3" style="color:{{ swiperone.item-subtitle-color}}">
+                {{ swiperone[item-sub-title-index] }}
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+      {% endfor %}
+    </div>
+  </div>
+
+  {% comment %} Swiper mb {% endcomment %}
+  <div
+    class="five-kwh-two-carousel-mb show-mb swiper"
+    data-autoplay="{{ settings.autoplay }}"
+    data-delay="{{ settings.swiperInterval }}"
+    data-size="{{ sizes }}"
+  >
+    <div class="swiper-wrapper">
+      {%- for i in (0..9) -%}
+        {% assign item-title-index = 'item-title-' | append: forloop.index %}
+        {% assign item-sub-title-index = 'item-sub-title-' | append: forloop.index %}
+        {% assign item-img-index = 'item-img-' | append: forloop.index %}
+        {% assign item-img-mb-index = 'item-img-mb-index' | append: forloop.index %}
+        {%- if swiperone[item-title-index] != blank -%}
+          {%- assign sizes = sizes | plus: 1 -%}
+        {%- endif -%}
+        {%- if swiperone[item-title-index] != blank -%}
+          <div class="swiper-slide">
+            {% if swiperone[item-img-mb-index] != blank %}
+              {% render 'responsive-image', image: swiperone[item-img-mb-index], image_class: 'five-kwh-one-image' %}
+            {% elsif swiperone[item-img-index] != blank %}
+              {% render 'responsive-image', image: swiperone[item-img-index], image_class: 'five-kwh-one-image' %}
+            {% endif %}
+
+            <div class="item-box">
+              <h3 class="item-title text-overflow-1" style="color:{{ swiperone.item-title-color}}">
+                {{ swiperone[item-title-index] }}
+              </h3>
+              <div class="item-subtext text-overflow-4" style="color:{{ swiperone.item-subtitle-color}}">
+                {{ swiperone[item-sub-title-index] }}
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="five-kwh-pagination show-mb"></div>
+  <div class="five-kwh-change show-mb">
+    {% if sizes > 1 %}
+      <div
+        class="swiper-button-next swiper-two-mb-button-next swiper-tab-vs-pc-button"
+      ></div>
+      <div
+        class="swiper-button-prev swiper-two-mb-button-prev swiper-tab-vs-pc-button"
+      ></div>
+    {% endif %}
+  </div>
+</div>

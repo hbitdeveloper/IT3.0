@@ -1,0 +1,123 @@
+<style>
+  .quality-modal-btn {
+    padding-top: calc(var(--pc-padding-top) * 1px);
+    padding-bottom: calc(var(--pc-padding-bottom) * 1px);
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+    .quality-modal-btn {
+      padding-top: calc(var(--pc-padding-top) * 100vw / 1440);
+      padding-bottom: calc(var(--pc-padding-bottom) * 100vw / 1440);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .quality-modal-btn {
+      padding-top: calc(var(--mb-padding-top) * 100vw / 750);
+      padding-bottom: calc(var(--mb-padding-bottom) * 100vw / 750);
+    }
+  }
+</style>
+
+{% if section.settings.btn != blank %}
+  <div
+    class="quality-modal-btn"
+    anchor="{{ section.settings.anchor | escape }}"
+    style="
+      background: {{ section.settings.bg_color }};
+      --pc-padding-bottom:{{ section.settings.pc_padding_bottom }};--mb-padding-bottom:{{ section.settings.mb_padding_bottom }};
+      --pc-padding-top:{{ section.settings.pc_padding_top }};--mb-padding-top:{{ section.settings.mb_padding_top }};
+    "
+    data-ga-event="button_clicks"
+    data-ga-action="click"
+    data-ga-params-button_name="{{ section.settings.btn | strip_html }}"
+  >
+    <div class="higher-btn quality-center-container">
+      <div class="btn-title text-overflow-2">{{ section.settings.btn }}</div>
+      <div class="btn-icon">
+        <jds-icon name="plus-line" class="icon"></jds-icon>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="find-main-pop">
+  <div class="higher-output-box">
+    <jds-icon name="close-fill" class="pop-close-icon"></jds-icon>
+    <div class="pop-title">{{ section.settings.title }}</div>
+    {% if section.settings.des != blank %}
+      <div class="pop-description">{{ section.settings.des }}</div>
+    {% endif %}
+    <div class="pop-content">
+      {% render 'responsive-image',
+        image: section.settings.pop_image_pc,
+        mimage: section.settings.pop_image_mb,
+        image_class: 'find-pop-image'
+      %}
+    </div>
+  </div>
+</div>
+
+<script defer>
+  class NewcomerFindPower {
+    constructor({ el }) {
+      this.DOM = {
+        cls: el,
+        el: document.querySelector(el),
+      };
+      if (!this.DOM.el) {
+        return;
+      }
+      this.init();
+    }
+
+    init() {
+      const triggerBtn = document.querySelector(`${this.DOM.cls} .higher-btn`);
+      const pop = document.querySelector('.find-main-pop');
+      const closeBtn = document.querySelector('.pop-close-icon');
+
+      if (triggerBtn) {
+        triggerBtn.addEventListener('click', function () {
+          if (pop) pop.style.display = 'block';
+          // 弹窗图片懒加载   
+          const findPopImage = document.querySelector(`.find-main-pop .image-lazy-loading`);
+          if (findPopImage) {
+              window?.loadingImage(findPopImage);
+          }
+          document.body.style.overflow = 'hidden';
+        });
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+          if (pop) pop.style.display = 'none';
+          document.body.style.overflow = 'auto';
+        });
+      }
+    }
+  }
+
+  new NewcomerFindPower({ el: '.quality-modal-btn' });
+</script>
+
+{% schema %}
+{
+  "name": "Quality Modal Btn",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "二级标题定位锚点", "info": "搭配二级导航锚点定位未使用到定位则不配置" },
+    { "type": "color_background", "id": "bg_color", "label": "组件背景色"},
+    { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+    { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+    { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+    { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+    { "type": "richtext", "id": "btn", "label": "弹窗按钮文案" },
+    { "type": "richtext", "id": "title", "label": "弹窗标题" },
+    { "type": "richtext", "id": "des", "label": "备注文案" },
+    { "type": "image_picker", "id": "pop_image_pc", "label": "弹窗图片PC" },
+    { "type": "image_picker", "id": "pop_image_mb", "label": "弹窗图片MB" }
+  ],
+  "presets": [
+    {
+      "name": "品质中心 - 按钮弹窗"
+    }
+  ]
+}
+{% endschema %}

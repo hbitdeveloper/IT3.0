@@ -1,0 +1,108 @@
+{% doc %}
+    V5 产品对比 - 产品卡片
+    @description 适用于 v5-pdp-compare.liquid 主题区块
+    @param { string } variant_id - 产品变体Id
+    @param { product } product - 产品
+    @param { object } setting - 主题区块设置
+{% enddoc %}
+
+{% liquid
+    assign variant = product.variants | where: "id", variant_id | where: "available", true | first | default: product.selected_or_first_available_variant
+    # 标题
+    assign title = variant.title
+    if title == 'Default Title'
+        assign title = product.title
+    endif
+    # 产品标签
+    assign tag = setting.tag
+    # 产品图片
+    assign product_img = variant.featured_image | default: product.featured_image
+
+    # 价格
+    if settings.open_auto_discount_price
+        assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1
+        if auto_discount_price > 0
+            assign current_price = variant.price
+            if auto_discount_price < variant.price
+                assign current_price = auto_discount_price
+            endif
+        else
+             assign current_price = variant.price
+        endif
+    else
+        assign current_price = variant.price
+    endif
+
+    # 划线价
+    if variant.compare_at_price > current_price
+       assign compare_at_price = variant.compare_at_price
+    else
+        if variant.price > current_price
+           assign compare_at_price = variant.price
+        else
+            assign compare_at_price = blank
+        endif
+    endif
+%}
+
+<style>
+    .v5-pdp-compare-card .tag{
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        will-change: transform, opacity;
+    }
+    /* 5.0主题按钮 */
+    .jky-v5 [compare-add-to-cart]{
+        border-radius: 0;
+    }
+    .v5-pdp-compare-card .ar-wrap{
+        position: relative;
+        width: 100%;
+        padding-bottom: var(--mb-pb, 100%);
+    }
+    @media (min-width: 1024px){
+        .v5-pdp-compare-card .ar-wrap{
+            padding-bottom: var(--pc-pb, var(--mb-pb, 100%));
+        }
+    }
+</style>
+
+<div class="w-[18.375rem] lg:w-[19.375rem] flex flex-col items-center py-4 px-3 lg:px-2 bg-white rounded-lg relative v5-pdp-compare-card">
+    {%- if tag != blank -%}
+        <div class="absolute top-4 left-4 z-[1] border-solid border-[#000] border px-3 py-0.5 font-normal text-[1rem] leading-6 rounded-md tracking-[-0.02rem] tag">{{ tag | escape }}</div>
+    {%- endif -%}
+    <div class="w-[18.375rem] flex items-center justify-center mb-4">
+        {% render 'diff-end-img', pc_img: product_img, mb_img: product_img, pc_img_width: 272, mb_img_width: 272, class: 'object-cover focus-zoom w-[17rem] h-[17rem]' %}
+        
+    </div>
+
+    <div class="w-full h-[3.375rem] lg:h-[3.25rem] text-center font-semibold text-[1.125rem] leading-[1.625rem] text-[#000] mb-4 line-clamp-2">{{ title | escape }}</div>
+    <div class="text-[#000] font-normal mb-4">
+        <span class="font-semibold text-[1.125rem]">{{ current_price | money }}</span>
+        {% if compare_at_price != blank %}
+            <span class="text-[0.75rem] pl-1 line-through">{{ compare_at_price | money }}</span>
+        {% endif %}
+    </div>
+    <div class="mb-8">
+        <button
+            class="w-[16.375rem] py-2 text-center bg-[var(--jds-color-primary)] rounded-[var(--theme-btn-border-radius,6.25rem)] font-semibold text-[#fff] text-[0.875rem] lg:text-[1.125rem] hover:bg-[#e95a18] flex items-center justify-center"
+            data-id="{{ variant.id }}"
+            compare-add-to-cart
+            data-nm-target="add_to_cart_btn"
+        >{{ 'products.product.add_to_cart' | t }}</button>
+    </div>
+    {% if setting.pc_compare_image != blank or setting.mb_compare_image != blank %}
+        <div class="w-full border-t-[1px] border-solid border-[#D9D9D9]">
+            {%- assign compare_pc_ar = setting.pc_compare_image.aspect_ratio | default: 1.7777778 -%}
+            {%- assign compare_mb_ar = setting.mb_compare_image.aspect_ratio | default: setting.pc_compare_image.aspect_ratio | default: 1.7777778 -%}
+            {%- assign compare_pc_pb = 100.0 | divided_by: compare_pc_ar -%}
+            {%- assign compare_mb_pb = 100.0 | divided_by: compare_mb_ar -%}
+            {%- capture compare_img_style -%}--pc-pb: {{ compare_pc_pb }}%; --mb-pb: {{ compare_mb_pb }}%;{%- endcapture -%}
+            <div class="w-full overflow-hidden ar-wrap" style="{{ compare_img_style }}">
+                {% render 'diff-end-img', pc_img: setting.pc_compare_image, mb_img: setting.mb_compare_image, pc_img_width: 294, mb_img_width: 256, picture_class: 'absolute inset-0 w-full h-full', class: 'w-full h-full object-cover focus-zoom' %}
+            </div>
+        </div>
+    {% endif %}
+</div>

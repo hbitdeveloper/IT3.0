@@ -1,0 +1,155 @@
+{%- if block.settings.benefits_text != blank or block.settings.core_params_text != blank -%}
+  {%- capture style -%}
+    {% render 'spacing-padding', settings: block.settings %}
+  {%- endcapture -%}
+
+  <div {{ block.shopify_attributes }} class="v5-app-pdp-benefits-and-core-params w-full section-padding" style="{{ style }}" data-no-core-params-text="{{ block.settings.no_core_params_text | escape }}">
+    <v5-app-pdp-scroll-tab
+      class="block w-full bg-[#F5F5F3] px-2.5 lg:px-6 max-h-[13.125rem] lg:max-h-[9.25rem] overflow-hidden" 
+      active-class="text-[#242F20] font-medium active after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 lg:after:h-1 after:bg-[#242F20]" 
+      inactive-class="text-[#242F20] font-medium"
+    >
+      <div class="tab-header-container mx-2.5 lg:mx-0 flex border-0 border-b border-solid border-[#E5E5E5] overflow-x-auto relative select-none" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <div class="tab-items-wrapper flex shrink-0 gap-x-6">
+          {%- if block.settings.benefits_text != blank -%}
+            <div class="tab-item pt-2 pb-2 text-base cursor-pointer transition-colors duration-300 shrink-0 relative text-black font-medium active after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 lg:after:h-1 after:bg-[#242F20]" data-index="0">{{ block.settings.benefits_text | escape }}</div>
+          {%- endif -%}
+          {%- if block.settings.core_params_text != blank -%}
+            <div class="tab-item pt-2 pb-2 text-base cursor-pointer transition-colors duration-300 shrink-0 relative text-black font-medium {% if block.settings.benefits_text == blank %}active after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 lg:after:h-1 after:bg-[#242F20]{% endif} %}" data-index="1">{{ block.settings.core_params_text | escape }}</div>
+          {%- endif -%}
+        </div>
+      </div>
+
+      <div class="tab-content-wrapper flex overflow-x-auto scroll-smooth snap-x snap-mandatory" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <div class="w-full shrink-0 snap-start pt-5 pb-4 pl-2.5 pr-0.5">
+          <ul class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-3 lg:gap-y-4">
+            {% for i in (1..4) %}
+              {% capture icon_key %}benefit_{{ i }}_icon{% endcapture %}
+              {% capture title_key %}benefit_{{ i }}_title{% endcapture %}
+              
+              {% assign icon_value = block.settings[icon_key] %}
+              {% assign title_value = block.settings[title_key] %}
+
+              <li class="flex items-center gap-x-2 h-6">
+                {% if icon_value == '30_day_money_back_return' %}
+                  {% render 'v5-icon-money-return', class: "w-6 h-6 text-[#242F20]/60 shrink-0" %}
+                {% elsif icon_value == 'free_warranty_return' %}
+                  {% render 'v5-icon-free-warrenty-return', class: "w-6 h-6 text-[#242F20]/60 shrink-0" %}
+                {% elsif icon_value == '5_years_free_warranty' %}  
+                  {% render 'v5-icon-year-warrenty', class: "w-6 h-6 text-[#242F20]/60 shrink-0" %}
+                {% else %}
+                  {% render 'v5-icon-shipping', class: "w-6 h-6 text-[#242F20]/60 shrink-0" %}
+                {% endif %}
+                <span class="flex-1 text-[#242F20] font-normal text-sm lg:text-base line-clamp-1 cursor-pointer underline-offset-4 lg:hover:underline" data-benefit-item>{{ title_value | escape }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="w-full shrink-0 snap-start pt-6 pb-3 flex flex-col items-end gap-3 lg:gap-1">
+          {%- assign raw_json = product.metafields.custom.feature_text_json | strip -%}
+          {%- assign cleaned = raw_json 
+            | remove: '{' 
+            | remove: '}' 
+            | replace: '","', '|' 
+            | remove: '"' 
+          -%}
+          {%- assign pairs = cleaned | split: '|' -%}
+          {%- if pairs.size > 0 -%}
+            <style>
+              {% comment %} 欧洲DIY3 DE FR NL 特性文案单独处理 {% endcomment %}
+              html:is([lang="de"], [lang="fr"], [lang="nl"]) .core-params-key {
+                -webkit-hyphens: auto; 
+                -ms-hyphens: auto; 
+                hyphens: auto;
+              }
+              @media screen and (min-width: 1024px) {
+                html[lang="de"] ul.core-params-wrapper li:nth-of-type(2) {
+                  flex: unset;
+                  max-width: 40%;
+                }
+              }
+            </style>
+            <ul class="core-params-wrapper w-full flex flex-wrap gap-y-2">
+              {%- for pair in pairs limit: 3 -%}
+                {% assign kv = pair | split: ':' %}
+                {% assign key = kv[0] %}
+                {% assign value = kv[1] %}
+                <li class="flex-1 max-w-[33.33%] flex flex-col items-center justify-start gap-y-1 px-2 lg:px-4 text-center">
+                  <span class="font-semibold text-[#242F20] text-base">{{ value | escape }}</span>
+                  <span class="core-params-key text-[#666]/65 text-sm">{{ key | escape }}</span>
+                </li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+          <button
+            class="appearance-none bg-transparent w-fit flex items-center gap-1 text-sm text-[#242F20] font-normal underline-offset-4 lg:hover:underline"
+            data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+            data-full-params-btn
+          >
+            {{ block.settings.all_core_params_btn_text | escape }}
+            <svg class="w-3 h-3 inline-table" width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+              <g fill="none" fill-rule="evenodd">
+                <path d="M0 0h56v56H0z"></path>
+                <path d="M39.782 28.84a2.12 2.12 0 00-.19-.893 2.614 2.614 0 00-.545-.767L18.978 7.654C18.522 7.218 17.965 7 17.306 7c-.422 0-.811.1-1.166.302a2.229 2.229 0 00-.836.818A2.26 2.26 0 0015 9.29c0 .62.22 1.166.659 1.635L34.106 28.84 15.659 46.756c-.44.47-.659 1.015-.659 1.635 0 .436.101.826.304 1.17.203.344.482.617.836.818.355.201.744.302 1.166.302.659 0 1.216-.226 1.672-.68l20.07-19.5c.236-.235.417-.49.544-.767a2.12 2.12 0 00.19-.894z" fill="currentColor" fill-rule="nonzero"></path>
+              </g>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </v5-app-pdp-scroll-tab>
+
+    {% comment %} 利益点弹窗 {% endcomment %}
+    {%- if block.settings.benefits_text != blank -%}
+      <jds-dialog class="v5-app-pdp-benefits-dialog" caption="{{ block.settings.benefits_text | escape }}" size="extra" showclose="" closeicon="close" disablebodyscroll="" style="--jds-dialog-index:20000;--jds-dialog-width:var(--v5-app-pdp-benefits-and-core-params-dialog-width)">
+        <ul class="grid grid-cols-1 gap-x-6 gap-y-3">
+          {%- for i in (1..4) -%}
+            {%- capture icon_key -%}benefit_{{ i }}_icon{%- endcapture -%}
+            {%- capture title_key -%}benefit_{{ i }}_title{%- endcapture -%}
+            {%- capture desc_key -%}benefit_{{ i }}_desc{%- endcapture -%}
+            
+            {%- assign icon_value = block.settings[icon_key] -%}
+            {%- assign title_value = block.settings[title_key] -%}
+            {%- assign desc_value = block.settings[desc_key] -%}
+
+            {%- if icon_value != blank or title_value != blank or desc_value != blank -%}
+              <li class="flex items-start gap-x-3 lg:gap-x-4 border-0 border-b border-solid border-[#E8E8E5] pb-4 lg:pb-5 first-of-type:pt-4 lg:first-of-type:pt-5 last-of-type:border-b-0 last-of-type:pb-0">
+                {% if icon_value == '30_day_money_back_return' %}
+                  {% render 'v5-icon-money-return', class: "w-9 h-9 lg:w-10 lg:h-10 text-[#242F20] shrink-0" %}
+                {% elsif icon_value == 'free_warranty_return' %}
+                  {% render 'v5-icon-free-warrenty-return', class: "w-9 h-9 lg:w-10 lg:h-10 text-[#242F20] shrink-0" %}
+                {% elsif icon_value == '5_years_free_warranty' %}  
+                  {% render 'v5-icon-year-warrenty', class: "w-9 h-9 lg:w-10 lg:h-10 text-[#242F20] shrink-0" %}
+                {% else %}
+                  {% render 'v5-icon-shipping', class: "w-9 h-9 lg:w-10 lg:h-10 text-[#242F20] shrink-0" %}
+                {% endif %}
+                {%- if title_value != blank or desc_value != blank -%}
+                  <div class="flex flex-col justify-start gap-y-2 pt-2">
+                    {%- if title_value != blank -%}
+                      <h4 class="flex-1 text-[#242F20] font-semibold text-base">{{ title_value | escape }}</h4>
+                    {%- endif -%}
+                    {%- if desc_value != blank -%}
+                      <p class="text-black/65 font-normal text-sm lg:text-base">{{ desc_value | escape }}</p>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </jds-dialog>
+    {%- endif -%}
+
+    {% comment %} 核心参数弹窗 {% endcomment %}
+    {%- if block.settings.core_params_text != blank -%}
+      <jds-dialog class="v5-app-pdp-core-params-dialog" caption="{{ block.settings.core_params_text | escape }}" size="extra" showclose="" closeicon="close" disablebodyscroll="" style="--jds-dialog-index:20000;--jds-dialog-width:var(--v5-app-pdp-benefits-and-core-params-dialog-width)">
+        <div class="core-params-content"></div>
+      </jds-dialog>
+    {%- endif -%}
+  </div>
+  {% render 'lazy-load-asset-group',
+    script: 'snippet-v5-app-pdp-benefits-and-core-params.js',
+    style: 'snippet-v5-app-pdp-benefits-and-core-params.css',
+    strategy: 'idle',
+    delay: 1800
+  %}
+{%- endif -%}

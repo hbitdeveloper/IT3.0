@@ -1,0 +1,89 @@
+{% schema %}
+{
+  "name": "Sustainability Component",
+  "tag": "section",
+  "class": "sustainability-component",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "pcBigItemImg",
+      "label": "Big Item Image (PC)"
+    },
+    {
+      "type": "image_picker",
+      "id": "mbBigItemImg",
+      "label": "Big Image (Mobile)"
+    },
+    {
+      "type": "checkbox",
+      "id": "mbAutoPlay",
+      "label": "Auto Play (Mobile)",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "swiperInterval",
+      "label": "Swiper Interval (Unit: s)",
+      "default": 5,
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "s"
+    }
+  ],
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "name": "Items",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "pcItemImg",
+          "label": "Item Image (PC)"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbItemImg",
+          "label": "Item Image (Mobile)"
+        },
+        {
+          "type": "text",
+          "id": "itemTitle",
+          "label": "Item Title"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+<div class="section-container">
+	<div class="big-item-box">
+		{% render 'responsive-image',
+				image: section.settings.pcBigItemImg,
+				mimage: section.settings.mbBigItemImg,
+				image_class: 'big-img'
+		%}
+	</div>
+	{% assign total = section.blocks | size %}
+	<div class="sustainability-carousel section-container" data-total="{{ total }}"
+			 data-autoplay="{{ section.settings.mbAutoPlay }}" data-delay="{{ section.settings.swiperInterval }}">
+		<div class="swiper {% if total > 1 %} more-slide {% else %} single-slide{% endif %}">
+			<div class="swiper-wrapper">
+				{% for block in section.blocks %}
+					<div class="swiper-slide">
+						{% render 'responsive-image',
+								image: block.settings.pcItemImg,
+								mimage: block.settings.mbItemImg,
+								image_class: 'swiper-img'
+						%}
+						<p class="item-title">{{ block.settings.itemTitle }}</p>
+					</div>
+				{% endfor %}
+			</div>
+			{% if total > 1 %}
+				<div class="swiper-pagination slideshow-pagination"></div>
+			{% endif %}
+		</div>
+	</div>
+</div>

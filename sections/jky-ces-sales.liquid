@@ -1,0 +1,152 @@
+<style>
+  .jky-ces-sales-box {
+    padding: 68px 0;
+  }
+
+  .jky-ces-sales-box.not-ful-width {
+    width: 1100px;
+  }
+
+  .jky-ces-sales-box .img-box .img-big {
+    margin-bottom: 58px;
+  }
+  .jky-ces-sales-box .img-box .img-big img {
+    width: 100%;
+  }
+  .jky-ces-sales-box .img-box .img-small {
+    grid-gap: 18px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-bottom: 50px;
+  }
+  .jky-ces-sales-box .img-box .img-small a {
+    width: 100%;
+  }
+  .jky-ces-sales-box .img-box .img-small a img {
+    width: 100%;
+  }
+  .jky-ces-sales-box .ces-sales-btn {
+    display: flex;
+    justify-content: center;
+  }
+  .jky-ces-sales-box .ces-sales-btn .btn {
+    min-width: 400px;
+    background: linear-gradient(87deg, #fca930 0%, #fa7736 100%);
+    border-radius: var(--theme-btn-border-radius,26px);
+    width: auto;
+    padding: 10px 0;
+    text-align: center;
+    color: #fff;
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+    .jky-ces-sales-box {
+      padding: calc(68vw / 1440 * 100) 0;
+    }
+    .jky-ces-sales-box .img-box .img-big {
+      margin-bottom: calc(58vw / 1440 * 100);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .jky-ces-sales-box {
+      padding: 4.651vw 0;
+    }
+    .jky-ces-sales-box .img-box .img-big {
+      margin-bottom: calc(20vw / 750 * 100);
+    }
+    .jky-ces-sales-box .img-box .img-small {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      grid-gap: calc(20vw / 750 * 100);
+      margin-bottom: calc(30vw / 750 * 100);
+    }
+    .jky-ces-sales-box .img-box .img-small a {
+      width: 100%;
+    }
+    .jky-ces-sales-box .ces-sales-btn .btn {
+      min-width: unset;
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="section-main section-container jky-ces-sales-box {{ section.settings.section_width }}">
+  <div class="img-box">
+    <div class="img-big">
+      <a href="{{section.settings.big_link}}">
+        {% render 'responsive-image',
+          mimage: section.settings.mb_big,
+          image: section.settings.pc_big,
+          image_class: 'big_sales_img'
+        %}
+      </a>
+    </div>
+    <div class="img-small">
+      {%- for block in section.blocks -%}
+        <a href="{{block.settings.link }}">
+          {% render 'responsive-image',
+            mimage: block.settings.m_ces_img,
+            image: block.settings.ces_img,
+            image_class: 'sales_img'
+          %}
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+
+  {% if section.settings.btn_label != blank %}
+    <a href="{{section.settings.btn_link}}" class="ces-sales-btn">
+      <div class="btn">{{ section.settings.btn_label }}</div>
+    </a>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "JKY CES Sales",
+  "class": "section jky-ces-sales jky-ces-pre",
+  "enabled_on": {
+      "templates": ["page"]
+  },
+  "settings": [
+    { "type": "image_picker", "id": "pc_big", "label": "PC Big IMG" },
+    { "type": "image_picker", "id": "mb_big", "label": "MB Big IMG" },
+    { "type": "url", "id": "big_link", "label": "Link" },
+    { "type": "text", "id": "btn_label", "label": "Btn Label" },
+    { "type": "url", "id": "btn_link", "label": "Btn Link" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section Width",
+      "default": "ful-width",
+      "options": [
+        {
+          "value": "ful-width",
+          "label": "1200"
+        },
+        {
+          "value": "not-ful-width",
+          "label": "1100"
+        }
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "type": "sales",
+      "name": "CES sales item",
+      "settings": [
+        { "type": "image_picker", "id": "ces_img", "label": "PC IMG" },
+        { "type": "image_picker", "id": "m_ces_img", "label": "MB IMG" },
+        { "type": "url", "id": "link", "label": "item Link" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "CES sales"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,71 @@
+{% assign faqItems = section.blocks | where: 'type', "old_invite_new_faq_item" %}
+
+{% if section.settings.title != blank or faqItems.size > 0 %}
+  <section
+    class="w-full flex-center flex-col px-30 pt-60 pb-80 lg:px-0 lg:j-pt-60 lg:j-pb-70 xl:a-pt-60 xl:a-pb-70"
+    style="background-color: {{ section.settings.background_color }}"
+    data-old-invite-new-faq
+  >
+    <h2
+      class="w-full text-center text-#1A1A1A font-semibold text-44 mb-50 lg:j-w-1000 lg:j-text-48 lg:j-mb-40 xl:a-w-1000 xl:a-text-48 xl:a-mb-40"
+      data-old-invite-new-faq-title
+      data-animation-dom
+    >
+      {{ section.settings.title | newline_to_br }}
+    </h2>
+    {% if faqItems.size > 0 %}
+      <ul class="flex flex-col gap-y-60 lg:j-gap-y-40 lg:j-w-1000 xl:a-w-1000 xl:a-gap-y-40">
+        {% for block in faqItems %}
+          <li data-animation-dom>
+            <input type="checkbox" id="{{block.type}}_{{forloop.index}}" style="opacity: 0;display: none;">
+            <label
+              for="{{block.type}}_{{forloop.index}}"
+              class="
+                flex pr-50 pb-20 lg:j-pr-60 lg:j-pb-20 xl:a-pr-60 xl:a-pb-20 cursor-pointer relative
+                after:block after:content-['>'] after:absolute after:leading-none after:transition-transform
+                after:duration-300 after:text-#333 after:rotate-90 after:origin-center after:text-56 after:right-4 after:-top-8
+                after:lg:j-right-24 after:-lg:j-top-0 after:xl:a-right-24 after:-lg:a-top-0 after:lg:j-text-28 after:xl:a-text-28 
+              "
+              style="backface-visibility:hidden;transform-style:preserve-3d;"
+              data-old-invite-new-faq-label
+            >
+              <h4 class="max-w-630 font-medium text-32 leading-44 lg:j-max-w-880 lg:j-text-18 lg:j-leading-30 xl:a-max-w-880 xl:a-leading-18 xl:a-leading-30">
+                {{ block.settings.faq_title | newline_to_br }}
+              </h4>
+            </label>
+            <div class="max-w-630 max-h-0 overflow-hidden transition-all duration-300 text-#333 font-normal text-26 leading-38 pr-10 lg:j-max-w-880 lg:pr-0 lg:j-text-14 lg:j-leading-22 xl:a-max-w-880 xl:a-text-14 xl:a-leading-22">
+              {{ block.settings.faq_content | newline_to_br }}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+{% endif %}
+
+
+{% schema %}
+  {
+    "name": "Old Invite New FAQ",
+    "class": "section-old-invite-new section-old-invite-new-faq",
+    "settings": [
+      {
+        "type": "color",
+        "id": "background_color",
+        "label": "Section Background Color",
+        "default": "#F7F7F7"
+      },
+      {"type": "text", "id": "title", "label": "FAQ Title", "default": "FAQ"}
+    ],
+    "blocks": [
+      {
+        "type": "old_invite_new_faq_item",
+        "name": "FAQ Item",
+        "settings": [
+          {"type": "text", "id": "faq_title", "label": "FAQ title", "default": "title"},
+          {"type": "richtext", "id": "faq_content", "label": "FAQ content", "default": "<p>content</p>"}
+        ]
+      }
+    ]
+  }
+{% endschema %}

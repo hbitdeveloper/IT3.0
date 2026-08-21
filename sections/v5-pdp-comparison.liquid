@@ -1,0 +1,177 @@
+{% style %}
+    v5-pdp-comparison .select-item .select-input:after{
+        content: "";
+        width: 0.625rem;
+        height: 0.625rem;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        transform: rotate(45deg);
+        position: absolute;
+        top: 50%;
+        right: 1rem;
+        translate: 0 -50%;
+        transition: transform 0.3s ease;
+        pointer-events: none;
+    }
+    v5-pdp-comparison .select-item.active .select-input:after{
+        transform: rotate(225deg);
+    }
+
+    v5-pdp-comparison .select-item.active .select-dropdown{
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    v5-pdp-comparison .select-item.active .select-dropdown .select-option:hover{
+        background: #f3f0f0;
+    }
+    v5-pdp-comparison .select-item.active .select-dropdown .select-option.active{
+        background: #f5f5f5;
+    }
+    v5-pdp-comparison .select-item.active .select-dropdown .select-option.active:after{
+        border: solid #666;
+        border-width: 0 2px 2px 0;
+        content: "";
+        height: 11px;
+        position: absolute;
+        right: 10px;
+        transform: rotate(45deg);
+        width: 8px;
+    }
+    v5-pdp-comparison .overflow-x-auto::-webkit-scrollbar {
+        height: 0px;
+        width: 0px;
+    }
+
+    v5-pdp-comparison .overflow-x-auto::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+
+    v5-pdp-comparison .overflow-x-auto::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        border-radius: 0px;
+        box-shadow: none;
+    }
+
+    .blocks-navs .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+        background-color: transparent;
+    }
+{% endstyle %}
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+<div
+    id="{{ section.id }}"
+    {{ section.shopify_attributes }}
+    class="section-padding"
+    {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %} 
+    style="background: {{section.settings.bg_color}};{{style}}"
+>
+    <v5-pdp-comparison 
+        data-id="{{ product.selected_or_first_available_variant.id }}"
+        product_title="{{ product.title | escape }}"
+        current_product_text = "{{ section.settings.current_product | escape }}"
+        back_up_level_text = "{{ section.settings.back_up_level | escape }}"
+        kitchen_hours_example_text ="{{ section.settings.kitchen_hours_example | escape }}"
+        bedroom_hours_example_text = "{{ section.settings.bedroom_hours_example | escape }}"
+        basic_text="{{ section.settings.basic | escape }}"
+        complete_text="{{ section.settings.complete | escape }}"
+        open_auto_discount_price="{{settings.open_auto_discount_price}}"
+        view_more="{{ 'general.action_text.view_more' | t }}"
+        view_less="{{ 'general.action_text.view_less' | t }}"
+    >
+        <div class="w-full lg:w-[82.5rem] mx-auto">
+            {% if section.settings.title != blank %}
+            <h2 class="px-[1rem] lg:px-0 text-[1.5rem] lg:text-[3rem] text-center mb-6 lg:mb-[4.5rem] font-semibold text-[#242F20]">{{ section.settings.title | escape}}</h2>
+            {% endif %}
+            {% comment %} 产品对比内容区域 {% endcomment %}
+            <div class="pl-4 lg:pl-0 w-full compare-main">
+                <div class="overflow-x-auto lg:overflow-visible">
+                    <div class="pl-4 lg:pl-0 text-left grid grid-cols-[17.5rem_17.5rem_17.5rem] lg:grid-cols-[14rem_22.5rem_22.5rem_22.5rem] bg-[#fff] gap-4 lg:gap-0 sticky lg:top-40 z-10 product-select"></div>
+                    <div class="pl-4 lg:pl-0 text-left grid grid-cols-[17.5rem_17.5rem_17.5rem] lg:grid-cols-[14rem_22.5rem_22.5rem_22.5rem] gap-4 lg:gap-0 product-content"></div>
+                    {% if section.settings.general != blank %}
+                        <div class="text-left pl-4 lg:pl-6 bg-[rgb(232,232,229,0.9)] text-[1rem] h-11 flex items-center font-semibold full-width">{{ section.settings.general | escape }}</div>
+                        {% if section.settings.back_up_level != blank %}
+                            <div class="text-left lg:grid grid-cols-[14rem_22.5rem_22.5rem_22.5rem] lg:border-b border-solid border-[#E2E3E3] full-width back-up-level"> </div>
+                        {% endif %}
+                        {% if section.settings.kitchen_hours_example != blank %}
+                            <div class="text-left lg:grid grid-cols-[14rem_22.5rem_22.5rem_22.5rem] lg:border-b border-solid border-[#E2E3E3] full-width kitchen-hours-example"></div>
+                        {% endif %}
+                        {% if section.settings.bedroom_hours_example != blank %}
+                            <div class="text-left lg:grid grid-cols-[14rem_22.5rem_22.5rem_22.5rem] lg:border-b border-solid border-[#E2E3E3] full-width bedroom-hours-example"> </div>
+                        {% endif %}
+                    {% endif %}
+                    {% comment %} 对比参数 max-h-[6.75rem]  {% endcomment %}
+
+                    {% comment %} 
+                     PC 标题2.75rem 内容3.75rem 
+                     MB 标题2.75rem 内容6rem
+                    {% endcomment %}
+
+                    <div class="overflow-hidden transition-all max-h-[20.75rem] lg:max-h-[14rem] duration-500 full-width tech-specs"></div>
+                </div>
+            </div>
+            <div class="flex justify-center items-center mt-10 view-more-parent">
+                <button 
+                    class="flex items-center text-[1rem] lg:text-[1.25rem] leading-[1.1] font-semibold bg-transparent text-[#818181] transition-all duration-200 view-more"
+                    data-ga-event="5.0_products_details_page_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-product_spu_name="{{ product.title | escape }}"
+                    data-ga-params-module = "ProductsCompare_3"
+                    data-ga-params-button_name = "{{ 'general.action_text.view_more' | t }}"
+                >
+                    <span class="underline pr-[1rem]">{{ 'general.action_text.view_more' | t }}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg"  class="w-6 h-6 transition-transform duration-300 arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+            </div>
+            {%- if section.settings.tip != blank -%}
+                <div class="pl-[1rem] mt-3 lg:pl-0 lg:mt-10 lg:mb-10 text-center text-[0.75rem] font-normal text-[#242F20E5]/90">{{ section.settings.tip | escape }}</div>
+            {%- endif -%}
+        </div>
+    </v5-pdp-comparison>
+</div>
+<script src="{{ 'section-v5-pdp-comparision.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "V5 - 产品对比",
+        "class": "v5-pdp-comparison",
+        "tag": "section",
+        "limit": 1,
+        "enabled_on": {
+            "templates": ["product"]
+        },
+        "settings": [
+            { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+            { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#FFFFFF" },
+            { "type": "header", "content": "PC边距" },
+            { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 96},
+            { "type": "range", "id": "padding_bottom", "min": 0, "max":  100, "step": 1, "unit": "px", "label": "下边距", "default": 96},
+            { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0},
+            { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0},
+            { "type": "header", "content": "MB边距" },
+            { "type": "select", "id": "mb_padding_type","label": "MB边距", "options": [ { "value": "default", "label": "与PC一致" }, { "value": "custom", "label": "单独配置" } ], "default": "custom"},
+            { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 24, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+            { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+            { "type": "text", "id": "title", "label": "对比标题", "default": "Compare with Others" },
+            { "type": "text", "id": "tip", "label": "提示", "default": "*Figures shown are estimates; actual usage varies." },
+            { "type": "text", "id": "current_product", "label": "Current Product", "default": "Current Product" },
+            { "type": "text", "id": "general", "label": "General", "info": "不配置则该板块不展示" },
+            { "type": "text", "id": "kitchen_hours_example", "label": "Kitchen Hours Example", "info": "不配置则该行不展示" },
+            { "type": "text", "id": "back_up_level", "label": "Back Up Level", "info": "不配置则该行不展示" },
+            { "type": "text", "id": "bedroom_hours_example", "label": "Bedroom Hours Example", "info": "不配置则该行不展示" },
+            { "type": "text", "id": "basic", "label": "Basic" },
+            { "type": "text", "id": "complete", "label": "Complete" }
+        ],
+        "presets": [
+            {
+                "name": "V5 - 产品对比",
+                "category": "V5.0"
+            }
+        ]
+    }
+{% endschema %}

@@ -1,0 +1,52 @@
+{%- doc -%}
+  为不同类型的页面动态生成隐藏的H1标签，用于SEO优化
+
+  主要逻辑:
+  1. 首先判断当前页面是否为博客或产品相关页面
+  2. 如果不是，则根据页面类型生成相应的H1标签
+  3. H1标签使用CSS类"hide"进行隐藏，仅用于搜索引擎优化
+  4. 后续逐步删除，使用显性展示的H1
+
+  支持的页面模板类型:
+  - 普通页面 (page.*)
+  - 博客默认页面 (blog)
+  - 产品系列页面 (collection*)
+  - 首页 (index)
+  - 其他页面类型
+{%- enddoc -%}
+
+{% liquid
+  # 初始化模板标记
+  assign is_blog_template = false
+  assign is_product_template = false
+
+  # 博客聚合页、分类页、分类详情页、博客详情页均有 显示的H1内容
+  assign blog_pages = 'page.blog-v3-index,page.blog-v3-category-list,blog.blog-v3-category-detail,article,article.new,article.new-for-jp' | split: ','
+  if blog_pages contains template
+    assign is_blog_template = true
+  endif
+
+  # 产品页 -- 使用当前页面显示的产品名作为H1
+  if template == 'product' or template contains 'product.'
+    assign is_product_template = true
+  endif
+%}
+
+{% if is_blog_template == false and is_product_template == false %}
+  {% if template contains 'page.' %}
+    {% comment %} 普通页面：使用页面标题作为H1内容 {% endcomment %}
+    <h1 class="hide">{{ page.title }}</h1>
+  {% elsif template == 'blog' %}
+    {% comment %} 博客系列默认模板页：使用博客标题作为H1内容 {% endcomment %}
+    <h1 class="hide">{{ blog.title }}</h1>
+  {% elsif template contains 'collection' %}
+    {% comment %} 产品系列页面：使用系列名称作为H1内容 {% endcomment %}
+    <h1 class="hide">{{ collection.title }}</h1>
+  {% elsif template == 'index' %}
+    {% comment %} 首页：使用商店名称作为H1内容 {% endcomment %}
+    <h1 class="hide">{{ shop.name }}</h1>
+  {% else %}
+    {% comment %} 其他页面类型：使用通用页面标题作为H1内容 {% endcomment %}
+    <h1 class="hide">{{ page_title }}</h1>
+  {% endif %}
+{% endif %}

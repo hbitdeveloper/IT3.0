@@ -1,0 +1,244 @@
+{% comment %} {%- assign template_name = template | prepend: ',' | append: ',' -%}
+{%- if ',page.v5-ehb,product.v5-3600-plus,' contains template_name -%}
+  {%- assign whitelist = settings.web_vitals_whitelist | default: 'www.googletagmanager.com,pixel.orichi.info,static.ads-twitter.com,js.ptengine.com' -%}
+  {%- assign pathlist = settings.web_vitals_pathlist | default: 'global-unrefer.js,global.js,common-theme.min.js,common-header.min.js,global-components.min.js,swiper-8.4.7.min.js,lazysizes-5.3.2.min.js' -%}
+
+  <script>
+  (()=>{
+
+    // -------------------------------
+    // 初始化白名单
+    // -------------------------------
+    var whitelist = {{ whitelist | split: ',' | json }};
+    var pathlist = {{ pathlist | split: ',' | json }};
+    var whitelistContents = [
+      "var Shopify = Shopify || {};","www.googletagmanager.com","window.pageInfo ="
+    ];
+
+    // -------------------------------
+    // 判断 URL 是否在白名单
+    // -------------------------------
+    function isWhitelisted(url){
+      if(!url) return false;
+      try{
+        const u = new URL(url, window.location.href);
+        return whitelist.some(d=>u.hostname.includes(d)) || pathlist.some(p=>u.pathname.includes(p));
+      }catch(e){return false;}
+    }
+
+    // -------------------------------
+    // 判断内容是否在白名单
+    // -------------------------------
+    function isWhitelistedContent(content){
+      try{
+        return whitelistContents.some(c=>content.includes(c));
+      }catch(e){return false;}
+    }
+
+    // -------------------------------
+    // 延迟脚本队列
+    // -------------------------------
+    window.lazyScriptQueue = [];
+
+    // -------------------------------
+    // 打印初始化信息
+    // -------------------------------
+    console.log('%c[LazyLoader] 初始化懒加载脚本','color:green;font-weight:bold;');
+    console.log('[LazyLoader] 白名单:', whitelist);
+    console.log('[LazyLoader] 路径名单:', pathlist);
+
+    // -------------------------------
+    // 扫描节点，加入延迟队列
+    // -------------------------------
+    function scanScripts(nodeList){
+      nodeList.forEach(node=>{
+        if(node.nodeType!==1 || node.dataset.processed) return;
+
+        // -------------------------------
+        // SCRIPT 标签处理
+        // -------------------------------
+        if(node.tagName==="SCRIPT"){
+          // 1. src 白名单
+          if(node.src && isWhitelisted(node.src)){
+            console.log('%c[跳过白名单脚本]', 'color:gray', node.src);
+            node.dataset.processed=true; return;
+          }
+
+          // 2. module 脚本或动态 import() 永不延迟
+          if(node.type==="module" || (node.innerHTML && /\bimport\s*\(/.test(node.innerHTML))){
+            console.log('%c[跳过 module/import 脚本]', 'color:green', node.src||'[inline script]');
+            node.dataset.processed=true; return;
+          }
+
+          // 3. 动态创建 link/style 永不延迟
+          if(node.innerHTML && /createElement\(['"](link|style)['"]\)/.test(node.innerHTML)){
+            console.log('%c[跳过动态 link/style]', 'color:red', node.innerText.slice(0,80));
+            node.dataset.processed=true; return;
+          }
+
+          // 4. 内容白名单
+          if(isWhitelistedContent(node.innerText)){
+            console.log('%c[跳过白名单内容脚本]', 'color:gray', node.innerText.slice(0,80));
+            node.dataset.processed=true; return;
+          }
+
+          // 5. 普通 JS 延迟处理
+          node.dataset.type = node.type || "text/javascript";
+          node.type = "text/lazyload";
+          node.dataset.processed = true;
+          window.lazyScriptQueue.push(node);
+          console.log('%c[延迟脚本加入队列]', 'color:orange', node.src || '[inline script]');
+        }
+
+        // -------------------------------
+        // A 标签修复 href
+        // -------------------------------
+        if(node.tagName==="A" && !node.href){ node.setAttribute('href','javascript:;'); }
+
+        // -------------------------------
+        // iframe 延迟处理
+        // -------------------------------
+        if(node.tagName==="IFRAME" && node.src){
+          node.classList.add('lazy');
+          node.dataset.src = node.src;
+          node.removeAttribute('src');
+          console.log('%c[延迟 iframe]', 'color:orange', node.dataset.src);
+        }
+      });
+    }
+
+    // -------------------------------
+    // 初始扫描页面上的节点
+    // -------------------------------
+    scanScripts(document.querySelectorAll('script,a,iframe'));
+
+    // -------------------------------
+    // 动态监听 DOM 变化
+    // -------------------------------
+    window.observer = new MutationObserver(muts=>{
+      muts.forEach(mut=>{
+        scanScripts(mut.addedNodes);
+      });
+    });
+    window.observer.observe(document.documentElement,{childList:true,subtree:true});
+
+    // -------------------------------
+    // 加载状态标志
+    // -------------------------------
+    var script_loaded=false,isInitializing=false,page_loaded=false,loadPromise=null;
+
+    // -------------------------------
+    // 脚本优先级函数
+    // -------------------------------
+    function getScriptPriority(script){
+      const isAsync = script.getAttribute('async')!=null;
+      const isDefer = script.getAttribute('defer')!=null;
+      if(!isAsync && !isDefer) return 1; // 普通同步脚本最高优先级
+      if(isDefer) return 2;              // defer 次高
+      if(isAsync) return 3;              // async 最低
+      return 4;                           // 其他
+    }
+
+    // -------------------------------
+    // 串行加载延迟脚本
+    // -------------------------------
+    function performActualLoading(){
+      return new Promise(resolve=>{
+        console.log('%c[LazyLoader] 开始加载延迟脚本...','color:blue;font-weight:bold;');
+
+        // 按优先级排序队列
+        window.lazyScriptQueue = Array.from(window.lazyScriptQueue)
+          .sort((a,b)=>getScriptPriority(a)-getScriptPriority(b));
+
+        // 关闭 observer
+        if(window.observer){window.observer.disconnect();window.observer=null;}
+
+        // 恢复延迟 iframe
+        document.querySelectorAll("iframe.lazy").forEach(f=>{
+          if(f.dataset.src){
+            f.src=f.dataset.src;
+            console.log('%c[LazyLoader] 恢复 iframe:', 'color:cyan', f.src);
+          }
+        });
+
+        // 递归加载队列
+        function sequentialLoad(){
+          if(!window.lazyScriptQueue.length){
+            console.log('%c[LazyLoader] 所有脚本已加载完成','color:green;font-weight:bold;');
+            resolve(); return;
+          }
+
+          const cur = window.lazyScriptQueue.shift();
+          const s = document.createElement('script');
+
+          // 复制属性
+          for(let attr of cur.attributes){ if(attr.name!=='type') s.setAttribute(attr.name, attr.value); }
+
+          s.async=false;
+          s.dataset.processed=true;
+          s.type=cur.dataset.type||"text/javascript";
+          s.text=cur.innerHTML;
+
+          console.log('%c[执行脚本]', 'color:green', s.src || '[inline script]');
+
+          // 替换原脚本
+          cur.parentNode ? cur.parentNode.replaceChild(s,cur) : document.head.appendChild(s);
+
+          if(s.src){ s.onload=s.onerror=()=>sequentialLoad(); } else { sequentialLoad(); }
+        }
+        sequentialLoad();
+      });
+    }
+
+    // -------------------------------
+    // 启动延迟脚本加载
+    // -------------------------------
+    function loadJSscripts(){
+      if(script_loaded || isInitializing || loadPromise) return loadPromise||Promise.resolve();
+      isInitializing=true;
+      loadPromise=new Promise(resolve=>{
+        script_loaded=true;
+        performActualLoading().then(()=>{ isInitializing=false; resolve(); });
+      });
+      return loadPromise;
+    }
+
+    // -------------------------------
+    // 用户交互触发加载
+    // -------------------------------
+    function handleUserInteraction(){
+      if(document.readyState==="loading"){
+        document.addEventListener("DOMContentLoaded", loadJSscripts, {once:true});
+      }else{
+        loadJSscripts();
+      }
+    }
+
+    const activityEvents=["mousedown","mousemove","keydown","scroll","touchstart","click","keypress","touchmove"];
+    activityEvents.forEach(ev=>window.addEventListener(ev,handleUserInteraction,{once:true}));
+
+    if(navigator.platform!="Linux x86_64"){
+      document.addEventListener("DOMContentLoaded", loadJSscripts,{once:true});
+    }
+
+    // -------------------------------
+    // window load 事件保护
+    // -------------------------------
+    window.addEventListener('load', e=>{
+      page_loaded=true;
+      if(script_loaded && window.lazyScriptQueue.length){
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+    }, {once:true});
+
+  })();
+  </script>
+{%- endif -%} {% endcomment %}
+
+{%- assign template_name = template | prepend: ',' | append: ',' -%}
+{%- if ',page.v5-ehb,product.v5-3600-plus,' contains template_name -%}
+{%- assign whitelist = settings.web_vitals_whitelist | default: 'www.googletagmanager.com,pixel.orichi.info,static.ads-twitter.com,js.ptengine.com' -%}
+{%- assign pathlist = settings.web_vitals_pathlist | default: 'global-unrefer.js,global.js,common-theme.min.js,common-header.min.js,global-components.min.js,swiper-8.4.7.min.js,lazysizes-5.3.2.min.js' -%}
+<script>(()=>{var e={{ whitelist | split: ',' | json }},t={{ pathlist | split: ',' | json }},n=["var Shopify = Shopify || {};","www.googletagmanager.com","window.pageInfo ="];function o(o){if(!o)return!1;try{const n=new URL(o,window.location.href);return e.some(e=>n.hostname.includes(e))||t.some(e=>n.pathname.includes(e))}catch(e){return!1}}function r(e){try{return n.some(t=>e.includes(t))}catch(e){return!1}}window.lazyScriptQueue=[];function c(e){e.forEach(e=>{if(1!==e.nodeType||e.dataset.processed)return;if("SCRIPT"===e.tagName){if(e.src&&o(e.src))return void(e.dataset.processed=!0);if("module"===e.type||e.innerHTML&&/\bimport\s*\(/.test(e.innerHTML))return void(e.dataset.processed=!0);if(e.innerHTML&&/createElement\(['"](link|style)['"]\)/.test(e.innerHTML))return void(e.dataset.processed=!0);if(r(e.innerText))return void(e.dataset.processed=!0);e.dataset.type=e.type||"text/javascript",e.type="text/lazyload",e.dataset.processed=!0,window.lazyScriptQueue.push(e)}if("A"===e.tagName&&!e.href&&e.setAttribute("href","javascript:;"),"IFRAME"===e.tagName&&e.src){e.classList.add("lazy"),e.dataset.src=e.src,e.removeAttribute("src")}})}c(document.querySelectorAll("script,a,iframe")),window.observer=new MutationObserver(e=>{e.forEach(e=>{c(e.addedNodes)})}),window.observer.observe(document.documentElement,{childList:!0,subtree:!0});var s=!1,i=!1,l=!1,a=null;function d(e){const t=null!=e.getAttribute("async"),n=null!=e.getAttribute("defer");return t&&!n?3:n?2:1}function u(){return new Promise(e=>{window.lazyScriptQueue=Array.from(window.lazyScriptQueue).sort((e,t)=>d(e)-d(t)),window.observer&&(window.observer.disconnect(),window.observer=null),document.querySelectorAll("iframe.lazy").forEach(e=>{e.dataset.src&&(e.src=e.dataset.src)});!function t(){if(!window.lazyScriptQueue.length)return void e();const n=window.lazyScriptQueue.shift(),o=document.createElement("script");for(let e of n.attributes)"type"!==e.name&&o.setAttribute(e.name,e.value);o.async=!1,o.dataset.processed=!0,o.type=n.dataset.type||"text/javascript",o.text=n.innerHTML,n.parentNode?n.parentNode.replaceChild(o,n):document.head.appendChild(o),o.src?o.onload=o.onerror=()=>t():t()}()})}function p(){return s||i||a?a||Promise.resolve():(i=!0,a=new Promise(e=>{s=!0,u().then(()=>{i=!1,e()})}),a)}function m(){"loading"===document.readyState?document.addEventListener("DOMContentLoaded",p,{once:!0}):p()}["mousedown","mousemove","keydown","scroll","touchstart","click","keypress","touchmove"].forEach(e=>window.addEventListener(e,m,{once:!0})),"Linux x86_64"!=navigator.platform&&document.addEventListener("DOMContentLoaded",p,{once:!0}),window.addEventListener("load",e=>{l=!0,s&&window.lazyScriptQueue.length&&(e.stopImmediatePropagation(),e.preventDefault())},{once:!0})})();</script>
+{%- endif -%}

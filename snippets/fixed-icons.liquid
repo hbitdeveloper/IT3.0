@@ -1,0 +1,383 @@
+<link
+    id="ModelViewerStyle"
+    rel="stylesheet"
+    href="{{ 'fixed-icons.css' | asset_url }}"
+    media="print"
+    onload="this.media='all'"
+>
+
+{% assign all_types = '' %}
+{% for block in full_icons %}
+    {% if all_types == '' %}
+        {% assign all_types = block.settings.icon_type %}
+    {% else %}
+        {% assign all_types = all_types | append: ',' | append: block.settings.icon_type %}
+    {% endif %}
+{% endfor %}
+
+{% assign threeIcons = icons | slice: 0, 3 | reverse %}
+<section
+    class="hidden"
+    id="fixed-icons"
+    data-icon-size="{{ icons.size }}"
+    data-three-icons="{{ threeIcons.size }}"
+    data-all-types="{{ all_types }}"
+    style="--fixed-icons-z-index:{{ settings.fixed_icons_z_index | default: 2000 }}"
+>
+    <div
+        class="
+            flex flex-col fixed right-16 bottom-300 gap-y-32
+            lg:j-right-32 lg:j-bottom-80 lg:j-gap-y-24
+            xl:a-right-32 xl:a-bottom-80 xl:a-gap-y-24
+        "
+        style="z-index:{{ settings.fixed_icons_z_index | default: 2000 }}"
+    >
+        {% comment %} 更多 {% endcomment %}
+        {% if icons.size > 3 %}
+            {% assign moreIcons = icons | slice: 3, icons.size | reverse %}
+            <div class="base-fixed-icon more-icon-wrap flex relative" data-more-icon-wrap>
+                <button aria-label="more" class="base-fixed-icon more-icon" data-more-icon></button>
+                <div
+                    class="
+                        invisible absolute left-0 opacity-0 z-[1999] flex flex-col transition-all duration-300 w-[44px]
+                        bottom-120 gap-y-32 translate-y-44
+                        lg:j-bottom-68 lg:j-gap-y-24 lg:j-translate-y-44
+                        xl:a-bottom-68 xl:a-gap-y-24 xl:a-translate-y-44
+                    "
+                    data-more-icon-items
+                >
+                    {% for icon_str in moreIcons %}
+                        {% assign icon_array = icon_str | split: ';' %}
+                        {% assign icon_type = '' %}
+                        {% assign icon_image = '' %}
+                        {% assign icon_tips = '' %}
+                        {% assign icon_link = '' %}
+                        {% for icon in icon_array %}
+                            {% assign key_value = icon | split: ':::' %}
+                            {% case key_value[0] %}
+                                {% when 'type' %}
+                                    {% assign icon_type = key_value[1] %}
+                                {% when 'image' %}
+                                    {% assign icon_image = key_value[1] %}
+                                {% when 'tips' %}
+                                    {% assign icon_tips = key_value[1] | escape %}
+                                {% when 'link' %}
+                                    {% assign icon_link = key_value[1] %}
+                            {% endcase %}
+                        {% endfor %}
+                        <button
+                            aria-label="icon button"
+                            class="base-fixed-icon relative z-[2000]"
+                            data-type="{{ icon_type }}"
+                            data-link="{{ icon_link }}"
+                            data-fixed-icon
+                            data-more-icon-item
+                            {% if icon_image != blank %}
+                                style="background-image:url({{ icon_image }});background-repeat:no-repeat;background-position:center;background-size:cover;"
+                            {% endif %}
+                        >
+                            {% if icon_tips != blank %}
+                                <div class="fixed-icon-tips">
+                                    <span class="font-semibold text-#333 line-clamp-2">{{ icon_tips }}</span>
+                                </div>
+                            {% endif %}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% for icon_str in threeIcons %}
+            {% assign icon_array = icon_str | split: ';' %}
+            {% assign icon_type = '' %}
+            {% assign icon_image = '' %}
+            {% assign icon_tips = '' %}
+            {% assign icon_link = '' %}
+            {% for icon in icon_array %}
+                {% assign key_value = icon | split: ':::' %}
+                {% case key_value[0] %}
+                    {% when 'type' %}
+                        {% assign icon_type = key_value[1] %}
+                    {% when 'image' %}
+                        {% assign icon_image = key_value[1] %}
+                    {% when 'tips' %}
+                        {% assign icon_tips = key_value[1] | escape %}
+                    {% when 'link' %}
+                        {% assign icon_link = key_value[1] %}
+                {% endcase %}
+            {% endfor %}
+            <button
+                aria-label="icon button"
+                class="base-fixed-icon relative"
+                data-type="{{ icon_type }}"
+                data-link="{{ icon_link }}"
+                data-fixed-icon
+                data-index="{{ forloop.index0 }}"
+                {% if icon_image != blank %}
+                    style="background-image:url({{ icon_image }});background-repeat:no-repeat;background-position:center;background-size:cover;"
+                {% endif %}
+            >
+                {% if icon_tips != blank %}
+                    <div class="fixed-icon-tips">
+                        <span class="font-semibold text-#333 line-clamp-2">{{ icon_tips }}</span>
+                    </div>
+                {% endif %}
+            </button>
+        {% endfor %}
+
+        {% comment %} 返回按钮 {% endcomment %}
+        <button id="go-back-top" class="base-fixed-icon go-back-icon hidden invisible relative opacity-0 transition-all duration-300" data-go-back-icon></button>
+    </div>
+</section>
+
+<script type="module">
+class FixedIcon {
+  constructor() {
+    const fixedIconsWrap = document.querySelector('#fixed-icons')
+    this.fixedIcons = document.querySelectorAll('[data-fixed-icon]')
+    this.moreIconWrap = document.querySelector('[data-more-icon-wrap]')
+    this.goBackTop = document.querySelector('[data-go-back-icon]')
+
+    this.iconSize = fixedIconsWrap?.dataset?.iconSize
+    this.threeIconSize = fixedIconsWrap?.dataset?.threeIcons
+
+    // 所有配置的类型
+    this.allTypes = fixedIconsWrap?.dataset?.allTypes?.split(',')
+
+    // 是否配置了 拉新、红包、聊天
+    this.typeArray = []
+    this.fixedIcons.forEach(item => this.typeArray.push(item.dataset.type))
+
+    if (this.iconSize > 0) {
+      setTimeout(() => {
+        document.getElementById('fixed-icons').style.display = 'block'
+      }, 2000)
+
+      this.init()
+      this.initGoBack()
+    }
+
+    if (this.moreIconWrap) {
+      this.initMoreEvent()
+    }
+  }
+  init() {
+    // 显示新的 返回顶部
+    this.goBackTop.classList.remove('hidden')
+    // 删除旧的 返回顶部
+    const backTopDOM = document.querySelector('#back-top')
+    backTopDOM?.parentElement?.removeChild(backTopDOM)
+
+
+    this.fixedIcons.forEach(it => {
+      // 如果配置了 zendesk 客服聊天插件，则隐藏默认的
+      if (
+        (this.typeArray.includes('customer_service') || this.allTypes.includes('customer_service'))
+        && window.zE
+      ) {
+        window.zE('messenger', 'hide')
+        window.zE('messenger:on', 'close', () => {
+          setTimeout(() => {
+            window.zE('messenger', 'hide')
+          }, 300)
+        })
+      }
+
+      // Zipchat 客服聊天插件
+      if (it.dataset.type === 'customer_service_zipchat') {
+        const { index, } = it.dataset
+        // 只兼容配置在前3的位置
+        if (index > 2) return
+
+        // 按钮
+        const chatBtn = document.querySelector('[id^="widget-chat-button-"]')
+        if (chatBtn) {
+          it.style.background = 'transparent'
+          chatBtn.parentElement.classList.add('base-fixed-icon', '!right-16', '!lg:j-right-32', '!xl:a-right-32')
+
+          if (
+            (this.threeIconSize == 1 && index == 0) ||
+            (this.threeIconSize == 2 && index == 1) ||
+            (this.threeIconSize == 3 && index == 2)
+          ) {
+            chatBtn.parentElement.classList.add('!bottom-412', '!lg:j-bottom-148', '!xl:a-bottom-148')
+          }
+          if (
+            (this.threeIconSize == 2 && index == 0) ||
+            (this.threeIconSize == 3 && index == 1)
+          ) {
+            chatBtn.parentElement.classList.add('!z-2000', '!bottom-524', '!lg:j-bottom-216', '!xl:a-bottom-216')
+          }
+          if (this.threeIconSize == 3 && index == 0) {
+            chatBtn.parentElement.classList.add('!z-2000', '!bottom-636', '!lg:j-bottom-284', '!xl:a-bottom-284')
+          }
+
+          // 兼容 zipchat 提示
+          const tipsDOM = it.querySelector('.fixed-icon-tips')
+          if (tipsDOM) {
+            chatBtn.addEventListener('mouseenter', () => tipsDOM.classList.add('active'))
+            chatBtn.addEventListener('mouseleave', () => tipsDOM.classList.remove('active'))
+          }
+        }
+      }
+
+      // 点击事件
+      it.onclick = () => {
+        const { type, link } = it.dataset
+
+        // 如果是拉新插件
+        if (type === 'new_customer_plugin') {
+          window.customerPlugin?.iconClick?.()
+        }
+        else if (type === 'customer_service') {
+          // zendesk 客服聊天插件，显示并打开
+          if (window.zE) {
+            window.zE('messenger', 'show')
+            window.zE('messenger', 'open')
+          }
+        }
+        else if (link) {
+          window.open(link, '_blank')
+        }
+      }
+
+      const tipsDOM = it.querySelector('.fixed-icon-tips')
+      if (tipsDOM) {
+        it.addEventListener('mouseenter', () => tipsDOM.classList.add('active'))
+        it.addEventListener('mouseleave', () => tipsDOM.classList.remove('active'))
+      }
+    })
+  }
+  initMoreEvent() {
+    const moreIcon = document.querySelector('[data-more-icon]')
+    const moreIconitems = document.querySelector('[data-more-icon-items]')
+
+    // 更新更多 icon 显示
+    const updatemoreIconsDisplay = () => {
+      const count = moreIcon.dataset.click
+      if (count % 2) {
+        moreIconitems.classList.add('active-more-icon')
+        moreIconitems.classList.remove('invisible')
+      } else {
+        moreIconitems.classList.remove('active-more-icon')
+        moreIconitems.classList.add('invisible')
+      }
+    }
+
+    // 记录点击次数
+    let clickCount = 0
+
+    // hover事件
+    this.moreIconWrap.addEventListener('mouseenter', () => {
+      if (this.moreIconWrap.classList.contains('more-icon-wrap')) {
+        this.moreIconWrap.classList.remove('more-icon-wrap')
+      }
+
+      moreIconitems.classList.add('active-more-icon')
+      moreIconitems.classList.remove('invisible')
+    })
+
+
+    this.moreIconWrap.addEventListener('mouseleave', updatemoreIconsDisplay)
+
+    // 点击事件
+    moreIcon.addEventListener('click', () => {
+      moreIcon.setAttribute('data-click', ++clickCount)
+
+      updatemoreIconsDisplay()
+    })
+  }
+  // 返回顶部
+  initGoBack() {
+    const distance = 600
+    const goBackTopEl = document.getElementById('go-back-top')
+
+    const getScrollTop = () =>
+      window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+
+    const updateGoBackTopDisplay = () => {
+      if (!goBackTopEl) return
+      if (getScrollTop() > distance) {
+        goBackTopEl.style.opacity = 1
+        goBackTopEl.style.visibility = 'visible'
+      } else {
+        goBackTopEl.style.opacity = 0
+        goBackTopEl.style.visibility = 'hidden'
+      }
+    }
+
+    let scrollTicking = false
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (scrollTicking) return
+        scrollTicking = true
+        requestAnimationFrame(() => {
+          updateGoBackTopDisplay()
+          scrollTicking = false
+        })
+      },
+      { passive: true }
+    )
+
+    window.goBackTopStatus = false; // 全局返回顶部状态位
+    if (goBackTopEl) {
+      goBackTopEl.onclick = (e) => {
+        e?.preventDefault?.()
+
+        window.goBackTopStatus = true;
+
+        const startY = getScrollTop()
+        const duration = 500
+        const startTime = window.performance?.now?.() ?? Date.now()
+
+        const easeInOutQuad = (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
+
+        const step = (now) => {
+          const currentTime = now ?? (window.performance?.now?.() ?? Date.now())
+          const progress = Math.min((currentTime - startTime) / duration, 1)
+          const eased = easeInOutQuad(progress)
+          const y = Math.round(startY * (1 - eased))
+          window.scrollTo(0, y)
+
+          if (progress < 1) {
+            requestAnimationFrame(step)
+          } else {
+            window.goBackTopStatus = false;
+          }
+        }
+
+        requestAnimationFrame(step)
+        return false
+      }
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  var targetNode = document.body;
+  var observerOptions = {
+    childList: true, // 观察目标子节点的变化，是否有添加或删除
+    subtree: true   // 观察整个子树
+  };
+
+  var observer = new MutationObserver(function (mutationsList, observer) {
+    for (var mutation of mutationsList) {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach(function (node) {
+          if (node?.id?.startsWith?.("widget-chat-container")) {
+            window.FixedIconPlugin = new FixedIcon()
+
+            observer?.disconnect(); // 停止观察
+          }
+        })
+      }
+    }
+  })
+
+  observer.observe(targetNode, observerOptions);
+
+  // 兼容未配置 zipchat 插件
+  window.FixedIconPlugin = window.FixedIconPlugin || new FixedIcon()
+})
+</script>

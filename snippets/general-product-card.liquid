@@ -1,0 +1,508 @@
+{%- assign item = block.settings -%}
+{%- comment -%}
+  通用产品卡片片段：用于 v3-general-product.liquid 的 PC/MB 独立容器调用。
+  通过传入 is_swiper 控制是否添加 swiper-slide。
+{%- endcomment -%}
+<div class="v-general-product--inner {% if section.settings.card_border_color != blank and section.settings.discount_style != 'jp-discount' %}border border-solid{% endif %} {% if section.settings.discount_style == 'jp-discount' %}lg:rounded-b-[1rem] rounded-b-[0.75rem]{% else %}lg:rounded-[1rem] rounded-[0.75rem]{% endif %} {% if is_swiper %}swiper-slide{% endif %}" {% if section.settings.card_border_color != blank and section.settings.discount_style != 'jp-discount' %}style="border-color: {{ section.settings.card_border_color }};"{% endif %}>
+  {%- if section.settings.discount_style == 'jp-discount' -%}
+    {%- assign discount_class = 'h-[2.53125rem]' -%}
+    {%- assign mb_discount_class = 'w-[8.65625rem] h-[2.53125rem]' -%}
+    {%- assign mb_discount_title_class = 'left-[0.875rem] w-[6.03125rem] text-[1.46875rem] leading-[1.46875rem]' -%}
+    {%- assign mb_discount_time_class = 'left-[8.65625rem] text-[0.90625rem] leading-[0.90625rem]' -%}
+    {%- assign mb_time_box_class = 'h-[1.875rem]' -%}
+    {%- if section.settings.mb_products_number == 'mb-arrange-style-two' -%}
+      {%- assign discount_class = 'h-[1.25rem]' -%}
+      {%- assign mb_discount_class = 'w-[3.625rem] h-[1.25rem]' -%}
+      {%- assign mb_discount_title_class = 'left-[0.5rem] w-[2.5rem] text-[0.625rem] leading-[0.625rem]' -%}
+      {%- assign mb_discount_time_class = 'left-[3.625rem] text-[0.625rem] leading-[0.625rem]' -%}
+      {%- assign mb_time_box_class = 'h-[1.25rem]' -%}
+    {%- endif -%}
+    <div class="jp-discount-top w-full lg:h-[2.8125rem] {{ discount_class }}">
+      <div class="jp-discount-message relative w-full h-full">
+        {%- if item.settings.discount_img != blank -%}
+          {%- render "responsive-image",
+              mimage: item.settings.discount_img,
+              image: item.settings.discount_img,
+              width: 120,
+              mwidth: 68,
+              image_class: "object-cover lg:w-[7.5rem] lg:h-[2.5rem]" -%}
+        {%- else -%}
+          <svg class="absolute left-0 top-[0] z-[1] lg:w-[9.625rem] lg:h-[2.8125rem] {{ mb_discount_class }}" width="154" height="45" viewBox="0 0 154 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M115.444 0h31.209l7.125 12.129h-38.334V0z" fill="#E14700" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 13.333C0 5.97 5.97 0 13.333 0H146.51l-14.727 45H0V13.333z"
+                fill="url(#prefix__paint0_linear_11_473)" />
+            <defs>
+                <linearGradient id="prefix__paint0_linear_11_473" x1="0" y1="0" x2="0" y2="45" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#FF6A26" />
+                    <stop offset="1" stop-color="#FD5102" />
+                </linearGradient>
+            </defs>
+          </svg>
+          <div class="jp-discount-box top-1/2 lg:left-[1rem] translate-y-[-50%] product_discount__num absolute z-[2] font-semibold text-white lg:w-[6.75rem] lg:text-[1.625rem] lg:leading-[1.625rem] {{ mb_discount_title_class }} text-center">
+            {{ section.settings.discount_txt_style | replace: '()', discount_percent }}
+          </div>
+        {%- endif -%}
+        <div class="jp-discount-time-box absolute w-full text-[1rem] leading-[1rem] left-0 bottom-0 lg:h-[2.0625rem] bg-gradient-to-r from-[#FFF5DE] to-[#ECD6B2] lg:rounded-t-[1rem] rounded-t-[0.75rem] {{ mb_time_box_class }}">
+          <div class="jp-time-text absolute lg:left-[9.0625rem] top-1/2 translate-y-[-50%] lg:text-[1rem] lg:leading-[1rem] {{ mb_discount_time_class }} text-[var(--jds-color-primary)]">
+            {%- if selected_variant.metafields.custom.discount_tag_time != blank -%}
+              {{ selected_variant.metafields.custom.discount_tag_time }}
+            {%- elsif item.product.variants.first.metafields.custom.discount_tag_time != blank -%}
+              {{ item.product.variants.first.metafields.custom.discount_tag_time }}
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+
+  {% assign block_product = item.product %}
+  {% assign block_img = item.product_img %}
+  {% assign block_title = item.product_title %}
+  {% if block_title != blank and block_title contains 'Jackery' %}
+    {% assign block_title = block_title | remove_first: 'Jackery' | strip %}
+  {% endif %}
+  {% assign block_product_discount_price = item.product_discount_price %}
+  {% if item.product_discount_price != blank %}
+    {% assign block_product_discount_price = item.product_discount_price | times: 100.00 %}
+  {% endif %}
+  {% assign block_product_origin_price = blank %}
+  {% assign block_product = item.product.selected_or_first_available_variant %}
+  {% assign configured_vid = item.variant_id | default: '' | append: '' | strip %}
+  {% if configured_vid contains 'gid://shopify/ProductVariant/' %}
+    {% assign configured_vid = configured_vid | replace: 'gid://shopify/ProductVariant/', '' | strip %}
+  {% elsif configured_vid contains 'shopify/ProductVariant/' %}
+    {% assign configured_vid = configured_vid | replace: 'shopify/ProductVariant/', '' | strip %}
+  {% endif %}
+  {% assign selected_variant = blank %}
+  {% if configured_vid != blank %}
+    {% for variant in item.product.variants %}
+      {% assign vid = variant.id | append: '' %}
+      {% if vid == configured_vid %}
+        {% assign selected_variant = variant %}
+        {% assign block_product = variant %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {%- assign use_configured_price = false -%}
+  {%- assign current_time = 'now' | date: '%s' | times: 1 -%}
+  {%- if item.begin_time != blank and item.end_time != blank -%}
+    {%- assign begin_timestamp = item.begin_time | date: '%s' | times: 1 -%}
+    {%- assign end_timestamp = item.end_time | date: '%s' | times: 1 -%}
+    {%- if current_time >= begin_timestamp and current_time <= end_timestamp -%}
+      {%- assign use_configured_price = true -%}
+    {%- else -%}
+      {%- assign use_configured_price = false -%}
+    {%- endif -%}
+  {%- else -%}
+    {%- assign use_configured_price = false -%}
+  {%- endif -%}
+
+  {%- assign current_price = blank -%}
+  {%- assign original_price = blank -%}
+  {%- assign auto_discount_enabled = false -%}
+
+  {%- if use_configured_price -%}
+    {%- if item.product_discount_price != blank and item.product_discount_price != "" -%}
+      {%- assign current_price = item.product_discount_price | times: 100.00 -%}
+      {%- if selected_variant != blank -%}
+        {%- if selected_variant.compare_at_price != blank and selected_variant.compare_at_price > selected_variant.price -%}
+          {%- assign original_price = selected_variant.compare_at_price -%}
+        {%- else -%}
+          {%- assign original_price = selected_variant.price -%}
+        {%- endif -%}
+      {%- elsif block_product != blank -%}
+        {%- if block_product.compare_at_price != blank and block_product.compare_at_price > block_product.price -%}
+          {%- assign original_price = block_product.compare_at_price -%}
+        {%- else -%}
+          {%- assign original_price = block_product.price -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- elsif section.settings.auto_calculate -%}
+      {%- if selected_variant != blank -%}
+        {%- assign auto_discount_price = selected_variant.metafields.custom.auto_discount_price | default: 0 -%}
+        {%- assign auto_discount_amount = selected_variant.metafields.custom.auto_discount_amount | default: 0 -%}
+        {%- assign auto_discount_percentage = selected_variant.metafields.custom.auto_discount_percentage | default: 0 -%}
+        {%- if auto_discount_price != blank and auto_discount_price != 0 and auto_discount_amount != blank and auto_discount_amount != 0 -%}
+          {%- assign current_price = auto_discount_price | times: 100.00 -%}
+          {%- assign discount_amount_from_meta = auto_discount_amount | times: 100.00 -%}
+          {%- assign original_price = current_price | plus: discount_amount_from_meta -%}
+          {%- assign auto_discount_enabled = true -%}
+        {%- endif -%}
+      {%- elsif block_product != blank -%}
+        {%- assign auto_discount_price = block_product.metafields.custom.auto_discount_price | default: 0 -%}
+        {%- assign auto_discount_amount = block_product.metafields.custom.auto_discount_amount | default: 0 -%}
+        {%- assign auto_discount_percentage = block_product.metafields.custom.auto_discount_percentage | default: 0 -%}
+        {%- if auto_discount_price != blank and auto_discount_price != 0 and auto_discount_amount != blank and auto_discount_amount != 0 -%}
+          {%- assign current_price = auto_discount_price | times: 100.00 -%}
+          {%- assign discount_amount_from_meta = auto_discount_amount | times: 100.00 -%}
+          {%- assign original_price = current_price | plus: discount_amount_from_meta -%}
+          {%- assign auto_discount_enabled = true -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+    {%- if current_price == blank -%}
+      {%- if selected_variant != blank -%}
+        {%- assign current_price = selected_variant.price -%}
+        {%- if selected_variant.compare_at_price != blank and selected_variant.compare_at_price > selected_variant.price -%}
+          {%- assign original_price = selected_variant.compare_at_price -%}
+        {%- endif -%}
+      {%- elsif block_product != blank -%}
+        {%- assign current_price = block_product.price -%}
+        {%- if block_product.compare_at_price != blank and block_product.compare_at_price > block_product.price -%}
+          {%- assign original_price = block_product.compare_at_price -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- else -%}
+    {%- if section.settings.auto_calculate -%}
+      {%- if selected_variant != blank -%}
+        {%- assign auto_discount_price = selected_variant.metafields.custom.auto_discount_price | default: 0 -%}
+        {%- assign auto_discount_amount = selected_variant.metafields.custom.auto_discount_amount | default: 0 -%}
+        {%- assign auto_discount_percentage = selected_variant.metafields.custom.auto_discount_percentage | default: 0 -%}
+        {%- if auto_discount_price != blank and auto_discount_price != 0 and auto_discount_amount != blank and auto_discount_amount != 0 -%}
+          {%- assign current_price = auto_discount_price | times: 100.00 -%}
+          {%- assign discount_amount_from_meta = auto_discount_amount | times: 100.00 -%}
+          {%- assign original_price = current_price | plus: discount_amount_from_meta -%}
+          {%- assign auto_discount_enabled = true -%}
+        {%- endif -%}
+      {%- elsif block_product != blank -%}
+        {%- assign auto_discount_price = block_product.metafields.custom.auto_discount_price | default: 0 -%}
+        {%- assign auto_discount_amount = block_product.metafields.custom.auto_discount_amount | default: 0 -%}
+        {%- assign auto_discount_percentage = block_product.metafields.custom.auto_discount_percentage | default: 0 -%}
+        {%- if auto_discount_price != blank and auto_discount_price != 0 and auto_discount_amount != blank and auto_discount_amount != 0 -%}
+          {%- assign current_price = auto_discount_price | times: 100.00 -%}
+          {%- assign discount_amount_from_meta = auto_discount_amount | times: 100.00 -%}
+          {%- assign original_price = current_price | plus: discount_amount_from_meta -%}
+          {%- assign auto_discount_enabled = true -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+    {%- if current_price == blank -%}
+      {%- if selected_variant != blank -%}
+        {%- assign current_price = selected_variant.price -%}
+        {%- if selected_variant.compare_at_price != blank and selected_variant.compare_at_price > selected_variant.price -%}
+          {%- assign original_price = selected_variant.compare_at_price -%}
+        {%- endif -%}
+      {%- elsif block_product != blank -%}
+        {%- assign current_price = block_product.price -%}
+        {%- if block_product.compare_at_price != blank and block_product.compare_at_price > block_product.price -%}
+          {%- assign original_price = block_product.compare_at_price -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- assign discount_percent = 0 -%}
+  {%- if original_price != blank and original_price > current_price -%}
+    {%- assign discount_amount = original_price | minus: current_price -%}
+    {%- assign discount_percent = discount_amount | times: 100 | divided_by: original_price | round -%}
+  {%- endif -%}
+
+  <div class="general-product-top relative flex justify-center items-center">
+    {%- capture us_class -%}
+      object-cover absolute top-0 left-0 z-[1] lg:w-[7.5rem] lg:h-[2.5rem] w-[6.875rem] text-[1.125rem] leading-[1.25rem]
+    {%- endcapture -%}
+    {%- capture eu_class -%}
+      object-cover absolute top-0 lg:left-[1.5rem] left-[1.25rem] z-[1] lg:w-[6.125rem] w-[3.4375rem] h-[2.75rem] lg:min-w-[6.125rem] lg:h-[5rem] {{ eu_discount_class }}
+    {%- endcapture -%}
+    {%- if section.settings.discount_style == 'us-discount' -%}
+      {%- if item.discount_img != blank -%}
+        {%- render "responsive-image",
+            mimage: item.discount_img,
+            image: item.discount_img,
+            width: 120,
+            mwidth: 68,
+            image_class: us_class -%}
+      {%- else -%}
+        <div class="us-discount-box product_discount__num absolute top-0 left-0 z-[1] lg:w-[7.5rem] lg:h-[2.5rem] rounded-tl-[0.75rem] rounded-br-[0.75rem] bg-gradient-to-r from-[#FF9F36] to-[var(--jds-color-primary)] lg:p-[0.625rem] font-semibold text-white lg:text-[1.25rem] lg:leading-[1.25rem] {{ us_discount_class }} text-center">
+          {%- assign discount_value =  discount_amount | divided_by: 100 | floor -%}
+          {{ section.settings.discount_txt_style | replace: '()', discount_value }}
+        </div>
+      {%- endif -%}
+    {%- elsif section.settings.discount_style == 'eu-discount' -%}
+      {%- if item.discount_img != blank -%}
+        {%- render "responsive-image",
+            mimage: item.discount_img,
+            image: item.discount_img,
+            width: 110,
+            mwidth: 88,
+            image_class: eu_class -%}
+      {%- else -%}
+        {%- if section.settings.save_txt_up != blank -%}
+          <img class="{{ eu_class }}"
+               alt="{{ item.settings.heading }}"
+               loading="lazy"
+               src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-image.svg?v=1760005467"/>
+          <div class="product_discount__num absolute font-semibold text-white text-center lg:w-[5.625rem] w-[3.4375rem] lg:left-[1.75rem] left-[1.25rem] top-[0.5rem] lg:top-[0.625rem] lg:text-[1.75rem] lg:leading-[1.75rem] text-[1rem] leading-[1rem] z-[1]">
+            {{ section.settings.discount_txt_style | replace: '()', discount_percent }}
+          </div>
+          <div class="product_discount__text absolute font-semibold text-white text-center lg:w-[5.625rem] w-[3.4375rem] lg:left-[1.75rem] left-[1.625rem] top-[1.625rem] lg:top-[2.75rem] lg:text-[0.875rem] lg:leading-[1.5rem] text-[0.5625rem] leading-[0.5625rem] z-[1]">
+            {{ section.settings.save_txt_up | default: 'Save' }}
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    {%- elsif section.settings.discount_style == 'jp-discount' -%}
+      {%- if item.product.metafields.custom.product_tag_image != blank -%}
+        <div class="lg:h-[2.5rem] h-[2.8125rem] absolute lg:top-[1rem] lg:left-[0.875rem] top-[0.6875rem] left-[0.3125rem] z-[1]">
+          <img src="{{ item.product.metafields.custom.product_tag_image | img_url: 'master' }}" alt="product tag image" loading="lazy" class="lg:h-[2.5rem] h-[2.8125rem] object-cover">
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+    {%- if section.settings.discount_style != 'jp-discount' and item.discount_tag != blank  -%}
+      <div class="absolute z-[1] font-semibold lg:top-[0.75rem] lg:right-[1rem] text-[var(--jds-color-primary)] lg:text_b2 {{ tag_class }} landing-block--product--ptag--1">
+        {{ item.discount_tag }}
+      </div>
+    {%- endif -%}
+
+    <div class="general-top-image relative overflow-hidden flex justify-center items-center {{ pc_box_h }} {{ mb_box_h }}">
+      {%- capture img_classes -%}
+        group-hover:scale-[1.03] transition-transform duration-300 object-cover object-center {{ image_size }}
+      {%- endcapture -%}
+      {%- if block_img != blank -%}
+        {% render "responsive-image",
+          image: block_img,
+          mimage: item.product_img_mb,
+          width: pc_w,
+          mwidth: 343,
+          image_class: img_classes %}
+      {%- else -%}
+        <img class="object-cover object-center {{ image_size }}
+          {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' -%}
+            rounded-tl-[0.75rem] rounded-tr-[0.75rem] lg:rounded-tr-[1rem] lg:rounded-bl-none lg:rounded-tl-[1rem]
+          {%- else -%}
+            rounded-tl-[0.75rem] rounded-bl-[0.75rem] lg:rounded-bl-[1rem] lg:rounded-tl-[1rem] lg:rounded-tr-none
+          {%- endif -%}"
+             src="{{ 'placeholder.webp' | asset_url }}"
+             alt=""/>
+      {%- endif -%}
+      {%- if block_product != blank -%}
+        <a class="absolute z-[2] inset-0 opacity-0" href="{{ block_product.url }}" {% if section.settings.link_blank == true %} target="_blank" {% endif %}></a>
+      {%- endif -%}
+    </div>
+  </div>
+
+  <div class="{{ detail_size }} {% if section.settings.pc_products_number == 'arrange-style-three' %} lg:h-[26.875rem] {% elsif section.settings.pc_products_number == 'arrange-style-four' %} lg:h-[22.375rem] {% endif %} {% if section.settings.mb_products_number == 'mb-arrange-style-two' and section.settings.mb_products_style == 'mb-swiper-style' %} !h-[26.46875rem] {% endif %} general-product-button lg:pt-[1.25rem] lg:pb-[1.5rem] lg:px-[1.5rem] flex flex-col justify-between {{ pc_box_h }} {{ bottom_class }}">
+    {%- assign title_size = 'lg:jds-h5 lg:mb-[0.5rem] font-semibold' -%}
+    {%- assign subtitle_size = 'lg:text_b3' -%}
+    {%- assign message_h = '' -%}
+    {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'around-arrange-style' -%}
+      {%- assign title_size = 'lg:jds-h5 jds-h4 lg:mb-[0.5rem]' -%}
+      {%- assign message_h = 'lg:h-[7.25rem]' -%}
+    {%- endif -%}
+    {%- assign line_clamp = 'lg:line-clamp-2 line-clamp-2' -%}
+    {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' -%}
+      {%- assign line_clamp = 'lg:line-clamp-1 line-clamp-1' -%}
+    {%- endif -%}
+    {%- if section.settings.pc_products_number != 'arrange-style-two' -%}
+      {%- assign title_size = 'lg:text-[1.25rem] lg:leading-[1.75rem] font-medium lg:mb-[0.5rem]' -%}
+      {%- assign message_h = 'lg:h-[6.75rem]' -%}
+    {%- endif -%}
+    <div class="general-product-message text-left {{ message_h }} lg:mb-[1rem] mb-[1rem]">
+      <a class="general-title cursor-pointer" href="{{ block_product.url }}" {% if section.settings.link_blank == true %} target="_blank" {% endif %}>
+        <div class="general-card--title {{ title_size }} {{ line_clamp }} {{ title_class }}">
+          {{ block_title }}
+        </div>
+      </a>
+      {%- if item.selling_points != blank -%}
+        <div class="general-subtitle {{ subtitle_size }} {{ line_clamp }} {{ subtitle_class }}">{{ item.selling_points }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' -%}
+      <div class="product-line bg-[rgba(0,0,0,0.07)] max-lg:hidden" style="height: 1px;"></div>
+    {%- endif -%}
+
+    <div class="general-product-price">
+      {%- assign should_show_price = false -%}
+      {%- if use_configured_price and item.product_discount_price != blank and item.product_discount_price != "" -%}
+        {%- assign should_show_price = true -%}
+      {%- elsif selected_variant != blank -%}
+        {%- assign should_show_price = true -%}
+      {%- elsif block_product != blank -%}
+        {%- assign should_show_price = true -%}
+      {%- endif -%}
+
+      {%- if should_show_price -%}
+        <div class="general-price-message">
+          <div class="price-message-top {% if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' %}{% if section.settings.mb_products_number == 'mb-arrange-style-two' or section.settings.mb_products_number == 'mb-arrange-style-one' %}flex lg:flex-row-reverse flex-col justify-between items-end lg:mb-[0.5rem] lg:min-h-[5.875rem] lg:gap-[1rem]{% else %}flex flex-row-reverse justify-between items-end lg:mb-[0.5rem] lg:min-h-[5.875rem] lg:gap-[1rem]{% endif %}{% endif %}">
+            {%- if section.settings.pc_products_number != 'arrange-style-four' -%}
+              <div class="bundle-recommend-product flex-1 lg:w/full w/full lg:mx-auto lg:mb-[0.75rem] mb-[0.75rem] {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}"
+                   style="display: none;"
+                   pid="{% if selected_variant != blank %}{{ selected_variant.id }}{% elsif item.variant_id != blank %}{{ item.variant_id }}{% else %}{{ item.product.selected_or_first_available_variant.id }}{% endif %}">
+                <div class="lg:rounded-[0.5rem] rounded-[0.25rem] lg:py-[0.5rem] {{ bundle_class }} lg:pl-[0.375rem] lg:pr-[0.5rem] flex flex-1"
+                     style="border: 1px solid #DDDDDD;">
+                  <div class="bundle-left lg:mr-[0.625rem] mr-[0.5rem]">
+                    <img class="bundle-img lg:min-w-[4rem] lg:w-[4rem] lg:h-[4rem] {{ bundle_image_class }} object-cover"
+                         src=""
+                         alt="Bundle Product"
+                      loading="lazy">
+                  </div>
+                  <div class="bundle-right flex flex-col justify-between flex-1">
+                    <div
+                      class="bundle-title text-left w-[11.5625rem] text-[#666666] line-clamp-2 text_b3 lg:leading-[1.125rem] {{ bundle_title_class }}"></div>
+                    <div class="bundle-message-bottom flex items-end justify-between">
+                      <div class="bundle-message-price flex items-end">
+                        <div
+                          class="bundle-price text_b3 text-[var(--jds-color-primary)] lg:font-semibold lg:mr-[0.5rem] mr-[0.25rem] text-[0.875rem] font-semibold"></div>
+                        <div class="bundle-line-price line-through text_b3 text-[#999999]"
+                             style="display: none;"></div>
+                      </div>
+                      <div class="bundle-quantity quantity-selector">
+                        <button
+                          class="quantity-btn minus lg:w-[1.5rem] w-[1.5rem] lg:h-[1.5rem] h-[1.5rem] flex items-center justify-center"
+                          name="minus"
+                          type="button">
+                          {% render 'icon-minus' %}
+                        </button>
+                        <input
+                          class="quantity-input lg:w/[1.5rem] w/[1.5rem] lg:h/[1.5rem] h/[1.5rem] text-center"
+                          type="number"
+                          value="0"
+                          min="0"
+                          max="999"
+                          step="1"/>
+                        <button
+                          class="quantity-btn plus lg:w/[1.5rem] w/[1.5rem] lg:h/[1.5rem] h/[1.5rem] flex items-center justify-center"
+                          name="plus"
+                          type="button">
+                          {% render 'icon-plus' %}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {%- endif -%}
+            {%- if section.settings.pc_products_number == 'arrange-style-four' -%}
+              <div class="product-line lg:mb-[1rem] bg-[rgba(0,0,0,0.07)] max-lg:hidden" style="height: 1px;"></div>
+            {%- endif -%}
+            {%- if section.settings.two_products_style != 'up-down-swiper-style' or mb_show == 'conditional' or section.settings.pc_products_number == 'arrange-style-three' or section.settings.pc_products_number == 'arrange-style-two' or section.settings.pc_products_number == 'arrange-style-four' -%}
+              {%- if section.settings.code_text != blank and item.code != blank -%}
+                <div
+                  class="recommend-code text_b3 lg:mb-[1rem] {{ code_class }} w/full lg:w/full lg:p/[0.5rem] p/[0.5rem] lg:rounded/[0.5rem] rounded/[0.4375rem] bg-[#FFF9EE] flex justify-between items-center {% if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' %}lg:hidden{% endif %}">
+                  <div class="recommend-right-code lg:mr/[0.5rem] flex items-center {% if mb_show == 'conditional' %}lg:max-w-none max-w/[6.5rem]{% endif %}">
+                    <img class="lg:w/[1.5rem] lg:h/[1.5rem] w/[1.25rem] h/[1.25rem] lg:mr/[0.5rem] mr/[0.5rem] {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}"
+                          src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-product.svg?v=1760005210"
+                          alt="{{ section.settings.installment | escape }}"
+                          loading="lazy"/>
+                    <span class="text-[#8E8168] font-medium">{{ section.settings.code_text }}</span>
+                    <span class="general-code text-[#8E8168] font-medium line-clamp-1">{{ item.code }}</span>
+                  </div>
+                  <span
+                    class="recommend-copy text-[var(--jds-color-primary)] underline underline-offset-1 font-semibold cursor-pointer {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}">
+                      {{ section.settings.copy_text }}
+                    </span>
+                  {% if mb_show == 'conditional' %}
+                  <svg class="lg:hidden mr-[0.5rem] recommend-copy w/[0.84375rem] h/[0.84375rem]" width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M21.2143 2.41071C21.1564 1.02214 20.0996 0 18.8036 0H2.41071C1.02214 0.0578571 0 1.11471 0 2.41071V18.8036C0.0578571 20.1921 1.11471 21.2143 2.41071 21.2143H5.78571V24.5893C5.84357 25.9779 6.90043 27 8.19643 27H24.5893C25.9779 26.9421 27 25.8853 27 24.5893V8.19643C26.9421 6.80786 25.8853 5.78571 24.5893 5.78571H21.2143V2.41071ZM8.67857 8.67857H24.1071V24.1071H8.67857V8.67857ZM17.8393 12.0536V14.9464H20.7321V17.8393H17.8393V20.7321H14.9464V17.8393H12.0536V14.9464H14.9464V12.0536H17.8393ZM18.3214 2.89286V5.78571H8.19643C6.80786 5.84357 5.78571 6.90043 5.78571 8.19643V18.3214H2.89286V2.89286H18.3214Z"
+                          fill="var(--jds-color-primary)" />
+                  </svg>
+                  {% endif %}
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+
+            <div class="price-product-detail flex-1 w/full">
+              <div class="recommend-price-content flex lg:mb/[0.3125rem] mb/[1rem] items-end">
+                  <span
+                    class="recommend-price--current text-primary font-semibold line-clamp-2 lg:text/[1.5rem] lg:leading/[1.75rem] text-[var(--jds-color-primary)] lg:mr/[0.5rem] mr/[0.625rem] {{ main_price_class }}">
+                    {{ current_price | money_without_trailing_zeros }}
+                  </span>
+                {%- if original_price != blank and original_price > current_price -%}
+                  <span
+                    class="recommend-price--origin lg:text/[0.875rem] lg:leading/[0.875rem] line-through text-[#000000] lg:mr/[0.5rem] mr/[0.625rem] {{ sub_price_class }}">
+                      {{ original_price | money_without_trailing_zeros }}
+                    </span>
+                  {%- if section.settings.discount_price_style -%}
+                    {%- assign discount_amount = original_price | minus: current_price -%}
+                    {%- assign discount_amount_floored = discount_amount | divided_by: 100 | floor | times: 100 -%}
+                    <span
+                       class="recommend-price--discount lg:text/[0.875rem] lg:leading/[0.875rem] text-[var(--jds-color-primary)] {{ sub_price_class }} {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}">
+                         -{{ discount_amount_floored | money_without_trailing_zeros }}
+                       </span>
+                  {%- endif -%}
+                {%- endif -%}
+              </div>
+              {%- if section.settings.installment != blank -%}
+                <div class="recommend-installment jds-c1 lg:mb/[1.25rem] {{ installment_class }} flex items-end {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}">
+                    <span class="lg:mr/[0.1875rem] mr/[0.24rem] line-clamp-1 lg:leading/[1rem] leading/[0.75rem]">
+                      {{ section.settings.installment }}
+                    </span>
+                  {%- if section.settings.installment_img != blank -%}
+                    <img class="lg:w/[2.75rem] w/[2.40625rem] lg:h/[1.375rem] h/[1rem] object-cover"
+                         src="{{ section.settings.installment_img | img_url: '77px' }}"
+                         alt="{{ section.settings.installment | escape }}"
+                         loading="lazy"/>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+
+          <div class="price-message-bottom flex justify-between items-center lg:gap/[1rem]">
+            {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' -%}
+              {%- if section.settings.code_text != blank and item.code != blank -%}
+                <div class="recommend-code text_b3 flex-1 w/full lg:w/full max-lg:hidden">
+                  <div
+                    class="lg:p/[0.5rem] lg:rounded/[0.5rem] bg-[#FFF9EE] flex justify-between items-center">
+                    <div class="recommend-right-code lg:mr/[0.5rem] flex items-center">
+                      <img class="lg:w/[1.5rem] lg:h/[1.5rem] lg:mr/[0.5rem]"
+                        src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-product.svg?v=1760005210"
+                        alt="{{ section.settings.installment | escape }}"
+                        loading="lazy"/>
+                      <span class="text-[#8E8168] font-medium">{{ section.settings.code_text }}</span>
+                      <span class="general-code text-[#8E8168] font-medium">{{ item.code }}</span>
+                    </div>
+                    <span
+                      class="recommend-copy text-[var(--jds-color-primary)] underline underline-offset-1 font-semibold cursor-pointer">
+                        {{ section.settings.copy_text }}
+                      </span>
+                  </div>
+                </div>
+              {%- else -%}
+                <div class="flex-1 max-lg:hidden"></div>
+              {%- endif -%}
+            {%- endif -%}
+            <script type="application/json" class="price-data">
+              {
+                "current_price": {{ current_price | times: 100.00 | json }},
+                "original_price": {{ original_price | times: 100.00 | json }},
+                "discount_percent": {{ discount_percent | json }},
+                "use_configured_price": {{ use_configured_price | json }},
+                "configured_discount_price": {{ item.product_discount_price | json }},
+                "configured_original_price": {{ item.product_price | json }},
+                "begin_time": {{ item.begin_time | json }},
+                "end_time": {{ item.end_time | json }}
+              }
+            </script>
+            <div class="recommend-product-btn flex lg:flex-row items-center justify-center lg:gap/[0.5rem] gap/[0.5rem] flex-1 w/full {{ button_class }}">
+              {% assign priority_product = selected_variant | default: block_product | default: section.settings.product %}
+              {% for i in (1..2) %}
+                {% assign button_type_key = 'function_type_' | append: i %}
+                {% assign button_text_key = 'button_text_' | append: i %}
+                {% assign button_variant_key = 'button_variant_' | append: i %}
+                {% assign custom_link_key = 'custom_link_' | append: i %}
+                {% assign current_button_text = block.settings[button_text_key] | default: '' %}
+                {% assign display_button_text = current_button_text | strip | truncate: 20 %}
+                {% if display_button_text != blank %}
+                  <div class="flex-1 w/full {% if section.settings.pc_products_number == 'arrange-style-two' and section.settings.pc_products_style == 'pc-arrange-style' %} lg:w/[8.8125rem]{% endif %} line-clamp-1">
+                    {% render 'product-action-buttons',
+                      fisrtProduct: priority_product,
+                      function_type: block.settings[button_type_key],
+                      button_text: display_button_text,
+                      button_variant: block.settings[button_variant_key],
+                      custom_link: block.settings[custom_link_key],
+                      link_blank: section.settings.new_link_page
+                    %}
+                  </div>
+                {%- endif -%}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,164 @@
+{%- liquid
+  assign selected_variant = product.selected_or_first_available_variant
+  assign has_what_box_data = false
+  assign plugin_id = 'what-box-compare-plugin-' | append: section.id | append: '-' | append: product.id
+  assign dialog_id = 'what-box-compare-dialog-' | append: section.id | append: '-' | append: product.id
+  assign dialog_title = dialog_title | default: 'Bundle Contents Comparison'
+  assign fallback_what_box = product.metafields.custom.what_is_in_the_box_4_0.value
+-%}
+
+{%- capture variants_json -%}
+[
+{%- for variant in product.variants -%}
+  {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+  {%- if what_value == blank -%}
+    {%- assign what_value = fallback_what_box -%}
+  {%- endif -%}
+
+  {%- if what_value != blank -%}
+    {%- assign has_what_box_data = true -%}
+  {%- endif -%}
+
+  {%- assign variant_img = product.featured_image | image_url: width: 360, height: 360 -%}
+  {%- if variant.featured_image -%}
+    {%- assign variant_img = variant.featured_image | image_url: width: 360, height: 360 -%}
+  {%- endif -%}
+
+  {%- unless forloop.first -%},{%- endunless -%}
+  {
+    "skuId": {{ variant.id }},
+    "name": {{ variant.title | json }},
+    "shortname": {{ variant.metafields.custom.shortname | json }},
+    "img": {{ variant_img | json }}
+  }
+{%- endfor -%}
+]
+{%- endcapture -%}
+
+{%- capture product_json -%}
+[
+{%- for variant in product.variants -%}
+  {%- assign what_value = variant.metafields.custom.what_in_the_box_list_4_0.value -%}
+  {%- if what_value == blank -%}
+    {%- assign what_value = fallback_what_box -%}
+  {%- endif -%}
+
+  {%- capture what_box_data -%}
+  [
+  {%- if what_value != blank -%}
+    {%- for what_box in what_value -%}
+      {%- unless forloop.first -%},{%- endunless -%}
+      {
+        "img": {{ what_box.img | image_url: width: 360, height: 360 | json }},
+        "name": {{ what_box.name | json }}
+      }
+    {%- endfor -%}
+  {%- endif -%}
+  ]
+  {%- endcapture -%}
+
+  {%- unless forloop.first -%},{%- endunless -%}
+  {
+    "skuId": {{ variant.id }},
+    "list": {{ what_box_data }}
+  }
+{%- endfor -%}
+]
+{%- endcapture -%}
+
+{%- if has_what_box_data -%}
+  <style>
+    jds-dialog.v5-what-box-compare-dialog {
+      --what-box-compare-dialog-width: min(68.75rem, calc(100vw - 2rem));
+      --jds-dialog-width: var(--what-box-compare-dialog-width);
+      --jds-dialog-index: 100002;
+      --jds-dialog-bg: #ffffff;
+    }
+    jds-dialog.v5-what-box-compare-dialog::part(dialog-container) {
+      min-width: unset;
+    }
+    jds-dialog.v5-what-box-compare-dialog::part(dialog-content) {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+    jds-dialog.v5-what-box-compare-dialog::part(dialog-close) {
+      top: 1rem;
+      right: 1rem;
+      z-index: 2;
+    }
+    @media screen and (max-width: 1023.98px) {
+      jds-dialog.v5-what-box-compare-dialog::part(dialog-container) {
+        width: 100%;
+        min-height: 70vh;
+        display: flex;
+        align-items: flex-end;
+      }
+      jds-dialog.v5-what-box-compare-dialog::part(dialog-content) {
+        width: 100%;
+        border-radius: 1rem 1rem 0 0;
+        max-height: calc(100vh - 2rem);
+      }
+    }
+    .what-box-compare-dialog__table th:first-child,
+    .what-box-compare-dialog__table td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      min-width: 14rem;
+      text-align: left;
+    }
+    .what-box-compare-dialog__table th:first-child {
+      z-index: 4;
+    }
+    
+    .what-box-compare-dialog__table-shell {
+      position: relative;
+    }
+    @media screen and (min-width: 1024px) {
+      jds-dialog.v5-what-box-compare-dialog::part(dialog-close) {
+        top: 1.25rem;
+        right: 1.25rem;
+      }
+    }
+  </style>
+  <what-box-compare-plugin
+    id="{{ plugin_id }}"
+    data-dialog-id="{{ dialog_id }}"
+    data-current-variant-id="{{ selected_variant.id }}"
+    hidden
+  >
+    <script type="application/json" data-what-box-compare-variants>{{ variants_json }}</script>
+    <script type="application/json" data-what-box-compare-products>{{ product_json }}</script>
+
+    
+
+    <template data-compare-dialog-template>
+      <div class="w-full bg-white">
+        <div class="border-b border-black/10 px-6 pb-4 pt-5 pr-[3.75rem] lg:px-6 lg:pb-4 lg:pt-6 lg:pr-[4.25rem]">
+          <h3 class="m-0 text-xl lg:text-2xl font-semibold text-[#242F20]">{{ dialog_title | escape }}</h3>
+        </div>
+        <div class="hidden lg:block">
+          <div class="what-box-compare-dialog__table-shell px-10 pb-10">
+            <div class="max-h-[min(70vh,42rem)] overflow-x-auto overflow-y-auto [&::-webkit-scrollbar:horizontal]:hidden" data-compare-table-container></div>
+            <button type="button" class="pointer-events-none invisible absolute left-[14rem] top-7 z-10 flex h-9 w-9 items-center justify-center border border-[#242F20]/20 bg-white/95 p-0 text-[#242F20] opacity-0 shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-[opacity,visibility,background-color] duration-200 hover:bg-[#f5f5f3]" data-compare-table-arrow="left" aria-hidden="true" tabindex="-1" aria-label="Previous products">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M10 3.5L5.5 8L10 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button type="button" class="pointer-events-none invisible absolute right-3 top-7 z-[3] flex h-9 w-9 items-center justify-center border border-[#242F20]/20 bg-white/95 p-0 text-[#242F20] opacity-0 shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-[opacity,visibility,background-color] duration-200 hover:bg-[#f5f5f3]" data-compare-table-arrow="right" aria-hidden="true" tabindex="-1" aria-label="Next products">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6 3.5L10.5 8L6 12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="block lg:hidden">
+          <div class="hide-scroll-bar flex items-stretch gap-4 overflow-x-auto border-b border-solid border-black/10 px-4" data-compare-mobile-tabs></div>
+          <div class="hide-scroll-bar max-h-[calc(100dvh-10rem)] overflow-y-auto px-4 pb-4" data-compare-mobile-panel></div>
+        </div>
+      </div>
+    </template>
+  </what-box-compare-plugin>
+  <script src="{{ 'snippet-v5-pdp-what-box-compare-plugin.min.js' | asset_url }}" defer></script>
+{%- endif -%}

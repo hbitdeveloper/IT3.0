@@ -1,0 +1,397 @@
+{% style %}
+  #shopify-section-{{ section.id }} {
+      background-color: {{ section.settings.bg_color }};
+  }
+
+  .v5-one-intro .swiper-button-next::after,
+  .v5-one-intro .swiper-button-prev::after {
+      content: '';
+  }
+  .v5-one-intro .swiper-button-next,
+  .v5-one-intro .swiper-button-prev {
+      margin: 0;
+  }
+
+  .v5-one-intro .text-swiper .swiper-wrapper {
+      align-items: stretch;
+  }
+
+  .v5-one-intro .text-swiper .swiper-wrapper .swiper-slide {
+      height: auto;
+      display: flex;
+  }
+
+  .v5-one-intro .text-swiper .swiper-wrapper .swiper-slide.swiper-slide-thumb-active .sp-card {
+      border-top: 2px solid;
+      opacity: 1;
+  }
+  .v5-one-intro .text-swiper .swiper-wrapper .swiper-slide .sp-card {
+      border-top: 2px solid transparent;
+  }
+  .v5-one-intro .des-swiper a{
+    text-decoration: underline;
+  }
+
+  @media only screen and (min-width: 1024px) {
+      .v5-one-intro .text-swiper .swiper-slide {
+          flex: 1 1 0;
+      }
+      .v5-one-intro .text-swiper .swiper-slide:last-child {
+          margin-right: 0 !important;
+      }
+  }
+
+  @media only screen and (max-width: 1023.98px) {
+      .v5-one-intro .text-swiper {
+          margin-right: -1rem;
+      }
+
+  }
+{% endstyle %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{% liquid
+  assign img_height_pc = section.settings.pc_height | default: 536 | divided_by: 16.0 | append: 'rem'
+  assign img_height_mb = section.settings.mb_height | default: 514 | divided_by: 32.0 | append: 'rem'
+  assign style = 'w-full object-cover lg:h-[var(--pc-height)] h-[var(--mb-height)] '
+  assign placeholder_style = 'placeholder-svg placeholder ' | append: style
+%}
+
+<div
+  class="section-padding v5-one-intro section-container-lg"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  {{ section.shopify_attributes }}
+  style="{{style}}"
+>
+  <div
+    class="lg:max-w-[68.125rem] m-auto text-center lg:mb-[3.25rem] mb-[2.5rem]"
+    style="color: {{ section.settings.text_color }}"
+  >
+    <div class="jds-display-1 v5-font-oxm">{{ section.settings.title | replace: '\n', '<br>' }}</div>
+    <div class="lg:text-[1.25rem] mt-[1.5rem] text-[0.875rem]">
+      {{ section.settings.sub_title | replace: '\n', '<br>' }}
+    </div>
+  </div>
+  <div>
+    <div class="swiper img-swiper">
+      <div class="swiper-wrapper">
+        {% for block in section.blocks %}
+          {%- case block.type -%}
+            {%- when 'swiper-item' -%}
+              <div class="swiper-slide" style="--pc-height: {{ img_height_pc }}; --mb-height: {{ img_height_mb }};">
+                {%- if block.settings.image_pc != blank -%}
+                  {% render 'diff-end-img', pc_img: block.settings.image_pc, mb_img: block.settings.image_mb, pc_img_width: 1320, mb_img_width: 686, class: style %}
+                {%- else -%}
+                  {{ 'hero-apparel-1' | placeholder_svg_tag: placeholder_style }}
+                {%- endif -%}
+              </div>
+          {% endcase %}
+        {% endfor %}
+      </div>
+    </div>
+    <div thumbsSlider class="swiper text-swiper mt-[2.5rem] border-t-[#c6c7c8] border-t border-solid">
+      <div class="swiper-wrapper ">
+        {% for block in section.blocks %}
+          {%- case block.type -%}
+            {%- when 'swiper-item' -%}
+              <div {{ block.shopify_attributes }} class="swiper-slide cursor-pointer lg:w-auto w-[17.5rem]">
+                <div class="sp-card opacity-65" style="color: {{ block.settings.text_color }}">
+                  <div class="title font-semibold lg:text-[2rem] text-[1.25rem] mt-[1rem] mb-[1.5rem] line-clamp-2">
+                    {{ block.settings.title | replace: '\n', '<br>' }}
+                  </div>
+                  <div class="font-normal lg:text-[1.25rem] text-[0.875rem] mb-[1rem]">
+                    {{ block.settings.description | replace: '\n', '<br>' }}
+                  </div>
+                </div>
+              </div>
+          {% endcase %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="swiper des-swiper lg:mt-[1.5rem]">
+      <div class="swiper-wrapper">
+        {% for block in section.blocks %}
+          {%- case block.type -%}
+            {%- when 'swiper-item' -%}
+              <div class="swiper-slide text-[0.875rem] text-[#242F20]">
+                {%- if block.settings.des != blank -%}
+                  {{ block.settings.des }}
+                {%- endif -%}
+              </div>
+          {% endcase %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  document.addEventListener('DOMContentLoaded', function () {
+    const swiperText = new Swiper('.v5-one-intro .text-swiper', {
+      spaceBetween: 24,
+      slidesPerView: 'auto',
+      breakpoints: {
+        1024: {
+          slidesPerView: 4,
+        },
+      },
+      freeMode: true,
+      watchSlidesProgress: true,
+    });
+
+    const swiperImg = new Swiper('.v5-one-intro .img-swiper', {
+      spaceBetween: 10,
+      thumbs: {
+        swiper: swiperText,
+      },
+    });
+
+    const swiperDes = new Swiper('.v5-one-intro .des-swiper', {
+      spaceBetween: 10,
+      thumbs: {
+        swiper: swiperText,
+      },
+    });
+
+    swiperText.on('tap', (sw) => {
+      const i = sw.clickedIndex;
+      if (i == null) return;
+      swiperText.slideTo(i);
+    });
+
+    swiperImg.on('slideChange', function () {
+      const i = this.realIndex != null ? this.realIndex : this.activeIndex;
+      swiperText.slideTo(i);
+      swiperDes.slideTo(i);
+    });
+
+    const titles = document.querySelectorAll('.v5-one-intro .sp-card .title');
+    let maxHeight = 0;
+
+    titles.forEach((el) => {
+      maxHeight = Math.max(maxHeight, el.offsetHeight);
+    });
+
+    titles.forEach((el) => {
+      el.style.height = `${maxHeight}px`;
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "V5-配件介绍Tabs",
+  "limit": 1,
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "背景颜色"
+    },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 40,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 80,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    { "type": "color", "id": "text_color", "label": "文本颜色", "default": "#242F20" },
+    {
+      "type": "inline_richtext",
+      "info": "需要换行，请使用 \\n ",
+      "id": "title",
+      "label": "标题",
+      "default": "Power & Save money"
+    },
+    {
+      "type": "inline_richtext",
+      "info": "需要换行，请使用 \\n ",
+      "id": "sub_title",
+      "label": "副标题",
+      "default": "What is Solar Panel & How it works"
+    },
+    {
+      "type": "number",
+      "id": "pc_height",
+      "label": "PC图片高度",
+      "default": 536
+    },
+    {
+      "type": "number",
+      "id": "mb_height",
+      "label": "MB图片高度",
+      "default": 514
+    }
+  ],
+  "blocks": [
+    {
+      "type": "swiper-item",
+      "name": "Tab Item",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "info": "需要换行，请使用 \\n ",
+          "id": "title",
+          "label": "标题",
+          "default": "Transfer Energy"
+        },
+        {
+          "type": "inline_richtext",
+          "info": "需要换行，请使用 \\n ",
+          "id": "description",
+          "label": "描述",
+          "default": "Lorem ipsum dolor sit amet consectetur. Mattis sed ultrices ullamcorper at"
+        },
+        { "type": "color", "id": "text_color", "label": "文本颜色", "default": "#242F20" },
+        { "type": "image_picker", "id": "image_pc", "label": "PC图片地址", "info": "建议尺寸：1320 x 536" },
+        { "type": "image_picker", "id": "image_mb", "label": "MB图片地址", "info": "建议尺寸：686 x 514" },
+        { "type": "richtext", "id": "des", "label": "备注文案" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-配件介绍Tabs",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "swiper-item"
+        },
+        {
+          "type": "swiper-item"
+        },
+        {
+          "type": "swiper-item"
+        },
+        {
+          "type": "swiper-item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

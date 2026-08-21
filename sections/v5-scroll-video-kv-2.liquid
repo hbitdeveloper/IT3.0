@@ -1,0 +1,257 @@
+{% comment %}
+  PC端
+    1. header:4.1666667vw 最大60px
+    2. 产品二级导航:66px
+    3. 吸底购物车：3.75rem
+  移动端：
+    1. header: 3.125rem
+    2. 产品二级导航: 12.8vw
+    3. 吸底购物车: 26.6666vw - 高度随内容动态变化
+{% endcomment %}
+
+{% style %}
+  @media screen and (min-width: 1024px) {
+    .v5-scroll-video-kv-2 {
+      height: calc(100vh - min(4.1666667vw, 60px));
+    }
+    .v5-scroll-video-kv-2.in-pdp {
+      height: calc(100vh - 66px - 3.75rem);
+    }
+    .v5-scroll-video-kv-2 .content-box {
+      height: calc(100% - 10.25rem);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .v5-section-scroll-video-kv .pin-spacer {
+      background-color: #000;
+    }
+    .v5-scroll-video-kv-2 {
+      height: calc(100vh - 3.125rem);
+    }
+
+    .v5-scroll-video-kv-2.in-pdp {
+      height: calc(100vh - 12.8vw - 26.6666vw);
+    }
+
+    .v5-scroll-video-kv-2 .content-box {
+      height: calc(100% - 2.5rem);
+    }
+  }
+{% endstyle %}
+
+{%- liquid
+  # 产品页
+  if template == 'product' or template contains 'product.'
+    assign is_product_template = true
+  endif
+
+  assign wrapper_class = 'v5-scroll-video-kv-2 relative w-full overflow-hidden'
+  if is_product_template
+    assign wrapper_class = wrapper_class | append: ' in-pdp'
+  endif
+
+  assign pc_video = section.settings.pc_bg_video
+  assign pc_preview_image = section.settings.pc_poster
+  if section.settings.pc_poster == blank
+    assign pc_preview_image = pc_video.preview_image
+  endif
+
+  assign mb_video = section.settings.mb_bg_video
+  assign mb_preview_image = section.settings.mb_poster
+  if section.settings.mb_poster == blank
+    assign mb_preview_image = mb_video.preview_image
+  endif
+
+  assign bg_class = 'block w-full h-full object-cover'
+  assign subtitle_class = 'relative tracking-[-1px] pb-[1.25rem] lg:pb-[2.5rem] leading-[1.2] lg:leading-[1.8125] font-semibold text-[#fff] text-[0.875rem] lg:text-[2rem] w-full'
+  assign title_class = 'tracking-[-1px] text-[1.75rem] lg:text-[4.5rem] leading-[1.2] lg:leading-[1.25] font-semibold text-[#fff] w-full'
+-%}
+
+<div
+  id="v5ScrollVideoKv2"
+  class="{{ wrapper_class }}"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  data-video-play="false"
+>
+  <div class="content-box-1 section-container-lg absolute left-[50%] translate-x-[-50%] top-[2.5rem] lg:top-[10.25rem] z-10">
+    <div class="subtitle1 opacity-100 {{ subtitle_class }}">
+      {{ section.settings.subtitle1 }}
+    </div>
+    <div class="title1 pb-[1.25rem] lg:pb-[2.5rem] {{ title_class }}">
+      {{ section.settings.title1 }}
+    </div>
+  </div>
+  <div class="content-box-2 section-container-lg absolute left-[50%] translate-x-[-50%] top-[2.5rem] lg:top-[10.25rem] z-20">
+    <div class="subtitle2 top-[300px] opacity-0 {{ subtitle_class }}">
+      {{ section.settings.subtitle2 }}
+    </div>
+    <div class="title2 opacity-0 relative top-[500px] {{ title_class }}">
+      {{ section.settings.title2 }}
+    </div>
+  </div>
+  <div class="pc-video-wrap hidden lg:block h-full w-full overflow-hidden relative">
+    {%- if pc_video != blank -%}
+      {%- render 'viewport-video',
+        type: 'banner',
+        url: pc_video,
+        pauseAllDOM: '#v5ScrollVideoKv2',
+        observe: false,
+        poster: pc_preview_image,
+        autoplay: false,
+        loop: true,
+        controls: false,
+        show_muted_button: false,
+        show_pause_button: false
+      -%}
+    {%- else -%}
+      {%- if pc_preview_image != blank -%}
+        <img
+          class="{{ bg_class }}"
+          src="{{ pc_preview_image | image_url: width:1440 }}"
+          alt="{{ pc_preview_image.alt }}"
+          loading="lazy"
+          width="1440"
+          height="740"
+        >
+      {%- else -%}
+        {{ 'hero-apparel-1' | placeholder_svg_tag: bg_class }}
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+  <div class="mb-video-wrap block lg:hidden h-full w-full overflow-hidden relative">
+    {%- if mb_video != blank -%}
+      {%- render 'viewport-video',
+        type: 'banner',
+        pauseAllDOM: '#v5ScrollVideoKv2',
+        url: mb_video,
+        observe: false,
+        poster: mb_preview_image,
+        autoplay: false,
+        loop: true,
+        controls: false,
+        show_muted_button: false,
+        show_pause_button: false
+      -%}
+    {%- else -%}
+      {%- if mb_preview_image != blank -%}
+        <img
+          class="{{ bg_class }}"
+          src="{{ mb_preview_image | image_url: width:375 }}"
+          alt="{{ mb_preview_image.alt }}"
+          loading="lazy"
+          width="375"
+          height="500"
+        >
+      {%- else -%}
+        {{ 'hero-apparel-1' | placeholder_svg_tag: bg_class }}
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</div>
+
+<script src="{{ 'gsap.js' | asset_url }}" defer></script>
+<script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+<script src="{{ 'section-v5-scroll-video-kv-2.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-滚动视频KV-2",
+  "tag": "section",
+  "class": "v5-section-scroll-video-kv",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["product", "page"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "提醒：此组件固定为覆盖视窗可视区域（除吸顶和吸底元素的区域）展示"
+    },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "header", "content": "使用场景设置", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)",
+    },
+    {
+      "type": "header",
+      "content": "文案设置"
+    },
+    {
+      "type": "richtext",
+      "id": "subtitle1",
+      "label": "副标题1",
+      "default": "<p>Jackery Essential Home Backup</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "title1",
+      "label": "标题1",
+      "default": "<p>Power What Matters, Backup For The Masses.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "subtitle2",
+      "label": "副标题2",
+      "default": "<p>Power What Matters, Backup For The Masses.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "title2",
+      "label": "标题2",
+      "default": "<p>Cost-Effective, Easy Set-up Convenient for Everyone.</p>"
+    },
+    {
+      "type": "header",
+      "content": "视频设置"
+    },
+    {
+      "type": "video",
+      "id": "pc_bg_video",
+      "label": "PC端背景视频"
+    },
+    {
+      "type": "image_picker",
+      "id": "pc_poster",
+      "label": "PC端视频封面图",
+      "info": "推荐尺寸: 1440x800，不配置时默认取视频封面"
+    },
+    {
+      "type": "video",
+      "id": "mb_bg_video",
+      "label": "移动端背景视频"
+    },
+    {
+      "type": "image_picker",
+      "id": "mb_poster",
+      "label": "移动端视频封面图",
+      "info": "推荐尺寸: 375x500，不配置时默认取视频封面"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-滚动视频KV-2",
+      "category": "V5.0"
+    }
+  ]
+}
+{% endschema %}

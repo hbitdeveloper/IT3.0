@@ -1,0 +1,60 @@
+{% assign grids_list = section.blocks | where: 'type', "grid_item" %}
+
+<div class="events-list">
+        <h2 class="jky-text-2xl section-container text-center events-list-title page-section-title font-bold ">
+            {{title | escape}}
+        </h2>
+
+        <input class="events-list-btn none" type="checkbox" id="grid_all">
+        <div class="events-list-container section-container {% if grids_list.size < 4 %}grid-repeat-{{grids_list.size}}{% endif %}">
+            {% for block in blocks %}
+                {% case block.type %}
+                    {% when 'grid_item' %}
+                    <div class="events-list-item">
+                        <div class="focus-zoom-container">
+                            <img 
+                                src="{{block.settings.image | image_url: width: 338 }}"
+                                alt="{{block.settings.title | escape}}" 
+                                class="object-cover focus-zoom" loading="lazy"
+                            >                        
+                        </div>
+
+                        <div class="events-item-info">
+                            <div class="jky-text-base text-overflow-2">
+                                {% if block.settings.link != blank %}
+                                    <a class="text-black" href="{{block.settings.link}}">{{block.settings.title | escape}}</a>
+                                {% else %}
+                                    {{block.settings.title | escape}}
+                                {% endif %}
+                            </div>
+                            <div class="flex justify-between items-center events-item-action">
+                                <div class="date">{{block.settings.date | escape}}</div>
+                                <a class="slide-link a-button-fill" href="{{block.settings.link}}" data-analytics-title="{{ block.settings.title | escape }}">
+                                    {{block.settings.link_text | escape}}
+                                    <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endcase %}
+            {% endfor %}
+        </div>
+
+        {% assign grid_items = section.blocks | where: 'type', "grid_item" %}
+
+            <style>
+                .events-list-more {display:none;}
+                .events-list-more.mb_show__grid_all {display}
+                @media screen and (max-width: 768px) {
+                    .events-list-more.mb_show__grid_all {display: flex;}
+                }
+                .events-list-more.pc_show__grid_all {display: flex;}
+            </style>
+            <label for="grid_all" class="flex justify-center events-list-more relative {% if grid_items.size > 3 %}mb_show__grid_all{% endif %} {% if grid_items.size > 6 %}pc_show__grid_all{% endif %}">
+                <div class="z-button-big">
+                    <span class="no_all">{{show_all | escape}}</span>
+                    <span class="all">{{'accessibility.close' | t}}</span>
+                    <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                </div>
+            </div>
+</div>

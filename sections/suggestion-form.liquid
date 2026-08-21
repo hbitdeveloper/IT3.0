@@ -1,0 +1,156 @@
+{% comment %} 概念机页面 —— 建议收集及邮箱订阅表单组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Suggestion Form",
+  "tag": "section",
+  "class": "suggestion-form",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "Title",
+      "default": "Leave your thoughts and suggestions"
+    },
+    {
+      "type": "textarea",
+      "id": "mb_title",
+      "label": "MB Title"
+    },
+    {
+      "type": "text",
+      "id": "submitBtnTxt",
+      "label": "Submit Button Text",
+      "default": "I Want It!"
+    },
+    {
+      "type": "text",
+      "id": "emailInpPlaceholder",
+      "label": "Email Input Placeholder",
+      "default": "Enter your email"
+    },
+    {
+      "type": "text",
+      "id": "commentInpPlaceholder",
+      "label": "Comment Input Placeholder",
+      "default": "Your comment"
+    },
+    {
+      "type": "text",
+      "id": "emailErrorTips",
+      "label": "Email Error Tips",
+      "default": "Invalid email"
+    },
+    {
+      "type": "text",
+      "id": "nonEmptyPrompt",
+      "label": "Non-empty prompt",
+      "default": "Required Field"
+    },
+    {
+      "type": "richtext",
+      "id": "privacyCheckboxTxt",
+      "label": "Privacy Checkbox Text",
+      "default": "<p>Leave your thoughts and suggestions</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "subscribeCheckboxTxt",
+      "label": "Subscribe Checkbox Text",
+      "default": "<p>I agree to Jackery's Terms of Service and Privacy Policy.</p>"
+    },
+    {
+      "type": "text",
+      "id": "recipientEmail",
+      "label": "Subscribe Recipient's Email",
+      "info": " (Only @hello-tech.com and @ jackery.com suffixes are supported)"
+    },
+    {
+      "type": "text",
+      "id": "submitSuccessMessage",
+      "label": "Submit Success Message",
+      "default": "Success"
+    },
+    {
+      "type": "text",
+      "id": "submitErrorMessage",
+      "label": "Submit Error Message",
+      "default": "Woops! Something wrong!"
+    }
+  ]
+}
+{% endschema %}
+<style>
+  @media screen and (max-width: 1024px) {
+    .hide-mb {
+      display: none;
+    }
+    .hide-pc {
+      display: initial!important;
+    }
+  }
+  .hide-pc {
+    display: none;
+  }
+</style>
+<div class="suggestion-form-box"
+		 data-recipient="{{ section.settings.recipientEmail }}"
+		 data-success-message="{{ section.settings.submitSuccessMessage }}"
+		 data-error-message="{{ section.settings.submitErrorMessage }}">
+	<div class="lf-box">
+		{%- liquid
+        assign mb_title = section.settings.title
+        if section.settings.mb_title != blank
+          assign mb_title = section.settings.mb_title
+        endif
+      -%}
+      <span class="hide-mb">{{ section.settings.title | newline_to_br}}</span>
+      <span class="hide-pc">{{ mb_title | newline_to_br}}</span>
+	</div>
+	<div class="rg-box">
+		<form>
+			<div class="item-box box-email" data-error="{{ section.settings.emailErrorTips }}">
+				<input class="box-inp inp-email" type="text" placeholder="{{ section.settings.emailInpPlaceholder }}">
+			</div>
+
+			<div class="item-box box-comment" data-error="{{ section.settings.nonEmptyPrompt }}">
+				<textarea class="box-inp textarea-comment" name="comment" cols="30" rows="10" maxlength="2000"
+									placeholder="{{ section.settings.commentInpPlaceholder }}"></textarea>
+			</div>
+
+			<div class="item-box error-tips"></div>
+
+			<div class="item-box box-privacy" data-error="{{ section.settings.nonEmptyPrompt }}">
+				<jky-checkbox class="jky-checkbox_ jky-checkbox">
+					<label class="jky-checkbox">
+						<span class="jky-checkbox-input">
+							<input type="checkbox" class="jky-checkbox-original">
+							<span class="jky-checkbox-inner"></span>
+						</span>
+						<span class="jky-checkbox-label">
+							<span class="jky-agree">
+							 {{ section.settings.privacyCheckboxTxt }}
+							</span>
+						</span>
+					</label>
+				</jky-checkbox>
+			</div>
+
+			<div class="item-box box-subscribe">
+				<jky-checkbox class="jky-checkbox_ jky-checkbox">
+					<label class="jky-checkbox">
+						<span class="jky-checkbox-input">
+							<input type="checkbox" class="jky-checkbox-original">
+							<span class="jky-checkbox-inner"></span>
+						</span>
+						<span class="jky-checkbox-label">
+							<span class="jky-agree">
+							 {{ section.settings.subscribeCheckboxTxt }}
+							</span>
+						</span>
+					</label>
+				</jky-checkbox>
+			</div>
+			<button class="submit-btn" type="button">{{ section.settings.submitBtnTxt }}</button>
+		</form>
+	</div>
+</div>

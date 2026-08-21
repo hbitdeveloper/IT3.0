@@ -1,0 +1,139 @@
+<viewport-video
+    {% if observe == true %}data-observer{% endif %}
+    {% if loop == true %}loop{% endif %}
+    {% if controls == true %}controls{% endif %}
+    data-type="{{type}}"
+    data-pause-all-dom="{{pauseAllDOM | default:'body'}}"
+    class="relative w-full h-full block bg-black"
+>
+    {%- if poster != null -%}
+        {%- liquid
+            assign height = poster.width | divided_by: poster.aspect_ratio | round
+            assign widths = '375, 450, 525, 550, 600, 675, 750, 768, 850, 900, 1024, 1125, 1280, 1440, 1536, 1680, 1920, 2048, 2150, 2304, 2560, 2700, 2880, 3072, 3840, 4320, 5760'
+            assign fetch_priority = 'auto'
+            if section.index == 1
+                assign fetch_priority = 'high'
+            endif
+
+            assign media_width_desktop = '100vw'
+            assign media_width_mobile = '100vw'
+            if width_desktop != blank
+                assign media_width_desktop = width_desktop
+            endif
+
+            if width_mobile != blank
+                assign media_width_mobile = width_mobile
+            endif
+
+
+            if sizes != blank
+                assign vsizes = sizes
+            endif
+
+            assign valt = 'jackery media'
+            if alt != blank
+                assign valt = alt
+            endif
+
+            assign vloading = 'lazy'
+            if loading != blank
+                assign vloading = loading
+            endif
+        -%}
+
+        {{
+            poster
+            | image_url: width: 3840
+            | image_tag: height: height, sizes: vsizes, widths: widths, alt: valt, loading: loading, fetchpriority: fetch_priority, class: 'video-placeholder absolute w-full h-full left-0 top-0 object-cover z-[1] align-bottom'
+        }}
+    {%- else -%}
+        {% if request.design_mode %}
+            {{ 'hero-apparel-3' | placeholder_svg_tag: 'placeholder-svg video-placeholder absolute w-full h-full left-0 top-0 object-cover z-[1] align-bottom' }}
+        {% endif %}
+    {%- endif -%}
+
+    {%- liquid
+        assign video_class = "block w-full h-full left-0 top-0 align-bottom object-contain " | append: class
+    -%}
+    {% capture video_tag %}
+        {{
+            url | video_tag: image_size: '3840x',
+            autoplay: autoplay,
+            loop: loop,
+            muted: true,
+            controls: controls,
+            controlsList: 'nodownload',
+            class: video_class,
+            style: style
+        }}
+    {% endcapture %}
+
+    {% assign raw_video_url = url.sources[0].url | split: '/' | last | split: '.' | first | append: '.mp4' %}
+
+    {% capture video_origin %}
+        <video 
+            playsinline="playsinline" 
+            {% if autoplay %}autoplay{% endif %}
+            {% if loop %}loop{% endif %}
+            {% if controls %}controls{% endif %}
+            muted="muted" 
+            controlslist="nodownload" 
+            class="{{ class }} block" 
+            preload="metadata" 
+            poster="{{ url.preview_image | image_url: width: 2400 }}" 
+            data-cmp-info="10">
+                <source src="https://cdn.shopify.com/videos/c/o/v/{{ raw_video_url }}" type="video/mp4">
+                <img width="{{ url.preview_image.width }}" height="{{ url.preview_image.height }}" src="{{ url.preview_image | image_url: width: 2400 }}" data-cmp-info="10" alt="{{ url.preview_image.alt }}">
+        </video>
+    {% endcapture %}
+
+    <template>
+        {% if show_origin %}
+            {{ video_origin }}
+        {% else %}
+            {{ video_tag }}
+        {% endif %}
+    </template>
+
+    {%- assign show_play = true -%}
+    {%- if controls == true and poster == null -%}
+        {%- assign show_play = false -%}
+    {%- endif -%}
+    <div class="video-play-btn absolute z-[3]" {% if type == 'banner' or show_play == false %} style="display:none" {% endif %}>
+        {% render 'icon-play', class: 'w-full h-full rounded-full bg-black hover:bg-[#4d4d4d] transition-[background-color] duration-300', width: 48, height: 48, color: '#FFFFFF' %}
+    </div>
+
+    {% comment %} 重播按钮 {% endcomment %}
+    {%- if type == 'banner' and loop != true -%}
+        <div class="video-replay-btn cursor-pointer absolute w-9 h-9 right-3 bottom-5 lg:w-12 lg:h-12 lg:right-6 lg:bottom-10 z-[3]" style="display:none">
+            {% render 'icon-replay', class: 'w-full h-full rounded-full bg-black hover:bg-[#4d4d4d] transition-[background-color] duration-300', width: 48, height: 48, color: '#FFFFFF' %}
+        </div>
+    {%- endif -%}
+
+    {%- if controls != true -%}
+        <div class="flex flex-col lg:flex-row absolute right-5 bottom-5 w-9 h-fit gap-y-3 lg:w-fit lg:h-12 lg:gap-x-4 lg:right-6 lg:bottom-6 z-[3]">
+            {%- if show_muted_button -%}
+                <div class="flex flex-col lg:flex-row gap-y-3 lg:gap-x-4" style="display:none">
+                    {% comment %} 禁音按钮 {% endcomment %}
+                    <div class="video-turn-on-btn cursor-pointer w-9 h-9 lg:w-12 lg:h-12 z-[3]">
+                        {% render 'icon-muted', class: 'w-full h-full rounded-full bg-black hover:bg-[#4d4d4d] transition-[background-color] duration-300', width: 48, height: 48, color: '#FFFFFF' %}
+                    </div>
+                    <div class="video-turn-off-btn cursor-pointer w-9 h-9 lg:w-12 lg:h-12 z-[3]" style="display:none">
+                        {% render 'icon-unmuted', class: 'w-full h-full rounded-full bg-black hover:bg-[#4d4d4d] transition-[background-color] duration-300', width: 48, height: 48, color: '#FFFFFF' %}
+                    </div>
+                </div>
+            {%- endif -%}
+            {%- if show_pause_button -%}
+                <div class="flex flex-col lg:flex-row gap-y-3 lg:gap-x-4" style="display:none">
+                    {% comment %} 暂停按钮 {% endcomment %}
+                    <div class="video-turn-pause-btn cursor-pointer w-9 h-9 lg:w-12 lg:h-12 z-[3]">
+                        {% render 'icon-pause', class: 'w-full h-full rounded-full bg-black hover:bg-[#4d4d4d] transition-[background-color] duration-300', width: 48, height: 48, color: '#FFFFFF' %}
+                    </div>
+                    <div class="video-turn-play-btn cursor-pointer w-9 h-9 lg:w-12 lg:h-12 z-[3]" style="display:none">
+                        {% render 'icon-play', class: 'w-full h-full rounded-full bg-black hover:bg-[#4d4d4d] transition-[background-color] duration-300', width: 48, height: 48, color: '#FFFFFF' %}
+                    </div>
+                </div>
+            {%- endif -%}
+        </div>
+    {%- endif -%}
+</viewport-video>

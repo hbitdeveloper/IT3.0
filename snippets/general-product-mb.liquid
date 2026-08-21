@@ -1,0 +1,602 @@
+<div
+  class="general-product-grid {% if mb_is_swiper %}swiper overflow-hidden{% endif %} lg:hidden"
+  {% if mb_is_swiper %}data-mb-swiper="true" data-mb-slides="{{ mb_slides_per_view }}" data-total="{{ blocks_count }}"{% endif %}
+>
+  <div class="{% if mb_is_swiper %}flex swiper-wrapper {% if blocks_count < mb_slides_per_view %}justify-center{% endif %} {% else %}grid {{ mb_grid }} gap-2.5{% endif %}">
+    {% for block in section.blocks %}
+      {%- liquid
+        assign item = block.settings
+
+        # 默认 取产品的第一个变体
+        assign block_product = item.product.selected_or_first_available_variant
+
+        # 规范化变体ID，兼容纯数字ID 与 GraphQL GID
+        assign configured_vid = item.variant_id | default: '' | append: '' | strip
+        if configured_vid contains 'gid://shopify/ProductVariant/'
+          assign configured_vid = configured_vid | replace: 'gid://shopify/ProductVariant/', '' | strip
+        elsif configured_vid contains 'shopify/ProductVariant/'
+          assign configured_vid = configured_vid | replace: 'shopify/ProductVariant/', '' | strip
+        endif
+
+        # 配置了变体ID，则取对应变体
+        if configured_vid != blank
+          for variant in item.product.variants
+            assign vid = variant.id | append: ''
+            if vid == configured_vid
+              assign block_product = variant
+            endif
+          endfor
+        endif
+
+        # 产品图片
+        assign block_img = item.product_img
+        if block_img == blank
+          if block_product.image != blank
+            assign block_img = block_product.image
+          elsif item.product.featured_image != blank
+            assign block_img = item.product.featured_image
+          elsif item.product.images.size > 0
+            assign block_img = item.product.images.first
+          endif
+        endif
+        
+        # 产品标题
+        assign block_title = item.product_title
+        if block_title == blank
+          if block_product.metafields.custom.shortname != blank
+            assign block_title = block_product.metafields.custom.shortname
+          elsif block_product.title != blank and block_product.title != 'Default Title'
+            assign block_title = block_product.title
+          else
+            assign block_title = item.product.title
+          endif
+          assign block_title = block_title | escape | remove_first: 'Jackery' | strip
+        endif
+
+        # 产品折扣价
+        assign block_product_discount_price = item.product_discount_price
+        if item.product_discount_price != blank
+          # 配置了，则取配置的
+          assign block_product_discount_price = item.product_discount_price | times: 100.00
+        else
+          # 未配置，则取产品现价
+          assign block_product_discount_price = block_product.price
+        endif
+
+        # 提取价格有效期判断逻辑到外层
+        assign use_configured_price = false
+        assign current_time = 'now' | date: '%s' | times: 1
+
+        if item.begin_time != blank and item.end_time != blank
+          assign begin_timestamp = item.begin_time | date: '%s' | times: 1
+          assign end_timestamp = item.end_time | date: '%s' | times: 1
+          if current_time >= begin_timestamp and current_time <= end_timestamp
+            assign use_configured_price = true
+          else
+            assign use_configured_price = false
+          endif
+        else
+          assign use_configured_price = false
+        endif
+
+        # 新的价格计算逻辑
+        assign current_price = blank
+        assign original_price = blank
+        assign auto_discount_enabled = false
+        
+        if use_configured_price
+          # 活动期间：配置了begin_time和end_time，且当前时间在有效期内
+          if item.product_discount_price != blank and item.product_discount_price != ""
+            # 已配置产品折扣价，优先使用配置价格
+            assign current_price = item.product_discount_price | times: 100.00
+            if block_product != blank
+              if block_product.compare_at_price != blank and block_product.compare_at_price > block_product.price
+                assign original_price = block_product.compare_at_price
+              else
+                assign original_price = block_product.price
+              endif
+            endif
+          elsif section.settings.auto_calculate
+            # 没有配置产品折扣价，但开启了自动计算折扣
+            if block_product != blank
+              assign auto_discount_price = block_product.metafields.custom.auto_discount_price | default: 0
+              assign auto_discount_amount = block_product.metafields.custom.auto_discount_amount | default: 0
+              assign auto_discount_percentage = block_product.metafields.custom.auto_discount_percentage | default: 0
+              if auto_discount_price != blank and auto_discount_price != 0 and auto_discount_amount != blank and auto_discount_amount != 0
+                assign current_price = auto_discount_price | times: 1
+                assign discount_amount_from_meta = auto_discount_amount | times: 1
+                assign original_price = current_price | plus: discount_amount_from_meta
+                assign auto_discount_enabled = true
+              endif
+            endif
+          endif
+
+          # 活动期间但没有配置产品折扣价且关闭了自动计算折扣
+          if current_price == blank
+            if block_product != blank
+              assign current_price = block_product.price
+              if block_product.compare_at_price != blank and block_product.compare_at_price > block_product.price
+                assign original_price = block_product.compare_at_price
+              endif
+            endif
+          endif
+        else
+          # 非活动期间：未配置时间或时间不在有效期内
+          if section.settings.auto_calculate
+            # 开启了自动计算折扣
+            if block_product != blank
+              assign auto_discount_price = block_product.metafields.custom.auto_discount_price | default: 0
+              assign auto_discount_amount = block_product.metafields.custom.auto_discount_amount | default: 0
+              assign auto_discount_percentage = block_product.metafields.custom.auto_discount_percentage | default: 0
+              if auto_discount_price != blank and auto_discount_price != 0 and auto_discount_amount != blank and auto_discount_amount != 0
+                assign current_price = auto_discount_price | times: 1
+                assign discount_amount_from_meta = auto_discount_amount | times: 1
+                assign original_price = current_price | plus: discount_amount_from_meta
+                assign auto_discount_enabled = true
+              endif
+            endif
+          endif
+
+          # 非活动期间且没有开启自动计算折扣
+          if current_price == blank
+            if block_product != blank
+              assign current_price = block_product.price
+              if block_product.compare_at_price != blank and block_product.compare_at_price > block_product.price
+                assign original_price = block_product.compare_at_price
+              endif
+            endif
+          endif
+        endif
+
+        # 兜底逻辑：确保current_price不为空
+        if current_price == blank or current_price == 0
+          if block_product != blank
+            assign current_price = block_product.price
+          endif
+        endif
+
+        # 计算折扣金额和百分比
+        assign discount_amount = 0
+        assign discount_percent = 0
+        if auto_discount_enabled
+          # 如果开启自动折扣，直接使用元字段中的值
+          assign discount_amount = discount_amount_from_meta
+          if auto_discount_percentage != blank and auto_discount_percentage != 0
+            assign discount_percent = auto_discount_percentage | floor
+          elsif original_price != blank and original_price > current_price
+            assign discount_percent = discount_amount | times: 100 | divided_by: original_price | floor
+          else
+            assign discount_percent = 0
+          endif
+        elsif original_price != blank and original_price > current_price
+          assign discount_amount = original_price | minus: current_price
+          assign discount_percent = discount_amount | times: 100 | divided_by: original_price | floor
+        endif
+      -%}
+
+      <div class="v-general-product--inner flex flex-col {% if section.settings.discount_style == 'jp-discount' %}rounded-b-xl{% else %}rounded-xl{% endif %} {% if mb_is_swiper %}swiper-slide{% endif %}">
+        {% comment %} 日站折扣样式 {% endcomment %}
+        {%- if section.settings.discount_style == 'jp-discount' -%}
+          {%- liquid
+            assign discount_class = 'h-[2.53125rem]'
+            assign mb_discount_class = 'w-[8.65625rem] h-[2.53125rem]'
+            assign mb_discount_title_class = 'left-3.5 w-[6.5rem] text-2xl tracking-[-0.8px]'
+            assign mb_discount_time_class = 'left-[8.25rem] text-[0.8125rem]'
+            assign mb_time_box_class = 'h-[1.875rem]'
+            if section.settings.mb_products_number == 'mb-arrange-style-two' and section.settings.mb_products_style == 'mb-arrange-style'
+              assign discount_class = 'h-5'
+              assign mb_discount_class = 'w-[3.625rem] h-5'
+              assign mb_discount_title_class = 'left-1 w-11 text-[0.625rem] leading-none tracking-[-0.8px]'
+              assign mb_discount_time_class = 'left-[3.625rem] text-[0.625rem] leading-none tracking-[-0.4px]'
+              assign mb_time_box_class = 'h-5'
+            endif
+          -%}
+          {% if item.settings.discount_img != blank or discount_percent != 0 or item.product.variants.first.metafields.custom.discount_tag_time != blank %}
+            <div class="jp-discount-top w-full {{ discount_class }}">
+              <div class="jp-discount-message {{ discount_class }} relative">
+                {%- if item.settings.discount_img != blank -%}
+                  {%- render "responsive-image",
+                    mimage: item.settings.discount_img,
+                    image: item.settings.discount_img,
+                    width: 120,
+                    mwidth: 110,
+                    image_class: "object-cover"
+                  -%}
+                {%- else -%}
+                  <svg class="absolute left-0 top-0 z-[1] {{ mb_discount_class }}" width="154" height="45" viewBox="0 0 154 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {%- unless section.settings.mb_products_number == 'mb-arrange-style-two' and section.settings.mb_products_style == 'mb-arrange-style' -%}  
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M115.444 0h31.209l7.125 12.129h-38.334V0z" fill="#E14700" />
+                    {%- endunless -%}
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 13.333C0 5.97 5.97 0 13.333 0H146.51l-14.727 45H0V13.333z" fill="url(#prefix__paint0_linear_11_474)" />
+                    <defs>
+                      <linearGradient id="prefix__paint0_linear_11_474" x1="0" y1="0" x2="0" y2="45" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#FF6A26" />
+                        <stop offset="1" stop-color="#FD5102" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  {%- if discount_percent != 0 -%}
+                    <div class="jp-discount-box top-1/2 translate-y-[-50%] product_discount__num absolute z-[2] font-semibold text-white [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] {{ mb_discount_title_class }} text-center">
+                      {{ section.settings.discount_txt_style | replace: '()', discount_percent }}
+                    </div>
+                  {%- endif -%}
+                {%- endif -%}
+                <div class="jp-discount-time-box absolute w-full text-base left-0 bottom-0 [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] rounded-t-xl {{ mb_time_box_class }} bg-gradient-to-r from-[#FFF5DE] to-[#ECD6B2]">
+                  <div class="jp-time-text absolute top-1/2 translate-y-[-50%] [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] {{ mb_discount_time_class }} text-primary">
+                    {%- if item.product.variants.first.metafields.custom.discount_tag_time != blank -%}
+                      {{ item.product.variants.first.metafields.custom.discount_tag_time | strip }}
+                    {%- endif -%}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% elsif item.mb_discount_prefix_height %}
+            {% comment %} 日站折扣角标高度手动补全 {% endcomment %}
+            <div class="jp-discount-top w-full {{ discount_class }}"></div>
+          {% endif %}
+        {%- endif -%}
+
+        {% if item.product != blank %}
+          <div class="w-full flex-1 general-product-card-item flex flex-col overflow-hidden {% if section.settings.card_border_color != blank %}border border-solid{% endif %} {% if section.settings.discount_style == 'jp-discount' %} {% if item.settings.discount_img != blank or discount_percent != 0 or item.product.variants.first.metafields.custom.discount_tag_time != blank %}lg:rounded-b-2xl rounded-b-xl{% else %}lg:rounded-2xl rounded-xl{% endif %} {% else %}lg:rounded-2xl rounded-xl{% endif %}" style="background-color:{{ item.card_bg_color | default: '#FFF'}};{% if section.settings.card_border_color != blank %}border-color:{{ section.settings.card_border_color }};{% endif %}{{ style }}">
+            {%- liquid
+              assign mb_box_h = ''
+              assign mb_image_size = 'w-full h-full'
+              assign mb_detail_size = ''
+              assign us_discount_class = ''
+              assign eu_discount_class = 'w-[5rem] h-[4.3125rem]'
+              assign eu_discount_num = 'text-2xl'
+              assign eu_discount_pt = 'pt-1'
+              assign eu_discount_text_size = 'text-xs'
+            -%}
+
+            {%- assign tag_class = '' -%}
+            {%- assign title_class = '' -%}
+            {%- assign subtitle_class = '' -%}
+            {%- assign bottom_class = '' -%}
+            {%- assign bundle_class = '' -%}
+            {%- assign bundle_image_class = '' -%}
+            {%- assign bundle_title_class = '' -%}
+            {%- assign main_price_class = 'text-xl' -%}
+            {%- assign sub_price_class = 'text-sm' -%}
+            {%- assign code_class = '' -%}
+            {%- assign installment_class = '' -%}
+            {%- assign button_class = '' -%}
+            {%- assign mb_show = true -%}
+            {%- if section.settings.mb_products_number == 'mb-arrange-style-two' and section.settings.mb_products_style == 'mb-arrange-style' -%}
+              {%- assign mb_box_h = 'h-[7.75rem]' -%}
+              {%- assign us_discount_class = 'w-[4.6875rem] h-[1.5625rem] px-[0.46875rem] text-xs' -%}
+              {%- assign eu_discount_class = 'w-[3.4375rem] h-[2.75rem]' -%}
+              {%- assign eu_discount_num = 'text-base' -%}
+              {%- assign eu_discount_pt = 'pt-0' -%}
+              {%- assign eu_discount_text_size = 'text-[0.625rem] leading-none' -%}
+              {%- assign tag_class = 'right-3 top-2 text-xs' -%}
+              {%- assign title_class = 'text-sm line-clamp-3' -%}
+              {%- assign subtitle_class = 'text-xs' -%}
+              {%- assign bottom_class = 'pt-[0.5625rem] pb-3 px-3 min-h-[18.0625rem]' -%}
+              {%- assign main_price_class = 'text-sm' -%}
+              {%- assign sub_price_class = 'text-xs' -%}
+              {%- assign code_class = 'mb-2.5' -%}
+              {%- assign button_class = 'flex-col' -%}
+              {%- assign mb_show = 'conditional' -%}
+            {%- elsif section.settings.mb_products_number == 'mb-arrange-style-two' and section.settings.mb_products_style == 'mb-swiper-style' -%}
+              {%- assign mb_box_h = 'h-[14.0625rem]' -%}
+              {%- assign us_discount_class = 'w-[4.5rem] h-[1.5625rem] px-1.5 text-sm' -%}
+              {%- assign tag_class = 'right-2 top-1.5 text-xs' -%}
+              {%- assign title_class = 'text-base' -%}
+              {%- assign subtitle_class = 'text-xs' -%}
+              {%- assign bottom_class = 'pt-4 pb-5 px-5 h-auto' -%}
+              {%- assign bundle_class = 'p-2' -%}
+              {%- assign bundle_image_class = 'w-[3.6875rem] h-[3.6875rem]' -%}
+              {%- assign bundle_title_class = 'leading-[1.125rem]' -%}
+              {%- assign code_class = 'mb-3.5' -%}
+              {%- assign installment_class = 'mb-5' -%}
+              {%- assign button_class = 'flex-col' -%}
+            {%- else -%}
+              {%- assign mb_box_h = 'h-[16.09375rem]' -%}
+              {%- assign us_discount_class = 'w-[6.875rem] h-[2.25rem] px-2.5 text-lg' -%}
+              {%- assign tag_class = 'right-4 top-3 text-base' -%}
+              {%- assign title_class = 'jds-h4 mb-1' -%}
+              {%- assign subtitle_class = 'text_b3' -%}
+              {%- assign bottom_class = 'pt-4 pb-5 px-5 h-auto' -%}
+              {%- assign bundle_class = 'p-2' -%}
+              {%- assign bundle_image_class = 'w-[3.6875rem] h-[3.6875rem]' -%}
+              {%- assign bundle_title_class = 'leading-[1.125rem]' -%}
+              {%- assign code_class = 'mb-3.5' -%}
+              {%- assign installment_class = 'mb-5' -%}
+            {%- endif -%}
+            <div class="general-product-top relative flex flex-shrink-0 justify-center items-center">
+              {%- capture us_class -%}
+                object-cover absolute top-0 left-0 z-[1] w-[4.6875rem] h-[1.5625rem] lg:w-[7.5rem] lg:h-10 text-lg [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform]
+              {%- endcapture -%}
+              {%- capture eu_class -%}
+                object-cover absolute top-0 lg:left-6 left-5 z-[1] [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] {{ eu_discount_class }} {{ eu_discount_h_class }}
+              {%- endcapture -%}
+              {%- if section.settings.discount_style == 'us-discount' -%}
+                {%- if item.discount_img != blank -%}
+                  {%- render "responsive-image",
+                    mimage: item.discount_img,
+                    image: item.discount_img,
+                    width: 120,
+                    mwidth: 75,
+                    image_class: us_class
+                  -%}
+                {%- else -%}
+                  {%- if discount_amount != 0 -%}
+                    <div class="us-discount-box product_discount__num flex items-center justify-center absolute top-0 left-0 z-[1] [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] lg:w-[7.5rem] lg:h-10 rounded-tl-xl rounded-br-xl bg-gradient-to-r from-[#FF9F36] to-[var(--jds-color-primary)] font-semibold text-white lg:text-xl {{ us_discount_class }}">
+                      {%- assign discount_value = discount_amount | divided_by: 100 | floor -%}
+                      {{ section.settings.discount_txt_style | replace: '()', discount_value }}
+                    </div>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- elsif section.settings.discount_style == 'eu-discount' -%}
+                {%- if item.discount_img != blank -%}
+                  {%- render "responsive-image",
+                    mimage: item.discount_img,
+                    image: item.discount_img,
+                    width: 110,
+                    mwidth: 55,
+                    image_class: eu_class
+                  -%}
+                {%- else -%}
+                  {%- if item.save_txt_up != blank and discount_percent != 0 -%}
+                    <img class="{{ eu_class }}"
+                          alt="{{ item.settings.heading }}"
+                          loading="lazy"
+                          src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-image.svg?v=1760005467"/>
+                    <div class="{{ eu_discount_class }} absolute z-[1] left-[1.25rem] top-0 flex flex-col items-center [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] {{ eu_discount_pt }} pb-4">
+                      <div class="product_discount__num font-semibold text-white text-center [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] {{ eu_discount_num }}">
+                        {{ section.settings.discount_txt_style | replace: '()', discount_percent }}
+                      </div>
+                      <div class="product_discount__text font-semibold text-white text-center [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] {{ eu_discount_text_size }}">
+                        {{ item.save_txt_up | default: 'Save' }}
+                      </div>
+                    </div>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- elsif section.settings.discount_style == 'jp-discount' -%}
+                {%- if item.product.metafields.custom.product_tag_image != blank -%}
+                  <div class="lg:h-10 h-[2.8125rem] absolute lg:top-4 lg:left-3.5 top-[0.6875rem] left-[0.3125rem] z-[1] [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform]">
+                    <img src="{{ item.product.metafields.custom.product_tag_image | img_url: 'master' }}" alt="product tag image" loading="lazy" class="lg:h-10 h-[2.8125rem] object-cover">
+                  </div>
+                {%- endif -%}
+              {%- endif -%}
+              {%- if section.settings.discount_style != 'jp-discount' and item.discount_tag != blank  -%}
+                <div class="absolute z-[1] [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform] font-semibold lg:top-3 lg:right-4 text-primary lg:text_b2 {{ tag_class }} landing-block--product--ptag--1">
+                  {{ item.discount_tag }}
+                </div>
+              {%- endif -%}
+              <div class="general-top-image w-full relative overflow-hidden flex justify-center items-center {{ mb_box_h }}">
+                {%- capture img_classes -%}
+                  group-hover:scale-[1.03] transition-transform duration-300 object-contain object-center {{ mb_image_size }}
+                {%- endcapture -%}
+                {%- if block_img != blank -%}
+                  {% render "responsive-image",
+                    image: block_img,
+                    mimage: item.product_img_mb,
+                    width: 343,
+                    mwidth: 343,
+                    picture_class: 'w-full h-full',
+                    image_class: img_classes
+                  %}
+                {%- else -%}
+                  <img class="object-contain object-center {{ mb_image_size }} flex-shrink-0
+                    {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' -%}
+                      rounded-tl-xl rounded-tr-xl
+                    {%- else -%}
+                      rounded-tl-xl rounded-bl-xl
+                    {%- endif -%}"
+                    src="{{ 'placeholder.webp' | asset_url }}"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"/>
+                {%- endif -%}
+                {%- if block_product != blank -%}
+                  <a class="absolute z-[2] inset-0 opacity-0" href="{{ block_product.url }}" {% if section.settings.new_link_page %} target="_blank" {% endif %}></a>
+                {%- endif -%}
+              </div>
+            </div>
+            <div class="flex-1 h-max {{ mb_detail_size }} general-product-button pt-4 pb-5 flex flex-col justify-between {{ bottom_class }}">
+              {%- assign title_size = 'jds-h4 mb-2 font-semibold' -%}
+              {%- assign subtitle_size = 'text_b3' -%}
+              {%- assign message_h = '' -%}
+              {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'around-arrange-style' -%}
+                {%- assign title_size = 'jds-h4 mb-2' -%}
+                {%- assign message_h = '' -%}
+              {%- endif -%}
+              {%- assign line_clamp = 'line-clamp-2' -%}
+              {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' -%}
+                {%- assign line_clamp = 'line-clamp-1' -%}
+              {%- endif -%}
+              {%- if section.settings.pc_products_number != 'arrange-style-two' -%}
+                {%- assign title_size = 'text-xl font-medium mb-2' -%}
+                {%- assign message_h = '' -%}
+              {%- endif -%}
+              <div class="general-product-message text-left {{ message_h }} mb-4">
+                <a class="general-title cursor-pointer no-underline" href="{{ block_product.url }}" {% if section.settings.new_link_page %} target="_blank" rel="noopener noreferrer" {% endif %} style="text-decoration: none; color: inherit;">
+                  <div class="general-card--title text-[#1A1A1A] {{ title_size }} {{ line_clamp }} {{ title_class }}">
+                    {{ block_title }}
+                  </div>
+                </a>
+                {%- if item.selling_points != blank -%}
+                  <div class="general-subtitle text-black/60 {{ subtitle_size }} {{ line_clamp }} {{ subtitle_class }}">{{ item.selling_points }}</div>
+                {%- endif -%}
+              </div>
+              <div class="general-product-price">
+                {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' -%}
+                  <div class="product-line lg:mb-4 bg-[rgba(0,0,0,0.07)] max-lg:hidden" style="height: 1px;"></div>
+                {%- endif -%}
+                {%- assign should_show_price = false -%}
+                {%- if use_configured_price and item.product_discount_price != blank and item.product_discount_price != "" -%}
+                  {%- assign should_show_price = true -%}
+                {%- elsif block_product != blank -%}
+                  {%- assign should_show_price = true -%}
+                {%- endif -%}
+                {%- if should_show_price -%}
+                  <div class="general-price-message">
+                    <div class="price-message-top">
+                      {%- unless section.settings.mb_products_number == 'mb-arrange-style-two' and section.settings.mb_products_style == 'mb-arrange-style' -%}
+                        <div class="bundle-recommend-product flex-1 w-full mb-3 {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}"
+                              style="display: none;"
+                              pid="{% if item.variant_id != blank %}{{ item.variant_id }}{% else %}{{ item.product.selected_or_first_available_variant.id }}{% endif %}">
+                          <div class="rounded py-2 {{ bundle_class }} pl-1.5 pr-2 flex flex-1"
+                                style="border: 1px solid #DDDDDD;">
+                            <div class="bundle-left mr-2">
+                              <img class="bundle-img {{ bundle_image_class }} object-contain"
+                                    src=""
+                                    alt="Bundle Product"
+                                loading="lazy">
+                            </div>
+                            <div class="bundle-right flex flex-col justify-between flex-1">
+                              <div class="bundle-title text-left w-[11.5625rem] text-[#666666] line-clamp-2 text_b3 lg:leading-[1.125rem] {{ bundle_title_class }}"></div>
+                              <div class="bundle-message-bottom flex items-end justify-between">
+                                <div class="bundle-message-price flex items-end">
+                                  <div class="bundle-price text_b3 text-primary lg:font-semibold lg:mr-2 mr-1 text-sm font-semibold"></div>
+                                  <div class="bundle-line-price line-through text_b3 text-[#999999]" style="display:none;"></div>
+                                </div>
+                                <div class="bundle-quantity quantity-selector">
+                                  <button class="quantity-btn minus lg:w-6 w-6 lg:h-6 h-6 flex items-center justify-center" name="minus" type="button">
+                                    {% render 'icon-minus' %}
+                                  </button>
+                                  <input class="quantity-input lg:w-6 w-6 lg:h-6 h-6 text-center" type="number" value="0" min="0" max="999" step="1"/>
+                                  <button class="quantity-btn plus lg:w-6 w-6 lg:h-6 h-6 flex items-center justify-center" name="plus" type="button">
+                                    {% render 'icon-plus' %}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      {%- endunless -%}
+                      {%- if section.settings.two_products_style != 'up-down-swiper-style' or mb_show == 'conditional' or section.settings.pc_products_number == 'arrange-style-three' or section.settings.pc_products_number == 'arrange-style-two' or section.settings.pc_products_number == 'arrange-style-four' -%}
+                        {%- if section.settings.code_text != blank and item.code != blank -%}
+                          <div class="recommend-code text_b3 {{ code_class }} w-full p-2 rounded-lg bg-[#FFF9EE] flex justify-between items-center" data-sku-id="{{ block_product.id }}">
+                            <div class="recommend-right-code flex items-center {% if mb_show == 'conditional' %}w-[6.5rem]{% endif %}">
+                              <img class="w-5 h-5 mr-2 {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}"
+                                    src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-product.svg?v=1760005210"
+                                    alt="{{ section.settings.installment | escape }}"
+                                    loading="lazy"/>
+                              <span class="{% if section.settings.mb_products_number == 'mb-arrange-style-two' %}text-primary{% else %}text-[#8E8168]{% endif %} font-medium">{{ section.settings.code_text }}</span>
+                              <span class="general-code {% if section.settings.mb_products_number == 'mb-arrange-style-two' %}text-primary{% else %}text-[#8E8168]{% endif %} font-medium line-clamp-1">{{ item.code }}</span>
+                            </div>
+                            <span class="recommend-copy text-primary underline underline-offset-1 font-semibold cursor-pointer {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}">
+                              {{ section.settings.copy_text }}
+                            </span>
+                            {% if mb_show == 'conditional' %}
+                              <svg class="mr-2 recommend-copy w-[0.84375rem] h-[0.84375rem] flex-shrink-0" width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M21.2143 2.41071C21.1564 1.02214 20.0996 0 18.8036 0H2.41071C1.02214 0.0578571 0 1.11471 0 2.41071V18.8036C0.0578571 20.1921 1.11471 21.2143 2.41071 21.2143H5.78571V24.5893C5.84357 25.9779 6.90043 27 8.19643 27H24.5893C25.9779 26.9421 27 25.8853 27 24.5893V8.19643C26.9421 6.80786 25.8853 5.78571 24.5893 5.78571H21.2143V2.41071ZM8.67857 8.67857H24.1071V24.1071H8.67857V8.67857ZM17.8393 12.0536V14.9464H20.7321V17.8393H17.8393V20.7321H14.9464V17.8393H12.0536V14.9464H14.9464V12.0536H17.8393ZM18.3214 2.89286V5.78571H8.19643C6.80786 5.84357 5.78571 6.90043 5.78571 8.19643V18.3214H2.89286V2.89286H18.3214Z" fill="var(--jds-color-primary)" />
+                              </svg>
+                            {% endif %}
+                          </div>
+                        {%- endif -%}
+                      {%- endif -%}
+                      <div class="price-product-detail flex-1 w-full">
+                        <div class="recommend-price-content flex items-center lg:mb-[0.3125rem] mb-4">
+                          {%- assign current_cents_remainder = current_price | modulo: 100 -%}
+                          {%- if current_cents_remainder == 0 -%}
+                            {%- assign display_current_money = current_price | money_without_trailing_zeros -%}
+                          {%- else -%}
+                            {%- assign display_current_money = current_price | money -%}
+                          {%- endif -%}
+                          <span class="recommend-price--current text-primary font-semibold line-clamp-2 mr-2 {{ main_price_class }}">
+                            {{ display_current_money }}
+                          </span>
+                          {%- if original_price != blank and original_price > current_price -%}
+                            {%- assign original_cents_remainder = original_price | modulo: 100 -%}
+                            {%- if original_cents_remainder == 0 -%}
+                              {%- assign display_original_money = original_price | money_without_trailing_zeros -%}
+                            {%- else -%}
+                              {%- assign display_original_money = original_price | money -%}
+                            {%- endif -%}
+                            <span class="recommend-price--origin line-through pt-1 text-black/40 mr-2 {{ sub_price_class }}">
+                              {{ display_original_money }}
+                            </span>
+                            {%- if section.settings.discount_price_style -%}
+                              {%- assign discount_amount = original_price | minus: current_price -%}
+                              {%- assign discount_cents_remainder = discount_amount | modulo: 100 -%}
+                              {%- if discount_cents_remainder == 0 -%}
+                                {%- assign display_money = discount_amount | money_without_trailing_zeros -%}
+                              {%- else -%}
+                                {%- assign display_money = discount_amount | money -%}
+                              {%- endif -%}
+                              <span class="recommend-price--discount text-primary pt-1 {{ sub_price_class }} {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}">
+                                -{{ display_money }}
+                              </span>
+                            {%- endif -%}
+                          {%- endif -%}
+                        </div>
+                        {%- if section.settings.installment != blank -%}
+                          <div
+                            class="recommend-installment jds-c1 mb-5 {{ installment_class }} flex items-end {% if mb_show == 'conditional' %}max-lg:hidden{% endif %}"
+                            style="opacity:0"
+                            data-price="{{ current_price }}"
+                            data-installment-text="{{ section.settings.installment | escape }}"
+                          >
+                            <span style="line-height:1.3 !important;" class="mr-[0.24rem] line-clamp-1 text-xs">
+                              {{ section.settings.installment }}
+                            </span>
+                            {%- if section.settings.installment_img != blank -%}
+                              <img class="w-[2.40625rem] h-4 object-contain"
+                                    src="{{ section.settings.installment_img | img_url: '77px' }}"
+                                    alt="{{ section.settings.installment | escape }}"
+                                    loading="lazy"/>
+                            {%- endif -%}
+                          </div>
+                        {%- endif -%}
+                      </div>
+                    </div>
+                    <div class="price-message-bottom flex justify-between items-center lg:gap-4">
+                      {%- if section.settings.pc_products_number == 'arrange-style-two' and section.settings.two_products_style == 'up-down-swiper-style' -%}
+                        {%- if section.settings.code_text != blank and item.code != blank -%}
+                          <div class="recommend-code text_b3 flex-1 flex-shrink-0 w-full max-lg:hidden" data-sku-id="{{ block_product.id }}">
+                            <div class="p-2 rounded-lg bg-[#FFF9EE] flex justify-between items-center">
+                              <div class="recommend-right-code flex items-center">
+                                <img class="w-6 h-6 mr-2"
+                                  src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/discount-product.svg?v=1760005210"
+                                  alt="{{ section.settings.installment | escape }}"
+                                  loading="lazy"/>
+                                <span class="{% if section.settings.mb_products_number == 'mb-arrange-style-two' %}text-primary{% else %}text-[#8E8168]{% endif %} font-medium">{{ section.settings.code_text }}</span>
+                                <span class="general-code {% if section.settings.mb_products_number == 'mb-arrange-style-two' %}text-primary{% else %}text-[#8E8168]{% endif %} font-medium">{{ item.code }}</span>
+                              </div>
+                              <span class="recommend-copy text-primary underline underline-offset-1 font-semibold cursor-pointer">
+                                {{ section.settings.copy_text }}
+                              </span>
+                            </div>
+                          </div>
+                        {%- else -%}
+                          <div class="flex-1 flex-shrink-0 max-lg:hidden"></div>
+                        {%- endif -%}
+                      {%- endif -%}
+                      {% comment %} 功能按钮 {% endcomment %}
+                      <div class="recommend-product-btn flex lg:flex-row items-center justify-center lg:gap-2 gap-2 flex-1 flex-shrink-0 w-full {{ button_class }}">
+                        {% for i in (1..2) %}
+                          {% assign button_type_key = 'function_type_' | append: i %}
+                          {% assign button_text_key = 'button_text_' | append: i %}
+                          {% assign button_variant_key = 'button_variant_' | append: i %}
+                          {% assign custom_link_key = 'custom_link_' | append: i %}
+                          {% assign current_button_text = item[button_text_key] | default: '' %}
+                          {% assign display_button_text = current_button_text | strip | truncate: 20 %}
+                          {% if item[button_type_key] != '' and display_button_text != blank %}
+                            <div class="buttons-wrap flex-1 flex-shrink-0 h-9 lg:h-10 {% if section.settings.pc_products_number == 'arrange-style-two' and section.settings.pc_products_style == 'pc-arrange-style' %} lg:w-[8.8125rem]{% endif %}">
+                              {% render 'product-action-buttons',
+                                firstProduct: block_product,
+                                function_type: item[button_type_key],
+                                button_text: display_button_text,
+                                button_variant: item[button_variant_key],
+                                custom_link: item[custom_link_key],
+                                link_blank: section.settings.new_link_page
+                              %}
+                            </div>
+                          {%- endif -%}
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                {%- endif -%}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>

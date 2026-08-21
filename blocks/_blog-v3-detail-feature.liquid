@@ -1,0 +1,90 @@
+{% doc %} 
+    大分类页/标签页 -- 精选博客文章tab
+{% enddoc %}
+
+{% style %}
+    .blog-detail-feature-tab-item.active{
+        color: #ffffff;
+        background-color: var(--jds-color-primary);
+        border-radius: 0.25rem 0.25rem 0 0; 
+    }
+    .blog-detail-feature-tab-content {
+        display: none;
+    }
+    .blog-detail-feature-tab-content.active {
+        display: block;
+    }
+{% endstyle %}
+
+{% liquid
+    assign latest_blogs_text = block.settings.latest_blogs_text | escape
+    assign popular_blogs_text = block.settings.popular_blogs_text | escape
+    assign articles_count = block.settings.articles_count | default: 6
+    assign popular_articles_count = blog.metafields.custom.popular_articles.value.count
+    assign popular_articles = blog.metafields.custom.popular_articles.value
+    assign current_tag = current_tags | first
+    assign h1 = blog.metafields.custom.h1 | default: blog.title
+    # 判断当前是否为标签页
+    if current_tag != blank
+        assign curr_tag_info = shop.metaobjects.tag.values| where: 'title', current_tag | first
+        assign title = current_tag | escape
+        assign h1 = title
+        if curr_tag_info
+            assign h1 = curr_tag_info.h1 | default: title
+            if curr_tag_info.popular_articles.value.count > 0
+                assign popular_articles = curr_tag_info.popular_articles.value
+                assign popular_articles_count = curr_tag_info.popular_articles.value.count
+            endif
+        endif
+    endif
+%}
+
+<div class="w-full mb-16" {{ block.shopify_attributes }}>
+    <jky-blog-v3-detail-feature data-title="{{ h1 | escape }}">
+        {% if popular_blogs_text != blank and popular_articles_count > 0 %}
+            <div class="w-full bg-[#f5f5f5] mb-4 grid grid-cols-2 grap-0 border-solid border-0 border-b-[2px] border-[rgba(0,0,0,0.07)] blog-detail-feature-tabs ">
+                {%- assign class_list = 'text-ellipsis-1 px-[0.5rem] lg:px-[1rem] font-medium text-center cursor-pointer text-[0.875rem] lg:text-[1.25rem] py-[0.75rem] lg:py-[1rem] text-[#666666]' -%}
+                <div class="{{ class_list }} blog-detail-feature-tab-item active" data-tab="latest">{{ latest_blogs_text }}</div>
+                <div class="{{ class_list }} blog-detail-feature-tab-item" data-tab="popular">{{ popular_blogs_text }}</div>
+            </div>
+        {% else %}
+            <div class="blog-v3-h2 truncate w-full mb-4 pb-3 border-solid border-0 border-b-[2px] border-[#EDEDED]"> {{ latest_blogs_text }} </div>
+        {% endif %}
+
+        <div>
+            <div id="blogDetailLatest" class="blog-detail-feature-tab-content active" data-tab="latest">
+                {% render 'latest-articles-detail', limit: articles_count, title: latest_blogs_text  %}
+            </div>
+            {% if popular_blogs_text != blank and popular_articles_count > 0 %}
+                <div class="blog-detail-feature-tab-content" data-tab="popular">
+                    {%- for item in popular_articles -%}
+                        {%- assign article = articles[item.article] -%}
+                        {% if article != blank %}
+                            {% render 'article-snippet', article: article, title: popular_blogs_text %}
+                        {% endif %}
+                    {%- endfor -%}
+                </div>
+            {% endif %}
+        </div>
+    </jky-blog-v3-detail-feature>
+</div>
+<script src="{{ 'blocks-_blog-v3-detail-feature.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "V3博客分类页-精选文章",
+        "tag": null,
+        "blocks": [],
+        "settings": [
+            { "type": "text", "id": "latest_blogs_text", "label": "最新博客文章标题", "default": "Latest Blogs" },
+            { "type": "text", "id": "popular_blogs_text", "label": "受欢迎的博客文章标题", "default": "Most Popular Blogs", "info": "不配置标题则该版块不展示" },
+            { "type": "range", "id": "articles_count", "min": 1, "max": 50, "step": 1, "unit": "篇", "label": "文章显示数量","default": 6 }
+        ],
+        "presets": [
+            {
+                "name": "V3博客分类页-精选文章",
+                "category": "Blog-V3"
+            }
+        ]
+    }
+{% endschema %}

@@ -1,0 +1,2080 @@
+<style>
+  body {
+    overflow-x: hidden;
+  }
+  .product-price--discount_amount {
+    font-size: 15px;
+    color: var(--primary-color);
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background-color: #FFEEE6;
+    display: inline-block;
+    margin-bottom: 1px;
+  }
+  .product-price--discount_amount.hidden {
+    display: none;
+  }
+  .add_cart_error_wrapper {font-size: 18px;text-align: right;font-weight: 400;margin: 10px 0;color: rgba(255, 59, 48, 1);}
+  @media screen and (max-width:1024px) {
+    .product-price--discount_amount {font-size: 12px;padding: 3px 6px;border-radius: 6px;padding-bottom: 0px;margin-bottom: 0px;}
+    .add_cart_error_wrapper {font-size: 14px;}
+  }
+  .main-product__price_box {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+  .pswp__bullets-indicator {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+
+  .pswp__bullet {
+    width: 72px;
+    height: 72px;
+    margin-right: 12px;
+  }
+
+  .pswp__bullet:last-child {
+    margin-right: 0;
+  }
+
+  .pswp__bullet img {
+    width: 100%;
+    height: 100%;
+  }
+
+  .pswp__bullet--active {
+    border: 1px solid var(--jds-color-primary);
+  }
+
+  .pswp .pswp__bg {
+    background-color: #ffffff;
+  }
+
+  .pswp__bullets-indicator {
+    background: #fff;
+    width: 100%;
+    justify-content: center;
+    height: 136px;
+    bottom: 0;
+    align-items: center;
+    padding: 2rem 1rem;
+    border-top: 1px solid #DDDDDD;
+  }
+
+
+  /* upsell 样式调整 */
+  .ga-products .ga-product{
+    border-radius:10px;
+    align-items:center;
+  }
+  .ga-products li{
+    position:relative;
+  }
+  .ga-related-vertical li.ga-product:after {
+    content: "";
+    width: calc(100% - 30px);
+    height: calc(100% - 30px);
+    background: #ffffff;
+    position: absolute;
+    border-radius: 10px;
+    border: 1px solid lightgrey;
+  }
+  .ga-products .ga-product-image-wp{
+    margin-left:10px;
+  }
+  .ga-products .ga-product-image-wp,.ga-products .ga-related-vertical-content{
+    z-index:1;
+  }
+  .ga-products .ga-related-vertical-content{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .ga-products .ga-related-vertical-content .ga-product_title {
+    min-height: auto !important;
+    height: auto !important;
+    margin-bottom:10px;
+  }
+
+  .ga-related-vertical li.ga-product{
+    padding:15px;
+  }
+  .ga-related-vertical-content .ga-product_price-container{
+    display:flex;
+    align-items: center;
+  }
+  .ga-related-vertical-content .ga-product_price{
+    margin-right:10px;
+  }
+  .ga-related-vertical li.ga-product{
+    background:#f5f5f5;
+  }
+  .ga-products-box .ga-product_image:after {
+    padding-top: 100% !important;
+  }
+  .ga-products .ga-product_image{
+    margin-bottom:0;
+  }
+
+  .main-product {
+    --head-top: 40px; --photo-w: 580px; --thumbs-w: 72px; --distance: 40px; --thumbs-top: 15px; --thumbs-distance: 80px;
+    --swiper-navigation-size: 20px; --swiper-theme-color: #666; --swiper-pagination-color: var(--jds-color-primary); --swiper-pagination-bullet-inactive-color: #000;
+    --weak-line-color: #666; --border-link-e: 1px #eee solid; --compare-price-distance: 10px; --variant-item-height: 60px;
+    --font-normal: 16px; --font-small: 14px; --jky-text-base: 18px;
+    --action-button: 48px; --coupon: 350px;
+
+    padding: var(--head-top) 0; overflow: initial;
+  }
+  {% if settings.show_pdp_breadcrumbs %}
+    .main-product {
+      --head-top: 80px;
+    }
+  {% endif %}
+  #shopify-section-{{ section.id }}{
+    {%- if settings.main_product_color_top != blank -%}
+      {%- if settings.main_product_color_bottom == blank -%}
+        background: {{ settings.main_product_color_top }};
+      {%- else -%}
+        background: linear-gradient(to bottom,{{ settings.main_product_color_top }},{{ settings.main_product_color_bottom }});
+      {%- endif -%}
+    {%- endif -%}
+  }
+  .main-product img {max-width: 100%;}
+  .main-product .barnd-color, .main-product .jackery-icon-arrowdown {color: var(--primary-color);}
+  /** remove input number +- button */
+  .main-product input[type=number]::-webkit-inner-spin-button, .main-product input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none; appearance: none; margin: 0;
+  }
+  .main-product input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  .main-product button[disabled] {opacity: 0.3; pointer-events: none;}
+
+  .layer-container {width: calc(100% - 60px); max-width: 1200px; margin: 0 auto;}
+
+  .gallery, .meta {width: var(--photo-w); height: max-content;}
+
+
+  /** gallery part style, start var(--thumbs-distance) */
+  @media screen and (min-width: 1024px) {
+    .gallery {position: sticky; top: calc(var(--header-main) + var(--head-top));}
+    figure .total-icon-box{
+      display: flex;
+      justify-content: center;
+    }
+  }
+  .swiper.photo {width: var(--photo-w); height: var(--photo-w);}
+  .swiper-slide img {width: 100%; height: 100%; display: block; object-fit: cover;}
+
+  .thumbs, .credential {width: 94%;}
+  .thumbs {height: var(--thumbs-w); padding: 0 0; margin: var(--thumbs-top) auto 0; position: relative;}
+  .thumbs .swiper-slide {width: var(--thumbs-w); height: var(--thumbs-w); opacity: 0.4; transition: opacity 0.3s;}
+  .thumbs .swiper-slide-thumb-active {opacity: 1;}
+  .thumbs .swiper {width: 390px;margin: 0 auto;}
+
+  .credential {margin: var(--gap) auto 0; justify-content: space-evenly;}
+  .credential.mobile {justify-content: space-between;}
+  .credential .iconfont {font-size: 50px; color: var(--primary-color);}
+  .credential p {text-align: center;}
+  .credential p img {display: inline-block; margin-bottom: 10px;width:50px;height: 40px;}
+  .credential span {display: block;}
+
+  .pc {display: flex;}
+  .mobile {display: none;}
+
+  @media screen and (max-width: 1024px) {
+    .thumbs, .credential {width: 100%;}
+    .thumbs {margin-top: 25px; display: flex; justify-content: center;}
+
+    .credential span {max-width: 100px;}
+
+    .pc {display: none;}
+    .mobile {display: flex;}
+  }
+  @media screen and (max-width: 1024px) {
+    #shopify-section-{{ section.id }} {
+    {%- if settings.main_product_mb_image -%}
+      background-image: url('{{ settings.main_product_mb_image | image_url: width: 750 }}');
+    {%- endif -%}
+    }
+    .pswp__bullets-indicator{
+      display: flex;
+      overflow-x: auto;
+      white-space: nowrap;
+      bottom: 0;
+      padding: 0 3.2vw;
+    }
+    .pswp__bullets-indicator .pswp__bullet{
+      flex: 0 0 auto;
+      width: 19.2vw;
+      height: 19.2vw;
+      margin-right: 3.2vw;
+    }
+    .pswp__bullets-indicator {
+      height: 36.27vw;
+    }
+    .thumbs .swiper-slide img {width: 0; height: 0; display: none !important;}
+    .thumbs .swiper-pagination-bullet {width: 5.33333vw; height: 2px; border-radius: 0;}
+    .thumbs .swiper-pagination-bullet-active {width: 12vw;}
+  }
+  /** gallery part style, end */
+
+
+  .main-product hr {width: 100%; height: 0; border: none; border-bottom: var(--border-link-e); display: block; margin: 16px 0;}
+
+
+  /** prodcut quantity part style, start */
+  .operate {
+    background: #f5f5f5; border: var(--border-link-e);
+    display: flex; align-items: center;
+  }
+  .operate .icon-operate{
+    padding:8px;
+  }
+  .essential-addons .operate .icon-operate{
+    padding:6px;
+  }
+  .operate .icon-operate, .operate input {width: 30px; height: 30px; line-height: 30px; text-align: center; font-size: var(--jky-text-base); display: inline-block;}
+  .operate .icon-operate {cursor: pointer;}
+  .operate .icon-operate.disabled {pointer-events: none; opacity: 0.3;}
+  .operate input {background: var(--normal-color);}
+  /** prodcut quantity part style, end */
+
+
+  /** meta info and prodcut form style, start */
+  .meta {margin-left: var(--distance);}
+  .meta h5 {margin-top: 10px;}
+  .compare-price {
+    text-decoration: line-through;
+    margin-left: var(--compare-price-distance);
+    display: inline-block;
+    font-size: 18px;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #777;
+  }
+  @media screen and (max-width: 1024px) {
+    .compare-price {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+  }
+  .product_tax_info {margin-left: 5px;}
+  .coupon {margin-top: var(--gap);}
+  .coupon svg {width: var(--coupon); cursor: pointer;}
+
+  .countUp, .countUp i {height: 76px;}
+  .countUp {
+    width: 100%; color: var(--text-black);
+    display: flex; justify-content: center; align-items: center;
+    position: absolute; top: 38px; left: 0; z-index: 1;
+  }
+  .countUp span {margin-right: var(--gap);}
+  .countUp i {
+    width: 47px; color: var(--normal-color); line-height: 85px; text-align: center; font-size: 45px; display: inline-block;
+    background-image: url("https://cdn.shopify.com/s/files/1/0550/0524/9633/files/num_bg.png?v=1680774458");
+  }
+  .countUp i:last-child {margin-left: 5px;}
+  @media screen and (max-width: 1024px) {
+    .countUp {top: 20px;}
+    .countUp span {zoom: 0.5;}
+  }
+
+  .variant-input-wrap {width: 100%;border: 0; padding: 0; position: relative;display: flex;flex-direction: column;align-items: center;justify-content: center;row-gap: 10px;}
+  .variant-input-wrap.btn--loading,
+  .variant-input-wrap.btn--loading:hover,
+  .variant-input-wrap.btn--loading:active {
+    background-color: transparent;
+  }
+  .variant-input-wrap.btn--loading::before {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+  }
+  .variant-input-wrap.btn--loading::after {
+    border-color: var(--jds-color-primary);
+    border-top-color: transparent;
+  }
+  .variant-input-wrap dd {width: 100%;}
+  .variant-input-wrap input {width: 1px; height: 1px; clip: rect(0 0 0 0); clip: rect(0,0,0,0); overflow: hidden; position: absolute;}
+
+  .variant-input-wrap label {
+    border-radius: 6px; width: 100%; min-height: var(--variant-item-height); padding: 0 var(--gap); position: relative; cursor: pointer;
+    color: var(--weak-line-color); background-color: white;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+  }
+
+  .variant-input-wrap label .goods-title {flex: 1; padding: 0 10px; font-size: 15px; }
+
+  .variant-input-wrap label:active, .variant-input-wrap label:focus {border-color: black;}
+  .variant-input-wrap label.disabled {opacity: 0.6; filter: grayscale(1); /*pointer-events: none;*/}
+  .variant-input-wrap label:after {
+    content: ''; border: var(--border-grey); border-radius: 6px;
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1;
+  }
+
+  @media only screen and (max-width: 1024px) {
+    .meta {margin-top: 25px;}
+    .variant-input-wrap label i {width: 100%; text-align: left; display: block;}
+  }
+  .variant-input-wrap input[type='radio']:checked + label {color: var(--text-black); font-weight: 600; background: #FFF9F9;}
+  .variant-input-wrap input[type='radio']:checked + label:after {border: var(--border-primary);}
+
+  .product-quantity {margin-top: 26px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;}
+
+  .product-description {font-size: var(--font-normal); line-height: 24px;}
+  .product-description ul li {list-style-type: disc; list-style-position: inside;}
+  .product-description ol li {list-style-type: decimal; list-style-position: inside;}
+  /** meta info and prodcut form style, end */
+
+
+  /** essential addons part, start */
+  .essential-addons h3 {text-overflow: ellipsis; overflow: hidden; white-space: nowrap;}
+  .essential-addons ul {background: #f5f5f5; padding: var(--gap); margin-top: 10px; border-radius: var(--radius);}
+  .essential-addons ul li {
+    background: var(--normal-color); padding: var(--gap); border: var(--border-link-e); border-radius: var(--radius);
+  }
+  .essential-addons ul li label {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .essential-addons ul li:not(:last-child) {margin-bottom: 10px;}
+  .essential-addons ul li input {flex: 16px 0 0;}
+  .essential-addons ul li.active {background: #FFF9F9; border-color: var(--primary-color);}
+  .essential-addons ul li.active input, .essential-addons ul li.active .iconfont {color: var(--primary-color);}
+  .essential-addons ul li.active .operate {border-color: #ff9666;}
+  .essential-addons ul li.active input {border-left: 1px #ff9666 solid; border-right: 1px #ff9666 solid;}
+  .essential-addons ul li.active .iconfont {background-color: #ffdccc;}
+
+  .essential-addons figure {width: 100%; margin-left: var(--gap); display: flex; align-items: center; overflow: hidden;}
+  .essential-addons figure img {width: 60px; height: 60px; object-fit: cover; margin-right: 10px;}
+  .essential-addons figcaption {width: 100%; display: flex; flex-direction: column;}
+  .essential-addons figcaption .title {
+    color: var(--text-black);
+    font-weight: 600;
+    margin-bottom: 0.5vw;
+    text-align: left;
+  }
+  .essential-addons figcaption i {color: var(--text-sub-color);}
+  /** essential addons part, end */
+
+  /** add to cart - buy it now - shortage, start */
+  .action {display: flex; align-items: center; justify-content: space-between;}
+  .action.loading {position: relative;}
+  .action.loading::before {
+    content: "{{ 'accessibility.loading' | t }}"; width: 100%; height: var(--action-button); line-height: var(--action-button); text-align: center;
+    color: var(--primary-color); font-size: var(--jky-text-base); background: rgba(255,255,255,0.8); position: absolute; left: 0; top: 0; z-index: 1;
+  }
+  .action button, .buy-it-now-action, .shortage button,.action a.shopify-payment-button__more-options {
+    height: var(--action-button); border-radius: calc(var(--action-button) / 2); cursor: pointer; font-size: var(--jky-text-base); font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  {% comment %} 5.0主题按钮 {% endcomment %}
+  .jky-v5 .action button, .jky-v5 .buy-it-now-action, .jky-v5 .shortage button,.jky-v5 .action a.shopify-payment-button__more-options{
+    border-radius: 0;
+  }
+  .action a.shopify-payment-button__more-options {
+    font-size: 0;
+  }
+  .action button {
+    text-transform: uppercase;
+    background: #FFFFFF;
+    transition: all 0.3s;
+  }
+
+  /** shopify branded style special treatment, start */
+  .add-to-cart, .buy-it-now-action {width: calc(50% - 10px);}
+  .buy-it-now-action .shopify-payment-button{width: 100%;}
+  .shopify-payment-button {position: relative;}
+  .action .jackery-icon-arrow-right {margin-left:2px;}
+  .action .shopify-payment-button__button--hidden {display: none; border: none; max-height: 0; margin: 0; padding: 0;}
+
+  .buy-it-now-custom-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 45px;
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    font-weight: 700;
+    font-size: 18px;
+    border-radius: 30px;
+    cursor: pointer;
+  }
+  .buy-it-now-custom-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .shortage button,
+  .action .shopify-payment-button__button, .shopify-payment-button__button--unbranded:hover:not([disabled]){
+    color: var(--normal-color); background-color: var(--primary-color); text-decoration: none;
+  }
+
+  /* 全局节日氛围感  加购按钮设置开始 */
+  .action button {
+    color: {{ settings.main_product_light_btn_color | default: 'var(--primary-color)' }};
+  }
+
+  {% if settings.main_product_light_btn_bg_img %}
+  .action button {
+    background: url("{{ settings.main_product_light_btn_bg_img | image_url: width: 1920 }}") no-repeat center;
+    background-size: cover;
+    border: none;
+  }
+  .action button:hover {
+    color: {{ settings.main_product_light_btn_color }};
+    background-color: rgba(0,0,0,0.5);
+    background-blend-mode: multiply;
+  }
+  {% else %}
+  .action button{
+    border: 2px {{ settings.main_product_light_btn_color | default: 'var(--primary-color)'}} solid;
+  }
+  .action button:hover{
+    color: var(--normal-color);
+    background-color: {{ settings.main_product_light_btn_color | default: 'var(--primary-color)' }};
+  }
+  {% endif %}
+  /* 全局节日氛围感  加购按钮设置结束 */
+
+  /* 全局节日氛围感 立即购买按钮设置 开始 */
+  .action .shopify-payment-button__more-options, .shopify-payment-button__more-options:hover:not([disabled]) {
+    color: {{ settings.main_product_dark_btn_txt_color | default: 'var(--normal-color)' }};
+    text-decoration: none;
+  }
+
+  {% if settings.main_product_dark_btn_bg_img %}
+    .action .shopify-payment-button__more-options {
+      background: url("{{ settings.main_product_dark_btn_bg_img | image_url: width: 1920 }}") no-repeat center;
+      background-size: cover;
+      border: none;
+    }
+    .action .shopify-payment-button__more-options:hover:not([disabled]) {
+      background-color: rgba(0, 0, 0, 0.5);
+      background-blend-mode: multiply;
+    }
+  {% else %}
+    .action .shopify-payment-button__more-options {
+      background-color: {{ settings.main_product_dark_btn_bg_color | default: 'var(--primary-color)' }};
+    }
+    .action .shopify-payment-button__more-options:hover:not([disabled]) {
+      {% if settings.main_product_dark_btn_bg_color %}
+        background-color: color-mix(in srgb, {{ settings.main_product_dark_btn_bg_color }} 85%, white 15%);
+      {% else %}
+        background-color: var(--primary-color);
+      {% endif %}
+    }
+  {% endif %}
+  /* 全局节日氛围感 立即购买按钮设置 结束 */
+
+  .action .shopify-payment-button__more-options::after, .shopify-payment-button__button--unbranded::after {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+    border-right: 1px solid currentColor;
+    border-top: 1px solid currentColor;
+    transform: rotate(45deg);
+  }
+
+  .shopify-payment-button__button--branded {display: none;}
+  .action .shopify-payment-button__more-options {margin: 0; font-size: 0;}
+  .action .shopify-payment-button__more-options::before {content: "{{ 'products.product.buy_it_now' | t }}"; font-size: var(--jky-text-base); font-weight: 600;}
+  /** shopify branded style special treatment, end */
+
+  .shortage {margin-top: 16px;}
+  .shortage button {width: 100%;}
+  .shortage_popup .modal__content, .more-appliance .modal__content {background: rgba(0, 0, 0, 0.5); position: fixed;}
+  .shortage_frame {
+    width: 100%; max-width: 600px; padding: 50px; text-align: center; background-color: var(--normal-color);
+    position: relative;
+  }
+  .shortage_frame .jackery-icon-guanbi {
+    font-size: 18px; color: var(--text-sub-color); cursor: pointer;
+    position: absolute; right: var(--gap); top: var(--gap); z-index: 9;
+  }
+  .shortage_frame label {display: flex; align-items: center; margin-bottom: 0;font-size: var(--font-normal);}
+  .shortage_frame .info {margin-bottom: var(--gap);}
+  .shortage_frame .info input {
+    height: 48px; line-height: 48px;
+    border: var(--border-color-link);
+    text-indent: var(--gap); flex: auto;
+    border-top-left-radius: calc(var(--action-button) / 2);
+    border-bottom-left-radius: calc(var(--action-button) / 2);
+  }
+  .shortage_frame .info button {
+    height: 48px; line-height: 48px;
+    text-align: center; color: var(--normal-color); background-color: var(--primary-color);
+    flex: 100px 0; border-radius: 0;
+    border-top-right-radius: calc(var(--action-button) / 2);
+    border-bottom-right-radius: calc(var(--action-button) / 2);
+  }
+  .shortage_frame .btn--loading {position: relative;}
+  .shortage_frame .btn--loading::after {top: calc(50% - 15px);}
+  .shortage_frame .content {font-size: var(--font-normal); margin-bottom: var(--gap);}
+  .shortage_frame .agree {cursor: pointer;}
+  .shortage_frame .agree p {color: var(--text-sub-color); text-align: left; flex: calc(100% - 18px) 0; margin-left: 10px;}
+  .shortage_frame .agree a {text-decoration: underline; color: var(--text-sub-color);}
+
+  @media only screen and (max-width: 1024px) {
+    .shortage_frame {width: 96%; padding: var(--gap); border-radius: 4px; margin: 0 auto; padding-top: 15px}
+    .shortage_frame .info {flex-wrap: wrap;}
+    .shortage_frame .info input {flex: 100% 0; margin-bottom: var(--gap); border-radius: 6px;}
+    .shortage_frame .info button {flex: 100% 0; border-radius: calc(var(--action-button) / 2)}
+  }
+  /** add to cart - buy it now - shortage, end */
+
+
+  @media screen and (max-width: 1024px) {
+    .layer-container {
+      width: calc(100% - 8vw);
+      flex-wrap: wrap;
+    }
+    .main-product {
+      --head-top: 20px; --photo-w: 100%; --thumbs-w: auto; --distance: 0; --thumbs-top: 10px; --thumbs-distance: 0;
+      --compare-price-distance: 10px;
+      --font-normal: 14px; --font-small: 12px; --jky-text-base: 14px;
+      --coupon: 100%;
+    }
+    {% if settings.show_pdp_breadcrumbs %}
+      .main-product {
+        --head-top: 0;
+      }
+    {% endif %}
+    .operate .icon-operate, .operate input {width: 24px; height: 24px; line-height: 24px;}
+    .essential-addons figure {width: calc(100% - 92px);}
+    .essential-addons figure img {width: 45px; height: 45px;}
+
+    .add-to-cart, .shopify-payment-button {width: calc(50% - 5px);}
+    .shopify-payment-button__button--unbranded {padding: 0;}
+    .action .jackery-icon-arrow-right,
+    .action .shopify-payment-button__more-options::after, .shopify-payment-button__button--unbranded::after {font-size: 16px;}
+  }
+
+  .product-single__variants {display: none;}
+  .product-single__quantity {margin-top: 0;}
+
+
+  /** more appliance and equipment type, start */
+  .more-appliance .modal__content {background: transparent; position: fixed;}
+  .appliance-container {
+    --product: 150px; --mark: 100px; --mark-distance: 30px; --arrow: 20px; --arrow-line: 2px var(--jds-color-primary) solid;
+    background: var(--text-main-color); padding: var(--mark-distance); flex-wrap: wrap;
+  }
+  .appliance-container .wattage {width: 100%;}
+  .appliance-container .wattage img {width: var(--product); height: var(--product); object-fit: cover;}
+  .appliance-container .wattage dd {
+    height: var(--mark); line-height: 0; font-size: 18px; text-align: center; color: rgba(18,18,18,0.3); padding: 10px var(--mark-distance); cursor: pointer;
+    position: relative; flex: auto; transition: color 0.3s;
+  }
+  .appliance-container .wattage dd.active, .appliance-container .wattage dd:hover {color: var(--normal-color);}
+  .appliance-container .wattage dd.active i {
+    width: 20px; height: 20px; background: var(--normal-color); border-radius: 50%;
+    position: absolute; left: calc(50% - 10px); bottom: -4px; z-index: 2;
+  }
+  .appliance-container .wattage dd::after, .appliance-container .wattage dd::before {
+    content: ""; background: var(--primary-color);
+    position: absolute; bottom: 5px;
+  }
+  .appliance-container .wattage dd::after {width: 100%; height: 2px; left: 0;}
+  .appliance-container .wattage dd::before {width: 2px; height: 40%; left: calc(50% - 1px);}
+  .appliance-container .wattage::after {
+    content: ""; width: var(--arrow); height: var(--arrow); transform: rotate(45deg);
+    border-top: var(--arrow-line); border-right: var(--arrow-line);
+    position: absolute; right: 2px; bottom: 21px;
+  }
+
+  .appliance-container .equipment {width: 100%; color: var(--normal-color); padding-left: var(--product); margin-top: var(--mark-distance);}
+  .appliance-container .equipment .image {font-size: 12px;}
+  .appliance-container .equipment .image img {filter: invert(1);}
+  .appliance-container .equipment .image p {margin-top: 5px; text-align: center;}
+  .appliance-container .equipment span {font-size: 18px; margin: 10px var(--gap) 10px 0; display: inline-block;}
+  .appliance-container .equipment figcaption {margin: 0 0 0 var(--mark-distance);}
+  @media screen and (max-width: 1024px) {
+    .appliance-container {
+      --product: 100px; --mark: 50px; --mark-distance: 20px; --arrow: 10px;
+      padding: var(--mark-distance) 0 50px 0; flex-direction: row-reverse;
+    }
+
+    .appliance-container .wattage {width: 60%; flex-direction: column;}
+    .appliance-container .wattage::before {
+      content: ""; width: 2px; height: 30px; background: var(--primary-color);
+      position: absolute; bottom: -24px;
+    }
+    .appliance-container .wattage::after {transform: rotate(135deg); right: auto; bottom: -24px;}
+    .appliance-container .wattage dd {font-size: 14px;}
+    .appliance-container .wattage dd::after {width: 50%; left: auto; right: 0;}
+    .appliance-container .wattage dd::before {height: 100%; left: calc(50% - 1px);}
+    .appliance-container .wattage dd em {position: absolute; left: calc(100% + 10px); bottom: 6px;}
+
+    .appliance-container .equipment {width: 30%; text-align: center; padding-left: 0; flex-direction: column;}
+    .appliance-container .equipment .image img {width: 50px; height: 50px; display: inline-block;}
+    .appliance-container .equipment figcaption {margin: 0; display: flex; flex-direction: column;}
+    .appliance-container .equipment span {font-size: 12px; line-height: 14px; margin: 10px 0 0;}
+  }
+  /** more appliance and equipment type, end */
+
+  .product-b .product-title {text-align:center;margin-bottom: var(--content-distance);}
+  .specs-pictures {--spec-h: 62px;--spec-gap: 40px;--spec-row-gap: 40px;--circle: 30px;margin-top: var(--content-distance);}
+  .specs-pictures .product-title {text-align:center;margin-bottom: var(--content-distance);}
+  .features {padding: var(--p-top) 0;}
+  .reviews {margin-top: var(--content-distance);}
+
+  .J-join-wish-warp-loading {position: relative;}
+  h2 p, .product-title p {font-weight: 600;}
+
+  .J-variant-warp-loading{position: relative;}
+
+  .J-variant-warp-loading::before{background: hsla(0,0%,100%,.8);color: var(--primary-color);content: "{{ 'accessibility.loading' | t }}";font-size: var(--jky-text-base);height: 100%;left: 0;line-height: var(--action-button);position: absolute;top: 0;width: 100%;z-index: 888;display: flex;justify-content: center;align-items: center;}
+
+
+  html[lang=ja] .main-product__price_box {display: flex;align-items: flex-end;justify-content: flex-end;flex-direction: row-reverse;}
+  html[lang=ja] .main-product__price_box .main-producr__price {padding-left: 10px;}
+  html[lang=ja] .main-product__price_box .main-producr__price span{color:var(--jds-color-primary);font-size: 18px;font-weight: 500;}
+  html[lang=ja] .main-producr__price span {font-weight: 600;color:#000;}
+  html[lang=ja] .compare-price {margin-left: 0;}
+
+  @media screen and (max-width:1024px){
+    .main-product__price_box .main-producr__price {
+      font-size: 20px;
+    }
+
+    html[lang=ja] .main-product__price_box .main-producr__price span{color:var(--jds-color-primary);font-size: 3.46666667vw;}
+  }
+
+  {% comment %} 拉起 产品购买意向表单按钮 {% endcomment %}
+  jds-button.btn-for-pif::part(button) {
+    --padding-horizontal: 0;
+  }
+
+  .product-warranty_tab.pc-show{
+    display: flex;
+  }
+
+  .pay-wrannty{
+    margin-top:24px;
+    margin-bottom: 24px;
+  }
+
+  .pay-wrannty.v3{
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+
+  .pay-wrannty .pay-wrannty-title{
+    font-weight: 600;
+    font-size: 18px;
+    color: #1A1A1A;
+    line-height: 18px;
+    margin-bottom: 16px;
+  }
+
+  .pay-wrannty.v3 .pay-wrannty-title{
+    line-height: 27px;
+    margin-bottom: 12px;
+  }
+
+  .pay-wrannty .pay-wrannty-list{
+    border-top: 1px solid #EDEDED;
+  }
+
+  .pay-wrannty .pay-wrannty-item{
+    display: flex;
+    border-bottom: 1px solid #EDEDED;
+    align-items: center;
+    padding-top: 10px;
+    padding-bottom: 12px;
+  }
+
+  .pay-wrannty .pay-wrannty-item img{
+    width: 24px;
+    height: 24px;
+    margin-right: 14px;
+  }
+
+  .pay-wrannty .pay-wrannty-item span{
+      font-weight: 500;
+      font-size: 14px;
+      color: #1A1A1A;
+      line-height: 18px;
+      max-width: 460px;
+  }
+
+
+  .pay-wrannty .new-pay-box{
+    padding-top: 10px;
+    display: flex;
+    gap: 14px;
+  }
+
+  .pay-wrannty .new-pay-box >img{
+    width: 24px;
+    height: 24px;
+  }
+
+  .pc-left-v4{
+    transform: translateY(70px);
+  }
+
+  @media screen and (min-width: 1440px) {
+  {% comment %} 3.0居左样式 {% endcomment %}
+    figure .payment-icon-wrapper{
+      margin-top: 20px;
+    }
+
+    figure .total-icon-box> img {
+      width: 24px;
+      height: 24px;
+      margin-top: 15px;
+      margin-right: 12px;
+    }
+     figure .total-icon-box> img.total-icon-center{
+      margin-top: 23px;
+    }
+
+    {% comment %} 4.0居左样式 {% endcomment %}
+    .pc-left-v4{
+      margin-top: 16px;
+    }
+  }
+
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+    figure .total-icon-box> img {
+      width: 1.6666vw;
+      height: 1.6666vw;
+      margin-top: 4vw;
+      margin-right: 0.83333vw;
+    }
+    figure .total-icon-box> img.total-icon-center{
+      margin-top: 4.5vw;
+    }
+
+    .pc-left-v4{
+      margin-top: 2.133333vw;
+    }
+
+      .pay-wrannty {
+      margin-top: 1.66666667vw;
+      margin-bottom: 1.66666667vw;
+    }
+
+    .pay-wrannty.v3{
+      margin-top: 1.38888888vw;
+      margin-bottom: 1.38888888vw;
+    }
+    .pay-wrannty .pay-wrannty-title {
+      font-weight: 600;
+      font-size: 1.25vw;
+      color: #1A1A1A;
+      line-height: 1.25vw;
+      margin-bottom: 1.11111111vw;
+    }
+
+    .pay-wrannty.v3 .pay-wrannty-title{
+      line-height: 1.875vw;
+      margin-bottom: 0.83333333vw;
+    }
+
+    .pay-wrannty .pay-wrannty-list {
+      border-top: 1px solid #EDEDED;
+    }
+    .pay-wrannty .pay-wrannty-item {
+      display: flex;
+      border-bottom: 1px solid #EDEDED;
+      align-items: center;
+      padding-top: 0.69444444vw;
+      padding-bottom: 0.83333333vw;
+    }
+    .pay-wrannty .pay-wrannty-item img {
+      width: 1.66666667vw;
+      height: 1.66666667vw;
+      margin-right: 0.97222222vw;
+    }
+    .pay-wrannty .pay-wrannty-item span {
+      font-weight: 500;
+      font-size: 0.97222222vw;
+      color: #1A1A1A;
+      line-height: 1.25vw;
+      max-width: 31.94444vw;
+    }
+    .pay-wrannty .new-pay-box {
+      padding-top: 0.69444444vw;
+      display: flex;
+      gap: 0.97222222vw;
+    }
+    .pay-wrannty .new-pay-box >img {
+      width: 1.66666667vw;
+      height: 1.66666667vw;
+    }
+
+  }
+
+  @media screen and (max-width: 1023.98px) {
+    figure .total-icon-box{
+      display: none;
+    }
+
+    .product-warranty_tab.pc-show{
+      display: none;
+    }
+
+      .pay-wrannty.v3 {
+      margin-top: 4.266666vw;
+      margin-bottom: 4.266666vw;
+    }
+
+    .pay-wrannty.v4{
+      max-width: 91.4666666666667vw;
+      width: 91.4666666666667vw;
+      margin: 6.4vw auto 6.4vw;
+    }
+    .pay-wrannty .pay-wrannty-title {
+      font-weight: 600;
+      font-size: 5.33333333vw;
+      color: #1A1A1A;
+      line-height: 5.33333333vw;
+      margin-bottom: 4vw;
+    }
+    .pay-wrannty.v3 .pay-wrannty-title{
+      font-weight: 500;
+      font-size: 4.266666666vw;
+      line-height: 5.33333333vw;
+      margin-bottom: 2.6666666vw;
+      color: #333333;
+    }
+    .pay-wrannty.v3 .pay-wrannty-list {
+      border-top: 1px solid #CCCCCC;
+    }
+
+    .pay-wrannty .pay-wrannty-list {
+      border-top: 1px solid #EDEDED;
+    }
+    .pay-wrannty .pay-wrannty-item {
+      display: flex;
+      border-bottom: 1px solid #EDEDED;
+      align-items: center;
+      padding-top: 1.33333333vw;
+      padding-bottom: 2.66666667vw;
+    }
+
+    .pay-wrannty.v3 .pay-wrannty-item {
+      border-bottom: 1px solid #CCCCCC;
+    }
+    .pay-wrannty .pay-wrannty-item img {
+      width: 6.4vw;
+      height: 6.4vw;
+      margin-right: 3.2vw;
+    }
+    .pay-wrannty .pay-wrannty-item span {
+      font-weight: 500;
+      font-size: 3.2vw;
+      color: #1A1A1A;
+      line-height: 4.26666667vw;
+      max-width: 79.2vw;
+    }
+    .pay-wrannty.v3 .pay-wrannty-item span {
+      max-width: 74.4vw;
+    }
+    .pay-wrannty .new-pay-box {
+      padding-top: 1.33333333vw;
+      display: flex;
+      gap: 3.6vw;
+    }
+    .pay-wrannty .new-pay-box >img {
+      width: 6.4vw;
+      height: 6.4vw;
+    }
+  }
+
+  {% unless section.settings.show_buy_it_now_self_developed == true %}
+    /* shopify payment button */
+    html .shopify-payment-button__button.shopify-payment-button__button--branded,
+    shopify-paypal-button,
+    shop-pay-wallet-button,
+    .shopify-payment-button__skeleton,
+    html .shopify-payment-button__button.shopify-payment-button__button--branded {
+      display: none !important;
+    }
+    more-payment-options-link[disabled] {
+      opacity: 0.6!important;
+      pointer-events: none!important;
+    }
+    .product-form__buttons .shopify-payment-button__more-options::after,.shopify-payment-button__button--unbranded::after{
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-left: 8px;
+      vertical-align: middle;
+      border-right: 1px solid currentColor;
+      border-top: 1px solid currentColor;
+      transform: rotate(45deg);
+    }
+    .media_highlight_vs .main-swiper .swiper-pagination,
+    .media_highlight_vs .main-swiper .swiper-slide .mb-tab,
+    .shopify-payment-button__button--branded{
+      display:none;
+    }
+    .product-form__buttons .shopify-payment-button__more-options{
+      margin:0;
+      font-size:0;
+      background-color:var(--primary-color);
+      height:45px;
+      color:#fff;
+      border-radius:25px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+    }
+    .product-form__buttons .shopify-payment-button__more-options:hover{
+      text-decoration:none;
+    }
+    .product-form__buttons .shopify-payment-button__more-options::before{
+      font-size:18px;
+      font-weight:600;
+      text-transform:uppercase;
+    }
+    @media screen and (max-width: 1024px) {
+      .shopify-payment-button__button--unbranded{
+        padding:0;
+      }
+      .product-form__buttons .jackery-icon-arrow-right,
+      .product-form__buttons .shopify-payment-button__more-options::after,
+      .shopify-payment-button__button--unbranded::after{
+        font-size:22px;
+      }
+    }
+    /* shopify payment button */
+  {% endunless %}
+</style>
+
+{%- liquid
+  assign payment_icon_list = shop.metaobjects.payment_icon_list.values
+  assign first_icon_list = payment_icon_list | first
+  assign section_position = first_icon_list.section_position
+  assign pc_pay_position = section.settings.pc_pay_position
+
+  assign position = 'left'
+  if section.settings.is_show_new_pay == true
+    if pc_pay_position == 'left' or pc_pay_position == 'right'
+      assign position = pc_pay_position
+    endif
+  elsif section_position == 'left' or section_position == 'right'
+    assign position = section_position
+  endif
+  assign credential_a = section.settings.credential_a
+  assign credential_b = section.settings.credential_b
+  assign credential_c = section.settings.credential_c
+  assign credential_d = section.settings.credential_d
+  assign has_credential = false
+  if credential_a != blank or credential_b != blank or credential_c != blank or credential_d != blank
+    assign has_credential = true
+  endif
+  assign warranty_enable = first_icon_list.warranty_enable | default: true, allow_false: true
+  assign pay_enable = first_icon_list.pay_enable | default: true, allow_false: true
+  assign both_enable = true
+  if warranty_enable == false and pay_enable == false and has_credential == false
+    assign both_enable = false
+  endif
+-%}
+
+{% comment %}
+  defind circuit changer: shortage / current product defulat variant / preorder
+{% endcomment %}
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+{%- if current_variant == blank and product.variants[0] != blank -%}
+  {%- assign current_variant = product.variants[0] -%}
+{%- endif -%}
+{%- liquid
+  assign shortage = false
+  assign preorderCart_flag = false
+
+  if settings.enable_shortage_reminds == true and current_variant.inventory_quantity <= 0
+    assign shortage = true
+  endif
+
+  if current_variant.available == true and current_variant.inventory_quantity <= 0
+    assign preorderCart_flag = true
+  endif
+-%}
+
+{%- assign first_3d_model = product.media | where: 'media_type', 'model' | first -%}
+
+{%- if first_3d_model != blank -%}
+  {% assign model_url = '' %}
+  {% assign model_preview_image = first_3d_model.preview_image %}
+  {% for model_source in first_3d_model.sources %}
+    {% if model_source.format == 'glb' %}
+      {% assign model_url = model_source.url %}
+    {% endif %}
+  {% endfor %}
+{%- endif -%}
+{%- if product.metafields.custom.modals_list.value != blank -%}
+  {%- assign first_3d_model = product.metafields.custom.modals_list.value | first -%}
+  {% assign model_url = first_3d_model.url %}
+  {% assign model_preview_image = first_3d_model.preview_image %}
+{%- endif -%}
+
+<div data-version="v3" class="layer-container flex product-main-block" data-price="{{current_variant.price}}" data-id="{{current_variant.id}}" data-goodsId="{{ product.id }}" data-section-id="{{ section.id }}" data-url="{{ product.url }}">
+  {% comment %} product images and credential {% endcomment %}
+  <figure class="gallery relative">
+    {% comment %} 面包屑 {% endcomment %}
+    {%- render 'pdp-breadcrumbs', class: 'text-sm max-w-[21.4375rem] mx-auto my-4 lg:max-w-max lg:my-0 lg:absolute left-0 lg:-top-10' -%}
+
+    <div class="pswp-gallery" id="photo-enlarge-gallery">
+      <div class="swiper photo">
+        <div class="swiper-wrapper">
+          {%- for image in product.media -%}
+            {%- if image.media_type == "image" -%}
+              {% assign image_variant = image.preview_image.variants | first %}
+              {% assign image_url = image.src | image_url: width: 3840 %}
+              <div class="swiper-slide relative" data-id="{{ image.id }}" data-index="{{ forloop.index0 }}" data-media="{{image.position}}">
+                <a href="{{ image_url }}" data-pswp-width="{{ image.preview_image.width | default: 1800 }}" data-pswp-height="{{ image.preview_image.height | default: 1800 }}">
+                  {% render 'responsive-image', image: image, width: 580, mwidth: 345 %}
+
+                  {% assign matched_variant = nil %}
+
+                  {% comment %} 直接查找匹配的变体，避免嵌套循环 {% endcomment %}
+                  {% if product.variants[0].title != 'Default Title' %}
+                    {% for variant in product.variants %}
+                      {% if variant.featured_media and variant.featured_media.position == image.position %}
+                        {% assign matched_variant = variant %}
+                        {% break %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+
+                  {% comment %} 优化变体标签渲染逻辑 {% endcomment %}
+                  {% if product.variants[0].title == 'Default Title' %}
+                    {% if forloop.index0 == 0  %}
+                      {% render 'product-tag', product: product, variant: current_variant %}
+                    {% endif %}
+                  {% else %}
+                    {% if forloop.index0 == 0 %}
+                      {% if matched_variant %}
+                        {% render 'product-tag', product: product, variant: matched_variant %}
+                      {% else %}
+                        {% render 'product-tag', product: product, variant: current_variant %}
+                      {% endif %}
+                    {% elsif matched_variant %}
+                      {% render 'product-tag', product: product, variant: matched_variant %}
+                    {% endif %}
+                  {% endif %}
+                </a>
+              </div>
+            {%- endif -%}
+          {% endfor %}
+          {% comment %} 3d 模型渲染 {% endcomment %}
+          {%- if first_3d_model -%}
+            <div class="swiper-slide relative">
+              {%- if first_3d_model -%}
+                {%- assign modals = product.media | where: 'media_type', 'model' -%}
+                {%- if product.metafields.custom.modals.value != blank -%}
+                {%- assign modals = product.metafields.custom.modals.value -%}
+                {%- endif -%}
+                <script type="application/json" id="ProductJSON-{{ product.id }}">
+                  {{ modals | json }}
+                </script>
+              {%- endif -%}
+              {%- render "jky-3dmodal", url: model_url, preview_image: model_preview_image -%}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+
+      {%- assign thumbs_media_count = product.media | where: 'media_type', 'image' | size -%}
+      {%- if first_3d_model -%}
+        {%- assign thumbs_media_count = thumbs_media_count | plus: 1 -%}
+      {%- endif -%}
+      <div class="thumbs">
+        <div class="swiper-button-next"></div>
+        <div class="swiper">
+          <div class="swiper-wrapper {% if thumbs_media_count > 4 %}lg:justify-start{% else %}lg:justify-center{% endif %}">
+            {%- for image in product.media -%}
+              {%- if image.media_type == "image" -%}
+                <div class="swiper-slide">
+                  {% render 'responsive-image', image: image, width: 72, mwidth: 72 %}
+                </div>
+              {%- endif -%}
+            {% endfor %}
+            {% comment %} 3d 模型缩略图 {% endcomment %}
+            {%- if first_3d_model -%}
+              <div class="swiper-slide relative">
+                <svg style="height: 70px;width: 70px;top: 55%;z-index: 2;transform:translate(-50%, -50%);" class="icon-3d-model absolute rounded-md left-1/2" width="72" height="72" viewBox="0 0 72 72">
+                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                        <g transform="translate(-817.000000, -1020.000000)">
+                            <g transform="translate(817.000000, 1020.000000)">
+                                <path d="M0,0 L72,0 L72,72 L0,72 Z"></path>
+                                <circle stroke="#666666" stroke-width="0.54" fill="#FFFFFF" cx="35.5" cy="35.5" r="22.23"></circle>
+                                <path d="M36.2300027,25 L36.3563621,25.0567573 L46,29.3259845 L45.9803211,29.7634068 L45.9803211,41.4379196 L35.5561885,47 L26,42.075329 L26,29.7634068 L26.4344899,29.519742 L26.6742621,29.3964418 L35.9948914,25.0689894 L36.2300027,25 Z M27.0922095,31.0743922 L27.0918868,41.5299833 L35.5658136,45.8975189 L35.5659683,35.1123244 C34.711537,34.7479051 31.8869507,33.4019277 27.0922095,31.0743922 Z M36.1579218,26.1056481 L27.9718618,29.9508371 L27.506,30.179 L36.138,34.426 L44.8050749,29.9508371 L36.1579218,26.1056481 Z" fill="#1A1A1A" fill-rule="nonzero"></path>
+                            </g>
+                        </g>
+                    </g>
+                </svg>
+
+                {% render 'responsive-image', image: first_3d_model.preview_image, width: 72, mwidth: 72 %}
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+        <div class="swiper-button-prev"></div>
+      </div>
+
+      {% comment %} pc左边 {% endcomment %}
+      {%- if position == 'left' -%}
+        <figcaption class="credential pc">
+
+         {%- if has_credential == true -%}
+           {% if credential_a != blank %}
+          <p>
+            {% render 'responsive-image', image: section.settings.credential_a_icon, width: 50, mwidth: 1 %}
+            <span class="jky-text-xs">{{ credential_a }}</span>
+          </p>
+        {% endif %}
+        {% if credential_b != blank %}
+          <p>
+            {% render 'responsive-image', image: section.settings.credential_b_icon, width: 50, mwidth: 1 %}
+            <span class="jky-text-xs">{{credential_b}}</span>
+          </p>
+        {% endif %}
+        {% if credential_c != blank %}
+          <p>
+            {% render 'responsive-image', image: section.settings.credential_c_icon, width: 50, mwidth: 1 %}
+            <span class="jky-text-xs">{{ credential_c }}</span>
+          </p>
+        {% endif %}
+        {% if credential_d != blank %}
+          <p>
+            {% render 'responsive-image', image: section.settings.credential_d_icon, width: 50, mwidth: 1 %}
+            <span class="jky-text-xs">{{ credential_d }}</span>
+          </p>
+        {% endif %}
+          {%- else -%}
+            {%- if warranty_enable -%}
+             {% for item in first_icon_list.warranty_list.value %}
+              {% if item.title != blank %}
+                 <p>
+                  {% render 'responsive-image', image: item.icon %}
+                  <span class="text-xs">{{ item.title }}</span>
+                </p>
+              {%- endif -%}
+            {% endfor %}
+            {%- endif -%}
+          {%- endif -%}
+
+        </figcaption>
+        {% if first_icon_list.pay_enable %}
+          <div class="total-icon-box">
+              {%- if first_icon_list.total_icon != blank -%}
+                <img src="{{first_icon_list.total_icon | image_url: width: 80}}" alt="{{first_icon_list.total_icon.alt | escape}}" width="24" height="24" loading="lazy">
+              {%- endif -%}
+              {%- render 'payment-icons' -%}
+          </div>
+        {% endif %}
+      {%- endif -%}
+    </div>
+  </figure>
+
+  <div class="meta">
+    <h1 class="jky-text-xl font-bold">{{ product.title }}</h1>
+
+    {% comment %} Start of Judge.me code {% endcomment %}
+    <div style='{{ jm_style }}' class='jdgm-widget jdgm-preview-badge' data-id='{{ product.id }}'> {{ product.metafields.judgeme.badge }} </div>
+    {% comment %} End of Judge.me code {% endcomment %}
+    <br>
+    {% comment %} End Areviews Collection Rating Code {% endcomment %}
+
+    <div class="main-product__price_box"{% unless settings.enable_product_schema and product.metafields.schema.config.value.use_new_schema.value == true %} itemprop="offers" itemscope itemtype="http://schema.org/Offer"{% endunless %}>
+      <div>
+        <b class="price jky-text-xl barnd-color main-producr__price">
+          {{ current_variant.price | money }} {% if shop.id == 10015375438 or shop.id == 56124375224 %}<span class="jky-text-sm">(税込)</span>{% endif %}
+        </b>
+        <span
+          data-compare-price
+          class="product-price--compare"
+          data-show-discount-amount="{{settings.show_discount_amount}}"
+          data-discount-amount-format="{{settings.discount_amount_format | escape}}"
+        >
+          {% if current_variant.compare_at_price > current_variant.price %}
+            <span class="compare-price {% if shop.id == 10015375438 or shop.id == 56124375224 %} jky-text-xl{% else %} jky-text-sm{% endif %}">{{ current_variant.compare_at_price | money }}</span>
+          {% endif %}
+        </span>
+
+        {%- if settings.show_discount_amount -%}
+          {%- if current_variant.compare_at_price > current_variant.price %}
+            {% comment %} <span class="product-price--discount_amount">{{current_variant.compare_at_price | minus: current_variant.price | money}} OFF</span> {% endcomment %}
+            <span class="product-price--discount_amount"></span>
+          {%- endif -%}
+        {%- endif -%}
+
+        {% comment %} product description including tax {% endcomment %}
+        {%- if section.settings.tax != blank -%}<b class="product_tax_info jky-text-xs"><span>({{ section.settings.tax }})</span></b>{%- endif -%}
+      </div>
+    </div>
+
+    {% comment %} 判断是否创建product_points_text的block，若否 则渲染默认的商详积分文案版块 {% endcomment %}
+      {%- assign show_point = section.settings.is_show_point | default: true, allow_false: true -%}
+      {%- if show_point -%}
+      {%- assign has_block_product_points_text = false -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'product_points_text' -%}
+          {%- assign has_block_product_points_text = true -%}
+          {%- render 'product-points-text', block: block -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {% unless has_block_product_points_text %}
+        {% comment %} 全局 商详积分文案版块，默认在价格下方 {% endcomment %}
+        {% render 'global-pdp-points-text', id:'globalPdpPointsText', gaEventName: 'products_details_page_user_clicks' %}
+      {% endunless %}
+    {%- endif -%}
+
+    {% comment %} 标明含税及包邮的提醒导致让客户有所误解，使页面更具合规性及避免用户投诉 {% endcomment %}
+    {% if section.settings.product_extra_txt or section.settings.product_extra_link_txt %}
+      <div style="margin: 10px 0;">
+        {% if section.settings.product_extra_txt != blank %}
+          <span>{{ section.settings.product_extra_txt | escape }}</span>
+        {% endif %}
+        {% if section.settings.product_extra_link_txt != blank %}
+          <a style="text-decoration:underline;color:inherit;" href="{{section.settings.product_extra_link}}">{{section.settings.product_extra_link_txt | escape }}</a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+
+    {% unless template == 'product.nosale' %}
+      {%- unless settings.hide_cart_icon -%}
+        {% comment %} 优惠卷预留位置 {% endcomment %}
+        <div
+          class="coupon"
+          data-copy-and-use-text="{{ section.settings.copy_and_use_i18n | escape }}"
+          data-code-text="{{ section.settings.code_i18n | escape }}"
+          data-off-text="{{ section.settings.off_i18n | escape }}"
+        ></div>
+      {%- endunless -%}
+
+      {% comment %} 会员价预留位置 {% endcomment %}
+      {% render 'app-membership-price' %}
+
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+        {%- when '@app' -%}
+          {% render block %}
+        {%- endcase -%}
+      {%- endfor -%}
+
+      {% comment %} paypal 分期显示 {% endcomment %}
+      {%- if settings.paypal_clientId -%}
+        <script src="https://www.paypal.com/sdk/js?client-id={{ settings.paypal_clientId }}&components=messages" defer></script>
+        <div
+          style="margin-top:10px;"
+          data-pp-message
+          data-pp-placement="product"
+          data-pp-amount="{{ current_variant.price | money_without_currency }}"
+          data-pp-style-layout="text"
+          data-pp-style-logo-type="primary"
+          data-pp-style-logo-position="left"
+        ></div>
+      {%- endif -%}
+      {% comment %} paypal 分期显示 {% endcomment %}
+
+      {% comment %} {%- render 'app-klarna' -%} {% endcomment %}
+
+      {% comment %} shop pay 信息显示 {% endcomment %}
+        {% if settings.open_shopPay == true %}
+          {%- assign product_form_installment_id = 'product-form-installment-' | append: section.id -%}
+          <div style="padding: 12px 0;" id="product-form-installment-main">
+            {%- form 'product', product, id: product_form_installment_id, class: 'installment caption-large' -%}
+              <input type="hidden" name="id" value="{{ current_variant.id }}">
+              {{ form | payment_terms }}
+            {%- endform -%}
+          </div>
+        {% endif %}
+      {% comment %} shop pay 信息显示 {% endcomment %}
+      <hr>
+    {% endunless %}
+
+    {% unless settings.enable_product_schema and product.metafields.schema.config.value.use_new_schema.value == true %}
+      <meta itemprop="priceCurrency" content="{{ shop.currency }}">
+      <link itemprop="availability" href="http://schema.org/{% if product.available %}InStock{% else %}OutOfStock{% endif %}">
+    {% endunless %}
+
+    {% comment %}
+      product from
+      do not display multiple selections when there is only one variant
+    {% endcomment %}
+    {% capture form_id %}AddToCartForm-{{ product.id }}{% endcapture %}
+
+      {% form 'product', product, id: form_id, class: 'product-single__form' %}
+        {% comment %} 默认的延保信息 {% endcomment %}
+        {% if product.metafields.my_fields.product_warranty %}
+          {% if product.metafields.my_fields.extended_warranty %}
+            {% assign extended_warranty = product.metafields.my_fields.extended_warranty.value | first %}
+          {% else %}
+            {% assign extended_warranty = 1 %}
+          {% endif %}
+
+          {% if product.metafields.my_fields.default_warranty %}
+            {% assign default_warranty = product.metafields.my_fields.default_warranty.value | first %}
+          {% else %}
+            {% assign default_warranty = 2 %}
+          {% endif %}
+
+          {% assign total_warranty = default_warranty | plus: extended_warranty %}
+
+          {% capture product_warranty_title %}{{ 'products.product.warranty_title' | t: extended: extended_warranty }}{% endcapture %}
+          {% capture properties_warranty %}{{ 'products.product.properties_warranty' | t: total: total_warranty, extended: extended_warranty }}{% endcapture %}
+          {% capture properties_warranty_key %}{{ 'products.product.properties_warranty_key' | t }}{% endcapture %}
+        {% endif %}
+
+        {%- liquid
+          assign check_against_inventory = true
+          if current_variant.inventory_management != 'shopify' or current_variant.inventory_policy == 'continue'
+            assign check_against_inventory = false
+          endif
+          if current_variant.quantity_rule.min > current_variant.inventory_quantity and check_against_inventory
+            assign quantity_rule_soldout = true
+          endif
+        -%}
+
+        {% comment %}
+          变体选择部分
+          {% unless variant.available %} disabled="disabled"{% endunless %}
+        {% endcomment %}
+        <dl class="variant-input-wrap {% if product.options.size == 1 and product.variants[0].title == 'Default Title' %} product-single__variants {% endif %}">
+          {% for variant in product.variants %}
+              {% assign promotion = variant.metafields.custom.promotion %}
+              {%- if promotion != blank and promotion contains '__label_text:' -%}
+                {%- assign info = promotion | replace_first: '__label_text:' -%}
+              {% else %}
+                {% for tag in product.tags %}
+                  {%- if tag contains '__label_text:' -%}
+                    {%- assign info = tag | replace_first: '__label_text:' -%}
+                    {% break %}
+                  {%- endif -%}
+                {% endfor %}
+              {% endif %}
+            <dd>
+              <input type="radio" {% if variant.id == product.selected_or_first_available_variant.id %} checked="checked"{% endif %} value="{{ variant.id }}" data-index="option{{ forloop.index0 }}" name="id" id="{{ variant.title | handleize }}" data-full-gift-obj={{ variant.metafields.custom.full_gift_list.value | json }} money="{{variant.price | money}}">
+              <label for="{{ variant.title | handleize }}"{% unless variant.available %} class="disabled"{% endunless %} data-product-label="{{ variant.id }}" data-price="{{ variant.price }}" data-product-media="{{variant.featured_media.position}}" ppp="{{info}}">
+                <span class='goods-title'>{{ variant.title | escape }}</span>
+                <i class='goods-price'>{% if variant.available %}{{ variant.price | money }}{% else %}{{ 'products.product.sold_out' | t }}{% endif %}</i>
+              </label>
+            </dd>
+          {% endfor %}
+        </dl>
+
+        {%- unless settings.hide_cart_icon or template == 'product.nosale' -%}
+          <div class="product-quantity {% if product.options.size == 1 and product.variants[0].title == 'Default Title' %} product-single__quantity {% endif %}">
+            <label for="Quantity-{{section.id}}" class="font-bold">{{ 'products.product.quantity.label' | t }}</label>
+            <span class="operate">
+              {% render 'icon-minus', class: 'icon-operate icon-minus disabled', method: 'minus' %}
+              <input id="Quantity-{{section.id}}" type="number" name="quantity" value="1" min="1" max="1000000">
+              {% render 'icon-plus', class: 'icon-operate icon-plus', method: 'plus' %}
+            </span>
+          </div>
+          <div class="add_cart_error_wrapper hidden"></div>
+
+          <hr>
+          {% comment %} 捆绑销售, 动态插入产品后，需要调用essential function {% endcomment %}
+          <div class="essential-addons" style="display: none;">
+            <h3 class="jky-text-base font-bold">{{ 'products.product.add_ons' | t }}</h3>
+            <ul></ul>
+            <hr>
+          </div>
+
+          {% comment %} 产品推荐 {% endcomment %}
+          {%- if settings.recommend_products_position == 'right' -%}
+            <div class="-mx-4 lg:mx-0">
+              {%- render 'app-recommend-products', product: product -%}
+            </div>
+          {%- endif -%}
+
+          {% comment %} add to cart / buy it now {% endcomment %}
+          <div class="action">
+            <button
+              type="submit"
+              name="add"
+              class="add-to-cart {% if settings.hide_buynow == true or section.settings.hide_buy_now == true %}!w-full{% endif %}"
+              id="AddToCart-{{ product.id }}"
+              {% unless current_variant.available %} disabled="disabled"{% endunless %}
+            >
+              {% if current_variant.available %}
+                {% if template == 'product.preorder' %}
+                  {{ 'products.product.preorder' | t }}
+                {% else %}
+                  {{ 'products.product.add_to_cart' | t }}
+                {% endif %}
+              {% else %}
+                {{ 'products.product.sold_out' | t }}
+              {% endif %}
+            </button>
+
+            {% if section.settings.show_buy_it_now_self_developed %}
+              {%- if customer and customer.current_company -%}
+                {% comment %} B2B 用户，使用原生 购买按钮 {% endcomment %}
+                <div class="buy-it-now-action {% if settings.hide_buynow == true or section.settings.hide_buy_now == true %}!hidden{% endif %}" name="buy-it-now" style="display: {%- if current_full_gift -%} none {% else %} flex {%- endif -%};">
+                  {{ form | payment_button }}
+                </div>
+              {%- else -%}
+                {% comment %} 2C 用户 {% endcomment %}
+                <button
+                  class="buy-now--box buy-it-now-custom-btn buy-it-now-action {% if settings.hide_buynow == true or section.settings.hide_buy_now == true %}!hidden{% endif %}"
+                  type="button"
+                  name="buy-it-now"
+                  onclick="e=>e.preventDefault()"
+                  {% if product.selected_or_first_available_variant.available == false or quantity_rule_soldout %}
+                    disabled
+                  {% endif %}
+                >
+                  <span>{{ 'products.product.buy_it_now' | t }}</span>
+                </button>
+              {%- endif -%}
+            {% else %}
+              <div class="buy-it-now-action {% if settings.hide_buynow == true or section.settings.hide_buy_now == true %}!hidden{% endif %}" name="buy-it-now" style="display: {%- if current_full_gift -%} none {% else %} flex {%- endif -%};">
+                {{ form | payment_button }}
+              </div>
+            {% endif %}
+          </div>
+
+        {%- endunless -%}
+      {% endform %}
+
+    {%- unless settings.hide_cart_icon -%}
+      {% comment %} 到货提醒 {% endcomment %}
+      {% if section.settings.enable_shortage_reminds %}
+        <div class="shortage {% if current_variant.available %} none{% endif %}">
+
+          <details-modal class="shortage_popup">
+            <details>
+              <summary class="header__icon header__icon--search header__icon--summary link focus-inset modal__toggle" aria-haspopup="dialog" aria-label="Search" role="button">
+                <button>{{ section.settings.shortage_title }}</button>
+              </summary>
+              <div class="search-modal modal__content" role="dialog" aria-modal="true" aria-label="Search">
+                <div class="modal-overlay"></div>
+                <div class="relative" tabindex="-1">
+                  <div class="shortage_frame">
+                    <jds-icon name="close" class="iconfont jackery-icon-guanbi icon-close text-xl"></jds-icon>
+                    <h3 class="jky-text-lg">{{ section.settings.shortage_title }}</h3>
+                    <p class="content jky-text-xs">{{ section.settings.shortage_content }}</p>
+                    <label class="info">
+                      <input type="text" placeholder="{{ section.settings.shortage_input_tips }}" />
+                      <button disabled type="button">{{ section.settings.shortage_submit }}</button>
+                    </label>
+                    <label class="agree">
+                      <input type="checkbox" />
+                      {{ section.settings.shortage_policy }}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </details-modal>
+        </div>
+      {% endif %}
+
+      {% comment %} 新品 - get coupon {% endcomment %}
+      {% render 'newproduct-getcoupon', product: product %}
+    <hr>
+    {%- endunless -%}
+
+    {% comment %} jp poidy分期 {% endcomment %}
+    {% if settings.open_poidy == true %}
+      <div>
+        <span class="_paidy-promotional-messaging" data-amount="{{ current_variant.price | money }}" data-alignment="start" data-font-size="13px" data-6-pay-enabled data-12-pay-enabled></span>
+      </div>
+    {% endif %}
+
+    {% if product.metafields.my_fields.bfcm %}
+      {% comment %} bfcm组件 {% endcomment %}
+      {% render 'main-product-bfcm', bfcm: section.settings, bfcmblocks: section.blocks , new_product: false %}
+    {% endif %}
+    <style>
+      .product-description li p {display: inline;}
+    </style>
+    <div class="product-description">{{ product.description }}</div>
+
+    {% comment %} just for us/ca firework videos 2024-07-02 {% endcomment %}
+    {% if shop.id == 9709262 or shop.id == 60738666677 %}
+      {% render 'firework-shotvideos' %}
+    {% endif %}
+
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {% comment %} custom_liquid {% endcomment %}
+        {%- when 'custom_liquid' -%}
+          <div style="background-color: {{ block.settings.bg_color }}; margin: {{  block.settings.margin | escape }};padding: {{  block.settings.padding }};" >
+                {{ block.settings.liquid }}
+          </div>
+          {% comment %} 购买意向表单拉起按钮 {% endcomment %}
+        {%- when 'pif_btn' -%}
+          <jds-button variant="text" class="btn-for-pif">{{ block.settings.pif_btn_text }}</jds-button>
+      {%- endcase -%}
+    {%- endfor -%}
+
+    {% comment %} pc右边 {% endcomment %}
+    {% if both_enable %}
+      {% assign block_classes = 'mobile-block' %}
+      {% if position == 'right' %}
+        {% assign block_classes = block_classes | append: ',pc-block' %}
+      {% endif %}
+
+      {% assign block_classes_array = block_classes | split: ',' %}
+      {% for block_class in block_classes_array %}
+        {% render 'pay-warranty-v3',
+          block_class: block_class,
+          first_icon_list: first_icon_list,
+          has_credential: has_credential,
+          warranty_enable: warranty_enable,
+          pay_enable: pay_enable
+        %}
+      {% endfor %}
+    {% endif %}
+
+  </div>
+</div>
+
+{% comment %} 产品推荐 {% endcomment %}
+{%- if settings.recommend_products_position == 'bottom' -%}
+  {%- render 'app-recommend-products', product: product -%}
+{%- endif -%}
+
+{% render "product-appld-json" %}
+<script src="{{ 'old-product.min.js' | asset_url }}" defer></script>
+
+{% comment %} {{- 'photoswipe.css' | asset_url | stylesheet_tag -}} {% endcomment %}
+{%- assign photoswipe = 'photoswipe.js' | asset_url -%}
+{%- assign PhotoSwipeLightbox = 'photoswipelightbox.js' | asset_url -%}
+
+<script type="module">
+  const galleryRoot = document.getElementById('photo-enlarge-gallery')
+  const photoswipeStyleHref = {{ 'photoswipe.css' | asset_url | json }}
+
+  if (galleryRoot) {
+    let lightboxInstance = null
+    let lightboxPromise = null
+    let replayClick = false
+
+    const ensurePhotoSwipeStyle = () => {
+      if (document.querySelector('link[href="' + photoswipeStyleHref + '"]')) return
+
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = photoswipeStyleHref
+      document.head.appendChild(link)
+    }
+
+    const ensureLightbox = async () => {
+      if (lightboxInstance) return lightboxInstance
+
+      if (!lightboxPromise) {
+        lightboxPromise = import(/* webpackChunkName: "photoswipe-lightbox" */ '{{ PhotoSwipeLightbox }}').then((module) => {
+          const leftArrowSVGString = `<svg width="48" height="48" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g transform="translate(-64.000000, -380.000000)">
+                      <g transform="translate(64.000000, 380.000000)">
+                          <circle fill="#171717" opacity="0.200000003" cx="24" cy="24" r="24"></circle>
+                          <path d="M18,24.0288086 C18,24.245931 18.0393066,24.4462077 18.1179199,24.6296387 C18.1965332,24.8130697 18.3219401,24.9871419 18.4941406,25.1518555 L27.175293,33.6533203 C27.4523112,33.9303385 27.7892253,34.0688477 28.1860352,34.0688477 C28.4555664,34.0688477 28.6988932,34.0033366 28.9160156,33.8723145 C29.133138,33.7412923 29.3072103,33.5690918 29.4382324,33.3557129 C29.5692546,33.142334 29.6347656,32.9008789 29.6347656,32.6313477 C29.6347656,32.2420247 29.4812826,31.8938802 29.1743164,31.5869141 L21.4140625,24.0288086 L29.1743164,16.4707031 C29.4812826,16.171224 29.6347656,15.8230794 29.6347656,15.4262695 C29.6347656,15.1567383 29.5692546,14.9152832 29.4382324,14.7019043 C29.3072103,14.4885254 29.133138,14.3181966 28.9160156,14.190918 C28.6988932,14.0636393 28.4555664,14 28.1860352,14 C27.7892253,14 27.4523112,14.1347656 27.175293,14.4042969 L18.4941406,22.9057617 C18.3219401,23.0704753 18.1965332,23.2445475 18.1179199,23.4279785 C18.0393066,23.6114095 18,23.8116862 18,24.0288086 Z" fill="#FFFFFF"></path>
+                      </g>
+                  </g>
+              </g>
+          </svg>`
+          const rightArrowSVGString = `<svg width="48" height="48" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g transform="translate(-1808.000000, -380.000000)">
+                      <g transform="translate(1832.000000, 404.000000) scale(-1, 1) translate(-1832.000000, -404.000000) translate(1808.000000, 380.000000)">
+                          <circle fill="#171717" opacity="0.200000003" cx="24" cy="24" r="24"></circle>
+                          <path d="M18,24.0288086 C18,24.245931 18.0393066,24.4462077 18.1179199,24.6296387 C18.1965332,24.8130697 18.3219401,24.9871419 18.4941406,25.1518555 L27.175293,33.6533203 C27.4523112,33.9303385 27.7892253,34.0688477 28.1860352,34.0688477 C28.4555664,34.0688477 28.6988932,34.0033366 28.9160156,33.8723145 C29.133138,33.7412923 29.3072103,33.5690918 29.4382324,33.3557129 C29.5692546,33.142334 29.6347656,32.9008789 29.6347656,32.6313477 C29.6347656,32.2420247 29.4812826,31.8938802 29.1743164,31.5869141 L21.4140625,24.0288086 L29.1743164,16.4707031 C29.4812826,16.171224 29.6347656,15.8230794 29.6347656,15.4262695 C29.6347656,15.1567383 29.5692546,14.9152832 29.4382324,14.7019043 C29.3072103,14.4885254 29.133138,14.3181966 28.9160156,14.190918 C28.6988932,14.0636393 28.4555664,14 28.1860352,14 C27.7892253,14 27.4523112,14.1347656 27.175293,14.4042969 L18.4941406,22.9057617 C18.3219401,23.0704753 18.1965332,23.2445475 18.1179199,23.4279785 C18.0393066,23.6114095 18,23.8116862 18,24.0288086 Z" fill="#FFFFFF"></path>
+                      </g>
+                  </g>
+              </g>
+          </svg>`
+          const closeSVGString = `<svg width="32" height="32" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g transform="translate(-1824.000000, -32.000000)">
+                      <g transform="translate(1824.000000, 32.000000)">
+                          <rect x="0" y="0" width="32" height="32"></rect>
+                          <g transform="translate(6.000000, 6.000000)" fill="#666666" fill-rule="nonzero">
+                              <path d="M0.392826504,19.6093163 C0.563203835,19.7796143 0.763647752,19.8948159 0.994158258,19.9549211 C1.22466876,20.0150263 1.45768482,20.0150263 1.69320642,19.9549211 C1.92872803,19.8948159 2.13167749,19.7796143 2.30205482,19.6093163 L9.99910127,11.9008264 L17.711181,19.6093163 C17.8815583,19.7796143 18.0820023,19.8948159 18.3125128,19.9549211 C18.5430233,20.0150263 18.7735338,20.0150263 19.0040443,19.9549211 C19.2345548,19.8948159 19.4349987,19.7796143 19.605376,19.6093163 C19.7857756,19.4390183 19.9035364,19.2361633 19.9586584,19.0007513 C20.0137805,18.7653393 20.0137805,18.5324318 19.9586584,18.3020285 C19.9035364,18.0716253 19.7857756,17.8712747 19.605376,17.7009767 L11.9083296,9.99248685 L19.605376,2.29902329 C19.7857756,2.12872527 19.9035364,1.92837466 19.9586584,1.69797145 C20.0137805,1.46756824 20.0137805,1.23466066 19.9586584,0.999248685 C19.9035364,0.763836714 19.7857756,0.560981718 19.605376,0.390683696 C19.4349987,0.220385675 19.2345548,0.105184072 19.0040443,0.0450788881 C18.7735338,-0.015026296 18.5430233,-0.015026296 18.3125128,0.0450788881 C18.0820023,0.105184072 17.8815583,0.220385675 17.711181,0.390683696 L9.99910127,8.09917355 L2.30205482,0.390683696 C2.13167749,0.220385675 1.92872803,0.105184072 1.69320642,0.0450788881 C1.45768482,-0.015026296 1.22466876,-0.015026296 0.994158258,0.0450788881 C0.763647752,0.105184072 0.563203835,0.220385675 0.392826504,0.390683696 C0.212426978,0.560981718 0.0946661765,0.763836714 0.039544099,0.999248685 C-0.0155779784,1.23466066 -0.0130724294,1.46756824 0.0470607459,1.69797145 C0.107193921,1.92837466 0.222449174,2.12872527 0.392826504,2.29902329 L8.10490625,9.99248685 L0.392826504,17.7009767 C0.222449174,17.8712747 0.107193921,18.0716253 0.0470607459,18.3020285 C-0.0130724294,18.5324318 -0.0155779784,18.7653393 0.039544099,19.0007513 C0.0946661765,19.2361633 0.212426978,19.4390183 0.392826504,19.6093163 Z"></path>
+                          </g>
+                      </g>
+                  </g>
+              </g>
+          </svg>`
+          const PhotoSwipeLightbox = module.default;
+          ensurePhotoSwipeStyle()
+
+          const options = {
+            gallery: "#photo-enlarge-gallery",
+            arrowPrevSVG: leftArrowSVGString,
+            arrowNextSVG: rightArrowSVGString,
+            closeSVG: closeSVGString,
+            children: "a",
+            wheelToZoom: true,
+            zoom: false,
+            padding: {
+              top: 32, bottom: 184, left: 0, right: 0
+            },
+            counter: false,
+            bgOpacity: 1,
+            pswpModule: () => import('{{ photoswipe }}'),
+          };
+
+          const lightbox = new PhotoSwipeLightbox(options);
+
+          lightbox.on("uiRegister", function () {
+            lightbox.pswp.ui.registerElement({
+              name: "bulletsIndicator",
+              className: "pswp__bullets-indicator",
+              appendTo: "wrapper",
+              onInit: (el, pswp) => {
+                const bullets = [];
+                let prevIndex = -1;
+
+                const anchorTags = galleryRoot.querySelectorAll('a');
+                const imageUrls = [];
+                anchorTags.forEach(function (anchorTag) {
+                  const imgElement = anchorTag.querySelector('img');
+                  if (imgElement) {
+                    imageUrls.push(imgElement.getAttribute('src'));
+                  }
+                });
+
+                for (let i = 0; i < pswp.getNumItems(); i++) {
+                  let bullet = document.createElement("div");
+                  bullet.className = "pswp__bullet";
+                  bullet.setAttribute('data-index', i);
+
+                  bullet.onclick = () => {
+                    const index = parseInt(bullet.getAttribute('data-index'), 10);
+                    pswp.goTo(index);
+                  };
+
+                  let imgElementDOM = document.createElement('img');
+                  imgElementDOM.setAttribute('src', imageUrls[i]);
+                  imgElementDOM.setAttribute('alt', 'Dynamic Image');
+                  bullet.appendChild(imgElementDOM);
+
+                  el.appendChild(bullet);
+                  bullets.push(bullet);
+                }
+
+                pswp.on("change", () => {
+                  if (prevIndex >= 0) {
+                    bullets[prevIndex].classList.remove("pswp__bullet--active");
+                  }
+                  bullets[pswp.currIndex].classList.add("pswp__bullet--active");
+                  prevIndex = pswp.currIndex;
+                  const activeBullet = bullets[pswp.currIndex];
+
+                  const parentContainer = activeBullet?.parentNode;
+                  if (!parentContainer || parentContainer.nodeType !== 1) return;
+                  const containerEl = parentContainer;
+                  const maxScrollLeft = Math.max(0, containerEl.scrollWidth - containerEl.clientWidth);
+                  const targetScrollLeft = activeBullet.offsetLeft - (containerEl.clientWidth - activeBullet.clientWidth) / 2;
+                  const nextLeft = Math.max(0, Math.min(targetScrollLeft, maxScrollLeft));
+                  containerEl.scrollTo({ left: nextLeft, behavior: 'smooth' });
+                });
+              },
+            });
+          });
+          lightbox.on('openingAnimationStart',() => {
+            let pswpBullets = document.querySelector('.pswp__bullets-indicator');
+            if (!pswpBullets) return
+            let pswpBulletsWidth = pswpBullets.offsetWidth;
+            let pswpBulletList = pswpBullets.querySelectorAll('.pswp__bullet');
+            if (!pswpBulletList.length) return
+            let pswpBulletListALLWidth = pswpBulletList[0].offsetWidth * pswpBulletList.length;
+            pswpBullets.style.justifyContent = pswpBulletListALLWidth > pswpBulletsWidth ? 'flex-start' : 'center';
+          })
+          lightbox.init();
+          lightboxInstance = lightbox
+          return lightbox
+        }).catch((error) => {
+          console.error('Error loading PhotoSwipeLightbox:', error);
+          throw error
+        });
+      }
+
+      return lightboxPromise
+    }
+
+    galleryRoot.addEventListener('click', async (event) => {
+      const anchor = event.target.closest('a')
+      if (!anchor || replayClick) return
+      if (lightboxInstance) return
+
+      event.preventDefault()
+
+      try {
+        await ensureLightbox()
+        replayClick = true
+        requestAnimationFrame(() => {
+          anchor.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }))
+          replayClick = false
+        })
+      } catch (error) {
+        replayClick = false
+      }
+    }, true)
+  }
+</script>
+
+<script defer>
+  const initMainProductEvents = function() {
+    const mainProduct = new MainProduct({
+      propertiesWarranty: "properties[{{ properties_warranty_key }}]",
+      warrantyContent: "{{ properties_warranty }}",
+      currentVariant: {
+        "id": {{ current_variant.id | json }},
+        "sku": {{ current_variant.sku | json }},
+        "availability": {{ current_variant.available | json }},
+        "price": "{{ current_variant.price | money }}",
+        "price_nomoney": "{{ current_variant.price }}",
+        "compare_at_price": "{{ current_variant.compare_at_price | money }}",
+        "compare_at_price_nomoney": "{{ current_variant.compare_at_price }}",
+        "title": "{{ current_variant.title | escape }}",
+        "media_id": "{{ current_variant.featured_media.position }}",
+        "inventory_quantity": "{{current_variant.inventory_quantity}}",
+        "full_gift_obj": {{ current_variant.metafields.custom.full_gift_list.value | json }}
+      },
+      productVariants: {
+        {%- for variant in product.variants -%}
+        "{{ variant.id }}": {
+          "id": {{ variant.id | json }},
+          "sku": {{ variant.sku | json }},
+          "availability": {{ variant.available | json }},
+          "price": "{{ variant.price | money }}",
+          "price_nomoney": "{{ variant.price }}",
+          "price_value": "{{ variant.price | money_without_currency }}",
+          "compare_at_price": "{{ variant.compare_at_price | money }}",
+          "compare_at_price_nomoney": "{{ variant.compare_at_price }}",
+          "title": "{{ variant.title | escape }}",
+          "media_id": "{{ variant.featured_media.position }}",
+          "inventory_quantity": "{{variant.inventory_quantity}}",
+          "full_gift_obj": {{ variant.metafields.custom.full_gift_list.value | json }}
+        }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      },
+      copyCodeSuccess: "{{ 'gift_cards.issued.copy_code_success' | t }}",
+      addToCart: "{{ 'products.product.add_to_cart' | t }}",
+      soldOut: "{{ 'products.product.sold_out' | t }}",
+      shortageObj: {
+        collection: "{{ product.collections[0].title }}",
+        success: "{{ section.settings.shortage_reminds_success }}",
+        error: "{{ section.settings.shortage_reminds_error }}"
+      }
+    })
+
+    // 注册 jdgm 插件事件
+    function registerJdgmPluginEvent() {
+      const badge = document.querySelector('.jdgm-prev-badge');
+      if (!badge) return;
+
+      if (badge.__jdgmClickHandler) {
+        badge.removeEventListener('click', badge.__jdgmClickHandler);
+      }
+
+      const handler = function() {
+        // 4.0 商详页
+        const navliList = document.querySelectorAll('.navli[data-cate]');
+        navliList[navliList.length - 1]?.click();
+
+        const tabsList = document.querySelectorAll('.jky-tabs-item[data-cate]');
+        tabsList[tabsList.length - 1]?.click();
+
+        // 3.0 商详页
+        const reviewTab = document.querySelector('.J-tabs-point li[data-point="reviews"]');
+        reviewTab?.click();
+      };
+
+      badge.__jdgmClickHandler = handler;
+      badge.addEventListener('click', handler);
+    }
+    // Initial check
+    registerJdgmPluginEvent()
+
+    if (document.querySelector('.jdgm-widget').length > 0) {
+      new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.type === 'childList') {
+            registerJdgmPluginEvent();
+          }
+        })
+      }).observe(document.querySelector('.jdgm-widget'), { childList: true, subtree: true, attributes: true })
+    }
+
+    // 购买意向表单 拉起按钮
+    if(document.querySelector('.btn-for-pif')){
+      document.querySelector('.btn-for-pif').addEventListener('click', function(e) {
+        const pifDialog = document.querySelector('.pif-dialog')
+      if(pifDialog){
+          pifDialog.setAttribute('open', true)
+
+          gaPushDataLayer('form_user_clicks', {
+            module: "NormalExpertForm",// 固定模块命名NormalExpertForm
+            button_name: e.target.textContent.trim(), // 识别按钮文字text，根据按钮实际文案而定
+          });
+        }
+      })
+    }
+
+    {% comment %} 支付标题换行加类名 {% endcomment %}
+     if (document.querySelectorAll('.total-icon-box .payment-icon-list-title p').length > 1) {
+      document.querySelectorAll('.total-icon-box > img').forEach((img) => {
+        img.classList.add('total-icon-center');
+      });
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMainProductEvents, { once: true });
+  } else {
+    initMainProductEvents();
+  }
+</script>
+
+  {%- if product.has_only_default_variant == true -%}
+    {%- render "product-variants-json", variant: product.selected_or_first_available_variant, id: "selected-variant", show_discount_price: settings.display_auto_discount_price_in_sku -%}
+  {%- else -%}
+    {%- render "product-variants-json", variants: product.variants, id: "selected-variant", show_discount_price: settings.display_auto_discount_price_in_sku -%}
+  {%- endif -%}
+
+{% unless template == 'product.nosale' %}
+  {% render
+    'app-stickyCart',
+    enable_shortage_reminds: section.settings.enable_shortage_reminds,
+    mb_show_origin_price: section.settings.mb_show_origin_price,
+  %}
+{% endunless %}
+<div id="features"></div>
+{% schema %}
+{
+  "name": "商详页主模块", "tag": "section", "class": "main-product layer",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {"type": "text", "id": "tax", "label": "tax description"},
+    {"type": "header", "content": "商详页按钮设置"},
+    {"type": "checkbox", "id": "hide_buy_now", "label": "隐藏立即购买按钮", "default": false},
+
+    {"type": "text", "id": "credential_a", "label": "Credential 1", "default": "Fast Delivery"},
+    {"type": "image_picker", "id": "credential_a_icon", "label": "Credential 1 icon"},
+
+    {"type": "text", "id": "credential_b", "label": "Credential 2", "default": "2+3 Years Warranty"},
+    {"type": "image_picker", "id": "credential_b_icon", "label": "Credential 2 icon"},
+
+    {"type": "text", "id": "credential_c", "label": "Credential 3", "default": "30-Day Money back"},
+    {"type": "image_picker", "id": "credential_c_icon", "label": "Credential 3 icon"},
+
+    {"type": "text", "id": "credential_d", "label": "Credential 4"},
+    {"type": "image_picker", "id": "credential_d_icon", "label": "Credential 4 icon"},
+
+    {"type": "header", "content": "支付icon与延保模块设置"},
+    {"type": "checkbox", "id": "is_show_new_pay", "label": "启用模板级位置开关", "default": false},
+    {"type": "select", "id": "pc_pay_position",
+        "options": [
+          { "value": "left", "label": "左侧" },
+          { "value": "right", "label": "右侧" },
+        ],
+        "default": "left",
+        "label": "PC端位置",
+        "info": "（①左侧：套图下方 ②右侧：商品信息最底部,模板优先级比元字段高）"
+    },
+    {"type": "header", "content": "底部粘性购物车"},
+    {"type": "checkbox", "id": "mb_show_origin_price", "label": "Mobile端显示划线价", "default": true},
+
+    {"type": "header", "content": "自研 Buy it Now 按钮"},
+    {"type": "checkbox", "id": "show_buy_it_now_self_developed", "label": "启用自研 Buy it Now 按钮", "default": true},
+
+    {"type": "header", "content": "Product shortage reminds"},
+    {"type": "checkbox", "id": "enable_shortage_reminds", "label": "Enable shortage reminder", "default": true},
+    {
+      "type": "text", "id": "shortage_title", "label": "Shortage form title",
+      "default": "Notify Me When Available for Pre-order"
+    },
+    {
+      "type": "text", "id": "shortage_content", "label": "Shortage form content",
+      "default": "Leave your email below to get a notification when the product is available for pre-order."
+    },
+    {"type": "text", "id": "shortage_input_tips", "label": "Placeholder", "default": "Enter Your Email"},
+    {"type": "text", "id": "shortage_submit", "label": "Button text", "default": "Notify Me"},
+    {
+      "type": "richtext", "id": "shortage_policy", "label": "Policy",
+      "default": "<p>I have read and agreed to the <a href=\"https:\/\/www.jackery.com\/policies\/terms-of-service\" title=\"Jackery Terms and service\">Terms<\/a> and <a href=\"https:\/\/ca.jackery.com\/policies\/privacy-policy\" title=\"https:\/\/ca.jackery.com\/policies\/privacy-policy\">Privacy Policy<\/a>.<\/p>"
+    },
+    {
+      "type": "text", "id": "shortage_reminds_success", "label": "Tips success",
+      "default": "Successfully subscribed! We'll let you know as soon as this product is available for purchase."
+    },
+    {
+      "type": "text", "id": "shortage_reminds_error", "label": "Tips error",
+      "default": "Oops, something went wrong. Please try again later."
+    },
+
+    {"type": "text", "id": "copy_and_use_i18n", "label": "Copy & Use 多语言", "default": "COPY & USE"},
+    {"type": "text", "id": "code_i18n", "label": "Code 多语言", "default": "Code"},
+    {"type": "text", "id": "off_i18n", "label": "Off 多语言", "default": "OFF"},
+
+
+    {"type": "text", "id": "product_extra_txt", "label": "Product Extra Text"},
+    {"type": "text", "id": "product_extra_link_txt", "label": "Product Extra Link Text"},
+    {"type": "text", "id": "product_extra_link", "label": "Product Extra Link"},
+
+    {"type": "richtext", "id": "bfcm_title", "label": "BFCM表单标题"},
+    {"type": "color", "id": "bfcm_title_color", "label": "BFCM表单标题颜色(斜体颜色突出)"},
+    {"type": "text", "id": "bfcm_placeholder", "label": "BFCM输入框占位文案"},
+    {"type": "text", "id": "bfcm_required", "label": "BFCM输入框为空提示"},
+    {"type": "text", "id": "bfcm_error", "label": "BFCM输入框错误提示"},
+    {"type": "richtext", "id": "bfcm_privacy", "label": "BFCM隐私协议"},
+    {"type": "text", "id": "bfcm_privacy_error", "label": "BFCM隐私协议提示文案"},
+    {"type": "text", "id": "bfcm_submit", "label": "BFCM提交按钮文案"},
+    {"type": "color_background", "id": "bfcm_submit_bg", "label": "BFCM提交按钮文案背景色"},
+    {"type": "richtext", "id": "bfcm_title_success", "label": "BFCM提交成功后文案"},
+    {"type": "color", "id": "bfcm_title_success_color", "label": "BFCM提交成功后文案颜色(斜体颜色突出)"},
+
+    {"type": "richtext", "id": "bfcm_modal_title", "label": "BFCM弹窗标题"},
+    {"type": "color", "id": "bfcm_modal_title_color", "label": "BFCM弹窗标题颜色(斜体颜色突出)"},
+    {"type": "text", "id": "bfcm_modal_sub_title", "label": "BFCM弹窗副标题"},
+    {"type": "text", "id": "bfcm_modal_price", "label": "BFCM弹窗产品订阅价格文案"},
+    {"type": "text", "id": "bfcm_modal_origin_price", "label": "BFCM弹窗产品原价文案"},
+    {"type": "text", "id": "bfcm_modal_cart", "label": "BFCM弹窗产品加入购物车文案"},
+    {"type": "header", "content": "积分版块"},
+    {"type": "checkbox", "id": "is_show_point", "label": "启用积分文案版块开关", "default": true},
+
+  ],
+  "blocks": [
+    {
+        "name": "modal product",
+        "type": "slide",
+        "settings": [
+          {
+            "type": "text",
+            "id": "product_id",
+            "label": "变体id"
+          },
+          {
+            "type": "image_picker",
+            "id": "product_img",
+            "label": "产品图片"
+          },
+          {
+            "type": "text",
+            "id": "product_title",
+            "label": "产品标题"
+          },
+          {
+            "type": "text",
+            "id": "product_price",
+            "label": "产品订阅价格"
+          },
+          {
+            "type": "text",
+            "id": "product_origin_price",
+            "label": "产品订阅原价"
+          },
+          {
+            "type": "url",
+            "id": "product_detail",
+            "label": "产品详情链接"
+          }
+        ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "自定义Liquid",
+      "settings": [
+        {"type": "text", "id": "title","label": "名称（Shopify后台配置项使用）"},
+        { "type": "color_background", "id": "bg_color", "label": "背景色", "default": "#ffffff" },
+        {"type": "text", "id": "margin","label": "外边距", "default": "20px"},
+        {"type": "text", "id": "padding","label": "内边距", "default": "0"},
+        { "type": "liquid", "id": "liquid", "label": "自定义Liquid" }
+      ]
+    },
+    {
+      "type": "@app"
+    },
+    {
+        "type": "product_points_text",
+        "name": "商品积分文案版块",
+        "settings": [
+          {
+            "type": "header",
+            "content": "内容配置",
+            "info":"说明：未配置内容（图片和文案）时，则展示【元对象-3.0&4.0商详页-商品积分文案版块】配置数据",
+          },
+          {
+            "type": "image_picker",
+            "id": "points_icon",
+            "label": "ICON图片"
+          },
+          {
+            "type": "richtext",
+            "id": "points_text",
+            "label": "积分文案（文案示例：成为会员可以获得：$points积分，请登录）",
+            "default": "<p>成为会员可以获得：$points积分，请登录</p>",
+            "info": "注意：$points 为变量插值，会自动按照倍率将价格换算成积分替换，可以移动其位置，但不要改变形式，例如改成 $ points 或 $Points 都是错误的，$btn为变量插值为配置项弹窗按钮文案替换使用,&nbsp;可以实现空格"
+          },
+          {"type": "select", "id": "pop",
+              "options": [
+                { "value": "passwordfree_pop", "label": "引导注册（调起免密登录弹窗）" },
+                { "value": "newuser_pop", "label": "引导订阅（调起拉新弹窗）" },
+                { "value": "klaviyo_pop", "label": "引导订阅（调起Klaviyo弹窗）" }
+              ],
+              "default": "passwordfree_pop",
+              "label": "点击按钮后弹窗内容"
+          },
+           {"type": "text", "id": "klva_id", "label": "Klaviyo弹窗ID（上述弹窗内容选择Klaviyo弹窗，配置此ID则会生效）"},
+           {
+            "type": "text",
+            "id": "btn_text",
+            "label": "弹窗按钮文案（配置则调起弹窗）"
+          },
+          { "type": "color", "id": "btn_color", "label": "弹窗按钮文案颜色", "default": "#fd5000" },
+          { "type": "checkbox", "id": "btn_bold", "label": "弹窗按钮文案是否加粗", "default": false},
+          {
+            "type": "header",
+            "content": "版块样式"
+          },
+          {
+            "type": "range",
+            "id": "block_padding",
+            "min": 0,
+            "max": 20,
+            "step": 1,
+            "unit": "px",
+            "label": "内边距",
+            "default": 8
+          },
+          { "type": "color", "id": "points_bg", "label": "背景颜色", "default": "#F8F9FA" },
+          { "type": "color", "id": "link_color", "label": "积分文案超链接颜色", "default": "#fd5000" },
+          { "type": "color", "id": "active_color", "label": "强调颜色", "default": "#fd5000", "info": "如果需要使用强调颜色标记，请在富文本中使用斜体标记" }
+        ]
+    },
+    {
+      "type": "pif_btn",
+      "name": "购买意向表单拉起按钮",
+      "limit": 1,
+      "settings": [
+        {"type": "text", "id": "pif_btn_text", "label": "购买意向表单拉起按钮", "default": "Purchase Intent Form", "info": "请确保站点级别配置【产品购买意向表单收集-弹窗】覆盖了本页面，若覆盖，则按钮点击后，调起【收集用户意向表单】弹窗"}
+      ]
+    }
+  ],
+  "presets": [
+      {
+        "name": "商详页主模块"
+      }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,50 @@
+<style>
+  jky-v5-app-recommend-products-one jds-button::part(button) {
+    padding: 0.75rem 1.125rem;
+    font-size: 0.875rem;
+  }
+
+  /* iPad Air 横屏（Landscape） */
+  @media only screen
+    and (min-width: 1178px)
+    and (max-width: 1182px)
+    and (orientation: landscape)
+    and (-webkit-min-device-pixel-ratio: 2) {
+      jky-v5-app-recommend-products-one jds-button::part(button){
+        font-size: 15px !important;
+    }
+  }
+</style>
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% comment %} 全局开关 {% endcomment %}
+{%- if settings.open_products_recommend -%}
+  {%- liquid
+    assign shop_now = settings.shop_now | escape
+  -%}
+  {% capture recommend_one_root_id %}app-recommend-products-one-{{ section.id }}-{{ block.id }}{% endcapture %}
+  {% assign recommend_one_root_selector = '#' | append: recommend_one_root_id %}
+  <div id="{{ recommend_one_root_id }}">
+    <jky-v5-app-recommend-products-one
+      data-view-more-text="{{ shop_now }}"
+      data-product-title="{{ product.title | escape }}"
+      data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+      data-sku-card-bg="#FFFFFF"
+      data-open-auto-discount-price="{{ settings.open_auto_discount_price}}"
+      data-discount-tag-display-style="{{ settings.discount_tag_display_style}}"
+      data-discount-amount-display-style="{{ settings.discount_amount_display_style}}"
+      data-discount-percent-display-style="{{ settings.discount_percent_display_style}}"
+      class="block relative max-w-full w-screen mx-auto section-padding"
+      style="{{ style }}"
+    ></jky-v5-app-recommend-products-one>
+  </div>
+  {% render 'lazy-load-asset-group',
+    script: 'snippet-v5-app-recommend-products-one.min.js',
+    style: 'snippet-v5-app-recommend-products-one.min.css',
+    strategy: 'visible',
+    root_selector: recommend_one_root_selector
+  %}
+{%- endif -%}

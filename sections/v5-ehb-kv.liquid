@@ -1,0 +1,239 @@
+{%- liquid
+  assign pcimage = section.settings.pc_bg_img
+  assign mimage = section.settings.mb_bg_img
+  if section.settings.pc_bg_height < 0
+    assign imgHeightPc = pcimage.height | default: 640
+  else
+    assign imgHeightPc = section.settings.pc_bg_height
+  endif
+  assign imgHeightPc = imgHeightPc  | divided_by: 16.0 | append: 'rem'
+
+  if section.settings.mb_bg_height < 0
+    assign imgHeightMb = mimage.height | default: 500 | divided_by: 32.0 | append: 'rem'
+  else
+    assign imgHeightMb = section.settings.mb_bg_height | divided_by: 32.0 | append: 'rem'
+  endif
+
+  assign button_link = section.settings.button_link
+-%}
+
+<section class="w-full" style="--pc-height:{{ imgHeightPc }};--mb-height: {{ imgHeightMb }};" {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %}>
+  {%- comment -%} PC端 {%- endcomment -%}
+  {%- if button_link != blank -%}
+    <a
+      href="{{ button_link }}"
+      {%- if section.settings.open_new_window -%} target="_blank" {%- endif -%}
+      class="w-full hidden lg:block lg:h-[var(--pc-height)] relative"
+    >
+  {%- else -%}
+    <div class="w-full hidden lg:block lg:h-[var(--pc-height)] relative">
+  {%- endif -%}
+    {%- render 'diff-end-img',
+      class: 'w-full h-full object-cover',
+      pc_img: section.settings.pc_bg_img,
+      mb_img: null,
+      placeholder_name: 'hero-apparel-1'
+    -%}
+    <div class="{{ section.settings.page_width }} flex flex-col items-start justify-center lg:gap-y-12 absolute left-1/2 top-0 bottom-0 transform -translate-x-1/2">
+      {%- comment -%} 标题、副标题、按钮 {%- endcomment -%}
+      {%- if  section.settings.pc_sub_title != blank or section.settings.pc_title != blank or section.settings.button_text != blank -%}
+        <div class="lg:p-6 lg:rounded-lg lg:min-w-[28.75rem] bg-[rgba(0,0,0,0.25)] backdrop-blur-md">
+          {%- if section.settings.pc_sub_title != blank -%}
+            <p class="text-white font-semibold tracking-[-2%] lg:mb-4 lg:text-[1.125rem] lg:leading-[1.6875rem]">{{ section.settings.pc_sub_title | newline_to_br }}</p>
+          {%- endif -%}
+          {%- if section.settings.pc_title != blank -%}
+            <h2 class="text-white font-semibold lg:text-[3rem] lg:leading-[4.5rem]">{{ section.settings.pc_title | newline_to_br }}</h2>
+          {%- endif -%}
+          {%- if section.settings.button_text != blank -%}
+            <jds-button variant="primary" size="medium" class="lg:mt-12">{{ section.settings.button_text | escape }}</jds-button>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- comment -%} 卖点文案 {%- endcomment -%}
+      {%- if section.blocks.size > 0 -%}
+        <ul class="flex flex-wrap lg:gap-x-6">
+          {% for block in section.blocks %}
+            {%- if block.settings.sell_point_pc_text != blank or block.settings.sell_point_pc_subtext != blank -%}
+              <li class="max-w-[18.75rem] border-0 border-r-[1px] last-of-type:border-r-0 border-solid border-white lg:pr-6 last-of-type:pr-0">
+                {%- if block.settings.sell_point_pc_text != blank -%}
+                  <h4 class="text-white font-semibold rte lg:text-[1.5rem] lg:leading-[2.25rem] lg:mb-[0.5rem]">{{ block.settings.sell_point_pc_text | newline_to_br }}</h4>
+                {%- endif -%}
+                {%- if block.settings.sell_point_pc_subtext != blank -%}
+                  <p class="text-[rgba(255,255,255,0.8)] font-normal text-[1rem] leading-[1.5rem]">{{ block.settings.sell_point_pc_subtext | newline_to_br }}</p>
+                {%- endif -%}
+              </li>
+            {%- endif -%}
+          {% endfor %}
+        </ul>
+      {%- endif -%}
+    </div>
+  {%- if button_link != blank -%}
+    </a>
+  {%- else -%}
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} MB端 {%- endcomment -%}
+  <div class="block lg:hidden px-4 py-[2rem]">
+    <div class="w-full flex flex-col items-center gap-y-[1.5rem]">
+      {%- if section.settings.mb_title != blank or section.settings.mb_subtitle != blank -%}
+        <div class="flex flex-col gap-y-[0.75rem]">
+          {%- if section.settings.mb_title != blank -%}
+            <h2 class="text-black font-semibold text-center text-[1.5rem] leading-[2.25rem]">{{ section.settings.mb_title | newline_to_br }}</h2>
+          {%- endif -%}
+          {%- if section.settings.mb_sub_title != blank -%}
+            <p class="text-black font-semibold text-center tracking-[-2%] text-[0.875rem] leading-[1.3125rem]">{{ section.settings.mb_sub_title | newline_to_br }}</p>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+      {%- if section.settings.button_text != blank -%}
+        <jds-button
+          variant="primary"
+          size="medium"
+          class="w-fit mx-auto"
+          {%- if button_link != blank -%} href="{{ button_link }}" {%- endif -%}
+          {%- if section.settings.open_new_window -%} target="_blank" {%- endif -%}
+        >{{ section.settings.button_text | escape }}</jds-button>
+      {%- endif -%}
+      {%- if button_link != blank -%}
+        <a
+          href="{{ button_link }}"
+          {%- if section.settings.open_new_window -%} target="_blank" {%- endif -%}
+          class="w-full"
+        >
+      {%- else -%}
+        <div class="w-full">
+      {%- endif -%}
+        {%- render 'diff-end-img',
+          class: 'w-full h-[var(--mb-height)] object-cover rounded',
+          pc_img: null,
+          mb_img: section.settings.mb_bg_img,
+          placeholder_name: 'hero-apparel-1'
+        -%}
+      {%- if button_link != blank -%}
+        </a>
+      {%- else -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} 卖点文案 {%- endcomment -%}
+    {%- if section.blocks.size > 0 -%}
+      <ul class="w-full flex flex-wrap mt-3 gap-y-[0.75rem]">
+        {% for block in section.blocks %}
+          {%- if block.settings.sell_point_mb_text != blank or block.settings.sell_point_mb_subtext != blank -%}
+            <li class="w-1/2 h-max border-0 border-r-[1px] odd:pr-2 even:pl-2 even:border-r-0 border-solid border-[#D9D9D9]">
+              {%- if block.settings.sell_point_mb_text != blank-%}
+                <h4 class="text-black font-semibold text-[0.875rem] leading-[1.3125rem]">{{ block.settings.sell_point_mb_text | newline_to_br }}</h4>
+              {%- endif -%}
+              {%- if block.settings.sell_point_mb_subtext != blank -%}
+                <p class="text-[rgba(0,0,0,0.9)] font-normal text-[0.75rem] leading-[1.125ren]">{{ block.settings.sell_point_mb_subtext | newline_to_br }}</p>
+              {%- endif -%}
+            </li>
+          {%- endif -%}
+        {% endfor %}
+      </ul>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- schema -%}
+{
+  "name": "V5-产品KV",
+  "class": "section v5-ehb-kv",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度"
+    },
+
+    {"type": "header", "content": "PC图片配置"},
+    {"type": "image_picker", "id": "pc_bg_img", "label": "图片地址"},
+    {"type": "number", "id": "pc_bg_height", "label": "图片高度", "default": 640},
+
+    {"type": "header", "content": "NB图片配置"},
+    {"type": "image_picker", "id": "mb_bg_img", "label": "图片地址"},
+    {"type": "number", "id": "mb_bg_height", "label": "图片高度", "default": 426},
+
+    {"type": "header", "content": "标题文案配置"},
+    {"type": "textarea", "id": "pc_title", "label": "PC标题", "default": "Home Power \n 3600Plus"},
+    {"type": "textarea", "id": "pc_sub_title", "label": "PC副标题", "default": "Perfect for most family use"},
+    {"type": "textarea", "id": "mb_title", "label": "MB标题", "default": "Home Power 3600Plus"},
+    {"type": "textarea", "id": "mb_sub_title", "label": "MB副标题", "default": "Perfect for most family use"},
+    {"type": "text", "id": "button_text", "label": "按钮文案", "default": "Shop Now"},
+    {"type": "url", "id": "button_link", "label": "按钮链接"},
+    {"type": "checkbox", "id": "open_new_window", "label": "是否新开标签页跳转", "default": false}
+  ],
+  "blocks": [
+    {
+      "name": "卖点文案",
+      "type": "sell_point",
+      "settings": [
+        {"type": "textarea", "id": "sell_point_pc_text", "label": "PC标题" },
+        {"type": "textarea", "id": "sell_point_pc_subtext", "label": "PC副标题" },
+        {"type": "textarea", "id": "sell_point_mb_text", "label": "MB标题" },
+        {"type": "textarea", "id": "sell_point_mb_subtext", "label": "MB副标题" },
+      ],
+      "limit": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-产品KV",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "sell_point",
+          "settings": {
+            "sell_point_pc_text": "Easy to Use",
+            "sell_point_pc_subtext": "No Installation, Plug-and-Play",
+            "sell_point_mb_text": "Easy to Use",
+            "sell_point_mb_subtext": "No Installation, Plug-and-Play"
+          }
+        },
+        {
+          "type": "sell_point",
+          "settings": {
+            "sell_point_pc_text": "Portable Design",
+            "sell_point_pc_subtext": "Compact and lightweight",
+            "sell_point_mb_text": "Portable Design",
+            "sell_point_mb_subtext": "Compact and lightweight"
+          }
+        },
+        {
+          "type": "sell_point",
+          "settings": {
+            "sell_point_pc_text": "Scalable Capacity",
+            "sell_point_pc_subtext": "Extend power when you need it",
+            "sell_point_mb_text": "Scalable Capacity",
+            "sell_point_mb_subtext": "Extend power when you need it"
+          }
+        },
+        {
+          "type": "sell_point",
+          "settings": {
+            "sell_point_pc_text": "Certified Safe",
+            "sell_point_pc_subtext": "ChargeShield™ 2.0 for 10+ yrs lifespan",
+            "sell_point_mb_text": "Certified Safe",
+            "sell_point_mb_subtext": "ChargeShield™ 2.0 for 10+ yrs lifespan"
+          }
+        }
+      ]
+    }
+  ]
+}
+{%- endschema -%}

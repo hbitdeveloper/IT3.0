@@ -1,0 +1,822 @@
+<style>
+    {% if section.settings.background_image != blank %}
+        .jky-v5-header--main {
+            background-image: url({{ section.settings.background_image | image_url }});
+        }
+    {% else %}
+        .jky-v5-header--main {
+            background-color: {{ section.settings.background_color | default: 'transparent' }}; 
+        }
+    {% endif %}
+
+    jky-header-actions .background-text-main {
+        background: {{ section.settings.text_color | default: '#242f20' }};
+    }
+
+    .drawer__content .header-btns a span {
+        color: #242f20;
+    }
+
+    @media screen and (min-width: 1024px) {
+        .v5-header-main .v5-header-help-btn {
+            background: {{ section.settings.help_bg | default: '#242f20' }};
+            color: {{ section.settings.help_text | default: '#ffffff' }};
+        }
+
+        header-v5.menu--open {
+            z-index: 19999!important;
+        }
+    }
+    @media screen and (max-width: 1024px) {
+        .header-btns .v5-header-help-btn {
+            background: {{ section.settings.help_bg | default: '#242f20' }};
+            color: {{ section.settings.help_text | default: '#ffffff' }};
+        }
+        {% if section.settings.background_image_mobile != blank %}
+            .jky-v5-header--main {
+                background-image: url({{ section.settings.background_image_mobile | image_url }});
+            }
+        {% else %}
+            .jky-v5-header--main {
+                background-color: {{ section.settings.background_color | default: 'transparent' }}; 
+            }
+        {% endif %}
+
+        .v5-header-actions--global .global--icon {
+            transform: translateY(0px);
+        }
+    }
+
+
+    .v5-product-card-grid-pc {
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(var(--max-rows),minmax(0,1fr)) repeat(99,minmax(0,0));
+        overflow: hidden;
+    }
+
+    .v5-shop-card {
+        margin-bottom: .75rem;
+        margin-right: .75rem;
+    }
+
+    .v5-product-card-grid-pc.show-all {
+        grid-template-rows: unset;
+    }
+
+    .v5-product-card-grid-view_all {
+        color: rgba(0, 0, 0, .5);
+        cursor: pointer;
+    }
+    .v5-product-card-grid-view_all .all-line {
+        background-color: rgba(0, 0, 0, .07);
+        flex: 1;
+        height: 1px;
+        border: none;
+    }
+    .v5-product-card-grid-view_all.active .less {
+        display: inline;
+    }
+    .v5-product-card-grid-view_all.active .more {
+        display: none;
+    }
+
+    .v5-product-card-grid-view_all svg {
+        fill: rgba(0,0,0,.5);
+        height: 0.75rem;
+        transform: rotate(90deg);
+        transition: all .24s ease-in;
+        width: 0.75rem;
+    }
+    .v5-product-card-grid-view_all.active svg {
+        transform: rotate(-90deg);
+    }
+
+    .v5-pictext-menu-mobile__content .v5-shop-view_more {
+        background: var(--color-background-card, #f5f5f3);
+        border-radius: 50%;
+        height: 10.66666vw;
+        padding: 3vw .8vw 3vw 1.6vw;
+        transform: rotate(90deg);
+        transition: transform .24s ease-in;
+        width: 10.66666vw;
+    }
+
+    .v5-pictext-menu-mobile__content .v5-shop-view_more.show-all {
+        transform: rotate(-90deg);
+    }
+</style>
+{{ 'drawer-dialog.css' | asset_url | stylesheet_tag }}
+{%-liquid
+    assign btn_block = section.blocks | where: 'type', "btns_block" | first
+    assign navigation_block = section.blocks | where: 'type', "navigation" | first
+
+    assign shop_cr = settings.shop_cr | default: localization.country.iso_code | default: 'US'
+
+    assign account_url = "https://account.jackery.com"
+    if shop.id == 55005249633 or shop.id == 56124375224 or shop.id == 64525172955 or shop.id == 75730714917
+        assign account_url = "https://demo-account.jackery.com"
+    elsif shop.id == 79611232554 or theme.role == "unpublished"
+        assign account_url = "https://account-uat.jackery.com"
+    endif
+
+    if navigation_block != blank and navigation_block.settings.menu_list != blank
+        assign nav_links = navigation_block.settings.menu_list.links
+    endif
+-%}
+
+{%- capture btn_block_dom -%}
+    {%- if btn_block != blank -%}
+        {%- liquid
+            assign time_now = 'now' | date: '%s'
+            assign is_show = false
+            assign begin_time = 0
+
+            if btn_block.settings.begin_time != blank
+                assign begin_time = btn_block.settings.begin_time | date: '%s'
+            endif
+
+            assign end_time = 0
+            if btn_block.settings.end_time != blank
+                assign end_time = btn_block.settings.end_time | date: '%s'
+            endif
+
+            if begin_time == 0 and end_time == 0
+                assign is_show = false
+            endif
+
+            if begin_time != 0 and end_time == 0 and begin_time < time_now
+                assign is_show = true
+            endif
+
+            if begin_time == 0 and end_time != 0 and end_time > time_now
+                assign is_show = true
+            endif
+
+            if begin_time != 0 and end_time != 0 and end_time > time_now and begin_time < time_now
+                assign is_show = true
+            endif
+        -%}
+
+        {% assign help_label = btn_block.settings.help_label | escape %}
+        <div {{ btn_block.shopify_attributes }} class="header-btns flex items-center h-full gap-x-8 lg:flex-row-reverse">
+            {%- if help_label != blank -%}
+                <a 
+                    class="background-text-main background-text-main font-semibold text-white text-base v5-header-help-btn{% if btn_block.settings.help_link_bg != blank %} relative h-10{% else %} px-4 py-2 header-v5-btn{% endif %}" 
+                    href="{{ btn_block.settings.help_link }}"
+                    aria-label="{{ help_label }}"
+                    data-ga-event="5.0_top_nav_user_clicks"
+                    data-ga-params-module="Activity Entry"
+                    data-ga-params-button_name="Help Me Select"
+                    data-ga-action="click"
+                    data-ga-params-link="{{ btn_block.settings.help_link }}"
+                >
+                    {%- if btn_block.settings.help_link_bg != blank -%}
+                        {%- 
+                            render 'responsive-image', 
+                            image: btn_block.settings.help_link_bg, 
+                            width: 600,
+                            image_class: "h-full w-auto",
+                            alt: help_label,
+                            loading: 'eager',
+                        -%}
+                    {%- else -%}
+                        {{ help_label }}
+                    {%- endif -%}
+                </a>
+            {%- endif -%}
+
+            {%- if is_show == true -%}
+                {%- if btn_block.settings.live_link != blank -%}
+                    <a 
+                        href="{{ btn_block.settings.live_link }}" 
+                        class="flex gap-x-2"
+                        aria-label="{{ btn_block.settings.live_label | default: 'Live' | escape }}"
+                        data-ga-event="5.0_top_nav_user_clicks"
+                        data-ga-params-module="Activity Entry"
+                        data-ga-params-button_name="Live"
+                        data-ga-action="click"
+                        data-ga-params-link="{{ btn_block.settings.live_link }}"
+                    >
+                        {%- if btn_block.settings.live_icon != blank -%}
+                            {% assign live_icon_img = btn_block.settings.live_icon %}
+                            <picture class="header-v5-pic">
+                                <source media="(min-width: 1024px)" srcset="{{ live_icon_img | image_url: width: 32 }} 32w, {{ live_icon_img | image_url: width: 64 }} 64w, {{ live_icon_img | image_url: width: 128 }} 128w, {{ live_icon_img | image_url: width: 150 }} 150w" />
+                                <source media="(max-width: 1023.98px)" data-srcset="{{ live_icon_img | image_url: width: 32 }} 32w, {{ live_icon_img | image_url: width: 64 }} 64w, {{ live_icon_img | image_url: width: 128 }} 128w, {{ live_icon_img | image_url: width: 150 }} 150w" />
+                                <img width="36" height="auto" alt="{{ btn_block.settings.live_label | default: 'Live' | escape }}" class="w-9 h-auto object-contain" loading="lazy" />
+                            </picture>
+                        {%- endif -%}
+                        
+                        {%- if btn_block.settings.live_label != blank -%}
+                            <span class="font-semibold text-base color-text-main">{{ btn_block.settings.live_label | escape }}</span>
+                        {%- endif -%}
+                    </a>
+                {%- endif -%}
+            {%- else -%}
+                {%- if btn_block.settings.unlive_link != blank -%}
+                    <a 
+                        href="{{ btn_block.settings.unlive_link }}" 
+                        class="flex gap-x-2"
+                        aria-label="{{ btn_block.settings.unlive_label | default: 'Live' | escape }}"
+                        data-ga-event="5.0_top_nav_user_clicks"
+                        data-ga-params-module="Activity Entry"
+                        data-ga-params-button_name="Live"
+                        data-ga-action="click"
+                        data-ga-params-link="{{ btn_block.settings.unlive_link }}"
+                    >
+                        {%- if btn_block.settings.unlive_icon != blank -%}
+                            {% assign unlive_icon_img = btn_block.settings.unlive_icon %}
+                            <picture class="header-v5-pic">
+                                <source media="(min-width: 1024px)" srcset="{{ unlive_icon_img | image_url: width: 32 }} 32w, {{ unlive_icon_img | image_url: width: 64 }} 64w, {{ unlive_icon_img | image_url: width: 128 }} 128w, {{ unlive_icon_img | image_url: width: 150 }} 150w" />  
+                                <source media="(max-width: 1023.98px)" data-srcset="{{ unlive_icon_img | image_url: width: 32 }} 32w, {{ unlive_icon_img | image_url: width: 64 }} 64w, {{ unlive_icon_img | image_url: width: 128 }} 128w, {{ unlive_icon_img | image_url: width: 150 }} 150w" />
+                                <img width="36" height="auto" alt="{{ btn_block.settings.unlive_label | default: 'Live' | escape }}" class="w-9 h-auto object-contain" loading="eager" />  
+                            </picture>
+                        {%- endif -%}
+                        
+                        {%- if btn_block.settings.unlive_label != blank -%}
+                            <span style="--color-text-main: {{ section.settings.text_color | default: '#242f20' }};" class="font-semibold text-base color-text-main flex items-center color-text-main">{{ btn_block.settings.unlive_label | escape }}</span>
+                        {%- endif -%}
+                    </a>
+                {%- endif -%}
+            {%- endif -%}
+        </div>
+    {%- endif -%}
+{%- endcapture -%}
+
+{%- capture mobile_menu_content_v2 -%}{%- endcapture -%}
+{%- capture mobile_menu_content_main -%}{%- endcapture -%}
+
+<div class="v5-header-main section-container-lg flex items-center justify-between">
+    <a 
+        href="{{ routes.root_url }}"  
+        class="v5-header-logo h-full flex items-center lg:mr-20 mr-5" 
+        aria-label="Jackery home"
+        data-ga-event="5.0_top_nav_user_clicks"
+        data-ga-params-module="Home Logo"
+        data-ga-params-button_name="Logo"
+        data-ga-action="click"
+        data-ga-params-link="{{ routes.root_url }}"
+    >{%- render 'icon-logo', height: 27, class: 'lg:h-7 h-5', color: 'var(--color-text-accent)' -%}</a>
+
+    <div class="flex-1 h-full lg:block hidden">
+        <div class="flex items-center h-full">
+            {%- for block in section.blocks -%}
+                {%- case block.type -%}
+                    {%- when 'shop_menu' -%}
+                        {%- if block.settings.menu_list != blank -%}
+                            {%- render "v5-shop-menu", settings: block.settings, shopify_attributes: block.shopify_attributes -%}
+                            {%- capture mobile_menu_content_v2 -%}
+                                {{ mobile_menu_content_v2 }}
+                                {%- render "v5-shop-menu", settings: block.settings, shopify_attributes: block.shopify_attributes, id: block.id -%}
+                            {%- endcapture -%}
+                            {%- capture mobile_menu_content_main -%}
+                                {{ mobile_menu_content_main }}
+                                {%- render "v5-shop-menu-mobile", settings: block.settings, shopify_attributes: block.shopify_attributes, id: block.id, btn_block: btn_block -%}
+                            {%- endcapture -%}
+                        {%- endif -%}
+                    {%- when 'text_menu' -%}
+                        {%- if block.settings.menu_list != blank -%}
+                            {%- render "v5-text-menu", settings: block.settings, shopify_attributes: block.shopify_attributes -%}
+                            {%- capture mobile_menu_content_v2 -%}
+                                {{ mobile_menu_content_v2 }}
+                                {%- render "v5-text-menu", settings: block.settings, shopify_attributes: block.shopify_attributes, id: block.id -%}
+                            {%- endcapture -%}
+                            {%- capture mobile_menu_content_main -%}
+                                {{ mobile_menu_content_main }}
+                                {%- render "v5-text-menu-mobile", settings: block.settings, shopify_attributes: block.shopify_attributes, id: block.id -%}
+                            {%- endcapture -%}
+                        {%- endif -%}
+                    {%- when 'pictext_menu' -%}
+                        {%- render "v5-pictext-menu", settings: block.settings, shopify_attributes: block.shopify_attributes -%}
+                        {%- capture mobile_menu_content_v2 -%}
+                            {{ mobile_menu_content_v2 }}
+                            {%- render "v5-pictext-menu", settings: block.settings, shopify_attributes: block.shopify_attributes, id: block.id -%}
+                        {%- endcapture -%}
+                        {%- capture mobile_menu_content_main -%}
+                            {{ mobile_menu_content_main }}
+                            {%- render "v5-pictext-menu-mobile", settings: block.settings, shopify_attributes: block.shopify_attributes, id: block.id -%}
+                        {%- endcapture -%}
+                    {%- when 'pictext_cate' -%}
+                        {%- render "v5-pictext-cate", settings: block.settings, shopify_attributes: block.shopify_attributes -%} 
+                        {%- capture mobile_menu_content_v2 -%}
+                            {{ mobile_menu_content_v2 }}
+                            {%- render "v5-pictext-cate", settings: block.settings, shopify_attributes: block.shopify_attributes, id: block.id -%} 
+                        {%- endcapture -%}
+                        {%- capture mobile_menu_content_main -%}
+                            {{ mobile_menu_content_main }}
+                            {%- render "v5-pictext-cate-mobile", settings: block.settings, shopify_attributes: block.shopify_attributes, id: block.id -%} 
+                        {%- endcapture -%}
+                    {%- endcase -%}
+            {%- endfor -%}
+        </div>
+    </div>
+
+    {{ btn_block_dom }}
+
+    <jky-header-actions style="--color-main: {{ section.settings.text_color | default: '#242f20' }};" class="lg:hidden flex h-full items-center flex-1 justify-end">
+        {% comment %} search {% endcomment %}
+         <div class="h-full flex items-center gap-x-4">
+            {% comment %} search {% endcomment %}
+            <div
+                class="h-5"
+                data-ga-event="5.0_top_nav_user_clicks"
+                data-ga-action="click"
+                data-ga-params-module="Function Menu"
+                data-ga-params-position="search"
+                data-ga-params-button_name="NULL"
+                data-ga-params-link="NULL"
+            >
+                {%- render 'icon-search', class: 'hide_top_index header__section_search w-5 h-5 cursor-pointer', width: 20, height: 20, color: 'var(--color-main)' -%}
+            </div>
+
+            {% comment %} 用户 {% endcomment %}
+            <div class="h-full flex items-center hide_top_index">
+                <menu-down class="text-white relative select-none" style="position: static;">
+                    <div 
+                        trigger 
+                        class="lg:h-12 flex items-center list-none cursor-pointer relative"
+                        data-ga-event="5.0_top_nav_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="Function Menu"
+                        data-ga-params-position="account"
+                        data-ga-params-button_name="NULL"
+                        data-ga-params-link="NULL"
+                    >
+                        <div class="trigger--summery h-full flex items-center">
+                            {%- render 'icon-user', class: 'icon-user', width: 20, height: 20, color: 'var(--color-main)' -%}
+                        </div>
+                    </div>
+
+                    <div trigger-content class="menu-down--detail absolute z-[2] w-max text-base font-normal menu-down--header-user opacity-0" style="z-index: 9999;">
+                        <div style="z-index: 9999;" class="trigger--detail px-4 py-6 bg-white">
+                            {%- if section.settings.user_menu_title != blank -%}
+                                <h3 style="color: #1a1a1a;" class="font-semibold text-sm mb-2">{{ section.settings.user_menu_title | escape }}</h3>
+                            {%- endif -%}
+
+                            {%- for i in (0..4) -%}
+                                {%- assign user_info_index = 'user_menu_info_' | append: forloop.index -%}
+                                {%- if section.settings[user_info_index] != blank -%}
+                                    <div style="color: #666;" class="text-sm font-medium">{{ section.settings[user_info_index] | escape }}</div>
+                                {%- endif -%}
+                            {%- endfor -%}
+
+                            <div class="menu-down--header-user_actions mt-6 flex flex-col gap-y-2">
+                                {%- if customer == blank -%}
+                                    {% comment %} 快捷登录 {% endcomment %}
+                                    {%- if settings.quick_login == true -%}
+                                        <a role="button" aria-label="{{'sections.header.free_password_login' | t}}" href="javascript:void(0);" class="header-v5-btn v5-btn--password-free text-sm w-full rounded h-9 flex justify-center items-center color-text-weak {%if section.settings.primary_button == 'password-free-login'%}bg-primary !text-white font-semibold {% else %}header-v5-btn--secondery{% endif %}">
+                                            <span class="line-clamp-1">{{'sections.header.free_password_login' | t}}</span>
+                                        </a>
+                                    {%- endif -%}
+
+                                    {% comment %} 跳转account登录 {% endcomment %}
+                                        <a aria-label="{{ 'customer.log_in' | t }}" href='{{ account_url | append: "/login?cr=" | append: shop_cr | append: "&redirect_url=" | append: account_url | append: "/account/overview" }}' class="header-v5-btn text-sm w-full rounded h-9 flex justify-center items-center color-text-weak {%if section.settings.primary_button == 'account-login'%}bg-primary !text-white font-semibold {% else %}header-v5-btn--secondery{% endif %}">
+                                            <span class="line-clamp-1">{{ 'customer.log_in' | t }}</span>
+                                        </a>
+
+                                        {% comment %} 跳转account注册 {% endcomment %}
+                                        <a aria-label="{{ 'customer.register.title' | t }}" href='{{ account_url | append: "/register?cr=" | append: shop_cr }}' class="header-v5-btn text-sm w-full line-clamp-1 rounded h-9 flex justify-center items-center color-text-weak {%if section.settings.primary_button == 'account-sign'%}bg-primary !text-white font-semibold {% else %}header-v5-btn--secondery{% endif %}">
+                                            <span class="line-clamp-1">{{ 'customer.register.title' | t }}</span>
+                                        </a>
+                                {%- else -%}
+                                    {% comment %} 跳转用户中心 {% endcomment %}
+                                        <a aria-label="{{ 'customer.account.title' | t | escape}}" href="{{account_url | append: "?cr=" | append: shop_cr}}" class="header-v5-btn text-sm w-full rounded h-9 flex justify-center items-center header-v5-btn--secondery color-text-weak">
+                                            <span class="line-clamp-1">{{ 'customer.account.title' | t }}</span>
+                                        </a>
+
+                                    {% comment %} 退出登录 {% endcomment %}
+                                    <a aria-label="{{ 'customer.log_out' | t }}" href="{{ routes.account_logout_url }}?return_url={{request.path}}" class="header-v5__logout header-v5-btn text-sm w-full rounded h-9 flex justify-center items-center header-v5-btn--secondery color-text-weak">
+                                        <span class="line-clamp-1">{{ 'customer.log_out' | t }}</span>
+                                    </a>
+                                {%- endif -%}
+                            </div>
+                        </div>
+                    </div>
+                </menu-down>
+            </div>
+
+            {% comment %} cart {% endcomment %}
+            {%- unless settings.hide_cart_icon -%}
+                <div 
+                    class="h-full flex items-center hide_top_index"
+                    data-ga-event="5.0_top_nav_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="Function Menu"
+                    data-ga-params-position="cart"
+                    data-ga-params-button_name="NULL"
+                    data-ga-params-link="NULL"
+                >
+                    {% if settings.cart_type == 'page' %}
+                        <a href="{{ routes.cart_url }}" aria-label="Cart" class="v5-header-actions--cart header-actions-item header-actions--cart relative flex items-center" id="cart-icon-v5-menu-main">
+                    {% else %}
+                        <div class="v5-header-actions--cart header-actions-item header-actions--cart relative translate-y-0.5" id="cart-icon-v5-menu-main" role="button" tabindex="0" aria-label="Cart">
+                    {% endif %}
+                        {%- render 'icon-cart', width: 29, height: 22, color: 'var(--color-main)' -%}
+                        {%- if cart != empty -%}
+                            <div style="left: unset;" class="cart-count-bubble absolute rounded-lg flex text-xs h-4 min-w-4 bg-black justify-center items-center right-0 -top-1">
+                                {%- if cart.item_count < 100 -%}
+                                    <span aria-hidden="true">{{ cart.item_count }}</span>
+                                {%- else -%}
+                                    <span aria-hidden="true">99+</span>
+                                {%- endif -%}
+                                <span class="visually-hidden">{{ 'sections.header.cart_count' | t: count: cart.item_count }}</span>
+                            </div>
+                        {%- endif -%}
+                    {% if settings.cart_type == 'page' %}
+                        </a>
+                    {% else %}
+                        </div>
+                    {% endif %}
+                </div>
+            {%- endunless -%}
+
+            {%- if section.settings.country_select_header == true -%}
+                <div 
+                    class="hide_top_index v5-header-actions--global h-full flex lg:hidden items-center cursor-pointer"
+                    data-ga-event="5.0_top_nav_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="Function Menu"
+                    data-ga-params-position="region"
+                    data-ga-params-button_name="NULL"
+                    data-ga-params-link="NULL"
+                >
+                    {%- render 'icon-global', width: 22, height: 22, color: 'var(--color-main)', class: 'translate-y-0.5 global--icon' -%}
+                    {%- if area_block.settings.show_area_name == true -%}
+                        {%- render 'iso-code', class: 'text-base font-semibold' -%}
+                    {%- endif -%}
+                </div>
+            {%- endif -%}
+
+            <drawer-opener data-drawer="#Drawer__header_main" class="h-full flex items-center">
+                <div 
+                    class="v5-menu-opener--mobile drawer-opener--trigger w-4 h-4 flex flex-col justify-between cursor-pointer"
+                    data-ga-event="5.0_top_nav_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="Function Menu"
+                    data-ga-params-position="menu"
+                    data-ga-params-button_name="NULL"
+                    data-ga-params-link="NULL"
+                >
+                    <span class="background-text-main block w-full transition-all duration-300 ease-in-out transform origin-center"></span>
+                    <span class="background-text-main block w-full transition-all duration-300 ease-in-out transform origin-center"></span>
+                    <span class="background-text-main block w-full transition-all duration-300 ease-in-out transform origin-center"></span>
+                </div>
+            </drawer-opener>
+        </div>
+    </jky-header-actions>
+
+
+    {% comment %} 移动端菜单 - 二级主体 {% endcomment %}
+    <drawer-dialog data-close-all style="--drawer-top: var(--header-pos-bottom);" id="Drawer__header_main" placement="right">
+        <div class="drawer__overlay"></div>
+        <div class="drawer__content">
+            <div class="section-container-lg pt-5 pb-5 v5-menu-mobile-content flex flex-col gap-y-6">
+                {{ mobile_menu_content_v2 }}
+
+                {{ btn_block_dom }}
+
+                {%- if nav_links -%}
+                    <div class="flex flex-col gap-y-4">
+                        {%- for link in nav_links -%}
+                            {%- assign menu_li_childs = link.links | size -%}
+                            <div>
+                                {%- if menu_li_childs > 0 -%}
+                                    <drawer-opener data-drawer="#Drawer__navigation_block--{{navigation_block.id}}-{{ forloop.index }}" class="lg:hidden block">
+                                        <div 
+                                            class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+                                            data-ga-event="5.0_top_nav_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="Top Text Menu"
+                                            data-ga-params-position="{{ link.title | escape }}"
+                                        >
+                                            <div class="flex items-center flex-nowrap gap-x-2">
+                                                <span class="text-sm font-normal line-clamp-2 flex-1">
+                                                    {{ link.title }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </drawer-opener>
+                                {%- else -%}
+                                    <a class="color-text-main font-normal text-sm line-clamp-2" href="{{ link.url }}">{{ link.title }}</a>
+                                {%- endif -%}
+                            </div>
+                        {%- endfor -%}
+                    </div>
+                {%- endif -%}
+
+                {%- unless section.settings.country_select_header -%}
+                    <div class="v5-header-actions--global v5-header-actions--global__inner h-full flex lg:hidden items-center cursor-pointer">
+                        {%- render 'icon-global', width: 22, height: 22, color: 'var(--color-text-main)' -%}
+                        {%- render 'iso-code', class: 'text-base font-semibold' -%}
+                    </div>
+                {%- endunless -%}
+            </div>
+        </div>
+    </drawer-dialog>
+ 
+    {{ mobile_menu_content_main }}
+
+    {%- if nav_links -%}
+        {%- for link in nav_links -%}
+            {%- assign menu_li_childs = link.links | size -%}
+            {%- if menu_li_childs > 0 -%}
+                <drawer-dialog style="--drawer-top: var(--header-pos-bottom);" id="Drawer__navigation_block--{{navigation_block.id}}-{{ forloop.index }}" placement="right">
+                    <div class="drawer__overlay"></div>
+                    <div class="drawer__content">
+                        <div class="section-container-lg">
+                            <div class="v5-menu-back drawer__close-btn flex items-center gap-x-1 py-4 sticky top-0 bg-white z-10">
+                                <div class="w-5 h-5 flex items-center justify-center">
+                                    {%- render "icon-arrow", class: 'w-3 h-3 rotate-180' -%}
+                                </div>
+                                <span class="text-base font-normal line-clamp-1">{{ section.settings.text_back }}</span>
+                            </div>
+
+                            <div class="v5-text-menu-mobile__content">
+                                <div>
+                                    <div class="color-text-main font-semibold text-xl text-center line-clamp-2">{{ link.title }}</div>
+
+                                    <div class="pt-6">
+                                        {%- for child in link.links -%}
+                                            {%- unless forloop.first -%}
+                                                    <div style="height: 1px;background: rgba(198, 199, 200, 1);" class="w-full my-6"></div>
+                                                {%- endunless -%}
+                                                <div>
+                                                    {%- if child.url != '#' -%}
+                                                        <a class="color-text-weak mb-5 text-sm" href="{{ child.url }}">{{ child.title }}</a>
+                                                    {%- else -%}
+                                                        <div class="color-text-weak mb-5 text-sm">{{ child.title }}</div>
+                                                    {%- endif -%}
+
+                                                    {%- if child.links.size > 0 -%}
+                                                        <div class="flex flex-col gap-y-4 text-base px-3">
+                                                            {%- for childlink in child.links -%}
+                                                                <a 
+                                                                    class="color-text-main text-base font-normal" 
+                                                                    href="{{ childlink.url }}"
+                                                                    data-ga-event="5.0_top_nav_user_clicks"
+                                                                    data-ga-action="click"
+                                                                    data-ga-params-module="Top Text Menu"
+                                                                    data-ga-params-position="{{ childlink.title | strip | escape }}"
+                                                                    data-ga-params-button_name="{{ child.title | strip | escape }}"
+                                                                    data-ga-params-link="{{ childlink.url | escape }}"
+                                                                >{{ childlink.title }}</a>
+                                                            {%- endfor -%}
+                                                        </div>
+                                                    {%- endif -%}
+                                                </div>
+                                        {%- endfor -%}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </drawer-dialog>
+            {%- endif -%}
+        {%- endfor -%}      
+    {%- endif -%}
+</div>
+
+<script src="{{ 'header-v5.js' | asset_url }}" async></script>
+<script src="{{ 'menu-down.js' | asset_url }}" defer></script>
+<script src="{{ 'drawer-dialog.js' | asset_url }}" defer></script>
+<script src="{{ 'menu-toggle.js' | asset_url }}" defer></script>
+<script src="{{ 'v5-header-search.js' | asset_url }}" defer></script>
+<script src="{{ 'v5-pictext-cate.js' | asset_url }}" defer></script>
+<script src="{{ 'v5-shop-menu.js' | asset_url }}" async></script>
+
+{% schema %}
+{
+    "name": "V5导航-MAIN", "class": "jky-v5-header--main relative z-10", "tag": "div",
+    "enabled_on": {
+        "groups": ["header"]
+    },
+    "settings": [
+        {
+            "type": "header", "content": "背景"
+        },
+        { 
+            "type": "color_background", "id": "background_color","label": "背景色", "default": "#F5F5F3" 
+        },
+        {
+            "type": "image_picker",
+            "id": "background_image",
+            "label": "背景图片",
+            "info": "可以使用该配置替换背景色显示【建议尺寸：1920 * 48多倍图】"
+        },
+        {
+            "type": "image_picker",
+            "id": "background_image_mobile",
+            "label": "移动端背景图片",
+            "info": "可以使用该配置替换背景色显示【建议尺寸：750 * 66 或 多倍图】"
+        },
+        { 
+            "type": "color", "id": "text_color","label": "文本色", "default": "#242f20" 
+        },
+        { 
+            "type": "color", "id": "help_bg","label": "help me select背景", "default": "#242f20" 
+        },
+        { 
+            "type": "color", "id": "help_text","label": "help me select文字颜色", "default": "#ffffff" 
+        },
+
+        { "type": "checkbox", "id": "pop_login_main", "label": "免密登录高亮显示", "default": true },
+        { "type": "checkbox", "id": "country_select_header", "label": "国家地区切换显示在header上", "default": true },
+        {
+            "type": "select",
+            "id": "primary_button",
+            "options": [
+                {
+                    "value": "password-free-login",
+                    "label": "免密登录"
+                },
+                {
+                    "value": "account-login",
+                    "label": "会员登录"
+                },
+                {
+                    "value": "account-sign",
+                    "label": "会员注册"
+                }
+            ],
+            "default": "password-free-login",
+            "label": "高亮显示按钮(已登录状态)"
+        },
+
+        { "type": "text", "id": "user_menu_title", "label": "用户菜单标题", "default": "Join Jackery Membership for Multiple Benifits" },
+        {
+            "type": "header",
+            "content": "用户菜单副标题"
+        },
+        { "type": "text", "id": "user_menu_info_1", "label": "用户菜单信息列表-1", "default": "Get $200 off coupon for first registration" },
+        { "type": "text", "id": "user_menu_info_2", "label": "用户菜单信息列表-2", "default": "Memership Price (Up to $XXX off)" },
+        { "type": "text", "id": "user_menu_info_3", "label": "用户菜单信息列表-3" },
+        { "type": "text", "id": "user_menu_info_4", "label": "用户菜单信息列表-4" },
+        { "type": "text", "id": "user_menu_info_5", "label": "用户菜单信息列表-5" },
+        {
+            "type": "header",
+            "content": "多语言配置"
+        },
+        { "type": "text", "id": "text_back", "label": "返回上一级", "default": "Back" },
+        { "type": "text", "id": "text_shop_all", "label": "查看所有商品", "default": "Shop All" }
+    ],
+    "blocks": [
+        {
+            "type": "shop_menu",
+            "name": "Shop菜单",
+            "limit": 2,
+            "settings": [
+                {"type": "link_list", "id": "menu_list", "label": "Menu", "info": "空白菜单项的链接请配置'#'占位"},
+                {"type": "text", "id": "menu_tag", "label": "菜单标签"},
+                {"type": "text", "id": "menu_heading", "label": "菜单标题", "default": "Shop"},
+
+                { 
+                    "type": "color", "id": "fk_color","label": "高亮", "default": "#242f20" 
+                },
+                {
+                    "type": "range",
+                    "id": "shop_collection_max",
+                    "min": 5,
+                    "max": 20,
+                    "step": 5,
+                    "label": "每个collection最大显示数量",
+                    "default": 10
+                },
+                {
+                    "type": "select",
+                    "id": "shop_collection_default",
+                    "options": [
+                        {
+                        "value": "1",
+                        "label": "一行"
+                        },
+                        {
+                        "value": "2",
+                        "label": "两行"
+                        }
+                    ],
+                    "default": "1",
+                    "label": "每个collection默认显示数量",
+                    "info": "5个/行"
+                },
+                {
+                    "type": "header", "content": "多语言"
+                },
+                {"type": "text", "id": "view_all", "label": "查看所有", "default": "View All"},
+                {"type": "text", "id": "view_less", "label": "Less", "default": "Less"},
+                {"type": "text", "id": "view_more", "label": "More", "default": "More"},
+            ]
+        },
+        {
+            "type": "text_menu",
+            "name": "文本菜单",
+            "limit": 2,
+            "settings": [
+                {"type": "link_list", "id": "menu_list", "label": "Menu", "info": "空白菜单项的链接请配置'#'占位"},
+                {"type": "text", "id": "menu_tag", "label": "菜单标签"},
+                {"type": "text", "id": "menu_heading", "label": "菜单标题", "default": "TEXT"},
+                { 
+                    "type": "color", "id": "fk_color","label": "高亮", "default": "#242f20" 
+                }
+            ]
+        },
+        {
+            "type": "pictext_menu",
+            "name": "图文菜单",
+            "limit": 2,
+            "settings": [
+                {"type": "text", "id": "menu_tag", "label": "菜单标签"},
+
+                { "type": "metaobject", "id": "handle", "label": "菜单元数据", "metaobject_type": "menu_piccard_tab" },
+                { "type": "color", "id": "card_color", "label": "卡片文案颜色", "default": "#ffffff" },
+                { "type": "text", "id": "card_label", "label": "卡片按钮文案", "default": "Shop Now" },
+                { 
+                    "type": "color", "id": "fk_color","label": "高亮", "default": "#242f20" 
+                },
+                { 
+                    "type": "color", "id": "text_color","label": "按钮文本色", "default": "#242f20" 
+                },
+                { 
+                    "type": "color", "id": "help_bg","label": "按钮背景", "default": "#242f20" 
+                }
+            ]
+        },
+        {
+            "type": "pictext_cate",
+            "name": "图文分类菜单",
+            "limit": 2,
+            "settings": [
+                {"type": "text", "id": "menu_tag", "label": "菜单标签"},
+                { "type": "metaobject", "id": "handle", "label": "菜单元数据", "metaobject_type": "menu_pic_card" },
+                { 
+                    "type": "color", "id": "fk_color","label": "高亮", "default": "#242f20" 
+                }
+            ]
+        },
+        {
+            "type": "btns_block",
+            "name": "直播等按钮操作组",
+            "limit": 1,
+            "settings": [
+                {
+                    "type": "header", "content": "直播"
+                },
+                {
+                    "type": "text", "id": "begin_time", "label": "开始时间",
+                    "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+                },
+                {
+                    "type": "text", "id": "end_time", "label": "结束时间",
+                    "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+                },
+                {"type": "url", "id": "live_link", "label": "直播链接", "info": "链接不设置相关直播按钮内容不显示"},
+                {"type": "text", "id": "live_label", "label": "直播Label", "default": "Live", "visible_if": "{{ block.settings.live_link != blank }}"},
+                {
+                    "type": "image_picker",
+                    "id": "live_icon",
+                    "label": "直播ICON",
+                    "info": "【建议尺寸：32 * 20多倍图】",
+                    "visible_if": "{{ block.settings.live_link != blank }}"
+                },
+
+                {"type": "url", "id": "unlive_link", "label": "无直播时链接", "info": "链接不设置相关直播按钮内容不显示"},
+                {"type": "text", "id": "unlive_label", "label": "无直播时Label", "default": "Live", "visible_if": "{{ block.settings.unlive_link != blank }}"},
+                {
+                    "type": "image_picker",
+                    "id": "unlive_icon",
+                    "label": "无直播时ICON",
+                    "info": "【建议尺寸：32 * 20多倍图】",
+                    "visible_if": "{{ block.settings.unlive_link != blank }}"
+                },
+
+
+                {
+                    "type": "header", "content": "智能选购"
+                },
+                {"type": "text", "id": "help_label", "label": "智能选购Label", "default": "Help Me Select", "info": "文案不设置相关智能选购按钮内容不显示" },
+                {"type": "url", "id": "help_link", "label": "智能选购链接" },
+                {
+                    "type": "image_picker",
+                    "id": "help_link_bg",
+                    "label": "智能选购背景",
+                    "info": "设置该选项会覆盖 智能选购Label"
+                }
+            ]
+        },
+        {
+            "type": "navigation",
+            "name": "帮助菜单",
+            "limit": 1,
+            "settings": [
+                {"type": "link_list", "id": "menu_list", "label": "Menu", "info": "空白菜单项的链接请配置'#'占位【只在移动端显示】"}
+            ]
+        }
+    ],
+    "presets": [
+        {
+            "name": "V5导航-MAIN",
+            "blocks": [
+
+            ]
+        }
+    ]
+}
+{% endschema %}

@@ -1,0 +1,283 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+{{ 'blocks-_tab-wrap.css' | asset_url | stylesheet_tag }}
+
+{% liquid
+    assign v5Class = ""
+    if block.settings.style_version == 'v5'
+        assign v5Class = "v5"
+    endif
+%}
+
+<jky-v-tabs-wrap
+  {{ block.shopify_attributes }}
+  class="blocks-tabs-wrap w-full flex flex-col {{ v5Class }}"
+  data-sticky-header="{{ block.settings.is_need_sticky_header }}"
+  style="--pc-gap:{{ block.settings.pc_gap }};--mb-gap:{{ block.settings.mb_gap }};"
+>
+  <div
+    class="tab-nav-wrap w-full {% if block.settings.is_need_sticky_header %}sticky{% endif %} z-10 border-0 border-t-[1px] border-solid lg:border-t-0"
+    style="--tab-nav-light-bg:{{block.settings.tab_bg_color | color_modify: 'alpha', 0}};--tab-nav-bg:{{block.settings.tab_bg_color}};background:var(--tab-nav-bg, '#FFFFFF');--tab_line_color:{{block.settings.tab_line_color}};border-color:var(--tab_line_color, '#00000026');"
+  >
+    <div class="tab-nav-ul-wrap max-w-full {{ block.settings.page_width }} mx-auto relative">
+      <ul
+        class="tabs-nav-ul section-padding invisible w-full lg:w-fit max-w-full flex items-center flex-nowrap overflow-x-auto relative align-{{block.settings.alignment}} mb-align-{{block.settings.alignment_mb}} gap-x-6 px-6 lg:px-0 lg:gap-x-12"
+        style="--text-color:{{ block.settings.tab_color }};--tab_active_color:{{ block.settings.tab_active_color }};--pc-tab-size:{{ block.settings.pc_name_size | divided_by: 16.0 }}rem;--mb-tab-size:{{ block.settings.mb_name_size | divided_by: 16.0 }}rem;{{ style }}"
+      >
+        <li class="tab-nav-indicator absolute left-0 bottom-0 w-0 h-[0.1875rem] lg:h-[0.3125rem]"></li>
+      </ul>
+      <div
+        class="tab-nav-prev invisible opacity-0 shadow-[-2px_0_4px_0_rgba(0, 0, 0, 0.1)] z-[1] absolute w-6 h-[calc(100%-2px)] left-0 top-0 bottom-0 lg:w-[2.5rem] transition-all duration-300 cursor-pointer flex items-center justify-center"
+        style="background: linear-gradient(to left, var(--tab-nav-light-bg) 0%, var(--tab-nav-bg) 20%, var(--tab-nav-bg) 100%)"
+      >
+        {% render 'icon-arrow', class: 'w-4 h-4 rotate-180', color: block.settings.tab_color %}
+      </div>
+      <div
+        class="tab-nav-next invisible opacity-0 shadow-[-2px_0_4px_0_rgba(0, 0, 0, 0.1)] z-[1] absolute w-6 h-[calc(100%-2px)] right-0 top-0 bottom-0 lg:w-[2.5rem] transition-all duration-300 cursor-pointer flex items-center justify-center"
+        style="background: linear-gradient(to right, var(--tab-nav-light-bg) 0%, var(--tab-nav-bg) 20%, var(--tab-nav-bg) 100%)"
+      >
+        {% render 'icon-arrow', class: 'w-4 h-4', color: block.settings.tab_color  %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="tabs-content-container w-full overflow-hidden px-4 lg:px-0">
+    <div class="tabs-content-wrap flex transition-all duration-300 will-change-transform {{ block.settings.page_width }} mx-auto">
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+</jky-v-tabs-wrap>
+<script src="{{ 'blocks-_tab-wrap.js' | asset_url }}" defer></script>
+
+{% schema %}
+  {
+    "name": "V-Tabs容器",
+    "class": "blocks-tabs-wrap",
+    "tag": null,
+    "blocks": [{"type": "_tab-item"}],
+    "settings": [
+      {
+        "type": "select", 
+        "id": "page_width",
+        "visible_if": "{{ settings.customize_vcomponents == true }}",
+        "options": [
+          {
+            "value": "section-container",
+            "label": "版心/1200px"
+          },
+          {
+            "value": "section-container-lg",
+            "label": "大版心/1320px"
+          },
+          {
+            "value": "w-full",
+            "label": "铺满/100%"
+          }
+        ],
+        "default": "section-container-lg",
+        "label": "组件宽度"
+      },
+      {
+        "type": "select",
+        "id": "style_version",
+        "visible_if": "{{ settings.customize_vcomponents == true }}",
+        "options": [
+          {
+            "value": "default",
+            "label": "默认"
+          },
+          {
+            "value": "v5",
+            "label": "5.0"
+          }
+        ],
+        "default": "default",
+        "label": "样式版本"
+      },
+      {
+        "type": "checkbox", 
+        "id": "is_need_sticky_header",
+        "label": "是否需要吸顶Header导航栏",
+        "default": true,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      { "type": "header", "content": "Tab样式配置" },
+      { "type": "color", "id": "tab_bg_color", "label": "背景颜色", "default": "#FFFFFF" },
+      {
+        "type": "text_alignment",
+        "id": "alignment",
+        "label": "PC端对齐方式",
+        "default": "left"
+      },
+      {
+        "type": "text_alignment",
+        "id": "alignment_mb",
+        "label": "移动端对齐方式",
+        "default": "left"
+      },
+      { "type": "range", "id": "pc_name_size", "min": 12, "max": 36, "step": 1, "label": "PC端Tab标题大小", "default": 21 },
+      { "type": "range", "id": "mb_name_size", "min": 12, "max": 36, "step": 1, "label": "MB端Tab标题大小", "default": 14 },
+      { "type": "color", "id": "tab_color", "label": "Tab标题颜色", "default": "#00000066" },
+      { "type": "color", "id": "tab_active_color", "label": "Tab标题选中颜色", "default": "#FD5000" },
+      { "type": "color", "id": "tab_line_color", "label": "线条颜色", "default": "#00000026" },
+      { "type": "header", "content": "Gap配置" },
+      {
+        "type": "range",
+        "id": "pc_gap",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "PC端Gap大小",
+        "default": 0
+      },
+      {
+        "type": "range",
+        "id": "mb_gap",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "MB端Gap大小",
+        "default": 0
+      },
+      { "type": "header", "content": "PC边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+      {
+        "type": "range",
+        "id": "padding_top",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "上边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "下边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_left",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "左边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_right",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "右边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+
+      { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+      {
+        "type": "select",
+        "id": "mb_padding_type",
+        "options": [
+          {
+            "value": "default",
+            "label": "默认"
+          },
+          {
+            "value": "custom",
+            "label": "自定义"
+          }
+        ],
+        "default": "default",
+        "label": "MB边距",
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_top_mb",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "上边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom'  }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom_mb",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "下边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom'  }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_left_mb",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "左边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom'  }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_right_mb",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "右边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom'  }}"
+      }
+    ],
+    "presets": [
+      {
+        "name": "V-Tabs容器",
+        "blocks": [
+          {
+            "type": "_tab-item",
+            "settings": {
+              "tab_name": "<p>Tab 名称</p>",
+              "highlight_color": "#fd5000"
+            }
+          },
+          {
+            "type": "_tab-item",
+            "settings": {
+              "tab_name": "<p>Tab 名称</p>",
+              "highlight_color": "#fd5000"
+            }
+          },
+          {
+            "type": "_tab-item",
+            "settings": {
+              "tab_name": "<p>Tab 名称</p>",
+              "highlight_color": "#fd5000"
+            }
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

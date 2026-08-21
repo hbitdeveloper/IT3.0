@@ -1,0 +1,531 @@
+{%- capture style -%}
+  {%- render 'spacing-padding', settings: block.settings -%}
+{%- endcapture -%}
+{%- capture radius -%}
+  {%- render 'size-radius', settings: block.settings -%}
+{%- endcapture -%}
+
+{%- liquid
+  assign pc_video = block.settings.desktop_video
+  assign pc_preview_image = block.settings.poster_pc
+  if block.settings.poster_pc == blank and block.settings.desktop_source == "uploaded"
+    assign pc_preview_image = block.settings.desktop_video.preview_image
+  endif
+
+  if block.settings.desktop_source == "url"
+    assign pc_video = block.settings.desktop_video_url
+  endif
+
+
+  assign mb_video = block.settings.mobile_video
+  assign mb_preview_image = block.settings.poster_mb
+  if block.settings.poster_mb == blank and block.settings.mobile_source == "uploaded"
+    assign mb_preview_image = block.settings.mobile_video.preview_image
+  endif
+
+  if block.settings.mobile_source == "url"
+    assign mb_video = block.settings.mobile_video_url
+  endif
+
+  assign video_style = nil
+  if block.settings.page_width != 'w-full'
+    assign video_style = radius
+  endif
+
+  assign block_type = block.settings.type | default: 'independent'
+
+  assign block_page_width = block.settings.page_width | default: 'section-container-lg'
+  if block_page_width != 'w-full'
+    assign video_class = 'blocks-radius'
+  endif
+-%}
+
+{% style %}
+  @media screen and (min-width: 1024px) {
+    .block-video .video-wrap {
+      height: calc(var(--block-video-pc-height) * 0.0625rem);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .block-video .video-wrap {
+      height: calc(var(--block-video-mb-height) * 0.03125rem);
+    }
+    /* 覆盖 播放按钮 样式 */
+    .block-video .video-play-btn {
+      width: 2.25rem;
+      height: 2.25rem;
+      position: absolute;
+      left: unset;
+      top: unset;
+      right: 1.25rem;
+      bottom: 1.25rem;
+      transform: none;
+    }
+  }
+{% endstyle %}
+
+<div
+  class="section-padding w-full h-full {% if settings.enable_animations_scroll %}scroll-trigger animate--slide-in{% endif %} {% if block.settings.type == 'embed' %} embed-component {% endif %}"
+  {% if block_type == 'independent' and block.settings.anchor != blank %}
+    data-anchor="{{block.settings.anchor}}"
+  {% endif %}
+  {% if block_type == 'embed' and block.settings.handle != blank %}
+    data-handle="{{ block.settings.handle }}"
+  {% endif %}
+
+  style="--block-video-pc-height:{{block.settings.pc_height}};--block-video-mb-height:{{block.settings.mb_height}};background:{{block.settings.bg_color}};{{ style }}"
+>
+  <div class="flex max-w-full {{block.settings.page_width}}  h-full relative">
+    {% comment %} PC {% endcomment %}
+    <div class="video-wrap hidden lg:block h-full w-full overflow-hidden relative {{ video_class }} {% if block.settings.pc_height_type == 'fill' %}!h-full{% endif %}" {% if block.settings.page_width != 'w-full' %}style="{{ video_style }}"{% endif %} observe="false">
+      {%- if pc_video != blank -%}
+        {%- if block.settings.desktop_source == "url" -%}
+          {%- render 'viewport-youtube',
+            class: video_class,
+            style: video_style,
+            video: pc_video.id, 
+            url: pc_video.url, 
+            observe: block.settings.autoplay, 
+            api: true, 
+            poster: pc_preview_image, 
+            autoplay: block.settings.autoplay, 
+            loop: block.settings.loop, 
+            controls: block.settings.controls,
+          -%}
+        {%- else -%}
+          {%- render 'viewport-video',
+            class: video_class,
+            style: video_style,
+            url: pc_video, 
+            observe: block.settings.autoplay, 
+            poster: pc_preview_image, 
+            autoplay: block.settings.autoplay, 
+            loop: block.settings.loop, 
+            controls: block.settings.controls, 
+            show_muted_button: true, 
+            show_pause_button: true,
+            show_origin: block.settings.show_origin
+          -%}
+        {%- endif -%}
+      {%- else -%}
+        {%- if pc_preview_image != blank -%}
+          {%- render 'responsive-image', image: pc_preview_image, mimage: pc_preview_image, image_class: 'w-full h-full object-cover' -%}
+        {%- else -%}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover translate3d' }}
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    {% comment %} MB {% endcomment %}
+    <div class="video-wrap block lg:hidden h-full w-full overflow-hidden relative {{ video_class }} {% if block.settings.mb_height_type == 'fill' %}!h-full{% endif %}" {% if block.settings.page_width != 'w-full' %}style="{{ video_style }}"{% endif %}>
+      {%- if mb_video != blank -%}
+        {%- if block.settings.mobile_source == "url" -%}
+          {%- render 'viewport-youtube', 
+            video: mb_video.id, 
+            url: mb_video.url, 
+            observe: block.settings.autoplay, 
+            api: true, 
+            poster: mb_preview_image, 
+            autoplay: block.settings.autoplay, 
+            loop: block.settings.loop, 
+            controls: block.settings.controls
+          -%}
+        {%- else -%}
+          {%- render 'viewport-video', 
+            url: mb_video, 
+            observe: block.settings.autoplay,
+            poster: mb_preview_image, 
+            autoplay: block.settings.autoplay, 
+            loop: block.settings.loop, 
+            controls: block.settings.controls, 
+            show_muted_button: true, 
+            show_pause_button: true,
+            show_origin: block.settings.show_origin
+          -%}
+        {%- endif -%}
+      {%- else -%}
+        {%- if mb_preview_image != blank -%}
+          {%- render 'responsive-image', image: mb_preview_image, mimage: mb_preview_image, image_class: 'w-full h-full object-cover translate3d', width: 375 -%}
+        {%- else -%}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    <div class="video-info w-full flex flex-col items-start justify-between absolute left-1/2 -translate-x-1/2 z-[2] top-12 lg:top-16 lg:px-9">
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "V-单个视频",
+  "class": "block-video h-full",
+  "blocks": [{ "type": "v-heading-content"}, { "type": "_button-group" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "基础设置"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "类型",
+      "default": "independent",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle（当前页面唯一的handle）",
+      "default": "v-video-01",
+      "visible_if": "{{ block.settings.type == 'embed' }}"
+    },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)",
+      "visible_if": "{{ block.settings.type == 'independent' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "select", 
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        },
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度"
+    },
+    {
+      "type": "select",
+      "id": "pc_height_type",
+      "label": "PC端高度",
+      "options": [
+        {
+          "value": "custom",
+          "label": "自定义高度"
+        },
+        {
+          "value": "fill",
+          "label": "填充"
+        }
+      ],
+      "info": "选择【填充】后，视频高度会自动填充父容器高度。适用场景：将视频嵌入到一个容器内，并希望视频占满容器",
+      "default": "custom"
+    },
+    {
+      "type": "number",
+      "id": "pc_height",
+      "label": "PC端自定义高度",
+      "default": 738,
+      "visible_if": "{{ block.settings.pc_height_type == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_height_type",
+      "label": "MB端高度",
+      "options": [
+        {
+          "value": "custom",
+          "label": "自定义高度"
+        },
+        {
+          "value": "fill",
+          "label": "填充"
+        }
+      ],
+      "info": "选择【填充】后，视频高度会自动填充父容器高度。适用场景：将视频嵌入到一个容器内，并希望视频占满容器",
+      "default": "custom"
+    },
+    {
+      "type": "number",
+      "id": "mb_height",
+      "label": "MB端自定义高度",
+      "default": 1000,
+      "visible_if": "{{ block.settings.mb_height_type == 'custom' }}"
+    },
+    { "type": "header", "content": "视频" },
+    {
+      "type": "header",
+      "content": "PC端视频相关配置"
+    },
+    {
+      "type": "select",
+      "id": "desktop_source",
+      "label": "视频来源",
+      "options": [
+        {
+          "value": "uploaded",
+          "label": "本地"
+        },
+        {
+          "value": "url",
+          "label": "Youtube"
+        }
+      ],
+      "default": "uploaded"
+    },
+    {
+      "type": "video",
+      "id": "desktop_video",
+      "label": "视频",
+      "visible_if": "{{ block.settings.desktop_source == 'uploaded' }}"
+    },
+    {
+      "type": "video_url",
+      "id": "desktop_video_url",
+      "label": "YouTube视频地址",
+      "accept": ["youtube"],
+      "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+      "visible_if": "{{ block.settings.desktop_source == 'url' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_pc",
+      "label": "PC视频封面图",
+      "info": "请按照组件选择的高度配置（不配置默认取视频封面），推荐尺寸: 1312x738 或者 1200x675"
+    },
+
+    {
+      "type": "header",
+      "content": "MB端视频相关配置"
+    },
+    {
+      "type": "select",
+      "id": "mobile_source",
+      "label": "视频来源",
+      "options": [
+        {
+          "value": "uploaded",
+          "label": "本地"
+        },
+        {
+          "value": "url",
+          "label": "Youtube"
+        }
+      ],
+      "default": "uploaded"
+    },
+    {
+      "type": "video",
+      "id": "mobile_video",
+      "label": "视频",
+      "visible_if": "{{ block.settings.mobile_source == 'uploaded' }}"
+    },
+    {
+      "type": "video_url",
+      "id": "mobile_video_url",
+      "label": "YouTube视频地址",
+      "accept": ["youtube"],
+      "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+      "visible_if": "{{ block.settings.mobile_source == 'url' }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_mb",
+      "label": "MB视频封面图",
+      "info": "请按照组件选择的高度配置（不配置默认取视频封面），推荐尺寸: 686x1000"
+    },
+    { "type": "header", "content": "播放设置" },
+    { "type": "checkbox", "id": "autoplay", "label": "自动播放", "default": false, "info": "如果视频地址是Youtube链接，不启用自动播放，建议配置视频封面图"},
+    { "type": "checkbox", "id": "loop", "label": "循环播放", "default": true },
+    { "type": "checkbox", "id": "controls", "label": "显示播放控件", "default": true, "info": "仅对Shopify本地视频有效", "visible_if": "{{ block.settings.show_origin != true }}" },
+    { "type": "checkbox", "id": "show_origin", "label": "是否显示原视频（无压缩）", "default": false, "info": "仅对Shopify本地视频有效" },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "圆角", "visible_if": "{{ block.settings.page_width != 'w-full' }}" },
+    {
+      "type": "range",
+      "id": "radius_1",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 12,
+      "info": "移动端默认为设置的数值×0.75",
+      "visible_if": "{{ block.settings.page_width != 'w-full' }}"
+    },
+    {
+      "type": "range",
+      "id": "radius_2",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 12,
+      "info": "移动端默认为设置的数值×0.75",
+      "visible_if": "{{ block.settings.page_width != 'w-full' }}"
+    },
+    {
+      "type": "range",
+      "id": "radius_3",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 12,
+      "info": "移动端默认为设置的数值×0.75",
+      "visible_if": "{{ block.settings.page_width != 'w-full' }}"
+    },
+    {
+      "type": "range",
+      "id": "radius_4",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 12,
+      "info": "移动端默认为设置的数值×0.75",
+      "visible_if": "{{ block.settings.page_width != 'w-full' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-单个视频",
+      "category": "内容展示",
+      "blocks": [
+        {
+          "type": "v-heading-content",
+          "settings": {
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 36,
+            "padding_right": 36
+          },
+          "blocks": [
+            {
+              "type": "_v-heading-content-des",
+              "settings": {
+                "heading": "<p><em>Living and Blackouts</em></p>",
+                "mb_heading": "<p><em>Living and Blackouts</em></p>",
+                "padding_top": 0,
+                "padding_bottom": 16,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#ffffff"
+              }
+            },
+            {
+              "type": "_v-heading-content-heading",
+              "settings": {
+                "heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                "mb_heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                "padding_top": 0,
+                "padding_bottom": 16,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#ffffff"
+              }
+            },
+            {
+              "type": "_v-heading-content-subheading",
+              "settings": {
+                "heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                "mb_heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#ffffff"
+              }
+            }
+          ]
+        },
+        {
+          "type": "_button-group",
+          "settings": {
+            "padding_top": 24,
+            "padding_bottom": 24,
+            "padding_left": 36,
+            "padding_right": 36,
+            "pc_content_align": "left",
+            "mb_content_align": "left"
+          },
+          "blocks": [
+            {
+              "type": "_button-group-btn",
+              "settings": {
+                "content": "VIEW MORE",
+                "animated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

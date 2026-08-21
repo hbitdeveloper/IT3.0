@@ -1,0 +1,122 @@
+<style>
+    .five-img-text-{{ index }}{
+        padding-top:{{ settings.pc_padding_top }}px;
+        padding-bottom:{{ settings.pc_padding_bottom }}px;
+    }
+    @media screen and (min-width: 1024px) and (max-width: 1439.98px){
+        .five-img-text-{{ index }}{
+            padding-top: calc( {{ settings.pc_padding_top }}  * 100vw / 1440 );
+            padding-bottom: calc( {{ settings.pc_padding_bottom }}  * 100vw / 1440 );
+        }
+    }
+    @media screen and (max-width: 1023.98px){
+        .five-img-text-{{ index }}{
+            padding-top: calc( {{ settings.mb_padding_top }}  * 100vw / 750 );
+            padding-bottom: calc( {{ settings.mb_padding_bottom }}  * 100vw / 750 );
+        }
+    }
+</style>
+
+
+<div class="five-img-text five-img-text-{{ index }}" style="background-color: {{ settings.bg_color }}"
+     anchor="{{ settings.anchor_id  | url_decode | strip | replace: ' ', ''}}">
+    <div class="indoor-img-text">
+        <div class="five-img-text-top">
+            {% if settings.text_title != blank %}
+                <div class="five-img-text-title" style="color:{{ settings.text_title_color }}">{{ settings.text_title }}</div>
+            {% endif %}
+            {% if settings.text_subtitle != blank %}
+                <div class="five-img-text-subtitle" style="color:{{ settings.text_subtitle_color }}">{{ settings.text_subtitle }}</div>
+            {% endif %}
+        </div>
+        <div class="five-img-text-tabs">
+            <div class="five-tabs-container">
+                <div class="tab-contain">
+                    {% for i in (0..5) %}
+                        {% assign tab_title = 'tab_title_' | append: forloop.index %}
+                        {% if settings[tab_title] != blank %}
+                            <div class="tab-item {% if forloop.first %}is-active{% endif %}"
+                                 data-index="{{ forloop.index }}"
+                                 data-name="{{settings[tab_title] | escape}}" style="--tab-text-color: {{ settings.tab_color }};}}">
+                                {{settings[tab_title] | escape}}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="tab-line"></div>
+            </div>
+        </div>
+        <div class="five-img-text-container">
+            <div class="tabs-content">
+                {% for i in (0..5) %}
+                    {% assign tab_title = 'tab_title_' | append: forloop.index %}
+                    {% assign position_index = 'position_' | append: forloop.index %}
+                    {% assign pc_img_index = 'pc_img_' | append: forloop.index %}
+                    {% assign mb_img_index = 'mb_img_' | append: forloop.index %}
+                    {% assign bg_color_index = 'bg_color_' | append: forloop.index %}
+                    {% assign img_title_index = 'img_title_' | append: forloop.index %}
+                    {% assign img_title_mb_index = 'img_title_mb_' | append: forloop.index %}
+                    {% assign title_color_index = 'title_color_' | append: forloop.index %}
+                    {% assign sub_title_index = 'sub_title_' | append: forloop.index %}
+                    {% assign sub_title_mb_index = 'sub_title_mb_' | append: forloop.index %}
+                    {% assign sub_title_color_index = 'sub_title_color_' | append: forloop.index %}
+                    {% if settings[pc_img_index] != blank %}
+                        <div class="tabs-item-content tab-pane tab-pane-{{ forloop.index }} {% if forloop.first %}tab-pane-active{% endif %}" data-name="{{settings[tab_title] | escape}}">
+                        <div class="indoor-box {{ settings[position_index] }}">
+                            <div class="left-box">
+                                {% if settings[pc_img_index] != blank %}
+                                    <img
+                                            src="{{ settings[pc_img_index] | image_url: width: 680 }}"
+                                            alt="{{ settings[pc_img_index].alt }}"
+                                            class="show-image show-pc"
+                                            loading="lazy"
+                                    >
+                                {% endif %}
+                                {% if settings[mb_img_index] != blank %}
+                                    <img
+                                            src="{{ settings[mb_img_index] | image_url: width: 686 }}"
+                                            alt="{{ settings[mb_img_index].alt }}"
+                                            class="show-image show-mb"
+                                            loading="lazy"
+                                    >
+                                {% elsif settings[pc_img_index] != blank %}
+                                    <img
+                                            src="{{ settings[pc_img_index] | image_url: width: 686 }}"
+                                            alt="{{ settings[pc_img_index].alt }}"
+                                            class="show-image show-mb"
+                                            loading="lazy"
+                                    >
+                                {% endif %}
+                            </div>
+                            <div class="right-box" style="background: {{ settings[bg_color_index] }};">
+                                {% assign titleColor = '<em style="color: ' | append: settings.title_sp_color | append: '">' %}
+                                <h2 class="title show-pc {{ settings.title_pc }}" style="color:{{ settings[title_color_index] }}">
+                                    {{ settings[img_title_index] | replace: '<em>', titleColor }}
+                                </h2>
+                                <h2 class="title show-mb {{ settings.title_mb }}" style="color:{{ settings[title_color_index] }}">
+                                    {% if settings[img_title_mb_index] != blank %}
+                                        {{ settings[img_title_mb_index] | replace: '<em>', titleColor  }}
+                                    {% else %}
+                                        {{ settings[img_title_index] | replace: '<em>', titleColor }}
+                                    {% endif %}
+                                </h2>
+                                {% assign titleSubColor = '<em style="color: ' | append: settings.title_sub_sp_color | append: '">' %}
+                                <div class="sub-title show-pc" style="color:{{ settings[sub_title_color_index] }}">
+                                    {{ settings[sub_title_index] | replace: '<em>', titleSubColor }}
+                                </div>
+                                <div class="sub-title show-mb" style="color:{{ settings[sub_title_color_index] }}">
+                                    {% if settings[sub_title_mb_index] != blank %}
+                                        {{ settings[sub_title_mb_index] | replace: '<em>', titleSubColor  }}
+                                    {% else %}
+                                        {{ settings[sub_title_index] | replace: '<em>', titleSubColor }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

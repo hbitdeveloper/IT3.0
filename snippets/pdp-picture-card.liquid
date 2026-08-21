@@ -1,0 +1,85 @@
+{% comment %}
+  4.0商详页（PDP）图片卡片
+  说明：
+  1.区分PC和Mobile图片配置与显示；
+  2.支持图片为空时留白显示。
+
+  接收参数:
+    - cardTitle: {String?} 卡片标题用作图片alt保底文案
+    - pcEmptyShowBlank: {Bollean} PC端图片为空留白展示
+    - pcImg: {image_picker} PC端图片
+    - pcWidth: {Number} PC端图片自定义宽度
+    - pcHeight: {Number} PC端图片自定义高度
+    - mbEmptyShowBlank: {Bollean} 移动端图片为空留白展示
+    - mbImg: {image_picker} 移动端图片
+    - mbWidth: {Number} 移动端图片自定义宽度
+    - mbHeight: {Number} 移动端图片自定义高度
+
+  示例:
+  {% render 'pdp-picture-card',
+    cardTitle: settings.title,
+    pcEmptyShowBlank: true,
+    pcImg: settings.pcImg,
+    pcWidth: 1920,
+    pcHeight: 560,
+    mbEmptyShowBlank: true,
+    mbImg: settings.mbImg,
+    mbWidth: 750,
+    mbHeight: 800
+  %}
+{% endcomment %}
+
+{% if pcEmptyShowBlank or pcImg != blank %}
+  {% if pcImg.alt != blank %}
+    {% assign img_alt = pcImg.alt -%}
+  {%- else %}
+    {% assign img_alt = cardTitle | strip_html | escape %}
+  {% endif %}
+  <picture class="pc-show">
+    {% if pcImg != blank %}
+      <source
+        media="(min-width: 1024px)"
+        srcset="{{ pcImg | image_url:width: pcWidth,height: pcHeight }}"
+      >
+    {% else %}
+      <source
+        media="(min-width: 1024px)"
+        srcset="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+      >
+    {% endif %}
+
+    <img
+      loading="lazy"
+      alt="{{ img_alt }}"
+      width="{{ pcImg.width | default: pcWidth}}"
+      height="{{ pcImg.height | default:pcHeight}}"
+    >
+  </picture>
+{% endif %}
+
+{% if mbEmptyShowBlank or mbImg != blank %}
+  {% if mbImg.alt != blank %}
+    {% assign img_alt = mbImg.alt %}
+  {% else %}
+    {% assign img_alt = cardTitle | strip_html | escape %}
+  {% endif %}
+  <picture class="mb-show">
+    {% if mbImg != blank %}
+      <source
+        media="(max-width: 1023.98px)"
+        srcset="{{ mbImg | image_url:width:mbWidth,height:mbHeight }}"
+      >
+    {% else %}
+      <source
+        media="(max-width: 1023.98px)"
+        srcset="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+      >
+    {% endif %}
+    <img
+      alt="{{ img_alt}}"
+      loading="lazy"
+      width="{{ mbImg.width | default:mbWidth}}"
+      height="{{ mbImg.height | default:mbHeight}}"
+    >
+  </picture>
+{% endif %}

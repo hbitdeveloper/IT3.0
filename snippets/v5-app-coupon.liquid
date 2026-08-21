@@ -1,0 +1,38 @@
+{% comment %}
+    产品详情页 - 新优惠券
+    Accepts: product
+    Usage: {% render 'app-coupon-new' %}
+{% endcomment %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% comment %} open_coupon_new {% endcomment %}
+{%- if settings.open_coupon_new == true -%}
+  {% assign current_variant = product.selected_or_first_available_variant %}
+  {% capture coupon_asset_root_id %}coupon-new-{{ section.id }}-{{ block.id }}{% endcapture %}
+
+  <div id="{{ coupon_asset_root_id }}" {{ block.shopify_attributes }} class="product-coupon-new-wrap w-full section-padding" style="display:none;{{ style }}">
+    <v5-app-coupon
+      class="flex flex-col bg-[#F5F5F3] px-3 py-3 gap-y-2 lg:px-4 lg:py-4 lg:gap-y-3"
+      data-product-title="{{ product.title | escape }}"
+      data-variant-id="{{ current_variant.id }}"
+      data-variant-price="{{ current_variant.price }}"
+      data-with-code-text="{{ 'productCoupon.title_with_code_text' | t }}"
+      data-sticky-cart-with-code-text="{{ 'productCoupon.sticky_cart_with_code_text' | t }}"
+      data-auto-apply-text="{{ 'productCoupon.title_auto_apply_text' | t }}"
+      data-ends-in-text="{{ 'productCoupon.ends_in' | t }}"
+      data-countdown-label-text="{{ 'productCoupon.countdown_label_text' | t }}"
+      data-apply-text="{{ 'productCoupon.apply_text' | t }}"
+      data-terms-text="{{ 'productCoupon.terms_text' | t }}"
+      data-code-copy-success-text="{{ 'productCoupon.copy_code_success_tip' | t }}"
+      data-rules-text="{{ 'productCoupon.rules' | t }}"
+    ></v5-app-coupon>
+  </div>
+  {% render 'lazy-load-asset-group',
+    script: 'snippet-v5-app-coupon.min.js',
+    strategy: 'idle',
+    delay: 1800
+  %}
+{% endif %}

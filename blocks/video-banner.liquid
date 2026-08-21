@@ -1,0 +1,647 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+{%- liquid
+  assign pc_value = block.settings.pc_media_size | strip
+  assign mb_value = block.settings.mb_media_size | strip
+
+  if pc_value == '56.25%'
+    assign pc_class = 'pc_ratio_16_9'
+  elsif pc_value == '100%'
+    assign pc_class = 'pc_ratio_1_1'
+  elsif pc_value == '177%'
+    assign pc_class = 'pc_ratio_9_16'
+  else
+    assign pc_class = 'pc_ratio_16_9'
+  endif
+
+  if mb_value == '56.25%'
+    assign mb_class = 'mb_ratio_16_9'
+  elsif mb_value == '100%'
+    assign mb_class = 'mb_ratio_1_1'
+  elsif mb_value == '177%'
+    assign mb_class = 'mb_ratio_9_16'
+  else
+    assign mb_class = 'mb_ratio_16_9'
+  endif
+
+
+  assign pc_video = block.settings.desktop_video
+  assign pc_video_ratio = pc_video.aspect_ratio | default: '0.5625'
+  assign pc_preview_image = block.settings.poster_pc
+  if block.settings.poster_pc == blank and block.settings.desktop_source == "uploaded"
+    assign pc_preview_image = block.settings.desktop_video.preview_image
+  endif
+
+  if block.settings.desktop_source == "url"
+    assign pc_video = block.settings.desktop_video_url
+    assign pc_video_ratio = block.settings.desktop_video_url.aspect_ratio | default: '0.5625'
+  endif
+
+  assign mb_video = block.settings.mobile_video
+  assign mb_video_ratio = mb_video.aspect_ratio | default: '0.5625'
+  assign mb_preview_image = block.settings.poster_mb
+  if block.settings.poster_mb == blank and block.settings.mobile_source == "uploaded"
+    assign mb_preview_image = block.settings.mobile_video.preview_image
+  endif
+
+  if block.settings.mobile_source == "url"
+    assign mb_video = block.settings.mobile_video_url
+    assign mb_video_ratio = block.settings.mobile_video_url.aspect_ratio | default: '0.5625'
+  endif
+
+  assign pc_video_full = block.settings.video_pc_full_url
+  assign mb_video_full = block.settings.video_mb_full_url
+-%}
+
+{%- if pc_video_full -%}
+  {% capture pc_video_tag %}
+    {{
+      pc_video_full | video_tag: image_size: '1102x',
+      autoplay: true,
+      muted: true,
+      controls: true,
+      controlsList: 'nodownload',
+      style: 'width:100%;height:100%;object-fit:contain;'
+    }}
+  {% endcapture %}
+{%- endif -%}
+
+{%- if mb_video_full -%}
+  {% capture mb_video_tag %}
+    {{
+      mb_video_full | video_tag: image_size: '750x',
+      autoplay: true,
+      muted: true,
+      controls: true,
+      controlsList: 'nodownload',
+      style: 'width:100%;height:100%;object-fit:contain;'
+    }}
+  {% endcapture %}
+{%- endif -%}
+
+{{ 'blocks-video-banner.css' | asset_url | stylesheet_tag }}
+
+<div
+  class="w-full section-padding {% if settings.enable_animations_scroll %}scroll-trigger animate--slide-in{% endif %}"
+  {% if block.settings.anchor != blank %}
+    anchor-target="{{block.settings.anchor | escape}}"
+  {% endif %}
+  style="--pc-banner-h:{{ block.settings.pc_height}};--mb-banner-h:{{ block.settings.mb_height}};{{ style }}"
+>
+  <div class="w-full h-full flex relative">
+    {% comment %} PC {% endcomment %}
+    <div 
+      class="banner-video hidden lg:block h-full w-full overflow-hidden relative"
+      {% if pc_video and block.settings.pc_media_fill != false %} 
+        style="height: unset;aspect-ratio: {{ pc_video_ratio }} / 1;"
+      {% endif %}>
+      {%- if pc_video != blank -%}
+        {%- if block.settings.desktop_source == "url" -%}
+          {%- render 'viewport-youtube',
+            type: 'banner',
+            video: pc_video.id,
+            url: pc_video.url,
+            observe: true,
+            api: true,
+            poster: pc_preview_image,
+            loop: block.settings.loop
+          -%}
+        {%- else -%}
+          {%- render 'viewport-video',
+            type: 'banner',
+            url: pc_video,
+            observe: true,
+            poster: pc_preview_image,
+            loop: block.settings.loop,
+            controls: false
+          -%}
+        {%- endif -%}
+      {%- else -%}
+        {%- if pc_preview_image != blank -%}
+          {%- render 'responsive-image', image: pc_preview_image, mimage: pc_preview_image, image_class: 'w-full h-full object-cover' -%}
+        {%- else -%}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover translate3d' }}
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    {% comment %} MB {% endcomment %}
+    <div 
+      class="banner-video block lg:hidden h-full w-full overflow-hidden relative"
+      {% if mb_video and block.settings.mb_media_fill != false %} 
+        style="height: unset;aspect-ratio: {{ mb_video_ratio }} / 1;"
+      {% endif %} 
+    >
+      {%- if mb_video != blank -%}
+        {%- if block.settings.mobile_source == "url" -%}
+          {%- render 'viewport-youtube',
+            type: 'banner',
+            video: mb_video.id,
+            url: mb_video.url,
+            observe: true,
+            api: true,
+            poster: mb_preview_image,
+            loop: block.settings.loop
+          -%}
+        {%- else -%}
+          {%- render 'viewport-video',
+            type: 'banner',
+            url: mb_video,
+            observe: true,
+            poster: mb_preview_image,
+            loop: block.settings.loop,
+            controls: false
+          -%}
+        {%- endif -%}
+      {%- else -%}
+        {%- if mb_preview_image != blank -%}
+          {%- render 'responsive-image', image: mb_preview_image, mimage: mb_preview_image, image_class: 'w-full h-full object-cover translate3d', width: 750 -%}
+        {%- else -%}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    <div class="banner-info section-container-lg flex flex-col items-start justify-between absolute left-1/2 -translate-x-1/2 z-[1] top-[2.5rem] bottom-[1.5rem] lg:top-[4.5rem] lg:bottom-[3rem]">
+      {%- if pc_video_full -%}
+        <template pc-video>{{ pc_video_tag }}</template>
+      {%- endif -%}
+      {%- if mb_video_full -%}
+        <template mb-video>{{ mb_video_tag }}</template>
+      {%- endif -%}
+
+      {% content_for 'blocks' %}
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // 监听 jds-button-open-dialog 事件
+  document.addEventListener('jdsButtonOpenDialog', (e) => {
+    const { id, node } = e.detail
+    const dialog = document.querySelector(`jds-dialog#${id}`)
+    if (dialog){
+      // 如果 pc / mb 未配置视频
+      const win_width = window.innerWidth;
+      const parentNode = node.closest('.banner-info')
+
+      const pcVideo = parentNode.querySelector("template[pc-video]");
+      const mbVideo = parentNode.querySelector("template[mb-video]");
+      if (win_width >= 1024 && !pcVideo) {
+        return false
+      } else if (win_width < 1024 && !mbVideo) {
+        return false
+      }
+
+      // 设置类
+      dialog.classList.add('{{ pc_class }}', '{{ mb_class }}')
+
+      // 创建关闭按钮 并 插入
+      if (!dialog.shadowRoot.querySelector('.close-button')) {
+        const close = document.createElement('jds-icon');
+        const attrs = {
+          class: 'close-button',
+          name: 'close-line',
+          part: 'close-button',
+        };
+        Object.entries(attrs).forEach(([key, value]) => close.setAttribute(key, value));
+        dialog.shadowRoot.appendChild(close)
+        // 注册关闭事件
+        close.addEventListener('click', () => dialog?.removeAttribute('open'));
+      }
+
+      // 弹窗内容
+      if (!dialog.shadowRoot.querySelector('.content-wrap')) {
+        const content = document.createElement('div');
+        const attrs = {
+          class: 'content-wrap',
+          part: 'content-wrap',
+        };
+        Object.entries(attrs).forEach(([key, value]) => content.setAttribute(key, value));
+        const templateFragment = win_width >= 1024 ? pcVideo.content.firstElementChild.cloneNode(true) : mbVideo.content.firstElementChild.cloneNode(true)
+        content.appendChild(templateFragment)
+        dialog.shadowRoot.appendChild(content)
+      }
+
+      // 重置视频播放
+      dialog.shadowRoot.querySelector('.content-wrap').querySelector('video').currentTime = 0
+
+      // 打开弹窗
+      dialog?.setAttribute('open', true)
+
+      // 数据埋码
+      gaPushDataLayer('user_interaction', {
+        module_name: 'Video Banner',
+        section_name: 'v-视频banner',
+        section_title: window.innerWidth >= 1024
+          ? parentNode.querySelector('.blocks-content-heading')?.querySelector('.heading')?.textContent?.trim?.()
+          : parentNode.querySelector('.blocks-content-heading')?.querySelector('.mb_heading')?.textContent?.trim?.(),
+        content_name: '',
+        button_name: node?.textContent?.trim?.(),
+        element_type: 'button',
+        interaction_type: 'click',
+        interaction_effect: 'modal_open',
+        to_url: ''
+      });
+    }
+  })
+
+  document.querySelectorAll('.banner-info').forEach(item => {
+    const jdsButtons = item.querySelectorAll('jds-button')
+    jdsButtons.forEach(button => {
+      if (!button.isBindClick) {
+        button.addEventListener('click', (e) => {
+          const link = button.getAttribute('href')
+          if (link) {
+            // 数据埋码
+            gaPushDataLayer('user_interaction', {
+              module_name: 'Video Banner',
+              section_name: 'v-视频banner',
+              section_title: window.innerWidth >= 1024
+                ? item.querySelector('.blocks-content-heading')?.querySelector('.heading')?.textContent?.trim?.()
+                : item.querySelector('.blocks-content-heading')?.querySelector('.mb_heading')?.textContent?.trim?.(),
+              content_name: '',
+              button_name: button?.textContent?.trim?.(),
+              element_type: 'button',
+              interaction_type: 'click',
+              interaction_effect: 'page_jump',
+              to_url: link
+            });
+          }
+        })
+
+        button.isBindClick = true;
+      }
+    })
+  })
+</script>
+
+{% schema %}
+{
+  "name": "V-视频Banner",
+  "class": "block-video-banner",
+  "blocks": [{ "type": "_video-content" }, { "type": "v-heading-content"}],
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "checkbox",
+      "id": "pc_media_fill",
+      "label": "PC端媒体资源比例适配",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "pc_height",
+      "label": "PC端高度",
+      "options": [
+        {
+          "value": "800",
+          "label": "800px"
+        },
+        {
+          "value": "640",
+          "label": "640px"
+        }
+      ],
+      "default": "800",
+      "visible_if": "{{ block.settings.pc_media_fill == false }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "mb_media_fill",
+      "label": "MB端媒体资源比例适配",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "mb_height",
+      "label": "MB端自定义高度",
+      "options": [
+        {
+          "value": "1000",
+          "label": "1000px"
+        },
+        {
+          "value": "1200",
+          "label": "1200px"
+        }
+      ],
+      "default": "1000",
+      "visible_if": "{{ block.settings.mb_media_fill == false }}"
+    },
+    { "type": "header", "content": "视频" },
+    {
+      "type": "header",
+      "content": "PC端视频相关配置"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_pc",
+      "label": "PC视频封面图",
+      "info": "请按照组件选择的高度配置，推荐尺寸: 1920x800 或 1920x640"
+    },
+    {
+      "type": "select",
+      "id": "desktop_source",
+      "label": "视频来源",
+      "options": [
+        {
+          "value": "uploaded",
+          "label": "本地"
+        },
+        {
+          "value": "url",
+          "label": "Youtube"
+        }
+      ],
+      "default": "uploaded"
+    },
+    {
+      "type": "video",
+      "id": "desktop_video",
+      "label": "短视频",
+      "info": "用于预览，循环播放，建议配置3秒内、2M内的视频",
+      "visible_if": "{{ block.settings.desktop_source == 'uploaded' }}"
+    },
+    {
+      "type": "video_url",
+      "id": "desktop_video_url",
+      "label": "YouTube视频地址",
+      "accept": ["youtube"],
+      "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+      "visible_if": "{{ block.settings.desktop_source == 'url' }}"
+    },
+    { "type": "header", "content": "PC完整视频" },
+    {
+      "type": "video",
+      "id": "video_pc_full_url",
+      "label": "PC完整视频（用于弹窗播放）",
+      "info": "建议10M以内，支持 MP4、WEBM、MOV 格式"
+    },
+    {
+      "type": "select",
+      "id": "pc_media_size",
+      "options": [
+        {
+          "value": "56.25%",
+          "label": "16:9"
+        },
+        {
+          "value": "100%",
+          "label": "1:1"
+        },
+        {
+          "value": "177%",
+          "label": "9:16"
+        }
+      ],
+      "default": "56.25%",
+      "label": "PC完整视频尺寸"
+    },
+    {
+      "type": "header",
+      "content": "MB端视频相关配置"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_mb",
+      "label": "MB视频封面图",
+      "info": "推荐尺寸: 750x1000"
+    },
+    {
+      "type": "select",
+      "id": "mobile_source",
+      "label": "视频来源",
+      "options": [
+        {
+          "value": "uploaded",
+          "label": "本地"
+        },
+        {
+          "value": "url",
+          "label": "Youtube"
+        }
+      ],
+      "default": "uploaded"
+    },
+    {
+      "type": "video",
+      "id": "mobile_video",
+      "label": "短视频",
+      "info": "用于预览，循环播放，建议配置3秒内、2M内的视频",
+      "visible_if": "{{ block.settings.mobile_source == 'uploaded' }}"
+    },
+    {
+      "type": "video_url",
+      "id": "mobile_video_url",
+      "label": "YouTube视频地址",
+      "accept": ["youtube"],
+      "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+      "visible_if": "{{ block.settings.mobile_source == 'url' }}"
+    },
+    { "type": "header", "content": "MB完整视频" },
+    {
+      "type": "video",
+      "id": "video_mb_full_url",
+      "label": "MB完整视频（用于弹窗播放）",
+      "info": "建议10M以内，支持 MP4、WEBM、MOV 格式"
+    },
+    {
+      "type": "select",
+      "id": "mb_media_size",
+      "options": [
+        {
+          "value": "56.25%",
+          "label": "16:9"
+        },
+        {
+          "value": "100%",
+          "label": "1:1"
+        },
+        {
+          "value": "177%",
+          "label": "9:16"
+        }
+      ],
+      "default": "56.25%",
+      "label": "MB完整视频尺寸"
+    },
+    {
+      "type": "checkbox",
+      "id": "loop",
+      "label": "是否循环播放",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-视频Banner",
+      "category": "内容展示",
+      "blocks": [
+        {
+          "type": "_video-content",
+          "blocks": [
+            {
+              "type": "v-heading-content",
+              "settings": {
+                "padding_top": 0,
+                "padding_bottom": 32,
+                "padding_left": 0,
+                "padding_right": 0,
+                "radius_3": 0,
+                "radius_4": 0
+              },
+              "blocks": [
+                {
+                  "type": "_v-heading-content-des",
+                  "settings": {
+                    "heading": "<p><em>Living and Blackouts</em></p>",
+                    "mb_heading": "<p><em>Living and Blackouts</em></p>",
+                    "padding_top": 0,
+                    "padding_bottom": 16,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff"
+                  }
+                },
+                {
+                  "type": "_v-heading-content-heading",
+                  "settings": {
+                    "heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                    "mb_heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                    "padding_top": 0,
+                    "padding_bottom": 16,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff"
+                  }
+                },
+                {
+                  "type": "_v-heading-content-subheading",
+                  "settings": {
+                    "heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                    "mb_heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "_button-group",
+              "settings": {
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "pc_content_align": "left",
+                "mb_content_align": "left"
+              },
+              "blocks": [
+                {
+                  "type": "_button-group-btn",
+                  "settings": {
+                    "content": "VIEW MORE",
+                    "kind": "custom",
+                    "custom_color": "#FFFFFF",
+                    "custom_text_color": "#1A1A1A",
+                    "animated": true,
+                    "size": "medium"
+                  }
+                },
+                {
+                  "type": "_button-group-btn-and-dialog",
+                  "settings": {
+                    "content": "WATCH VIDEO",
+                    "custom_color": "#1A1A1A",
+                    "animated": false,
+                    "size": "medium",
+                    "icon": "play",
+                    "dialog_type": "special"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "v-heading-content",
+          "settings": {
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "radius_3": 0,
+            "radius_4": 0
+          },
+          "blocks": [
+            {
+              "type": "_v-heading-content-des",
+              "settings": {
+                "heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                "mb_heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#666666",
+                "heading_size": "text_b2"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

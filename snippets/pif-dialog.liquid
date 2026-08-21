@@ -1,0 +1,72 @@
+{% comment %} 产品购买意向表单弹窗（Purchase Intention Form Dialog) - 默认用于全局，可配置展示页面 {% endcomment %}
+
+{%- liquid
+  # 当前页面的全路径
+  assign full_page_url = request.origin | append: request.path
+
+  # 在哪些页面显示,弹窗最终展示页面始终包含 悬浮按钮展示页面
+  assign open_pif_float_button = settings.open_pif_float_button | default: false
+  assign dialog_include_page_url = settings.pif_dialog_include_page_url | split: ','
+
+  # 关闭悬浮按钮总开关时，不再读取按钮页面配置，仅按弹窗页面配置判断
+  assign include_page_url_list = dialog_include_page_url
+  if open_pif_float_button
+    assign btn_include_page_url = settings.pif_float_button_include_page_url | split: ','
+  
+    # 开启悬浮按钮后，弹窗展示页面需要兼容按钮展示页面
+    assign include_page_url_list = btn_include_page_url | concat: dialog_include_page_url
+  endif
+
+  # 默认不包含
+  assign should_include = false
+
+  # 是否存在有效的页面配置，用于兜底“未配置时默认包含”
+  assign has_include_page_url = false
+  for include_url in include_page_url_list
+    assign include_url_trim = include_url | strip
+
+    # 过滤 split 后产生的空字符串，避免误判
+    if include_url_trim == blank
+      continue
+    endif
+
+    assign has_include_page_url = true
+
+    if include_url_trim == '/' and request.path == '/'
+      assign should_include = true
+      break
+    elsif full_page_url contains include_url_trim
+      assign should_include = true
+      break
+    endif
+  endfor
+
+  # 如果没有配置任何有效页面，则默认全局包含
+  if has_include_page_url == false
+    assign should_include = true
+  endif
+-%}
+
+{%- if should_include -%}
+  <section class="pif-dialog-wrapper">
+    <style>
+      .pif-dialog {
+        display: none;
+        --jds-dialog-index: {{ settings.pif_dialog_index | default: 19999 }};
+      }
+      .pif-dialog[open]{
+        display: block;
+      }
+    </style>
+    {{ 'snippet-purchase-intention-form.min.css' | asset_url | stylesheet_tag }}
+    
+    <jds-dialog class="pif-dialog" caption="Let’s Get You Set Up" critical>
+      {% comment %} 购买意向表单 {% endcomment %}
+      {% if shop.id == 60738666677 or settings.pif_dialog_type == 'ca' %}
+        {% render 'purchase-intention-form-ca' %}
+      {% else %}
+        {% render 'purchase-intention-form' %}
+      {% endif %}
+    </jds-dialog>
+  </section>
+{%- endif -%}

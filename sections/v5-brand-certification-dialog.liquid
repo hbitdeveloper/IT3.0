@@ -1,0 +1,182 @@
+
+<style>
+    #shopify-section-{{ section.id }} {
+        background: {{ section.settings.bg_color }};
+    }
+
+    @media screen and (min-width: 1024px) {
+        #shopify-section-{{ section.id }} jds-dialog {
+            --jds-dialog-width: 60.5rem;
+        }
+        #shopify-section-{{ section.id }} jds-dialog::part(dialog-close) {
+          top: 2rem;
+          right: 3.75rem;
+        }
+        #shopify-section-{{ section.id }} jds-dialog::part(dialog-content) {
+          padding-left: 3.75rem;
+          padding-right: calc(3.75rem - 6px);
+        }
+    }
+
+    @media screen and (max-width: 1023.98px) {
+        #shopify-section-{{ section.id }} jds-dialog::part(dialog-container) {
+          width: 100%;
+        }
+        #shopify-section-{{ section.id }} jds-dialog::part(dialog-close) {
+          top: 0.75rem;
+        }
+    }
+</style>
+
+{%- capture style -%}
+    {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %} style="{{ style }}" class="section-container-lg section-padding">
+
+<div class="open-btn text-center text-[#595959] lg:text-xl/none text-sm/none font-semibold cursor-pointer">
+    <span class="underline mr-1 lg:mr-4">{{ section.settings.button_text }}</span><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_7527_23069)"><path d="M-1 9.25H11.2422" stroke="black" stroke-opacity="0.65" stroke-width="1.6"/><path d="M8.49219 3L14.7419 9.24976L8.49219 15.4995" stroke="black" stroke-opacity="0.65" stroke-width="1.6"/></g><defs><clipPath id="clip0_7527_23069"><rect width="16" height="16" fill="white"/></clipPath></defs></svg>
+</div>
+
+<jds-dialog size="large" closeicon="close-square" style="--jds-dialog-index: 100000;">
+
+    <div class="text-center lg:mb-[4.375rem] mb-12">
+        <div class="text-[#1a1a1a]">
+            <div class="lg:text-[2rem] text-[1.5rem] font-semibold lg:mt-[1.125rem] mt-[2.625rem] lg:mb-6 mb-3 leading-[1.1]">{{ section.settings.title }}</div>
+            <div class="lg:text-base/none text-xs/none">{{ section.settings.description }}</div>
+        </div>
+    </div>
+
+    <div class="flex lg:gap-y-[4.125rem] lg:gap-x-5 gap-y-12 gap-x-0.5 flex-wrap">
+        {% for block in section.blocks %}
+            <div class="lg:w-[12.1875rem] w-[10.375rem] flex flex-col items-center gap-2">
+                <div class="text-center lg:text-sm/none text-xs/none font-normal text-[#1a1a1a]">{{ block.settings.description | replace: "\n", "<br>" }}</div>
+                {%- if block.settings.image_pc != blank -%}
+                    {% render 'diff-end-img', pc_img: block.settings.image_pc, mb_img: block.settings.image_pc,
+                          pc_img_width: 44,
+                          mb_img_width: 44,
+                          class: 'w-11 h-14 object-cover' %}
+                  {%- else -%}
+                  {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg placeholder w-11 h-14 object-cover' }}
+                {%- endif -%}
+            </div>
+        {% endfor %}
+    </div>
+
+</jds-dialog>
+
+
+</div>
+
+<script type="module">
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelector(".V5-brand-certification-dialog .open-btn").addEventListener("click", function() {
+        const dialog = document.querySelector(".V5-brand-certification-dialog jds-dialog");
+        dialog.setAttribute("open", true);
+    });
+});
+</script>
+
+{% schema %}
+{
+  "name": "V5品牌页-产品奖项弹窗",
+  "tag": "section",
+  "class": "V5-brand-certification-dialog",
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "按钮文案",
+        "default": "More Awards"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "弹窗标题",
+      "default": "Awards & Recognition"
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "弹窗描述",
+      "default": "Over 20 international design & innovation awards"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "label": "PC上边距",
+      "default": 64
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "PC下边距",
+      "default": 96
+    },
+    {
+      "type": "text",
+      "id": "mb_padding_type",
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ false }}",
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "MB上边距",
+      "default": 10
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "MB下边距",
+      "default": 34
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "certification",
+      "name": "认证项",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image_pc",
+          "info": "建议尺寸：宽度44px x 高度56px",
+          "label": "icon"
+        },
+        {
+          "type": "inline_richtext",
+          "info": "需要换行，请使用 \\n ",
+          "id": "description",
+          "label": "icon文案",
+          "default": "Seal Sustainable product award Jackery solar curved "
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5品牌页-产品奖项弹窗",
+      "category": "V5.0",
+      "blocks": [
+        { "type": "certification" },
+        { "type": "certification" },
+        { "type": "certification" },
+        { "type": "certification" },
+        { "type": "certification" }
+      ]
+    }
+  ]
+}
+{% endschema %}
+

@@ -1,0 +1,400 @@
+{%- liquid
+  assign heading_size_mb = block.settings.heading_size_mb | default: block.settings.heading_size
+  assign mb_font_size = '1rem'
+  if heading_size_mb == 'text_b2'
+    assign mb_font_size = '0.875rem'
+  elsif heading_size_mb == 'text_b3'
+    assign mb_font_size = '0.75rem'
+  endif
+-%}
+
+{%- style -%}
+  .blocks-richtext-box{
+    background: var(--section-bg)
+  }
+  .blocks-richtext-box strong{
+    font-weight: 700;
+  }
+      .blocks-richtext-box-{{ block.id }} {
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+    {%- if block.settings.bg_image != blank -%}
+      .blocks-richtext-box-{{ block.id }} {
+        background-image: url({{ block.settings.bg_image | image_url: width: 2000 }});
+      }
+    {%- endif -%}
+    {%- if block.settings.bg_image_mb != blank -%}
+      @media (max-width: 1024px) {
+        .blocks-richtext-box-{{ block.id }} {
+          background-image: url({{ block.settings.bg_image_mb | image_url: width: 1000 }});
+        }
+      }
+    {%- endif -%}
+@media screen and (max-width: 1024px){
+  .blocks-richtext-box .mb-text-left{
+    text-align: left;
+  }
+  .blocks-richtext-box .mb-text-center{
+    text-align: center;
+  }
+  .blocks-richtext-box .mb-text-right{
+    text-align: right;
+  }
+}
+@media screen and (max-width: 1023.98px){
+  .blocks-richtext-box .blocks-richtext-wrapper-{{ block.id }}.jds-rte p{
+    font-size: {{ mb_font_size }};
+  }
+}
+{%- endstyle -%}
+
+{%- if block.settings.content != blank -%}
+  {%- capture style -%}
+      {% render 'spacing-padding', settings: block.settings %}
+      {% render 'size-radius', settings: block.settings %}
+    {%- endcapture -%}
+
+  {%- liquid
+    assign text_size = 'jds-rte-b1'
+    if block.settings.heading_size == 'text_b1'
+      assign text_size = 'jds-rte-b1'
+    elsif block.settings.heading_size == 'text_b2'
+      assign text_size = 'jds-rte-b2'
+    elsif block.settings.heading_size == 'text_b3'
+      assign text_size = 'jds-rte-b3'
+    endif
+  -%}
+
+  <div
+    class="blocks-richtext-box blocks-richtext-box-{{ block.id }}"
+    style="--section-bg: {{block.settings.bg_color}}; width: 100vw; position: relative; left: 50%; margin-left: -50vw;"
+  >
+    <div
+      class="
+        blocks-richtext blocks-radius text-{{block.settings.alignment}}
+        mb-text-{{block.settings.alignment_mb}} max-w-full blocks-text section-padding {{block.settings.page_width}} mx-auto
+      "
+      {{ block.shopify_attributes }}
+      style="--active-color: {{block.settings.active_color}};color: {{block.settings.text_color}};--text-size: 1rem;{{style}}"
+    >
+      <div
+        class="blocks-richtext-wrapper blocks-richtext-wrapper-{{ block.id }} jds-rte {% if block.settings.show_italic == true %}jds-rte--italic{% endif %} {{text_size}}"
+        style="--jds-rte-text-color:{{block.settings.text_color}};"
+      >
+        {%- if block.settings.enable_view_more -%}
+          <style>
+            .richtext-expandable-{{ block.id }} {
+              max-height: {{ block.settings.max_height_mb }}px;
+              overflow: hidden;
+              transition: max-height 0.3s ease;
+              position: relative;
+            }
+            @media (min-width: 1024px) {
+              .richtext-expandable-{{ block.id }} {
+                max-height: {{ block.settings.max_height }}px;
+              }
+            }
+            .richtext-expandable-{{ block.id }}.expanded {
+              max-height: none;
+            }
+            .richtext-toggle-btn-{{ block.id }} svg {
+                transition: transform 0.3s;
+            }
+            .richtext-toggle-btn-{{ block.id }}.expanded svg {
+                transform: rotate(180deg);
+            }
+          </style>
+          <div class="richtext-content-box richtext-expandable-{{ block.id }}">
+            <div class="inline-block">{{ block.settings.content }}</div>
+          </div>
+          <div class="text-center mt-4">
+            <div
+              class="richtext-toggle-btn-{{ block.id }} inline-flex items-center justify-center gap-1 mx-auto text-[1rem] lg:text-[1.25rem] text-[#818181] font-semimedium underline underline-offset-4 cursor-pointer"
+              onclick="toggleRichText{{ block.id | replace: '-', '_' }}()"
+            >
+              <span class="btn-text">{{ block.settings.view_more_text }}</span>
+                {%- render 'icon-arrow-bottom' -%}
+            </div>
+          </div>
+          <script>
+            function toggleRichText{{ block.id | replace: '-', '_' }}() {
+               const container = document.querySelector('.richtext-expandable-{{ block.id }}');
+               const btn = document.querySelector('.richtext-toggle-btn-{{ block.id }}');
+               const btnText = btn.querySelector('.btn-text');
+
+               if (container.classList.contains('expanded')) {
+                   container.classList.remove('expanded');
+                   btn.classList.remove('expanded');
+                   btnText.textContent = "{{ block.settings.view_more_text }}";
+               } else {
+                   container.classList.add('expanded');
+                   btn.classList.add('expanded');
+                   btnText.textContent = "{{ block.settings.view_less_text }}";
+               }
+            }
+          </script>
+        {%- else -%}
+          <div class="inline-block">{{ block.settings.content }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "V-通用富文本",
+  "settings": [
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度"
+    },
+    {
+      "type": "header",
+      "content": "左右边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_x",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "左右边距",
+      "default": 40,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+
+    {
+      "type": "richtext",
+      "id": "content",
+      "label": "富文本内容",
+      "default": "<p>默认富文本内容</p>"
+    },
+    { "type": "checkbox", "id": "show_italic", "label": "是否展示斜体", "default": false },
+    {
+      "type": "header",
+      "content": "样式配置"
+    },
+    { "type": "color", "id": "bg_color", "label": "背景颜色" },
+    { "type": "image_picker", "id": "bg_image", "label": "PC Background Image" },
+    { "type": "image_picker", "id": "bg_image_mb", "label": "Mobile Background Image" },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "PC端对齐方式",
+      "default": "center"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment_mb",
+      "label": "移动端对齐方式",
+      "default": "center"
+    },
+
+    {
+      "type": "header",
+      "content": "颜色"
+    },
+    { "type": "color", "id": "active_color", "label": "强调色", "default": "#fd5000" },
+    { "type": "color", "id": "text_color", "label": "文本颜色", "default": "#333333" },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "text_b1",
+          "label": "一级正文"
+        },
+        {
+          "value": "text_b2",
+          "label": "二级正文"
+        },
+        {
+          "value": "text_b3",
+          "label": "三级正文"
+        }
+      ],
+      "default": "text_b1",
+      "label": "PC字号"
+    },
+    {
+      "type": "select",
+      "id": "heading_size_mb",
+      "options": [
+        {
+          "value": "text_b1",
+          "label": "一级正文"
+        },
+        {
+          "value": "text_b2",
+          "label": "二级正文"
+        },
+        {
+          "value": "text_b3",
+          "label": "三级正文"
+        }
+      ],
+      "default": "text_b1",
+      "label": "移动端字号"
+    },
+    {
+      "type": "header",
+      "content": "View More Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_view_more",
+      "label": "Enable View More",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "view_more_text",
+      "label": "View More Text",
+      "default": "View More"
+    },
+    {
+      "type": "text",
+      "id": "view_less_text",
+      "label": "View Less Text",
+      "default": "View Less"
+    },
+    {
+      "type": "range",
+      "id": "max_height",
+      "min": 50,
+      "max": 500,
+      "step": 10,
+      "unit": "px",
+      "label": "Max Height (PC)",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "max_height_mb",
+      "min": 50,
+      "max": 500,
+      "step": 10,
+      "unit": "px",
+      "label": "Max Height (Mobile)",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "圆角"
+    },
+    {
+      "type": "range",
+      "id": "radius_1",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_2",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_3",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_4",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-通用富文本"
+    }
+  ]
+}
+{% endschema %}

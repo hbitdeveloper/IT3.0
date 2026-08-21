@@ -1,0 +1,2278 @@
+ {%- assign blocks_app_size = section.blocks | where: 'type', "@app" | size -%}
+
+{%- assign blocks_kwh_size = 0 -%}
+{%- for block in section.blocks -%}
+    {%- assign blocks_type = block.type -%}
+    {%- if blocks_type contains 'five_kwh' -%}
+        {%- assign blocks_kwh_size = blocks_kwh_size | plus: 1 -%}
+    {%- endif -%}
+{%- endfor -%}
+
+{% comment %} Tab栏导航 {% endcomment %}
+{%- assign tabs_num = 0 -%}
+{%- assign tabs_list = '' -%}
+{%- assign tabs_id = '' -%}
+
+ {%- for block in section.blocks -%}
+  {%- if block.settings.block_id != blank -%}
+    {%- assign tabs_num = tabs_num | plus: 1 -%}
+    {%- assign tabs_list = tabs_list | append: block.settings.block_id -%}
+    {%- assign tabs_id = tabs_id | append: block.settings.anchor_id -%}
+    {%- unless forloop.last -%}
+      {%- assign tabs_list = tabs_list | append: '-' -%}
+      {%- assign tabs_id = tabs_id | append: '-' -%}
+    {%- endunless -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- assign bar_tran_w = 100 | divided_by: tabs_num -%}
+{%- assign tabs_list = tabs_list | split: '-' -%}
+{%- assign tabs_id = tabs_id | split: '-' -%}
+{%- render 'five-kwh-tab',
+        bar_tran_w: bar_tran_w,
+        list: tabs_list,
+        list_id: tabs_id,
+        product_name: section.settings.product_name,
+        product_buy_text: section.settings.product_buy_text,
+        product_buy_link: section.settings.product_buy_link,
+        new_window: section.settings.new_window
+-%}
+{% comment %} Tab栏导航 {% endcomment %}
+
+{% comment %} 5度电各子版块 开始 {% endcomment %}
+<div class="five-kwh--content" section-id="{{section.id}}"  style="background: {{ section.settings.bgColor }};">
+    {%- if blocks_kwh_size > 0 -%}
+      <div class="five_kwh--content_item">
+        {%- for block in section.blocks -%}
+          {%- assign blocks_type = block.type -%}
+          {%- if blocks_type contains 'five_kwh' -%}
+            {%- case block.type -%}
+              {% comment %} 轮播版块 {% endcomment %}
+              {%- when 'five_kwh_swiper_one' -%}
+                {% render "five-kwh-swiper-one",settings: block.settings %}
+              {% comment %} 视频/图片轮播版块 {% endcomment %}
+              {%- when 'five_kwh_swiper_two' -%}
+                {% render "five-kwh-swiper-two",settings: block.settings, new_window: section.settings.new_window %}
+              {% comment %} 弹窗视频板块 {% endcomment %}
+              {%- when 'five_kwh_apply' -%}
+                {% render "five-kwh-apply",settings: block.settings, index: forloop.index, new_window: section.settings.new_window %}
+              {% comment %} app视频版块 {% endcomment %}
+              {%- when 'five_kwh_app_list' -%}
+                {% render "five-kwh-app-list",settings: block.settings, index: forloop.index, new_window: section.settings.new_window %}
+              {%- when 'five_kwh_compare' -%}
+                {% assign compare = section.blocks | where: 'type', "five_kwh_compare" | first %}
+                {% render 'five-kwh-compare', compare: compare, bgColor: section.settings.bgColor , new_window: section.settings.new_window %}
+              {%- when 'five_kwh_3d' -%}
+                {% render 'five-kwh-3d', imagethree: block, new_window: section.settings.new_window %}
+              {%- when 'five_kwh_pick' -%}
+                {% render 'five-kwh-pick', pick: block, new_window: section.settings.new_window %}
+              {%- when 'five_kwh_video' -%}
+                {% comment %} 视频版块 {% endcomment %}
+                {% render 'five-kwh-video', settings: block.settings, index: forloop.index %}
+              {%- when 'five_kwh_banner' -%}
+                {% comment %} banner版块 {% endcomment %}
+                {% render 'five-kwh-banner', banner: block.settings, new_window: section.settings.new_window%}
+              {%- when 'five_kwh_scroll_trigger' -%}
+                {% comment %} 滚动跑帧版块 {% endcomment %}
+                {% render 'five-kwh-scroll-trigger', settings: block.settings, index: forloop.index %}
+              {%- when 'five_kwh_subscribe' -%}
+                {% comment %} 订阅版块 {% endcomment %}
+                {% render 'five-kwh-subscribe', attributes:block.shopify_attributes, subscribe: block.settings, index: forloop.index %}
+              {%- when 'five_kwh_media' -%}
+                {% comment %} 媒体版块 {% endcomment %}
+                {% render 'five-kwh-media', media: block.settings, index: forloop.index, new_window: section.settings.new_window %}
+              {%- when 'five_kwh_letter' -%}
+                {% comment %} 信任状 {% endcomment %}
+                {% render 'five-kwh-letter', letter: block.settings, index: forloop.index %}
+              {%- when 'five_kwh_common_button' -%}
+                {% comment %} 通用按钮 {% endcomment %}
+                {% render 'common-button', block: block %}
+              {% when 'five_kwh_empty_block_box' %}
+                {% comment %} 空盒子版块 {% endcomment %}
+                {% render 'empty-block-box',settings: block.settings, anchorID: block.settings.anchor_id, handle: block.settings.sourceHandle, index: forloop.index %}
+
+              {%- when 'five_kwh_product_videos' -%}
+                {% comment %} 用户视频轮播列表 {% endcomment %}
+                <div  class="section-five-find-out section-photovolatic-find-out" anchor="{{ block.settings.anchor_id | url_decode | strip | replace: ' ', ''}}" >
+                  {%- render "product-detail-videos", settings: block.settings, new_window: section.settings.new_window,index: forloop.index -%}
+                </div>
+              {%- when 'five_kwh_img_text' -%}
+                {% comment %} 图文版块 {% endcomment %}
+                {%- render 'five-img-text',
+                  settings: block.settings,
+                  new_window: section.settings.new_window,
+                  index: forloop.index
+                -%}
+              {%- when 'five_kwh_award' -%}
+                {% comment %} 媒体背书 {% endcomment %}
+                {% render 'index-award-new', award: block.settings , index: forloop.index %}
+
+              {%- when 'five_kwh_textpic' -%}
+                {% comment %} 左图右文 {% endcomment %}
+                <div class=" product-media_highlight--block product-block-section">
+                  {%- render "diy-scroll-textpic", settings: block.settings -%}
+                </div>
+              {%- when 'five_kwh_des' -%}
+                {% comment %} 富文本版块 {% endcomment %}
+                {%- render "activity-description", settings: block.settings -%}
+
+              {%- when 'five_kwh_calculator' -%}
+                {% comment %} 计算器 {% endcomment %}
+                {% render 'pdp-calculator', settings: block.settings, index: forloop.index %}
+
+              {% when 'five_kwh_three' %}
+                {% comment %} 一行三组图文 {% endcomment %}
+                <div class="pdp-v4-content">
+                  {% render 'pdp-three-text-img', settings: block.settings, index: forloop.index %}
+                </div>
+
+              {%- when 'five_kwh_faq' -%}
+                {% comment %} FAQ {% endcomment %}
+                {% render 'indoor-faq', faq: block.settings, index: forloop.index %}
+              {%- when 'five_kwh_dialog_box' -%}
+                {% comment %} 对话动画版块 {% endcomment %}
+                  {% render 'animate-text', attributes:block.shopify_attributes,  settings: block.settings, index: forloop.index %}
+              {%- when 'five_kwh_app_subsribe' -%}
+                {% comment %} 活动订阅 {% endcomment %}
+                {%- render "activity-subscript", settings: block.settings,new_window: section.settings.new_window,index: forloop.index -%}
+              {%- when 'five_kwh_balcony_quest' -%}
+                {% comment %} 德国阳台发电站问卷 {% endcomment %}
+                {%- render "de-balcony-power-questionnaire" -%}
+            {%- endcase -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+</div>
+{% comment %} 5度电各子版块 开始 {% endcomment %}
+<script type="module">
+  (function () {
+    const init = function () {
+      const contentItem = document.querySelector('.five-kwh--content .five_kwh--content_item');
+      const fiveKwhTab = document.querySelector('.five-kwh-tab');
+
+      if (!contentItem || !fiveKwhTab) return;
+
+      const getFirstVisibleItem = () => {
+        const children = Array.from(contentItem.children || []);
+        for (let i = 0; i < children.length; i += 1) {
+          const el = children[i];
+          if (el && el.offsetHeight > 0) return el;
+        }
+        return contentItem.children && contentItem.children[0] ? contentItem.children[0] : null;
+      };
+
+      let firstContentItem = getFirstVisibleItem();
+
+      let ticking = false;
+      const update = function () {
+        const scrollPosition = window.scrollY || document.documentElement.scrollTop || 0;
+        if (!firstContentItem || firstContentItem.offsetHeight <= 0) {
+          firstContentItem = getFirstVisibleItem();
+        }
+        const contentHeight = firstContentItem ? firstContentItem.offsetHeight || 0 : 0;
+        if (!firstContentItem || contentHeight <= 0) {
+          fiveKwhTab.classList.add('hide-wrapper');
+          fiveKwhTab.classList.remove('show-wrapper');
+          fiveKwhTab.style.display = 'none';
+          return;
+        }
+        const contentOffset = firstContentItem.getBoundingClientRect().top + scrollPosition;
+        const isVisible = scrollPosition >= contentOffset + contentHeight * 0.8;
+
+        if (isVisible) {
+          fiveKwhTab.classList.add('show-wrapper');
+          fiveKwhTab.classList.remove('hide-wrapper');
+        } else {
+          fiveKwhTab.classList.add('hide-wrapper');
+          fiveKwhTab.classList.remove('show-wrapper');
+        }
+
+        const shouldShow = scrollPosition >= contentOffset + contentHeight * 0.5;
+        fiveKwhTab.style.display = shouldShow ? 'block' : 'none';
+      };
+
+      const onScroll = function () {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(function () {
+          update();
+          ticking = false;
+        });
+      };
+
+      update();
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      window.addEventListener('load', onScroll, { passive: true });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
+{% schema %}
+{
+  "name": "Five KWH Market",
+  "class": "five-kwh-market",
+  "tag": "div",
+  "settings": [
+    { "type": "checkbox", "id": "new_window", "label": "新开标签页", "default": false },
+    { "type": "text", "id": "product_name", "label": "产品名 ", "info": "产品名" },
+    { "type": "text", "id": "product_buy_text", "label": "buy文案 ", "default": "buy", "info": "buy文案按钮" },
+    { "type": "url", "id": "product_buy_link", "label": "buy链接", "info": "buy跳转链接" },
+    { "type": "color_background", "id": "bgColor", "label": "全局背景色", "default": "#000000" }
+  ],
+  "blocks":[
+    {
+      "type": "five_kwh_swiper_one",
+      "name": "Five KWH Swiper ONE",
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "richtext", "id": "title", "label": "Title" },
+        { "type": "color", "id": "title_color", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title", "label": "Subtitle" },
+        { "type": "color", "id": "subtitle_color", "label": "Subtitle Color" },
+        { "type": "richtext", "id": "des_title", "label": "Description" },
+        { "type": "color", "id": "descriptions_color", "label": "Description Color" },
+        { "type": "color_background", "id": "bgColor", "label": "背景色", "default": "#ffffff" },
+        { "type": "color", "id": "pagination_color", "label": "索引文案颜色", "default": "#ffffff" },
+        { "type": "color", "id": "description_color", "label": "描述文案颜色", "default": "#ffffff" },
+        { "type": "checkbox", "id": "autoPlay", "label": "是否自动轮播", "default": false },
+        { "type": "checkbox", "id": "border_radius", "label": "是否为圆角", "default": true },
+        { "type": "range", "id": "swiperInterval", "label": "Swiper Interval (Unit: s)", "default": 5, "min": 1, "max": 10, "step": 1, "unit": "s" },
+
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "image_picker", "id": "image_pc_1", "label": "Part 1 Image PC", "info": "500 * 300" },
+        { "type": "image_picker", "id": "image_mb_1", "label": "Part 1 Image Mobile", "info": "500 * 300" },
+        { "type": "richtext", "id": "image_pagination_1", "label": "Part 1 Pagination Text" },
+        { "type": "richtext", "id": "image_des_1", "label": "Part 1 Card Description" },
+
+        { "type": "header", "content": "Part 2 配置" },
+        { "type": "image_picker", "id": "image_pc_2", "label": "Part 2 Image PC", "info": "500 * 300" },
+        { "type": "image_picker", "id": "image_mb_2", "label": "Part 2 Image Mobile", "info": "500 * 300" },
+        { "type": "richtext", "id": "image_pagination_2", "label": "Part 2 Pagination Text" },
+        { "type": "richtext", "id": "image_des_2", "label": "Part 2 Card Description" },
+
+        { "type": "header", "content": "Part 3 配置" },
+        { "type": "image_picker", "id": "image_pc_3", "label": "Part 3 Image PC", "info": "500 * 300" },
+        { "type": "image_picker", "id": "image_mb_3", "label": "Part 3 Image Mobile", "info": "500 * 300" },
+        { "type": "richtext", "id": "image_pagination_3", "label": "Part 3 Pagination Text" },
+        { "type": "richtext", "id": "image_des_3", "label": "Part 3 Card Description" },
+
+        { "type": "header", "content": "Part 4 配置" },
+        { "type": "image_picker", "id": "image_pc_4", "label": "Part 4 Image PC", "info": "500 * 300" },
+        { "type": "image_picker", "id": "image_mb_4", "label": "Part 4 Image Mobile", "info": "500 * 300" },
+        { "type": "richtext", "id": "image_pagination_4", "label": "Part 4 Pagination Text" },
+        { "type": "richtext", "id": "image_des_4", "label": "Part 4 Card Description" },
+
+        { "type": "header", "content": "Part 5 配置" },
+        { "type": "image_picker", "id": "image_pc_5", "label": "Part 5 Image PC", "info": "500 * 300" },
+        { "type": "image_picker", "id": "image_mb_5", "label": "Part 5 Image Mobile", "info": "500 * 300" },
+        { "type": "richtext", "id": "image_pagination_5", "label": "Part 5 Pagination Text" },
+        { "type": "richtext", "id": "image_des_5", "label": "Part 5 Card Description" }
+      ]
+    },
+    {
+      "type": "five_kwh_apply",
+      "name": "Five KWH Apply",
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color_background", "id": "bgColor", "label": "背景色", "default": "#ffffff" },
+        { "type": "richtext", "id": "title", "label": "Title主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_color", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title", "label": "Subtitle副标题【斜线=文案突出】" },
+        { "type": "color", "id": "subtitle_color", "label": "Subtitle Color" },
+        { "type": "text", "id": "more_title", "label": "button title", "info": "跳转按钮文案" },
+        { "type": "url", "id": "more_link", "label": "more button link", "info": "跳转链接" },
+        { "type": "checkbox", "id": "loop", "label": "视频循环播放？", "default": true },
+        { "type": "checkbox", "id": "controls", "label": "视频显示播放控件？", "default": true },
+        { "type": "checkbox", "id": "swiper_auto_play", "label": "Swiper Auto Play", "default": false },
+        { "type": "range", "id": "swiperInterval", "label": "Swiper Interval (Unit: s)", "default": 5, "min": 1, "max": 10, "step": 1, "unit": "s" },
+
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "image_picker", "id": "video_image_pc_1", "label": "Part 1 Image PC", "info": "440 * 390" },
+        { "type": "image_picker", "id": "video_image_mb_1", "label": "Part 1 Image Mobile", "info": "550 * 600" },
+        {
+          "type": "url",
+          "id": "video_pc_url_1",
+          "label": "场景 1 视频地址（PC）",
+          "info": "本地视频建议视频大小不超过10MB"
+        },
+        {
+          "type": "url",
+          "id": "video_mb_url_1",
+          "label": "场景 1 视频地址（Mobile）",
+          "info": "本地视频建议视频大小不超过10MB"
+        },
+        { "type": "richtext", "id": "video_title_1", "label": "Part 1 Card title" },
+        { "type": "color", "id": "video_title_color_1", "label": "Part 1 Title Color", "info": "title【斜线=文案突出】颜色" },
+        { "type": "richtext", "id": "video_des_1", "label": "Part 1 Card Description" },
+        { "type": "color", "id": "video_des_color_1", "label": "Part 1 Des Color", "info": "description【斜线=文案突出】颜色" },
+
+        {"type": "header", "content": "Part 2 配置"},
+        { "type": "image_picker", "id": "video_image_pc_2", "label": "Part 2 Image PC", "info": "440 * 390" },
+        { "type": "image_picker", "id": "video_image_mb_2", "label": "Part 2 Image Mobile", "info": "550 * 600" },
+        { "type": "url", "id": "video_pc_url_2", "label": "场景 2 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_2", "label": "场景 2 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "video_title_2", "label": "Part 2 Card title" },
+        { "type": "color", "id": "video_title_color_2", "label": "Part 2 Title Color", "info": "title【斜线=文案突出】颜色" },
+        { "type": "richtext", "id": "video_des_2", "label": "Part 2 Card Description" },
+        { "type": "color", "id": "video_des_color_2", "label": "Part 2 Des Color", "info": "description【斜线=文案突出】颜色" },
+
+        {"type": "header", "content": "Part 3 配置"},
+        { "type": "image_picker", "id": "video_image_pc_3", "label": "Part 3 Image PC", "info": "440 * 390" },
+        { "type": "image_picker", "id": "video_image_mb_3", "label": "Part 3 Image Mobile", "info": "550 * 600" },
+        { "type": "url", "id": "video_pc_url_3", "label": "场景 3 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_3", "label": "场景 3 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "video_title_3", "label": "Part 3 Card title" },
+        { "type": "color", "id": "video_title_color_3", "label": "Part 3 Title Color", "info": "title【斜线=文案突出】颜色" },
+        { "type": "richtext", "id": "video_des_3", "label": "Part 3 Card Description" },
+        { "type": "color", "id": "video_des_color_3", "label": "Part 3 Des Color", "info": "description【斜线=文案突出】颜色" }
+      ]
+    },
+    {
+      "type": "five_kwh_app_list",
+      "name": "Five KWH App List",
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "richtext", "id": "title", "label": "Title主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_color", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title", "label": "Subtitle副标题【斜线=文案突出】" },
+        { "type": "color", "id": "subtitle_color", "label": "Subtitle Color" },
+        { "type": "color_background","id": "bgColor","label": "背景色","default": "#ffffff" },
+        { "type": "checkbox", "id": "loop", "label": "视频循环播放？", "default": true },
+
+
+        {"type": "header", "content": "Part 1 配置"},
+        { "type": "url", "id": "app_pc_url_1", "label": "场景 1 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB,尺寸：1920*680"},
+        { "type": "url", "id": "app_mb_url_1", "label": "场景 1 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB,尺寸：686*880"},
+        { "type": "image_picker", "id": "app_pc_image_1", "label": "场景 1 视频封面图（PC）", "info": "1920*700" },
+        { "type": "image_picker", "id": "app_mb_image_1", "label": "场景 1 视频封面图（Mobile）", "info": "686*880" },
+        { "type": "richtext", "id": "app_title_1", "label": "Part 1 Card title" },
+
+        {"type": "header", "content": "Part 2 配置"},
+        { "type": "url", "id": "app_pc_url_2", "label": "场景 2 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB,尺寸：1920*680"},
+        { "type": "url", "id": "app_mb_url_2", "label": "场景 2 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB,尺寸：686*880"},
+        { "type": "image_picker", "id": "app_pc_image_2", "label": "场景 2 视频封面图（PC）", "info": "1920*700" },
+        { "type": "image_picker", "id": "app_mb_image_2", "label": "场景 2 视频封面图（Mobile）", "info": "686*880" },
+        { "type": "richtext", "id": "app_title_2", "label": "Part 2 Card title" },
+
+        {"type": "header", "content": "Part 3 配置"},
+        { "type": "url", "id": "app_pc_url_3", "label": "场景 3 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB,尺寸：1920*680"},
+        { "type": "url", "id": "app_mb_url_3", "label": "场景 3 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB,尺寸：686*880"},
+        { "type": "image_picker", "id": "app_pc_image_3", "label": "场景 3 视频封面图（PC）", "info": "1920*700" },
+        { "type": "image_picker", "id": "app_mb_image_3", "label": "场景 3 视频封面图（Mobile）", "info": "686*880" },
+        { "type": "richtext", "id": "app_title_3", "label": "Part 3 Card title" },
+
+        {"type": "header", "content": "Part 4 配置"},
+        { "type": "url", "id": "app_pc_url_4", "label": "场景 4 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB,尺寸：1920*680"},
+        { "type": "url", "id": "app_mb_url_4", "label": "场景 4 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB,尺寸：686*880"},
+        { "type": "image_picker", "id": "app_pc_image_4", "label": "场景 4 视频封面图（PC）", "info": "1920*700" },
+        { "type": "image_picker", "id": "app_mb_image_4", "label": "场景 4 视频封面图（Mobile）", "info": "686*880" },
+        { "type": "richtext", "id": "app_title_4", "label": "Part 4 Card title" },
+
+        {"type": "header", "content": "Part 5 配置"},
+        { "type": "url", "id": "app_pc_url_5", "label": "场景 5 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB,尺寸：1920*680"},
+        { "type": "url", "id": "app_mb_url_5", "label": "场景 5 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB,尺寸：686*880"},
+        { "type": "image_picker", "id": "app_pc_image_5", "label": "场景 5 视频封面图（PC）", "info": "1920*700" },
+        { "type": "image_picker", "id": "app_mb_image_5", "label": "场景 5 视频封面图（Mobile）", "info": "686*880" },
+        { "type": "richtext", "id": "app_title_5", "label": "Part 5 Card title" },
+
+        {"type": "header", "content": "Part 6 配置"},
+        { "type": "url", "id": "app_pc_url_6", "label": "场景 6 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB,尺寸：1920*680"},
+        { "type": "url", "id": "app_mb_url_6", "label": "场景 6 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB,尺寸：686*880"},
+        { "type": "image_picker", "id": "app_pc_image_6", "label": "场景 6 视频封面图（PC）", "info": "1920*700" },
+        { "type": "image_picker", "id": "app_mb_image_6", "label": "场景 6 视频封面图（Mobile）", "info": "686*880" },
+        { "type": "richtext", "id": "app_title_6", "label": "Part 6 Card title" },
+
+        {"type": "header", "content": "Part 7 配置"},
+        { "type": "url", "id": "app_pc_url_7", "label": "场景 7 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB,尺寸：1920*680"},
+        { "type": "url", "id": "app_mb_url_7", "label": "场景 7 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB,尺寸：686*880"},
+        { "type": "image_picker", "id": "app_pc_image_7", "label": "场景 7 视频封面图（PC）", "info": "1920*700" },
+        { "type": "image_picker", "id": "app_mb_image_7", "label": "场景 7 视频封面图（Mobile）", "info": "686*880" },
+        { "type": "richtext", "id": "app_title_7", "label": "Part 7 Card title" },
+
+        {"type": "header", "content": "Part 8 配置"},
+        { "type": "url", "id": "app_pc_url_8", "label": "场景 8 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB,尺寸：1920*680"},
+        { "type": "url", "id": "app_mb_url_8", "label": "场景 8 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB,尺寸：686*880"},
+        { "type": "image_picker", "id": "app_pc_image_8", "label": "场景 8 视频封面图（PC）", "info": "1920*700" },
+        { "type": "image_picker", "id": "app_mb_image_8", "label": "场景 8 视频封面图（Mobile）", "info": "686*880" },
+        { "type": "richtext", "id": "app_title_8", "label": "Part 8 Card title" }
+      ]
+    },
+    {
+      "type": "five_kwh_swiper_two",
+      "name": "Five KWH Swiper TWO",
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "richtext", "id": "title", "label": "Title" },
+        { "type": "color", "id": "title_color", "label": "Title Color" },
+        { "type": "color_background","id": "bgColor","label": "背景色","default": "#ffffff" },
+        { "type": "select", "id": "sub_image_size", "label": "副图片",
+          "options": [
+            { "value": "big_size", "label": "大尺寸（pc宽度900，mb宽度686px）" },
+            { "value": "small_size", "label": "小尺寸（pc宽度627，mb宽度600px）" }
+          ],
+          "default": "small_size" },
+        {
+          "type": "select",
+          "id": "swiper_style",
+          "options": [
+            {
+              "value": "style-one",
+              "label": "标题下文案"
+            },
+            {
+              "value": "style-two",
+              "label": "标题下图片"
+            }
+          ],
+          "default": "style-one",
+          "label": "轮播样式选择"
+        },
+        {
+          "type": "select",
+          "id": "swiper_sub_style",
+          "options": [
+            {
+              "value": "style-one",
+              "label": "富文本文案方式"
+            },
+            {
+              "value": "style-two",
+              "label": "富文本图片方式"
+            }
+          ],
+          "default": "style-one",
+          "label": "轮播图片下内容"
+        },
+        { "type": "richtext", "id": "sub_title", "label": "Subtitle" },
+        { "type": "color", "id": "subtitle_color", "label": "Subtitle Color" },
+        { "type": "checkbox", "id": "border_radius", "label": "是否为圆角", "default": true },
+        { "type": "image_picker", "id": "image_pc_sub", "label": "Sub Image PC", "info": "120 * 180" },
+        { "type": "image_picker", "id": "image_mb_sub", "label": "Sub Image Mobile", "info": "120 * 180" },
+        { "type": "checkbox", "id": "swiper_auto_play", "label": "Swiper Auto Play", "default": false },
+        { "type": "checkbox", "id": "video_auto_play", "label": "Video Auto Play", "default": false },
+        { "type": "checkbox", "id": "loop", "label": "循环播放？", "default": true },
+        { "type": "checkbox", "id": "controls", "label": "显示播放控件？", "default": false },
+        { "type": "range", "id": "swiperInterval", "label": "Swiper Interval (Unit: s)", "default": 5, "min": 1, "max": 10, "step": 1, "unit": "s" },
+
+        {"type": "header", "content": "Part 1 配置"},
+        { "type": "image_picker", "id": "image_pc_1", "label": "Part 1 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_1", "label": "Part 1 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_1", "label": "图片跳转路径 1", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_1", "label": "场景 1 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_1", "label": "场景 1 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_1", "label": "Part 1 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_1", "label": "Part 1 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_1", "label": "Part 1 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_1", "label": "副图片跳转路径 1" },
+
+        {"type": "header", "content": "Part 2 配置"},
+        { "type": "image_picker", "id": "image_pc_2", "label": "Part 2 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_2", "label": "Part 2 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_2", "label": "图片跳转路径 2", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_2", "label": "场景 2 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_2", "label": "场景 2 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_2", "label": "Part 2 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_2", "label": "Part 2 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_2", "label": "Part 2 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_2", "label": "副图片跳转路径 2" },
+
+        {"type": "header", "content": "Part 3 配置"},
+        { "type": "image_picker", "id": "image_pc_3", "label": "Part 3 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_3", "label": "Part 3 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_3", "label": "图片跳转路径 3", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_3", "label": "场景 3 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_3", "label": "场景 3 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_3", "label": "Part 3 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_3", "label": "Part 3 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_3", "label": "Part 3 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_3", "label": "副图片跳转路径 3" },
+
+        {"type": "header", "content": "Part 4 配置"},
+        { "type": "image_picker", "id": "image_pc_4", "label": "Part 4 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_4", "label": "Part 4 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_4", "label": "图片跳转路径 4", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_4", "label": "场景 4 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_4", "label": "场景 4 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_4", "label": "Part 4 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_4", "label": "Part 4 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_4", "label": "Part 4 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_4", "label": "副图片跳转路径 4" },
+
+        {"type": "header", "content": "Part 5 配置"},
+        { "type": "image_picker", "id": "image_pc_5", "label": "Part 5 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_5", "label": "Part 5 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_5", "label": "图片跳转路径 5", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_5", "label": "场景 5 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_5", "label": "场景 5 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_5", "label": "Part 5 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_5", "label": "Part 5 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_5", "label": "Part 5 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_5", "label": "副图片跳转路径 5" },
+
+        {"type": "header", "content": "Part 6 配置"},
+        { "type": "image_picker", "id": "image_pc_6", "label": "Part 6 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_6", "label": "Part 6 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_6", "label": "图片跳转路径 6", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_6", "label": "场景 6 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_6", "label": "场景 6 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_6", "label": "Part 6 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_6", "label": "Part 6 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_6", "label": "Part 6 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_6", "label": "副图片跳转路径 6" },
+
+        {"type": "header", "content": "Part 7 配置"},
+        { "type": "image_picker", "id": "image_pc_7", "label": "Part 7 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_7", "label": "Part 7 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_7", "label": "图片跳转路径 7", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_7", "label": "场景 7 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_7", "label": "场景 7 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_7", "label": "Part 7 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_7", "label": "Part 7 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_7", "label": "Part 7 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_7", "label": "副图片跳转路径 7" },
+
+        {"type": "header", "content": "Part 8 配置"},
+        { "type": "image_picker", "id": "image_pc_8", "label": "Part 8 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_8", "label": "Part 8 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_8", "label": "图片跳转路径 8", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_8", "label": "场景 8 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_8", "label": "场景 8 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_8", "label": "Part 8 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_8", "label": "Part 8 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_8", "label": "Part 8 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_8", "label": "副图片跳转路径 8" },
+
+        {"type": "header", "content": "Part 9 配置"},
+        { "type": "image_picker", "id": "image_pc_9", "label": "Part 9 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_9", "label": "Part 9 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_9", "label": "图片跳转路径 9", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_9", "label": "场景 9 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_9", "label": "场景 9 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_9", "label": "Part 9 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_9", "label": "Part 9 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_9", "label": "Part 9 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_9", "label": "副图片跳转路径 9" },
+
+        {"type": "header", "content": "Part 10 配置"},
+        { "type": "image_picker", "id": "image_pc_10", "label": "Part 10 Image PC", "info": "697 * 392" },
+        { "type": "image_picker", "id": "image_mb_10", "label": "Part 10 Image Mobile", "info": "550 * 594" },
+        { "type": "url", "id": "image_link_10", "label": "图片跳转路径 10", "info": "跳转地址级别高于视频地址"},
+        { "type": "url", "id": "video_pc_url_10", "label": "场景 10 视频地址（PC）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "url", "id": "video_mb_url_10", "label": "场景 10 视频地址（Mobile）", "info": "本地视频建议视频大小不超过10MB"},
+        { "type": "richtext", "id": "image_des_10", "label": "Part 10 Card Description" },
+        { "type": "image_picker", "id": "image_sub_pc_10", "label": "Part 10 Sub Image PC", "info": "大尺寸宽900，小尺寸宽627" },
+        { "type": "image_picker", "id": "image_sub_mb_10", "label": "Part 10 Sub Image Mobile", "info": "大尺寸宽686，小尺寸宽600" },
+        { "type": "url", "id": "sub_image_link_10", "label": "副图片跳转路径 10" }
+      ]
+    },
+    {
+      "type": "five_kwh_video",
+      "name": "Five KWH Video",
+      "settings": [
+        {"type":"header","content":"普通配置"},
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {"type":"select","id":"style","label":"PC样式","default":"full","options":[
+          {"value":"full","label":"1920*680(通屏模式)"},
+          {"value":"normal","label":"840*420(正常模式)"}
+        ]},
+        {"type":"select","id":"mb_style","label":"MB样式","default":"mb-full","options":[
+          {"value":"mb-full","label":"750*1000(通屏模式)"},
+          {"value":"mb-normal","label":"686*343(正常模式)"}
+        ]},
+
+        {"type":"color_background","id":"bgColor","label":"背景色","default":"#fff"},
+        {"type":"richtext","id":"title","label":"标题"},
+        {"type":"color","id":"title_color","label":"标题颜色"},
+        {"type":"richtext","id":"subtitle","label":"副标题"},
+        {"type":"color","id":"subtitle_color","label":"副标题颜色"},
+
+        {"type":"header","content":"进场动画配置（仅PC端通屏模式展示）"},
+        {"type":"checkbox","id":"entryAnimationSwitch","default":false,"label":"进场动画开关"},
+        {"type":"image_picker","id":"entryAnimationImg","label":"进场动画图片"},
+
+        {"type":"header","content":"视频配置"},
+        {"type":"url","id":"videoSrc","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"poster","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMB","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMB","label":"MB视频封面图"},
+        {"type":"checkbox","id":"autoplay","default":false,"label":"自动播放"},
+        {"type":"checkbox","id":"controls","default":false,"label":"显示控制条"},
+        {"type":"richtext","id":"desc","label":"视频描述"},
+        {"type":"color","id":"descColor","label":"视频描述颜色","default":"#fd5000"},
+        {"type":"select","id":"desPosition","label":"视频描述位置","default":"center","options":[
+          {"value":"center","label":"居中"},
+          {"value":"top","label":"中上"}
+        ]},
+        { "type": "richtext", "id": "bottom_text", "label": "视频底部文字(PC)" },
+        { "type": "richtext", "id": "bottom_text_mb", "label": "视频底部文字(MB)" },
+        { "type": "color", "id": "bottom_text_color", "label": "视频底部文字颜色" },
+        {"type":"image_picker","id":"poster_mini_pc","label":"PC小封面"},
+        {"type":"image_picker","id":"poster_mini_mb","label":"mb小封面"},
+        {"type":"text","id":"play_btn","label":"播放按钮文案"},
+        {"type":"text","id":"btnTxt","label":"按钮文本","default":"Learn More"},
+        {"type":"richtext","id":"moreDescTitle","label":"更多描述标题"},
+        {"type":"color","id":"moreDescTitleColor","label":"更多描述标题颜色"},
+        {"type":"richtext","id":"moreDesc","label":"更多描述"},
+        {"type":"color","id":"moreDescColor","label":"更多描述颜色"}
+      ]
+    },
+    {
+      "type": "five_kwh_scroll_trigger",
+      "name": "Five KWH Scroll Trigger",
+      "settings": [
+        {"type":"header","content":"普通配置"},
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {"type":"richtext","id":"title","label":"标题"},
+        {"type":"color","id":"title_color","label":"标题颜色","default":"#FFFFFF"},
+        {"type":"richtext","id":"subtitle","label":"副标题"},
+        {"type":"color","id":"sub_title_color","label":"副标题颜色","default":"#FFFFFF"},
+
+        {"type":"header","content":"PC端帧图配置"},
+        {"type":"image_picker","id":"firstPCImg","label":"首张PC端图（1920*680）"},
+        {"type":"text","id":"pcImgNamePrefix","label":"PC端图统一命名前缀","default":"five-kwh-scroll-pc-"},
+        {"type":"number","id":"pcImgTotal","label":"PC端图总数","default": 10},
+        {"type":"text","id":"pcImgFormat","label":"PC端图统一格式","default":".png"},
+        {"type":"number","id":"pcFPS","label":"PC端FPS","default":24},
+
+        {"type":"header","content":"移动端帧图配置"},
+        {"type":"image_picker","id":"firstMBImg","label":"首张移动端图（750*1000）"},
+        {"type":"text","id":"mbImgNamePrefix","label":"移动端图统一命名前缀","default":"five-kwh-scroll-mb-"},
+        {"type":"number","id":"mbImgTotal","label":"移动端图总数","default": 10},
+        {"type":"text","id":"mbImgFormat","label":"移动端图统一格式","default":".png"},
+        {"type":"number","id":"mbFPS","label":"移动端FPS","default":24}
+      ]
+    },
+    {
+      "type": "five_kwh_compare",
+      "name": "Five KWH Compare",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type":"color_background","id":"bgColor","label":"全局背景色","default":"#fff"},
+        { "type": "richtext", "id": "title", "label": "Title" },
+        { "type": "color", "id": "title_color", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title", "label": "Subtitle" },
+        { "type": "color", "id": "subtitle_color", "label": "Subtitle Color" },
+        { "type": "text", "id": "button_text", "label": "按钮文案" },
+        {  "type": "select", "id": "type", "label": "参数配置展现形式",
+          "options": [
+            { "value": "1", "label": "图片" },
+            { "value": "2", "label": "元字段" }
+          ],
+          "info": "如果选择图片，则每一个产品下的参数PC和MB图片均需要配置; 如果选择元字段，则需要在对应的变体下配置对应的参数信息"
+        },
+        { "type": "color", "id": "color", "label": "产品标题颜色", "default": "#ffffff"},
+        { "type": "header",  "content": "产品一" },
+        { "type": "product", "id": "product1", "label": "产品" },
+        { "type": "text", "id": "sku1",  "label": "产品SKU"},
+        { "type": "image_picker", "id": "product_image1", "label": "产品图片", "info": "150*150" },
+        { "type": "text", "id": "title1", "label": "产品标题" },
+        { "type": "url", "id": "link1", "label": "跳转地址"},
+        { "type": "image_picker", "id": "params_pc_image1", "label": "产品参数PC图片","info": "产品参数PC图片" },
+        { "type": "image_picker", "id": "params_mb_image1", "label": "产品参数MB图片","info": "产品参数MB图片" },
+        { "type": "header",  "content": "产品二" },
+        { "type": "product", "id": "product2", "label": "产品" },
+        { "type": "text", "id": "sku2",  "label": "产品SKU"},
+        { "type": "image_picker", "id": "product_image2", "label": "产品图片", "info": "150*150" },
+        { "type": "text", "id": "title2", "label": "产品标题" },
+        { "type": "url", "id": "link2", "label": "跳转地址"},
+        { "type": "image_picker", "id": "params_pc_image2", "label": "产品参数PC图片","info": "产品参数PC图片" },
+        { "type": "image_picker", "id": "params_mb_image2", "label": "产品参数MB图片","info": "产品参数MB图片" },
+        { "type": "header",  "content": "产品三" },
+        { "type": "product", "id": "product3", "label": "产品" },
+        { "type": "text", "id": "sku3",  "label": "产品SKU"},
+        { "type": "image_picker", "id": "product_image3", "label": "产品图片", "info": "150*150" },
+        { "type": "text", "id": "title3", "label": "产品标题" },
+        { "type": "url", "id": "link3", "label": "跳转地址"},
+        { "type": "image_picker", "id": "params_pc_image3", "label": "产品参数PC图片","info": "产品参数PC图片" },
+        { "type": "image_picker", "id": "params_mb_image3", "label": "产品参数MB图片","info": "产品参数MB图片" },
+        { "type": "header",  "content": "产品四" },
+        { "type": "product", "id": "product4", "label": "产品" },
+        { "type": "text", "id": "sku4",  "label": "产品SKU"},
+        { "type": "image_picker", "id": "product_image4", "label": "产品图片", "info": "150*150" },
+        { "type": "text", "id": "title4", "label": "产品标题" },
+        { "type": "url", "id": "link4", "label": "跳转地址"},
+        { "type": "image_picker", "id": "params_pc_image4", "label": "产品参数PC图片","info": "产品参数PC图片" },
+        { "type": "image_picker", "id": "params_mb_image4", "label": "产品参数MB图片","info": "产品参数MB图片" },
+        { "type": "header",  "content": "产品五" },
+        { "type": "product", "id": "product5", "label": "产品" },
+        { "type": "text", "id": "sku5",  "label": "产品SKU"},
+        { "type": "image_picker", "id": "product_image5", "label": "产品图片", "info": "150*150" },
+        { "type": "text", "id": "title5", "label": "产品标题" },
+        { "type": "url", "id": "link5", "label": "跳转地址"},
+        { "type": "image_picker", "id": "params_pc_image5", "label": "产品参数PC图片","info": "产品参数PC图片" },
+        { "type": "image_picker", "id": "params_mb_image5", "label": "产品参数MB图片","info": "产品参数MB图片" },
+        { "type": "header",  "content": "产品六" },
+        { "type": "product", "id": "product6", "label": "产品" },
+        { "type": "text", "id": "sku6",  "label": "产品SKU"},
+        { "type": "image_picker", "id": "product_image6", "label": "产品图片", "info": "150*150" },
+        { "type": "text", "id": "title6", "label": "产品标题" },
+        { "type": "url", "id": "link6", "label": "跳转地址"},
+        { "type": "image_picker", "id": "params_pc_image6", "label": "产品参数PC图片","info": "产品参数PC图片" },
+        { "type": "image_picker", "id": "params_mb_image6", "label": "产品参数MB图片","info": "产品参数MB图片" },
+        { "type": "header",  "content": "产品七" },
+        { "type": "product", "id": "product7", "label": "产品" },
+        { "type": "text", "id": "sku7",  "label": "产品SKU"},
+        { "type": "image_picker", "id": "product_image7", "label": "产品图片", "info": "150*150" },
+        { "type": "text", "id": "title7", "label": "产品标题" },
+        { "type": "url", "id": "link7", "label": "跳转地址"},
+        { "type": "image_picker", "id": "params_pc_image7", "label": "产品参数PC图片","info": "产品参数PC图片" },
+        { "type": "image_picker", "id": "params_mb_image7", "label": "产品参数MB图片","info": "产品参数MB图片" },
+        { "type": "header",  "content": "产品八" },
+        { "type": "product", "id": "product8", "label": "产品" },
+        { "type": "text", "id": "sku8",  "label": "产品SKU"},
+        { "type": "image_picker", "id": "product_image8", "label": "产品图片", "info": "150*150" },
+        { "type": "text", "id": "title8", "label": "产品标题" },
+        { "type": "url", "id": "link8", "label": "跳转地址"},
+        { "type": "image_picker", "id": "params_pc_image8", "label": "产品参数PC图片","info": "产品参数PC图片" },
+        { "type": "image_picker", "id": "params_mb_image8", "label": "产品参数MB图片","info": "产品参数MB图片" }
+      ]
+    },
+    {
+      "type": "five_kwh_3d",
+      "name": "Five KWH 3D",
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color_background","id":"bgColor","label":"版块背景色"},
+        { "type": "richtext", "id": "module_title", "label": "模块标题" },
+        { "type": "color", "id": "module_title_color", "label": "模块标题颜色" },
+        { "type": "richtext", "id": "sub_title", "label": "模块副标题" },
+        { "type": "color", "id": "sub_title_color", "label": "模块副标题颜色" },
+        { "type": "checkbox", "id": "title_inbox", "label": "主副标题是否在图片内", "default": false},
+        { "type": "select", "id": "img-type",  "label": "选择图片类型", "default": "img",
+
+        "options": [
+            {
+              "value": "img",
+              "label": "Image"
+            },
+            {
+              "value": "3d-img",
+              "label": "3D Image"
+            }
+          ]
+        },
+        { "type": "image_picker", "id": "pc-img", "label": "PC iMage" },
+        { "type": "image_picker", "id": "mb-img", "label": "MB iMage" },
+        { "type": "select", "id": "is-radius",  "label": "是否为圆角", "default": "not",
+          "options": [
+              {
+                "value": "is",
+                "label": "是"
+              },
+              {
+                "value": "not",
+                "label": "否"
+              }
+            ]
+        },
+        { "type": "url", "id": "url", "label": "3D Image link" },
+        {
+          "type": "select",
+          "id": "pc-width",
+          "label": "PC选择图片或者3D图片尺寸",
+          "default": "half",
+          "options": [
+            {
+              "value": "half",
+              "label": "686*470"
+            },
+            {
+              "value": "full-two",
+              "label": "1920*240(全屏)"
+            },
+            {
+              "value": "full",
+              "label": "1920*470(全屏)"
+            },
+            {
+              "value": "full-new",
+              "label": "1920*680(全屏)"
+            }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "mb-width",
+          "label": "MB选择图片或者3D图片尺寸",
+          "default": "mb-half",
+          "options": [
+            {
+              "value": "mb-half",
+              "label": "686*470"
+            },
+            {
+              "value": "mb-full-two",
+              "label": "750*180(全屏)"
+            },
+            {
+              "value": "mb-full",
+              "label": "750*800(全屏)"
+            },
+            {
+              "value": "mb-full-new",
+              "label": "750*1600(全屏)"
+            }
+          ]
+        }
+       ]
+    },
+    {
+      "type": "five_kwh_pick",
+      "name": "Five KWH Pick",
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color_background","id":"bgColor","label":"版块背景色"},
+        { "type": "richtext", "id": "module_title", "label": "模块标题" },
+        { "type": "color", "id": "module_title_color", "label": "模块标题颜色" },
+        { "type": "richtext", "id": "sub_title", "label": "模块副标题" },
+        { "type": "color", "id": "sub_title_color", "label": "模块副标题颜色" },
+        {
+          "type": "select",
+          "id": "title-pos",
+          "label": "主副标题位置",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "居左"
+            },
+            {
+              "value": "center",
+              "label": "居中"
+            }
+          ]
+        },
+        { "type": "text", "id": "button_text", "label": "按钮文案" },
+        { "type": "url", "id": "url", "label": "跳转地址" },
+
+        {"type": "header", "content": "Part 1 配置"},
+        { "type": "image_picker", "id": "icon_1", "label": "图标", "info": "图片100*100" },
+        { "type": "image_picker", "id": "gif_1", "label": "GIF", "info": "图片100*100" },
+        { "type": "text", "id": "title_1", "label": "标题(不超过20字符)" },
+        { "type": "textarea", "id": "sub_title_1", "label": "描述(不超过50字符)" },
+
+        {"type": "header", "content": "Part 2 配置"},
+        { "type": "image_picker", "id": "icon_2", "label": "图标", "info": "图片100*100" },
+        { "type": "image_picker", "id": "gif_2", "label": "GIF", "info": "图片100*100" },
+        { "type": "text", "id": "title_2", "label": "标题(不超过20字符)" },
+        { "type": "textarea", "id": "sub_title_2", "label": "描述(不超过50字符)" },
+
+        {"type": "header", "content": "Part 3 配置"},
+        { "type": "image_picker", "id": "icon_3", "label": "图标", "info": "图片100*100" },
+        { "type": "image_picker", "id": "gif_3", "label": "GIF", "info": "图片100*100" },
+        { "type": "text", "id": "title_3", "label": "标题(不超过20字符)" },
+        { "type": "textarea", "id": "sub_title_3", "label": "描述(不超过50字符)" },
+
+        {"type": "header", "content": "Part 4 配置"},
+        { "type": "image_picker", "id": "icon_4", "label": "图标", "info": "图片100*100" },
+        { "type": "image_picker", "id": "gif_4", "label": "GIF", "info": "图片100*100" },
+        { "type": "text", "id": "title_4", "label": "标题(不超过20字符)" },
+        { "type": "textarea", "id": "sub_title_4", "label": "描述(不超过50字符)" }
+      ]
+
+    },
+    {
+      "type": "five_kwh_banner",
+      "name": "Five KWH Banner",
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "label": "Auto Play(控制图片轮播)",
+          "default": false
+        },
+        {
+          "type": "range",
+          "id": "swiperInterval",
+          "label": "Swiper Interval (Unit: s)",
+          "default": 5,
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "unit": "s"
+        },
+        { "type": "range", "id": "pc_height", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+
+        {"type": "header", "content": "视频配置"},
+        {"type": "image_picker", "id": "videoSrcPoster", "label": "Video Poster PC" },
+        {"type": "video", "id": "videoSrc", "label": "Video Src PC" },
+        {"type": "image_picker", "id": "videoSrcPosterMB", "label": "Video Poster MB" },
+        {"type": "video", "id": "videoSrcMB", "label": "Video Src MB" },
+        { "type": "richtext", "id": "bottom_text", "label": "视频底部文字(PC)" },
+        { "type": "richtext", "id": "bottom_text_mb", "label": "视频底部文字(MB)" },
+        { "type": "color", "id": "bottom_text_color", "label": "视频底部文字颜色" },
+        {
+          "type": "select",
+          "id": "pc_position_video",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_video",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_video", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_video", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_video", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_video", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_video", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_video", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_video", "label": "按钮link" },
+        { "type": "color", "id": "button_color_video", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_video", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_video", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_video", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+
+        {"type": "header", "content": "Part 1 配置"},
+        { "type": "image_picker", "id": "pc_image_1", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_1", "label": "MB图片(必填)" },
+        {
+          "type": "select",
+          "id": "pc_position_1",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_1",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_1", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_1", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_1", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_1", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_1", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_1", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_1", "label": "按钮link" },
+        { "type": "color", "id": "button_color_1", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_1", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_1", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_1", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+
+        {"type": "header", "content": "Part 2 配置"},
+        { "type": "image_picker", "id": "pc_image_2", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_2", "label": "MB图片(必填)" },
+        { "type": "range", "id": "pc_height_2", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height_2", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+        {
+          "type": "select",
+          "id": "pc_position_2",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_2",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_2", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_2", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_2", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_2", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_2", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_2", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_2", "label": "按钮link" },
+        { "type": "color", "id": "button_color_2", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_2", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_2", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_2", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+
+        {"type": "header", "content": "Part 3 配置"},
+        { "type": "image_picker", "id": "pc_image_3", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_3", "label": "MB图片(必填)" },
+        { "type": "range", "id": "pc_height_3", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height_3", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+        {
+          "type": "select",
+          "id": "pc_position_3",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_3",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_3", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_3", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_3", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_3", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_3", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_3", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_3", "label": "按钮link" },
+        { "type": "color", "id": "button_color_3", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_3", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_3", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_3", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+        { "type": "header", "content": "Part 4 配置" },
+        { "type": "image_picker", "id": "pc_image_4", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_4", "label": "MB图片(必填)" },
+        { "type": "range", "id": "pc_height_4", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height_4", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+        {
+          "type": "select",
+          "id": "pc_position_4",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_4",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_4", "label": "PC主标题【斜线=文案突出】" },
+        { "type": "richtext", "id": "title_mb_4", "label": "MB主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_main_color_4", "label": "主标题突出文案颜色" },
+        { "type": "richtext", "id": "sub_title_4", "label": "副标题【斜线=文案突出】" },
+        { "type": "color", "id": "sub_title_main_color_4", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_4", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_4", "label": "按钮link" },
+        { "type": "color", "id": "button_color_4", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_4", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_4", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_4", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+        { "type": "header", "content": "Part 5 配置" },
+        { "type": "image_picker", "id": "pc_image_5", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_5", "label": "MB图片(必填)" },
+        {
+          "type": "range",
+          "id": "pc_height_5",
+          "label": "PC自定义高度",
+          "default": 800,
+          "min": 320,
+          "max": 1200,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "range",
+          "id": "mb_height_5",
+          "label": "MB自定义高度",
+          "default": 1000,
+          "min": 640,
+          "max": 1500,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "select",
+          "id": "pc_position_5",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_5",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_5", "label": "PC主标题【斜线=文案突出】" },
+        { "type": "richtext", "id": "title_mb_5", "label": "MB主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_main_color_5", "label": "主标题突出文案颜色" },
+        { "type": "richtext", "id": "sub_title_5", "label": "副标题【斜线=文案突出】" },
+        { "type": "color", "id": "sub_title_main_color_5", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_5", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_5", "label": "按钮link" },
+        { "type": "color", "id": "button_color_5", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_5", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_5", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_5", "label": "第二个按钮颜色", "default": "#fd5000" }
+      ]
+    },
+    {
+      "type": "five_kwh_subscribe",
+      "name": "Five KWH Subscribe",
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "text", "id": "tags", "label": "订阅标签", "default": "5000plus" },
+        { "type": "color_background", "id": "bgColor", "label": "版块背景色" },
+        { "type": "richtext", "id": "title", "label": "标题" },
+        { "type": "color", "id": "title_color", "label": "标题颜色" },
+        { "type": "richtext", "id": "subtitle", "label": "副标题" },
+        { "type": "color", "id": "subtitle_color", "label": "副标题颜色" },
+        {
+          "type": "select",
+          "id": "tooltip",
+          "label": "悬浮文案颜色",
+          "options": [
+            { "value": "dark", "label": "深色环境" },
+            { "value": "light", "label": "浅色环境" }
+          ],
+          "default": "dark"
+        },
+        {
+          "type": "select",
+          "id": "column",
+          "label": "栏目数",
+          "options": [
+            { "value": "column_three", "label": "三栏" },
+            { "value": "column_four", "label": "四栏" }
+          ],
+          "default": "column_three"
+        },
+
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "color_background", "id": "bgColor_1", "label": "背景色", "default": "#26292C" },
+        { "type": "image_picker", "id": "icon_1", "label": "图标", "info": "图片85*85" },
+        { "type": "richtext", "id": "title_1", "label": "文字内容【斜线=文案突出】" },
+        { "type": "color", "id": "title_color_1", "label": "文字内容突出颜色", "default": "#FFF" },
+        { "type": "richtext", "id": "sub_title_1", "label": "悬浮文案" },
+
+        { "type": "header", "content": "Part 2 配置" },
+        { "type": "color_background", "id": "bgColor_2", "label": "背景色", "default": "#26292C" },
+        { "type": "image_picker", "id": "icon_2", "label": "图标", "info": "图片85*85" },
+        { "type": "richtext", "id": "title_2", "label": "文字内容【斜线=文案突出】" },
+        { "type": "color", "id": "title_color_2", "label": "文字内容突出颜色", "default": "#FFF" },
+        { "type": "richtext", "id": "sub_title_2", "label": "悬浮文案" },
+
+        { "type": "header", "content": "Part 3 配置" },
+        { "type": "color_background", "id": "bgColor_3", "label": "背景色", "default": "#26292C" },
+        { "type": "image_picker", "id": "icon_3", "label": "图标", "info": "图片85*85" },
+        { "type": "richtext", "id": "title_3", "label": "文字内容【斜线=文案突出】" },
+        { "type": "color", "id": "title_color_3", "label": "文字内容突出颜色", "default": "#FFF" },
+        { "type": "richtext", "id": "sub_title_3", "label": "悬浮文案" },
+
+        { "type": "header", "content": "Part 4 配置" },
+        { "type": "color_background", "id": "bgColor_4", "label": "背景色", "default": "#26292C" },
+        { "type": "image_picker", "id": "icon_4", "label": "图标", "info": "图片85*85" },
+        { "type": "richtext", "id": "title_4", "label": "文字内容【斜线=文案突出】" },
+        { "type": "color", "id": "title_color_4", "label": "文字内容突出颜色", "default": "#FFF" },
+        { "type": "richtext", "id": "sub_title_4", "label": "悬浮文案" },
+
+        { "type": "richtext", "id": "subscribe_title", "label": "订阅标题【斜线=文案突出】" },
+        { "type": "color", "id": "subscribe_title_color", "label": "订阅标题突出颜色" },
+        { "type": "color_background", "id": "subscribe_bgd", "label": "订阅区域背景色", "default": "#26292C" },
+        { "type": "image_picker", "id": "subscribe_bg_img", "label": "订阅区域背景图(PC)" },
+        { "type": "image_picker", "id": "subscribe_bg_imgmb", "label": "订阅区域背景色(MB)" },
+        { "type": "text", "id": "subscribe_btn", "label": "订阅按钮文案" },
+        { "type": "text", "id": "subscribe_loading_btn", "label": "订阅按钮Loading文案" },
+        { "type": "richtext", "id": "subscribe_privacy", "label": "订阅隐私协议" },
+        { "type": "color", "id": "subscribe_privacy_color", "label": "订阅隐私协议颜色" }
+      ]
+    },
+    {
+      "type": "five_kwh_media",
+      "name": "Five KWH Media",
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color_background", "id": "bgColor", "label": "版块背景色" },
+        { "type": "richtext", "id": "title", "label": "标题" },
+        { "type": "color", "id": "title_color", "label": "标题颜色" },
+        { "type": "richtext", "id": "subtitle", "label": "副标题" },
+        { "type": "color", "id": "subtitle_color", "label": "副标题颜色" },
+
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "image_picker", "id": "pc_img_1", "label": "PC图片", "info": "670*470" },
+        { "type": "image_picker", "id": "mb_img_1", "label": "MB图片", "info": "686*343" },
+        { "type": "richtext", "id": "title_1", "label": "标题" },
+        { "type": "color", "id": "title_color_1", "label": "标题颜色" },
+        { "type": "richtext", "id": "sub_title_1", "label": "内容" },
+        { "type": "color", "id": "sub_title_color_1", "label": "内容颜色" },
+        { "type": "text", "id": "btn_1", "label": "按钮文案" },
+        { "type": "url", "id": "btn_link_1", "label": "按钮跳转链接" },
+
+        { "type": "header", "content": "Part 2 配置" },
+        { "type": "image_picker", "id": "pc_img_2", "label": "PC图片", "info": "670*470" },
+        { "type": "image_picker", "id": "mb_img_2", "label": "MB图片", "info": "686*343" },
+        { "type": "richtext", "id": "title_2", "label": "标题" },
+        { "type": "color", "id": "title_color_2", "label": "标题颜色" },
+        { "type": "richtext", "id": "sub_title_2", "label": "内容" },
+        { "type": "color", "id": "sub_title_color_2", "label": "内容颜色" },
+        { "type": "text", "id": "btn_2", "label": "按钮文案" },
+        { "type": "url", "id": "btn_link_2", "label": "按钮跳转链接" }
+      ]
+    },
+    {
+      "type": "five_kwh_letter",
+      "name": "Five KWH Letter",
+      "settings": [
+        { "type": "color_background", "id": "bg-color", "label": "Background" },
+        {
+          "type": "select",
+          "id": "letter-type",
+          "label": "Letter Type",
+          "default": "text",
+          "options": [
+            {
+              "value": "text",
+              "label": "text"
+            },
+            {
+              "value": "img",
+              "label": "image"
+            }
+          ]
+        },
+        {
+          "type": "richtext",
+          "id": "pc-title",
+          "label": "PC Title(必填)"
+        },
+        {
+          "type": "richtext",
+          "id": "mb-title",
+          "label": "MB Title(必填)"
+        },
+
+        {
+          "type": "text",
+          "id": "sec-title1",
+          "label": "Second Title1"
+        },
+        {
+          "type": "text",
+          "id": "sec-title2",
+          "label": "Second Title2"
+        },
+
+        {
+          "type": "color",
+          "id": "title-color",
+          "label": "Title Color",
+          "default": "#fd5000"
+        },
+
+        {
+          "type": "richtext",
+          "id": "sub-title",
+          "label": "SubTitle"
+        },
+
+        {
+          "type": "color",
+          "id": "sub-title-color",
+          "label": "SubTitle Color"
+        },
+
+        {
+          "type": "image_picker",
+          "id": "pc-letter-img",
+          "label": "PC Letter Image",
+          "info": "大小: 1440x68"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb-letter-img",
+          "label": "MB Letter Image",
+          "info": "大小: 675x144"
+        }
+      ]
+    },
+    {
+      "type": "five_kwh_common_button",
+      "name": "通用按钮",
+      "settings": [
+        {
+          "type": "color",
+          "id": "button_wrap_bg_color",
+          "label": "Button Wrap Background Color",
+          "info": "按钮容器背景色",
+          "default": "#FFFFFF"
+        },
+        { "type": "text", "id": "button_text", "label": "Button Text" },
+        { "type": "url", "id": "button_link", "label": "Button Link" },
+        {
+          "type": "number",
+          "id": "button_padding_top",
+          "label": "Button Margin Top",
+          "info": "上间距, 单位为px",
+          "default": 40
+        },
+        {
+          "type": "number",
+          "id": "button_padding_bottom",
+          "label": "Button Margin Bottom",
+          "info": "下间距, 单位为px",
+          "default": 40
+        }
+      ]
+    },
+    {
+      "type": "five_kwh_empty_block_box",
+      "name": "空盒子版块",
+      "settings": [
+        {
+          "type": "text",
+          "id": "sourceHandle",
+          "label": "绑定本页可内嵌组件的handle",
+          "info": "可内嵌: 1. 图文轮播-卡片切换 2. 左文右图（使用场景+设备时长）",
+          "default": "embed-component-01"
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "对内标题，标识每个空盒子的功能"
+        },
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {
+          "type": "color",
+          "id": "authorTipsColor",
+          "label": "编辑模式下提示文案颜色",
+          "default": "#333"
+        },
+        {
+          "type": "color",
+          "id": "bgColor",
+          "label": "背景色",
+          "default": "#fff"
+        },
+        {
+          "type": "header",
+          "content": "根据内嵌的组件设置合适高度"
+        },
+        {
+          "type": "number",
+          "id": "pcBoxH",
+          "label": "PC端盒子高度（单位：px）",
+          "info": "提示：各分辨率UI按照响应式规范进行换算",
+          "default": 800
+        },
+        {
+          "type": "number",
+          "id": "mbBoxH",
+          "label": "移动端盒子高度（单位：px）",
+          "info": "提示：各分辨率UI按照响应式规范进行换算",
+          "default": 800
+        }
+      ]
+    },
+    {
+      "type": "five_kwh_product_videos",
+      "name": "用户视频轮播列表",
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#ffffff" },
+        { "type": "textarea", "id": "title", "label": "Title" },
+        {
+          "type": "select",
+          "id": "video_size",
+          "label": "选择视频样式：",
+          "default": "video_small",
+          "options": [
+            { "value": "video_small", "label": "竖屏" },
+            { "value": "video_large", "label": "横屏" }
+          ]
+        },
+        { "type": "checkbox", "id": "loop", "label": "循环播放？", "default": true },
+        { "type": "checkbox", "id": "controls", "label": "显示播放控件？", "default": true },
+
+        { "type": "header", "content": "视频信息 1 配置" },
+        { "type": "image_picker", "id": "poster_1", "label": "视频信息 1 封面图片" },
+        { "type": "url", "id": "video_url_1", "label": "视频信息 1 视频地址" },
+
+        { "type": "header", "content": "视频信息 2 配置" },
+        { "type": "image_picker", "id": "poster_2", "label": "视频信息 2 封面图片" },
+        { "type": "url", "id": "video_url_2", "label": "视频信息 2 视频地址" },
+
+        { "type": "header", "content": "视频信息 3 配置" },
+        { "type": "image_picker", "id": "poster_3", "label": "视频信息 3 封面图片" },
+        { "type": "url", "id": "video_url_3", "label": "视频信息 3 视频地址" },
+
+        { "type": "header", "content": "视频信息 4 配置" },
+        { "type": "image_picker", "id": "poster_4", "label": "视频信息 4 封面图片" },
+        { "type": "url", "id": "video_url_4", "label": "视频信息 4 视频地址" },
+
+        { "type": "header", "content": "视频信息 5 配置" },
+        { "type": "image_picker", "id": "poster_5", "label": "视频信息 5 封面图片" },
+        { "type": "url", "id": "video_url_5", "label": "视频信息 5 视频地址" },
+
+        { "type": "header", "content": "视频信息 6 配置" },
+        { "type": "image_picker", "id": "poster_6", "label": "视频信息 6 封面图片" },
+        { "type": "url", "id": "video_url_6", "label": "视频信息 6 视频地址" },
+
+        { "type": "header", "content": "视频信息 7 配置" },
+        { "type": "image_picker", "id": "poster_7", "label": "视频信息 7 封面图片" },
+        { "type": "url", "id": "video_url_7", "label": "视频信息 7 视频地址" },
+
+        { "type": "header", "content": "视频信息 8 配置" },
+        { "type": "image_picker", "id": "poster_8", "label": "视频信息 8 封面图片" },
+        { "type": "url", "id": "video_url_8", "label": "视频信息 8 视频地址" },
+
+        { "type": "header", "content": "视频信息 9 配置" },
+        { "type": "image_picker", "id": "poster_9", "label": "视频信息 9 封面图片" },
+        { "type": "url", "id": "video_url_9", "label": "视频信息 9 视频地址" },
+
+        { "type": "header", "content": "视频信息 10 配置" },
+        { "type": "image_picker", "id": "poster_10", "label": "视频信息 10 封面图片" },
+        { "type": "url", "id": "video_url_10", "label": "视频信息 10 视频地址" }
+      ]
+    },
+    {
+      "type": "five_kwh_img_text",
+      "name": "图文版块",
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#ffffff" },
+        { "type": "textarea", "id": "text_title", "label": "主标题" },
+        { "type": "textarea", "id": "text_subtitle", "label": "副标题" },
+        { "type": "color", "id": "text_title_color", "label": "主标题颜色" },
+        { "type": "color", "id": "text_subtitle_color", "label": "副标题颜色" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+        { "type": "color", "id": "tab_color", "label": "未选择的tab标题文案颜色", "default": "#ffffff"  },
+        { "type": "color", "id": "title_sp_color", "label": "Title突出颜色"},
+        { "type": "color", "id": "title_sub_sp_color", "label": "Sub Title突出颜色"},
+        {
+          "type": "select",
+          "id": "title_pc",
+          "label": "Title对齐方式(PC)",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "居左" },
+            { "value": "center", "label": "居中" }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "title_mb",
+          "label": "Title对齐方式(MB)",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "居左" },
+            { "value": "center", "label": "居中" }
+          ]
+        },
+
+        { "type": "header", "content": "图文版块 1 配置" },
+        { "type": "text", "id": "tab_title_1", "label": "Tab 标题" },
+        {
+          "type": "select",
+          "id": "position_1",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "左图右文" },
+            { "value": "right", "label": "右图左文" }
+          ]
+        },
+        { "type": "image_picker", "id": "pc_img_1", "label": "PC Image" },
+        { "type": "image_picker", "id": "mb_img_1", "label": "MB Image" },
+        { "type": "color", "id": "bg_color_1", "label": "文案背景色" },
+        { "type": "richtext", "id": "img_title_1", "label": "PC Title" },
+        { "type": "richtext", "id": "img_title_mb_1", "label": "MB Title" },
+        { "type": "color", "id": "title_color_1", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title_1", "label": "PC Sub Title" },
+        { "type": "richtext", "id": "sub_title_mb_1", "label": "MB Sub Title" },
+        { "type": "color", "id": "sub_title_color_1", "label": "Sub Title Color" },
+
+        { "type": "header", "content": "图文版块 2 配置" },
+        { "type": "text", "id": "tab_title_2", "label": "Tab 标题" },
+        {
+          "type": "select",
+          "id": "position_2",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "左图右文" },
+            { "value": "right", "label": "右图左文" }
+          ]
+        },
+        { "type": "image_picker", "id": "pc_img_2", "label": "PC Image" },
+        { "type": "image_picker", "id": "mb_img_2", "label": "MB Image" },
+        { "type": "color", "id": "bg_color_2", "label": "文案背景色" },
+        { "type": "richtext", "id": "img_title_2", "label": "PC Title" },
+        { "type": "richtext", "id": "img_title_mb_2", "label": "MB Title" },
+        { "type": "color", "id": "title_color_2", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title_2", "label": "PC Sub Title" },
+        { "type": "richtext", "id": "sub_title_mb_2", "label": "MB Sub Title" },
+        { "type": "color", "id": "sub_title_color_2", "label": "Sub Title Color" },
+
+        { "type": "header", "content": "图文版块 3 配置" },
+        { "type": "text", "id": "tab_title_3", "label": "Tab 标题" },
+        {
+          "type": "select",
+          "id": "position_3",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "左图右文" },
+            { "value": "right", "label": "右图左文" }
+          ]
+        },
+        { "type": "image_picker", "id": "pc_img_3", "label": "PC Image" },
+        { "type": "image_picker", "id": "mb_img_3", "label": "MB Image" },
+        { "type": "color", "id": "bg_color_3", "label": "文案背景色" },
+        { "type": "richtext", "id": "img_title_3", "label": "PC Title" },
+        { "type": "richtext", "id": "img_title_mb_3", "label": "MB Title" },
+        { "type": "color", "id": "title_color_3", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title_3", "label": "PC Sub Title" },
+        { "type": "richtext", "id": "sub_title_mb_3", "label": "MB Sub Title" },
+        { "type": "color", "id": "sub_title_color_3", "label": "Sub Title Color" },
+
+        { "type": "header", "content": "图文版块 4 配置" },
+        { "type": "text", "id": "tab_title_4", "label": "Tab 标题" },
+        {
+          "type": "select",
+          "id": "position_4",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "左图右文" },
+            { "value": "right", "label": "右图左文" }
+          ]
+        },
+        { "type": "image_picker", "id": "pc_img_4", "label": "PC Image" },
+        { "type": "image_picker", "id": "mb_img_4", "label": "MB Image" },
+        { "type": "color", "id": "bg_color_4", "label": "文案背景色" },
+        { "type": "richtext", "id": "img_title_4", "label": "PC Title" },
+        { "type": "richtext", "id": "img_title_mb_4", "label": "MB Title" },
+        { "type": "color", "id": "title_color_4", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title_4", "label": "PC Sub Title" },
+        { "type": "richtext", "id": "sub_title_mb_4", "label": "MB Sub Title" },
+        { "type": "color", "id": "sub_title_color_4", "label": "Sub Title Color" },
+
+        { "type": "header", "content": "图文版块 5 配置" },
+        { "type": "text", "id": "tab_title_5", "label": "Tab 标题" },
+        {
+          "type": "select",
+          "id": "position_5",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "左图右文" },
+            { "value": "right", "label": "右图左文" }
+          ]
+        },
+        { "type": "image_picker", "id": "pc_img_5", "label": "PC Image" },
+        { "type": "image_picker", "id": "mb_img_5", "label": "MB Image" },
+        { "type": "color", "id": "bg_color_5", "label": "文案背景色" },
+        { "type": "richtext", "id": "img_title_5", "label": "PC Title" },
+        { "type": "richtext", "id": "img_title_mb_5", "label": "MB Title" },
+        { "type": "color", "id": "title_color_5", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title_5", "label": "PC Sub Title" },
+        { "type": "richtext", "id": "sub_title_mb_5", "label": "MB Sub Title" },
+        { "type": "color", "id": "sub_title_color_5", "label": "Sub Title Color" },
+
+        { "type": "header", "content": "图文版块 6 配置" },
+        { "type": "text", "id": "tab_title_6", "label": "Tab 标题" },
+        {
+          "type": "select",
+          "id": "position_6",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "左图右文" },
+            { "value": "right", "label": "右图左文" }
+          ]
+        },
+        { "type": "image_picker", "id": "pc_img_6", "label": "PC Image" },
+        { "type": "image_picker", "id": "mb_img_6", "label": "MB Image" },
+        { "type": "color", "id": "bg_color_6", "label": "文案背景色" },
+        { "type": "richtext", "id": "img_title_6", "label": "PC Title" },
+        { "type": "richtext", "id": "img_title_mb_6", "label": "MB Title" },
+        { "type": "color", "id": "title_color_6", "label": "Title Color" },
+        { "type": "richtext", "id": "sub_title_6", "label": "PC Sub Title" },
+        { "type": "richtext", "id": "sub_title_mb_6", "label": "MB Sub Title" },
+        { "type": "color", "id": "sub_title_color_6", "label": "Sub Title Color" }
+      ]
+    },
+    {
+      "type": "five_kwh_award",
+      "name": "媒体背书",
+      "settings": [
+        { "type": "text", "id": "module_title", "label": "模块标题(必填)" },
+        { "type": "textarea", "id": "sub_title", "label": "描述" },
+        { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+        { "type": "image_picker", "id": "pc_image", "label": "PC 背景图(必填)", "info": "大小: 1920x640" },
+        { "type": "image_picker", "id": "mb_image", "label": "MB 背景图(必填)", "info": "大小: 750x1237" },
+        { "type": "text", "id": "button_text", "label": "按钮文案" },
+        { "type": "url", "id": "link", "label": "跳转地址" },
+
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "image_picker", "id": "pc_image_1", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_1", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_1", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 2 配置" },
+        { "type": "image_picker", "id": "pc_image_2", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_2", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_2", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 3 配置" },
+        { "type": "image_picker", "id": "pc_image_3", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_3", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_3", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 4 配置" },
+        { "type": "image_picker", "id": "pc_image_4", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_4", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_4", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 5 配置" },
+        { "type": "image_picker", "id": "pc_image_5", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_5", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_5", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 6 配置" },
+        { "type": "image_picker", "id": "pc_image_6", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_6", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_6", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 7 配置" },
+        { "type": "image_picker", "id": "pc_image_7", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_7", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_7", "label": "图片链接地址" },
+
+        { "type": "header", "content": "Part 8 配置" },
+        { "type": "image_picker", "id": "pc_image_8", "label": "PC图片(必填)", "info": "大小: 304x383" },
+        { "type": "image_picker", "id": "mb_image_8", "label": "MB图片(必填)", "info": "大小: 620x712" },
+        { "type": "url", "id": "image_link_8", "label": "图片链接地址" }
+      ]
+    },
+    {
+      "type": "five_kwh_textpic",
+      "name": "左图右文",
+      "limit": 2,
+      "settings": [
+        { "type": "textarea", "id": "title", "label": "Title"},
+        { "type": "number", "id": "title_font", "label": "Title MB 字体大小","default":80 },
+
+        {"type": "header", "content": "场景 1 配置"},
+        { "type": "text", "id": "heading_1", "label": "场景 1 Heading" },
+        { "type": "textarea", "id": "description_1", "label": "场景 1 Description" },
+        { "type": "image_picker", "id": "pc_img_1", "label": "场景 1 PC Image" },
+        { "type": "image_picker", "id": "mb_img_1", "label": "场景 1 Mobile Image"},
+
+        {"type": "header", "content": "场景 2 配置"},
+        { "type": "text", "id": "heading_2", "label": "场景 2 Heading" },
+        { "type": "textarea", "id": "description_2", "label": "场景 2 Description" },
+        { "type": "image_picker", "id": "pc_img_2", "label": "场景 2 PC Image" },
+        { "type": "image_picker", "id": "mb_img_2", "label": "场景 2 Mobile Image"},
+
+        {"type": "header", "content": "场景 3 配置"},
+        { "type": "text", "id": "heading_3", "label": "场景 3 Heading" },
+        { "type": "textarea", "id": "description_3", "label": "场景 3 Description" },
+        { "type": "image_picker", "id": "pc_img_3", "label": "场景 3 PC Image" },
+        { "type": "image_picker", "id": "mb_img_3", "label": "场景 3 Mobile Image"},
+
+        {"type": "header", "content": "场景 4 配置"},
+        { "type": "text", "id": "heading_4", "label": "场景 4 Heading" },
+        { "type": "textarea", "id": "description_4", "label": "场景 4 Description" },
+        { "type": "image_picker", "id": "pc_img_4", "label": "场景 4 PC Image" },
+        { "type": "image_picker", "id": "mb_img_4", "label": "场景 4 Mobile Image"},
+
+        {"type": "header", "content": "场景 5 配置"},
+        { "type": "text", "id": "heading_5", "label": "场景 5 Heading" },
+        { "type": "textarea", "id": "description_5", "label": "场景 5 Description" },
+        { "type": "image_picker", "id": "pc_img_5", "label": "场景 5 PC Image" },
+        { "type": "image_picker", "id": "mb_img_5", "label": "场景 5 Mobile Image"},
+
+        {"type": "header", "content": "场景 6 配置"},
+        { "type": "text", "id": "heading_6", "label": "场景 6 Heading" },
+        { "type": "textarea", "id": "description_6", "label": "场景 6 Description" },
+        { "type": "image_picker", "id": "pc_img_6", "label": "场景 6 PC Image" },
+        { "type": "image_picker", "id": "mb_img_6", "label": "场景 6 Mobile Image"}
+        ]
+    },
+    {
+      "type": "five_kwh_calculator",
+      "name": "计算器",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "提醒：配置完当前产品的 Wattage/Capacity 后才展示此版块"
+        },
+        { "type": "product", "id": "product", "label": "选择产品(必填)" },
+        {
+          "type": "select",
+          "id": "type",
+          "label": "功能切换",
+          "info": "请选择不同功能的计算器",
+          "options": [
+            {
+              "value": "",
+              "label": "计算有效时长"
+            },
+            {
+              "value": "costSavings",
+              "label": "计算节约费用"
+            }
+          ],
+          "default": ""
+        },
+        {
+          "type": "header",
+          "content": "计算器文案公共配置"
+        },
+        {
+          "type": "text",
+          "id": "topTitle",
+          "label": "顶部标题",
+          "default": "calculate the running time"
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "标题",
+          "default": "Enter the wattage of your appliance"
+        },
+        {
+          "type": "textarea",
+          "id": "subtitle",
+          "label": "副标题",
+          "default": "Input power does not exceed the maximum AC output of Explorer XX1 ${power}",
+          "info": "1.${power}用于替换当前产品产品的最大功率，替换后示例：(3000W); 2.${Capacity}用于替换当前产品的电池容量，替换后示例：(2000Wh)"
+        },
+        {
+          "type": "header",
+          "content": "计算有效时长UI相应配置项"
+        },
+        {
+          "type": "text",
+          "id": "hrs",
+          "label": "小时数",
+          "default": "Hrs"
+        },
+        {
+          "type": "text",
+          "id": "runningTimeText",
+          "label": "预期运行时长文本",
+          "default": "Expected Running Time"
+        },
+        {
+          "type": "textarea",
+          "id": "note",
+          "label": "注释",
+          "default": "Note: This is a calculation for reference. Please take the actual use for accuracy."
+        },
+        {
+          "type": "text",
+          "id": "btnTips",
+          "label": "按钮提示语",
+          "info": "日站填充文案：計算する"
+        },
+        {
+          "type": "textarea",
+          "id": "errorTips",
+          "label": "错误提示",
+          "default": "Input power does not exceed ${power}.",
+          "info": "${power}用于替换当前产品对应功率，如3000W"
+        },
+        {
+          "type": "header",
+          "content": "计算节约费用UI相应配置项"
+        },
+        {
+          "type": "text",
+          "id": "savingsUnit",
+          "label": "节省费用单位",
+          "default": "GBP"
+        },
+        {
+          "type": "text",
+          "id": "electricitybill",
+          "label": "输入框填充文案-电费单价",
+          "default": "Electricity Bill"
+        },
+        {
+          "type": "text",
+          "id": "electricityPriceUnit",
+          "label": "电费单价单位",
+          "default": "p/kWh"
+        },
+        {
+          "type": "text",
+          "id": "times",
+          "label": "输入框填充文案-次数",
+          "default": "Times"
+        },
+        {
+          "type": "text",
+          "id": "timesUnit",
+          "label": "次数单位",
+          "default": "Times"
+        },
+        {
+          "type": "text",
+          "id": "btnText",
+          "label": "按钮上文案",
+          "default": "Calculate Money Save"
+        },
+        {
+          "type": "textarea",
+          "id": "costSavingsUINote",
+          "label": "注释",
+          "default": "Note: This is a calculation for reference. Please take the actual use for accuracy"
+        }
+      ]
+    },
+    {
+      "type": "five_kwh_three",
+      "name": "一行三组图文",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "sectionTitle",
+          "label": "版块标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "checkbox",
+          "id": "play_by_order",
+          "label": "本地视频按顺序自动播放",
+          "default": false,
+          "info": "开启后，视频的【自动播放设置】【循环播放设置】将无效，只能按顺序自动播放"
+        },
+        {
+          "type": "header",
+          "content": "Part1 图文"
+        },
+        {
+          "type": "richtext",
+          "id": "partOneTitle",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "partOneSubtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "partOnePCImg",
+          "label": "PC端图片（421*395）"
+        },
+        {
+          "type": "image_picker",
+          "id": "partOneMBImg",
+          "label": "移动端图片（686*644）"
+        },
+        {"type":"url","id":"videoSrc","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"poster","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMB","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMB","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loop", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controls", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplay", "label": "视频自动播放", "default": false },
+        {
+          "type": "header",
+          "content": "Part2 图文"
+        },
+        {
+          "type": "richtext",
+          "id": "partTwoTitle",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "partTwoSubtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "partTwoPCImg",
+          "label": "PC端图片（421*395）"
+        },
+        {
+          "type": "image_picker",
+          "id": "partTwoMBImg",
+          "label": "移动端图片（686*644）"
+        },
+        {"type":"url","id":"videoSrcTwo","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterTwo","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMBTwo","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMBTwo","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loopTwo", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controlsTwo", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplayTwo", "label": "视频自动播放", "default": false },
+        {
+          "type": "header",
+          "content": "Part3 图文"
+        },
+        {
+          "type": "richtext",
+          "id": "partThreeTitle",
+          "label": "标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "richtext",
+          "id": "partThreeSubtitle",
+          "label": "副标题",
+          "info": "提示：选中文本设置斜体可标记品牌色。"
+        },
+        {
+          "type": "image_picker",
+          "id": "partThreePCImg",
+          "label": "PC端图片（421*395）"
+        },
+        {
+          "type": "image_picker",
+          "id": "partThreeMBImg",
+          "label": "移动端图片（686*644）"
+        },
+        {"type":"url","id":"videoSrcThree","label":"PC视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterThree","label":"PC视频封面图"},
+        {"type":"url","id":"videoSrcMBThree","label":"MB视频源（支持格式: mp4、mov、m4v）"},
+        {"type":"image_picker","id":"posterMBThree","label":"MB视频封面图"},
+        {"type": "checkbox", "id": "loopThree", "label": "视频循环播放？", "default": true },
+        {"type": "checkbox", "id": "controlsThree", "label": "视频显示播放控件？", "default": true },
+        {"type": "checkbox", "id": "autoplayThree", "label": "视频自动播放", "default": false }
+      ]
+    },
+    {
+      "type": "five_kwh_des",
+      "name": "富文本模块",
+      "settings": [
+        { "type": "text",  "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color_background","id": "bg_color","label": "背景色","default": "#ffffff" },
+        { "type": "header", "content": "PC富文本配置" },
+        {
+          "type": "select",
+          "id": "pc_position",
+          "options": [
+            {
+              "value": "left",
+              "label": "居左"
+            },
+            {
+              "value": "center",
+              "label": "居中"
+            },
+            {
+              "value": "right",
+              "label": "居右"
+            }
+          ],
+          "default": "center",
+          "label": "富文本位置PC"
+        },
+        { "type": "number", "id": "padding_top_pc", "label": "上边距PC", "default": 120 },
+        { "type": "number", "id": "padding_bottom_pc", "label": "下边距PC", "default": 120 },
+        { "type": "number", "id": "text_size_pc", "label": "文字大小PC", "default": 25 },
+        { "type": "richtext", "id": "des_text_pc", "label": "富文本文案PC" },
+        { "type": "header", "content": "MB富文本配置" },
+        {
+          "type": "select",
+          "id": "mb_position",
+          "options": [
+            {
+              "value": "left",
+              "label": "居左"
+            },
+            {
+              "value": "center",
+              "label": "居中"
+            },
+            {
+              "value": "right",
+              "label": "居右"
+            }
+          ],
+          "default": "center",
+          "label": "富文本位置MB"
+        },
+        { "type": "number", "id": "padding_top_mb", "label": "上边距MB", "default": 120 },
+        { "type": "number", "id": "padding_bottom_mb", "label": "下边距MB", "default": 120 },
+        { "type": "number", "id": "text_size_mb", "label": "文字大小MB", "default": 25 },
+        { "type": "richtext", "id": "des_text_mb", "label": "富文本文案MB" },
+        { "type": "color", "id": "text_color", "label": "文本颜色" },
+        { "type": "color", "id": "text_active", "label": "部分文本颜色" }
+      ]
+    },
+    {
+      "type": "five_kwh_faq",
+      "name": "FAQ",
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color", "id": "block_bg", "label": "深色背景设置", "info": "默认为空，表示浅色模式" },
+        { "type": "text", "id": "title", "label": "FAQ Title", "default": "FAQ" },
+        { "type": "checkbox", "id": "is_unfold", "label": "是否全部展开", "default": false },
+        { "type": "product", "id": "product", "label": "产品" },
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "richtext", "id": "question_1", "label": "问题" },
+        { "type": "richtext", "id": "answer_1", "label": "回答" },
+        { "type": "header", "content": "Part 2 配置" },
+        { "type": "richtext", "id": "question_2", "label": "问题" },
+        { "type": "richtext", "id": "answer_2", "label": "回答" },
+        { "type": "header", "content": "Part 3 配置" },
+        { "type": "richtext", "id": "question_3", "label": "问题" },
+        { "type": "richtext", "id": "answer_3", "label": "回答" },
+        { "type": "header", "content": "Part 4 配置" },
+        { "type": "richtext", "id": "question_4", "label": "问题" },
+        { "type": "richtext", "id": "answer_4", "label": "回答" },
+        { "type": "header", "content": "Part 5 配置" },
+        { "type": "richtext", "id": "question_5", "label": "问题" },
+        { "type": "richtext", "id": "answer_5", "label": "回答" },
+        { "type": "header", "content": "Part 6 配置" },
+        { "type": "richtext", "id": "question_6", "label": "问题" },
+        { "type": "richtext", "id": "answer_6", "label": "回答" },
+        { "type": "header", "content": "Part 7 配置" },
+        { "type": "richtext", "id": "question_7", "label": "问题" },
+        { "type": "richtext", "id": "answer_7", "label": "回答" },
+        { "type": "header", "content": "Part 8 配置" },
+        { "type": "richtext", "id": "question_8", "label": "问题" },
+        { "type": "richtext", "id": "answer_8", "label": "回答" },
+        { "type": "header", "content": "Part 9 配置" },
+        { "type": "richtext", "id": "question_9", "label": "问题" },
+        { "type": "richtext", "id": "answer_9", "label": "回答" },
+        { "type": "header", "content": "Part 10 配置" },
+        { "type": "richtext", "id": "question_10", "label": "问题" },
+        { "type": "richtext", "id": "answer_10", "label": "回答" },
+        { "type": "header", "content": "Part 11 配置" },
+        { "type": "richtext", "id": "question_11", "label": "问题" },
+        { "type": "richtext", "id": "answer_11", "label": "回答" },
+        { "type": "header", "content": "Part 12 配置" },
+        { "type": "richtext", "id": "question_12", "label": "问题" },
+        { "type": "richtext", "id": "answer_12", "label": "回答" },
+        { "type": "header", "content": "Part 13 配置" },
+        { "type": "richtext", "id": "question_13", "label": "问题" },
+        { "type": "richtext", "id": "answer_13", "label": "回答" },
+        { "type": "header", "content": "Part 14 配置" },
+        { "type": "richtext", "id": "question_14", "label": "问题" },
+        { "type": "richtext", "id": "answer_14", "label": "回答" },
+        { "type": "header", "content": "Part 15 配置" },
+        { "type": "richtext", "id": "question_15", "label": "问题" },
+        { "type": "richtext", "id": "answer_15", "label": "回答" },
+        { "type": "header", "content": "Part 16 配置" },
+        { "type": "richtext", "id": "question_16", "label": "问题" },
+        { "type": "richtext", "id": "answer_16", "label": "回答" },
+        { "type": "header", "content": "Part 17 配置" },
+        { "type": "richtext", "id": "question_17", "label": "问题" },
+        { "type": "richtext", "id": "answer_17", "label": "回答" },
+        { "type": "header", "content": "Part 18 配置" },
+        { "type": "richtext", "id": "question_18", "label": "问题" },
+        { "type": "richtext", "id": "answer_18", "label": "回答" },
+        { "type": "header", "content": "Part 19 配置" },
+        { "type": "richtext", "id": "question_19", "label": "问题" },
+        { "type": "richtext", "id": "answer_19", "label": "回答" },
+        { "type": "header", "content": "Part 20 配置" },
+        { "type": "richtext", "id": "question_20", "label": "问题" },
+        { "type": "richtext", "id": "answer_20", "label": "回答" }
+        ]
+      },
+      {
+        "type": "five_kwh_dialog_box",
+        "name": "对话框",
+        "limit": 1,
+        "settings": [
+          { "type": "text", "id": "dialog_1", "label": "第一段对话" },
+          { "type": "text", "id": "dialog_2", "label": "第二段对话" },
+          { "type": "text", "id": "dialog_3", "label": "第三段对话" },
+          { "type": "text", "id": "dialog_4", "label": "第四段对话" },
+          { "type": "text", "id": "dialog_5", "label": "第五段对话" },
+          { "type": "richtext", "id": "text", "label": "文本" }
+        ]
+      },
+      {
+        "type": "five_kwh_app_subsribe",
+        "name": "活动订阅",
+        "settings": [
+          { "type": "text",  "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)" },
+          { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+          { "type": "select", "id": "pc_position", "label": "PC端位置",
+            "options": [
+              { "value": "left_pc", "label": "居左" },
+              { "value": "right_pc", "label": "居右" }
+            ], "default": "left_pc"
+
+          },
+          { "type": "select", "id": "mb_position", "label": "移动端位置",
+            "options": [
+              { "value": "top_mb", "label": "居上" },
+              { "value": "bottom_mb", "label": "居下" }
+            ], "default": "bottom_mb"
+          },
+          { "type": "text",  "id": "klaviyo_id", "label": "绑定Klaviyo的List对象ID" },
+          { "type": "text",  "id": "subscript_tag", "label": "来源标签" },
+          { "type": "image_picker", "id": "pc_image", "label": "PC图片(必填)", "info": "大小: 1920*640" },
+          { "type": "image_picker", "id": "mb_image", "label": "MB图片(必填)", "info": "大小: 750x1416" },
+          { "type": "richtext", "id": "title_main", "label": "PC主标题(不超过25字符)" },
+          { "type": "richtext", "id": "title_main_mb", "label": "MB主标题(不超过25字符)" },
+          { "type": "color", "id": "title_main_color", "label": "主标题突出文案颜色", "default": "#FFFFFF" },
+          { "type": "color", "id": "title_main_color_pc", "label": "主标题文案颜色(PC)", "default": "#FFFFFF" },
+          { "type": "color", "id": "title_main_color_mb", "label": "主标题文案颜色(MB)", "default": "#FFFFFF" },
+          { "type": "number", "id": "font","label": "主标题字号(PC)","default": 16, "info": "默认值为16px"},
+          { "type": "number", "id": "font_mb","label": "主标题字号(MB)","default": 28, "info": "默认值为28px"},
+
+          { "type": "richtext", "id": "sub_title", "label": "PC副标题(不超过70字符)" },
+          { "type": "richtext", "id": "sub_title_mb", "label": "MB副标题(不超过70字符)" },
+          { "type": "color", "id": "sub_title_main_color", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+          { "type": "color", "id": "sub_title_main_color_pc", "label": "副标题文案颜色(PC)", "default": "#FFFFFF" },
+          { "type": "color", "id": "sub_title_main_color_mb", "label": "副标题文案颜色(MB)", "default": "#FFFFFF" },
+          { "type": "number", "id": "sub_font","label": "副标题字号(PC)","default": 48, "info": "默认值为48px"},
+          { "type": "number", "id": "sub_font_mb","label": "副标题字号(MB)","default": 40, "info": "默认值为40px"},
+          { "type": "richtext", "id": "des_title", "label": "PC描述(不超过70字符)" },
+          { "type": "richtext", "id": "des_title_mb", "label": "MB描述(不超过70字符)" },
+          { "type": "color", "id": "des_title_main_color", "label": "描述突出文案颜色", "default": "#FFFFFF" },
+          { "type": "color", "id": "des_title_main_color_pc", "label": "描述文案颜色(PC)", "default": "#FFFFFF" },
+          { "type": "color", "id": "des_title_main_color_mb", "label": "描述文案颜色(MB)", "default": "#FFFFFF" },
+          { "type": "number", "id": "des_font","label": "描述字号(PC)","default": 20, "info": "默认值为20px"},
+          { "type": "number", "id": "des_font_mb","label": "描述字号(MB)","default": 32, "info": "默认值为32px"},
+          { "type": "color", "id": "subsribe_icon", "label": "订阅模块内文案及icon颜色", "default": "#FFFFFF" },
+          { "type": "color_background", "id": "subcribe_bg_color", "label": "订阅模块背景色", "default": "rgba(0, 0, 0, 0.3)" },
+          { "type": "richtext", "id": "subcribe_title", "label": "订阅模块标题" },
+          { "type": "text", "id": "subcribe_btn", "label": "订阅按钮文本" },
+          { "type": "text", "id": "loading_btn", "default": "LOADING", "label": "加载中文案" },
+          { "type": "richtext", "id": "privacy_policy", "label": "Privacy Policy" },
+          { "type": "text", "id": "winner_btn", "default": "Winner List >", "label": "获奖名单按钮文案" },
+          { "type": "text", "id": "subscription_header", "label": "订阅提示header文案" },
+          { "type": "richtext", "id": "subscription_tip", "label": "订阅提示文案" },
+          { "type": "text", "id": "winner_header", "label": "获奖列表header文案" },
+          { "type": "richtext", "id": "winner_list", "label": "获奖列表list文案" }
+        ]
+      },
+      {
+        "type": "five_kwh_balcony_quest",
+        "name": "阳台发电站推荐问卷",
+        "settings": [
+          {"type": "header", "content": "仅用于德国站点"}
+        ]
+      },
+      {
+      "type": "@app"
+    }
+  ]
+}
+{% endschema %}

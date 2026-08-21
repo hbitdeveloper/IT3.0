@@ -1,0 +1,282 @@
+{%- liquid
+  assign faq_categories = blank
+  assign faq_item_limit = 10
+
+  case request.page_type
+    when 'product'
+      assign faq_categories = product.metafields.custom.faq_multiple_columns.value
+    when 'collection'
+      assign faq_categories = collection.metafields.custom.faq_multiple_columns.value
+    when 'article'
+      assign faq_categories = article.metafields.custom.faq_multiple_columns.value
+    when 'blog'
+      assign faq_categories = blog.metafields.custom.faq_multiple_columns.value
+    when 'page'
+      assign faq_categories = page.metafields.custom.faq_multiple_columns.value
+  endcase
+
+  assign valid_faq_count = 0
+  for faq_category in faq_categories
+    if valid_faq_count >= faq_item_limit
+      break
+    endif
+    for faq_item in faq_category.column_content.value
+      if valid_faq_count >= faq_item_limit
+        break
+      endif
+      assign faq_question = faq_item.question.value | strip
+      assign faq_answer = faq_item.answer_text | metafield_text | strip_html | strip
+      if faq_question != blank and faq_answer != blank
+        assign valid_faq_count = valid_faq_count | plus: 1
+      endif
+    endfor
+  endfor
+
+  for block in section.blocks
+    if valid_faq_count >= faq_item_limit
+      break
+    endif
+    assign faq_question = block.settings.question | strip
+    assign faq_answer = block.settings.answer | strip_html | strip
+    if block.type == 'faq' and faq_question != blank and faq_answer != blank
+      assign valid_faq_count = valid_faq_count | plus: 1
+    endif
+  endfor
+-%}
+
+<section
+  id="FaqContent-{{ section.id }}"
+  class="faq-content"
+  data-faq-content-section
+>
+  {%- if valid_faq_count > 0 -%}
+    <div class="faq-content__inner">
+      {%- if section.settings.title != blank -%}
+        <h2 class="faq-content__title">{{ section.settings.title | escape }}</h2>
+      {%- endif -%}
+
+      <div class="faq-content__items">
+        {%- assign rendered_faq_count = 0 -%}
+        {%- for faq_category in faq_categories -%}
+          {%- if rendered_faq_count >= faq_item_limit -%}{%- break -%}{%- endif -%}
+          {%- assign valid_category_count = 0 -%}
+          {%- assign remaining_faq_count = faq_item_limit | minus: rendered_faq_count -%}
+          {%- for faq_item in faq_category.column_content.value -%}
+            {%- assign faq_question = faq_item.question.value | strip -%}
+            {%- assign faq_answer = faq_item.answer_text | metafield_text | strip_html | strip -%}
+            {%- if faq_question != blank and faq_answer != blank and valid_category_count < remaining_faq_count -%}
+              {%- assign valid_category_count = valid_category_count | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+
+          {%- if valid_category_count > 0 -%}
+            <div class="faq-content__category">
+              {%- if section.settings.show_category_titles and faq_category.column_name.value != blank -%}
+                <h3 class="faq-content__category-title">{{ faq_category.column_name.value | escape }}</h3>
+              {%- endif -%}
+
+              {%- for faq_item in faq_category.column_content.value -%}
+                {%- if rendered_faq_count >= faq_item_limit -%}{%- break -%}{%- endif -%}
+                {%- assign faq_question = faq_item.question.value | strip -%}
+                {%- assign faq_answer = faq_item.answer_text | metafield_text | strip_html | strip -%}
+                {%- if faq_question != blank and faq_answer != blank -%}
+                  <details class="faq-content__item">
+                    <summary class="faq-content__question">
+                      <span>{{ faq_question | escape }}</span>
+                      <i class="iconfont jackery-icon-arrowdown" aria-hidden="true"></i>
+                    </summary>
+                    <div class="faq-content__answer rte">
+                      {{ faq_item.answer_text | metafield_tag }}
+                    </div>
+                  </details>
+                  {%- assign rendered_faq_count = rendered_faq_count | plus: 1 -%}
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+
+        {%- for block in section.blocks -%}
+          {%- if rendered_faq_count >= faq_item_limit -%}{%- break -%}{%- endif -%}
+          {%- assign faq_question = block.settings.question | strip -%}
+          {%- assign faq_answer = block.settings.answer | strip_html | strip -%}
+          {%- if block.type == 'faq' and faq_question != blank and faq_answer != blank -%}
+            <details class="faq-content__item" {{ block.shopify_attributes }}>
+              <summary class="faq-content__question">
+                <span>{{ faq_question | escape }}</span>
+                <i class="iconfont jackery-icon-arrowdown" aria-hidden="true"></i>
+              </summary>
+              <div class="faq-content__answer rte">
+                {{ block.settings.answer }}
+              </div>
+            </details>
+            {%- assign rendered_faq_count = rendered_faq_count | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  {% render 'structure-data-faq',
+    faq_categories: faq_categories,
+    faq_blocks: section.blocks,
+    include_manual_faqs: true,
+    faq-block-switch: true
+  %}
+</section>
+
+{% style %}
+  #FaqContent-{{ section.id }} {
+    padding: 64px 24px;
+    background: #fff;
+    color: #111;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__inner {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__title {
+    margin: 0 0 32px;
+    font-size: 36px;
+    line-height: 1.2;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__category + .faq-content__category,
+  #FaqContent-{{ section.id }} .faq-content__category + .faq-content__item {
+    margin-top: 32px;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__category-title {
+    margin: 0 0 12px;
+    font-size: 20px;
+    line-height: 1.4;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__item {
+    border-bottom: 1px solid #d7d7d7;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 0;
+    font-size: 18px;
+    line-height: 1.5;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__question::-webkit-details-marker {
+    display: none;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__question .iconfont {
+    flex: 0 0 auto;
+    font-size: 22px;
+    transition: transform 0.2s ease;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__item[open] .faq-content__question .iconfont {
+    transform: rotate(180deg);
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__answer {
+    padding: 0 44px 22px 0;
+    color: #4c4c4c;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__answer > :first-child {
+    margin-top: 0;
+  }
+
+  #FaqContent-{{ section.id }} .faq-content__answer > :last-child {
+    margin-bottom: 0;
+  }
+
+  @media screen and (max-width: 749px) {
+    #FaqContent-{{ section.id }} {
+      padding: 44px 20px;
+    }
+
+    #FaqContent-{{ section.id }} .faq-content__title {
+      margin-bottom: 24px;
+      font-size: 28px;
+    }
+
+    #FaqContent-{{ section.id }} .faq-content__category-title {
+      font-size: 18px;
+    }
+
+    #FaqContent-{{ section.id }} .faq-content__question {
+      gap: 16px;
+      padding: 18px 0;
+      font-size: 16px;
+    }
+
+    #FaqContent-{{ section.id }} .faq-content__answer {
+      padding: 0 32px 18px 0;
+      font-size: 15px;
+    }
+  }
+{% endstyle %}
+
+{% schema %}
+{
+  "name": "FAQ content",
+  "class": "section-faq-content",
+  "enabled_on": {
+    "templates": ["product", "collection", "article", "blog", "page"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Frequently asked questions"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_category_titles",
+      "label": "Show metafield category titles",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "faq",
+      "name": "FAQ item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 10,
+  "presets": [
+    {
+      "name": "FAQ content"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,352 @@
+{%- style -%}
+  /* Custom scrollbar hiding if needed */
+  .v5-product-compare .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .v5-product-compare .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .v5-product-compare .product-compare-img-box picture {
+    height: auto;
+  }
+
+  .v5-product-compare .product-compare-img-box-right picture {
+    height: auto;
+  }
+
+  .v5-product-compare .product-compare-mb-box picture {
+    height: 1.5rem;
+  }
+{%- endstyle -%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="section-padding lg:w-[82.5rem] w-[21.4375rem] mx-auto v5-product-compare"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  {{ section.shopify_attributes }}
+  style="{{style}}"
+>
+  <h2 class="lg:text-[3rem] text-[1.75rem] font-semibold text-center lg:mb-[2.5rem] mb-[2rem] text-[#242F20]">
+    {{ section.settings.title }}
+  </h2>
+
+  {% comment %}  PC Layout (Static Grid) {% endcomment %}
+  <div class="hidden lg:grid grid-cols-5">
+    {% comment %}  Header Column (Empty top cell) {% endcomment %}
+    <div class=""></div>
+
+    {% comment %}  Product Headers {% endcomment %}
+
+    {%- for i in (0..4) -%}
+      {% assign product_index = 'product_' | append: forloop.index %}
+      {% if section.settings[product_index] != blank %}
+        {% assign product = section.settings[product_index] %}
+        {% assign variant = product.selected_or_first_available_variant %}
+        {% assign display_title = product.title %}
+        {% if variant.title != 'Default Title' and variant.title != blank %}
+          {% assign display_title = variant.title %}
+        {% endif %}
+        {% assign base_img = variant.featured_image | default: product.featured_image %}
+
+        <div class=" flex flex-col items-center justify-start text-center pb-8 product-compare-img-box">
+          {% render 'diff-end-img',
+            pc_img: base_img,
+            mb_img: base_img,
+            class: 'lg:w-[11.25rem] lg:h-[11.25rem] pb-4 ',
+            pc_img_width: 180,
+            mb_img_width: 90,
+            alt: display_title
+          %}
+
+          <a
+            href="{{ variant.url }}"
+            class="text-[1rem] underline text-[rgba(0,0,0,0.65)] hover:text-[var(--jds-color-primary)] line-clamp-2"
+          >
+            {{- display_title -}}
+          </a>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    {% comment %}  Row 1: Electric Grill {% endcomment %}
+    {% for block in section.blocks %}
+      <div class="p-4 border-b border-[#E2E3E3] border-solid flex flex-col items-center justify-center h-[7.75rem]">
+        {% render 'diff-end-img', pc_img: block.settings.img, mb_img: block.settings.img, class: 'w-16 h-16 mb-2', pc_img_width: 64, mb_img_width: 64 %}
+        <span class="text-[1rem] font-semibold text-[#242F20]">{{ block.settings.label }}</span>
+      </div>
+
+      <div class="p-4 border-b border-[#E2E3E3] border-solid flex items-center justify-center h-[7.75rem]">
+        {% if block.settings.value_1 != blank %}
+          <span class="text-[1.75rem] font-semibold text-[var(--jds-color-primary)]">{{ block.settings.value_1 }}</span>
+        {%- else -%}
+          <span class="text-[1.75rem] text-[rgba(0,0,0,0.65)] font-semibold">/</span>
+        {% endif %}
+      </div>
+      <div class="p-4 border-b border-[#E2E3E3] border-solid flex items-center justify-center h-[7.75rem]">
+        {% if block.settings.value_2 != blank %}
+          <span class="text-[1.75rem] font-semibold text-[var(--jds-color-primary)]">{{ block.settings.value_2 }}</span>
+        {%- else -%}
+          <span class="text-[1.75rem] text-[rgba(0,0,0,0.65)] font-semibold">/</span>
+        {% endif %}
+      </div>
+      <div class="p-4 border-b border-[#E2E3E3] border-solid flex items-center justify-center h-[7.75rem]">
+        {% if block.settings.value_3 != blank %}
+          <span class="text-[1.75rem] font-semibold text-[var(--jds-color-primary)]">{{ block.settings.value_3 }}</span>
+        {%- else -%}
+          <span class="text-[1.75rem] text-[rgba(0,0,0,0.65)] font-semibold">/</span>
+        {% endif %}
+      </div>
+      <div class="p-4 border-b border-[#E2E3E3] border-solid flex items-center justify-center h-[7.75rem]">
+        {% if block.settings.value_4 != blank %}
+          <span class="text-[1.75rem] font-semibold text-[var(--jds-color-primary)]">{{ block.settings.value_4 }}</span>
+        {%- else -%}
+          <span class="text-[1.75rem] text-[rgba(0,0,0,0.65)] font-semibold">/</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  {% comment %}  Mobile Layout (Flex + Swiper) {% endcomment %}
+  <div class="lg:hidden flex">
+    {% comment %}  Left Static Column {% endcomment %}
+    <div class="w-28 shrink-0 z-10 border-r border-gray-100">
+      {% comment %}  Header Placeholder (Matches Swiper Image Height) {% endcomment %}
+      <div class="h-40 "></div>
+
+      {% comment %}  Row Headers {% endcomment %}
+      {% for block in section.blocks %}
+        <div class="h-24 border-b border-solid border-[#E2E3E3] flex flex-col items-center justify-center px-2 text-center product-compare-mb-box">
+          {% render 'diff-end-img', pc_img: block.settings.img, mb_img: block.settings.img, class: 'w-8 h-8 mb-1',pc_img_width: 32, mb_img_width: 32 %}
+          <span class="text-[0.75rem] font-semibold text-[#242F20] leading-tight">{{ block.settings.label }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% comment %}  Right Scrollable Swiper {% endcomment %}
+    <div class="flex-1 min-w-0">
+      {% comment %}  Dark background for the scrollable area as requested {% endcomment %}
+      <div class="swiper mySwiper w-full h-full">
+        <div class="swiper-wrapper">
+          {% comment %}  Product Loop (Column by Column) {% endcomment %}
+          {% for i in (1..4) %}
+            {% assign product_key = 'product_' | append: i %}
+            {% assign product = section.settings[product_key] %}
+
+            {% if product != blank %}
+              {% assign variant = product.selected_or_first_available_variant %}
+              {% assign display_title = product.title %}
+              {% if variant.title != 'Default Title' and variant.title != blank %}
+                {% assign display_title = variant.title %}
+              {% endif %}
+              {% assign base_img = variant.featured_image | default: product.featured_image %}
+              <div class="swiper-slide !w-40 border-b border-solid border-[#E2E3E3]">
+                {% comment %}  Product Header {% endcomment %}
+                <div class="h-40 flex flex-col items-center justify-start pb-6 px-2 product-compare-img-box-right">
+                  {% render 'diff-end-img',
+                    pc_img: base_img,
+                    mb_img: base_img,
+                    class: 'w-[5.625rem] h-[5.625rem] mb-2 object-cover',
+                    pc_img_width: 90,
+                    mb_img_width: 90,
+                    alt: display_title
+                  %}
+                  <a
+                    href="{{ variant.url }}"
+                    class="text-[0.875rem] text-[rgba(0,0,0,0.65)] text-center underline hover:text-[var(--jds-color-primary)] line-clamp-2"
+                  >
+                    {{- display_title -}}
+                  </a>
+                </div>
+
+                {% comment %}  Product Values (Rows for this column) {% endcomment %}
+                {% for block in section.blocks %}
+                  {% assign val_key = 'value_' | append: i %}
+                  <div class="h-24 flex items-center justify-center border-b border-solid border-[#E2E3E3] px-2 text-center">
+                    {% if block.settings[val_key] != blank %}
+                      <span class="text-[1.25rem] font-semibold text-[var(--jds-color-primary)]">{{ block.settings[val_key] }}</span>
+                    {%- else -%}
+                      <span class="text-[1.25rem] text-[rgba(0,0,0,0.65)] font-semibold">/</span>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  var swiper = new Swiper('.v5-product-compare .mySwiper', {
+    slidesPerView: 'auto',
+    spaceBetween: 0,
+    freeMode: true,
+  });
+</script>
+
+{% schema %}
+{
+  "name": "V5-场景页-产品对比表格",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 40,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 80,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    { "type": "text", "id": "title", "label": "主标题", "default": "STS vs Manual Transfer Switch" },
+    { "type": "product", "id": "product_1", "label": "产品一" },
+    { "type": "product", "id": "product_2", "label": "产品二" },
+    { "type": "product", "id": "product_3", "label": "产品三" },
+    { "type": "product", "id": "product_4", "label": "产品四" }
+  ],
+  "blocks": [
+    {
+      "type": "spec",
+      "name": "规格行",
+      "settings": [
+        { "type": "text", "id": "label", "label": "规格名", "default": "Grid Input" },
+        { "type": "image_picker", "id": "img", "label": "规格图片", "info":"推荐图片尺寸: 64x64" },
+        { "type": "text", "id": "value_1", "label": "产品一数值", "default": "1.2H" },
+        { "type": "text", "id": "value_2", "label": "产品二数值", "default": "1.2H" },
+        { "type": "text", "id": "value_3", "label": "产品三数值", "default": "1.2H" },
+        { "type": "text", "id": "value_4", "label": "产品四数值", "default": "1.2H" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-场景页-产品对比表格",
+      "category": "V5.0"
+    }
+  ]
+}
+{% endschema %}

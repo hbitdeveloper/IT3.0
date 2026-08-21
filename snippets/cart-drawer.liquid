@@ -1,0 +1,245 @@
+<cart-drawer class="drawer fixed top-0 left-0 h-full flex justify-end invisible{% if cart == empty %} is-empty{% endif %}">
+  <div id="CartDrawer" class="cart-drawer">
+    <div id="CartDrawer-Overlay" class="cart-drawer__overlay fixed inset-0"></div>
+    <div class="drawer__inner h-full flex flex-col bg-white border-r-0 overflow-hidden" role="dialog" aria-modal="true" aria-label="{{ 'cart.title' | t }}" tabindex="-1">
+      {%- if cart == empty -%}
+        <div class="drawer__inner-empty h-full px-6 bg-white overflow-hidden flex flex-col">
+          <div style="padding-top: 70px;" class="cart-drawer__warnings center flex flex-col flex-1">
+            <div class="cart-drawer__empty-content">
+              <div class="cart-title absolute jky-text-sm font-500">{{ 'cart.title' | t }}</div>
+              <h2 class="cart__empty-text jky-text-base font-400 appear-animate appear-delay-3">{{ 'cart.empty' | t }}</h2>
+              <button
+                class="drawer__close flex items-center justify-center p-0 min-w-12 min-h-12 absolute top-0 border-0 bg-transparent cursor-pointer"
+                type="button"
+                onclick="this.closest('cart-drawer').close()"
+                aria-label="{{ 'accessibility.close' | t }}"
+              >
+                <jds-icon name="close"></jds-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+
+
+
+      <div class="drawer__header appear-animate appear-delay-3 relative bg-white p-0 flex items-center justify-between h-12">
+        <h2 class="cart__empty-text jky-text-base font-500">{{ 'cart.title' | t }}</h2>
+        <button
+          class="drawer__close flex items-center justify-center p-0 min-w-12 min-h-12 absolute top-0 border-0 bg-transparent cursor-pointer"
+          type="button"
+          onclick="this.closest('cart-drawer').close()"
+          aria-label="{{ 'accessibility.close' | t }}"
+        >
+          <jds-icon name="close"></jds-icon>
+        </button>
+      </div>
+
+      <cart-drawer-items class="flex-1 overflow-y-auto" {% if cart == empty %}class=" is-empty"{% endif %}>
+        <form
+          action="{{ routes.cart_url }}"
+          id="CartDrawer-Form"
+          class="cart__contents cart-drawer__form grow flex flex-wrap"
+          method="post"
+        >
+          <div id="CartDrawer-CartItems" class="drawer__contents js-contents grow flex flex-col">
+            {%- if cart != empty -%}
+              <div class="drawer__cart-items-wrapper">
+                {%- for item in cart.items -%}
+                  <div id="CartDrawer-Item-{{ item.index | plus: 1 }}" class="cart-item appear-animate appear-delay-3">
+                        <div class="cart-item__media" headers="CartDrawer-ColumnProductImage">
+                          {% if item.image %}
+                            <a href="{{ item.url }}" class="cart-item__link" tabindex="-1" aria-hidden="true"> </a>
+                            <img class="cart-item__image w-full h-auto"
+                              src="{{ item.image | image_url: width: 300 }}"
+                              alt="{{ item.image.alt | escape }}"
+                              loading="lazy"
+                              width="150"
+                              height="{{ 150 | divided_by: item.image.aspect_ratio | ceil }}"
+                            >
+                          {% endif %}
+                        </div>
+
+                        <div class="cart-item__info flex-1">
+                          <div class="cart-item__details" headers="CartDrawer-ColumnProduct">
+                          {%- if settings.show_vendor -%}
+                            <p class="caption-with-letter-spacing light">{{ item.product.vendor }}</p>
+                          {%- endif -%}
+
+                          <a href="{{ item.url }}" class="cart-item__name jky-text-base font-500 text-overflow-2" title="{{ item.product.title | escape }}">{{ item.product.title | escape }}</a>
+
+                          {%- if item.product.has_only_default_variant == false or item.properties.size != 0 or item.selling_plan_allocation != nil -%}
+                              {%- if item.product.has_only_default_variant == false -%}
+                                {%- for option in item.options_with_values -%}
+                                  <div class="product-option jky-text-xs">
+                                    {{ option.name }}: {{ option.value }}{% unless forloop.last %}, {% endunless %}
+                                  </div>
+                                {%- endfor -%}
+                              {%- endif -%}
+                          {%- endif -%}
+
+                          {%- for property in item.properties -%}
+                            {%- assign property_first_char = property.first | slice: 0 -%}
+                            {%- if property.last != blank and property_first_char != '_' -%}
+                              <div class="product-option jky-text-xs">
+                                {{ property.first }}:&nbsp{{ property.last }}
+                              </div>
+                            {%- endif -%}
+                          {%- endfor -%}
+                        </div>
+
+                        <div class="flex justify-between items-center flex-row-reverse" style="margin-top: 8px;">
+                          <div class="product-option jky-text-xs">
+                            {{ item.final_price | money }}
+                          </div>
+
+                          <div class="cart-item__quantity" headers="CartDrawer-ColumnQuantity">
+                            <div class="cart-item__quantity-wrapper">
+                              <quantity-input class="quantity">
+                                <button class="quantity__button no-js-hidden" name="minus" type="button">
+                                  <span class="visually-hidden">{{ 'products.product.quantity.decrease' | t: product: item.product.title | escape }}</span>
+                                  {% render 'icon-minus' %}
+                                </button>
+                                <input class="quantity__input w-full"
+                                  type="number"
+                                  name="updates[]"
+                                  value="{{ item.quantity }}"
+                                  min="0"
+                                  aria-label="{{ 'products.product.quantity.input_label' | t: product: item.product.title | escape }}"
+                                  id="Drawer-quantity-{{ item.index | plus: 1 }}"
+                                  data-index="{{ item.index | plus: 1 }}"
+                                >
+                                <button class="quantity__button no-js-hidden" name="plus" type="button">
+                                  <span class="visually-hidden">{{ 'products.product.quantity.increase' | t: product: item.product.title | escape }}</span>
+                                  {% render 'icon-plus' %}
+                                </button>
+                              </quantity-input>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          id="CartDrawer-LineItemError-{{ item.index | plus: 1 }}"
+                          class="cart-item__error flex items-start"
+                          role="alert"
+                        >
+                          <small class="cart-item__error-text text-xs order-1"></small>
+                          <svg
+                            aria-hidden="true"
+                            focusable="false"
+                            role="presentation"
+                            class="icon icon-error w-3 h-3"
+                            viewBox="0 0 13 13"
+                          >
+                            <circle cx="6.5" cy="6.50049" r="5.5" stroke="white" stroke-width="2"/>
+                            <circle cx="6.5" cy="6.5" r="5.5" fill="#EB001B" stroke="#EB001B" stroke-width="0.7"/>
+                            <path d="M5.87413 3.52832L5.97439 7.57216H7.02713L7.12739 3.52832H5.87413ZM6.50076 9.66091C6.88091 9.66091 7.18169 9.37267 7.18169 9.00504C7.18169 8.63742 6.88091 8.34917 6.50076 8.34917C6.12061 8.34917 5.81982 8.63742 5.81982 9.00504C5.81982 9.37267 6.12061 9.66091 6.50076 9.66091Z" fill="white"/>
+                            <path d="M5.87413 3.17832H5.51535L5.52424 3.537L5.6245 7.58083L5.63296 7.92216H5.97439H7.02713H7.36856L7.37702 7.58083L7.47728 3.537L7.48617 3.17832H7.12739H5.87413ZM6.50076 10.0109C7.06121 10.0109 7.5317 9.57872 7.5317 9.00504C7.5317 8.43137 7.06121 7.99918 6.50076 7.99918C5.94031 7.99918 5.46982 8.43137 5.46982 9.00504C5.46982 9.57872 5.94031 10.0109 6.50076 10.0109Z" fill="white" stroke="#EB001B" stroke-width="0.7">
+                          </svg>
+                        </div>
+
+                        </div>
+                  </div>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+            <p id="CartDrawer-LiveRegionText" class="visually-hidden" role="status"></p>
+            <p id="CartDrawer-LineItemStatus" class="visually-hidden" aria-hidden="true" role="status">{{ 'accessibility.loading' | t }}</p>
+          </div>
+          <div id="CartDrawer-CartErrors" role="alert"></div>
+        </form>
+      </cart-drawer-items>
+      <div class="drawer__footer bg-white">
+        {%- if settings.show_cart_note -%}
+          <details id="Details-CartDrawer">
+            <summary class="flex relative leading-none py-6">
+              <span class="summary__title">
+                {{ 'cart.note' | t }}
+                {% render 'icon-caret' %}
+              </span>
+            </summary>
+            <cart-note class="cart__note field">
+              <label class="visually-hidden" for="CartDrawer-Note">{{ 'cart.note' | t }}</label>
+              <textarea id="CartDrawer-Note" class="text-area text-area--resize-vertical field__input" name="note" placeholder="{{ 'cart.note' | t }}">{{ cart.note }}</textarea>
+            </cart-note>
+          </details>
+        {%- endif -%}
+
+        {% comment %} Start blocks{% endcomment %}
+        {% comment %} Subtotals{% endcomment %}
+
+        <div class="cart-drawer__footer text-center" {{ block.shopify_attributes }}>
+          <div class="totals flex justify-between items-center" role="status">
+            <h2 class="totals__subtotal jky-text-base">{{ 'cart.subtotal' | t }}</h2>
+            <p class="totals__subtotal-value jky-text-base">{{ cart.total_price | money }}</p>
+          </div>
+
+          <div>
+            {%- if cart.cart_level_discount_applications.size > 0 -%}
+              <ul class="discounts list-unstyled" aria-label="{{ 'customer.order.discount' | t }}">
+                {%- for discount in cart.cart_level_discount_applications -%}
+                  <li class="discounts__discount discounts__discount--end text-primary list-none">
+                    <svg aria-hidden="true" focusable="false" role="presentation" class="icon icon-discount color-foreground-text w-3 inline-block" viewBox="0 0 12 12">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M7 0h3a2 2 0 012 2v3a1 1 0 01-.3.7l-6 6a1 1 0 01-1.4 0l-4-4a1 1 0 010-1.4l6-6A1 1 0 017 0zm2 2a1 1 0 102 0 1 1 0 00-2 0z" fill="currentColor">
+                    </path>
+                    </svg>
+                    {{ discount.title }}
+                    (-{{ discount.total_allocated_amount | money }})
+                  </li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          </div>
+
+          <small class="flex flex-col tax-note caption-large rte" style="padding:0 14px;line-height:1.3;font-size:13px;">
+            {%- if cart.taxes_included and shop.shipping_policy.body != blank -%}
+              {{ 'cart.taxes_included_and_shipping_policy_html' | t: link: shop.shipping_policy.url }}
+            {%- elsif cart.taxes_included -%}
+              {{ 'cart.taxes_included_but_shipping_at_checkout' | t }}
+            {%- elsif shop.shipping_policy.body != blank -%}
+              {{ 'cart.taxes_and_shipping_policy_at_checkout_html' | t: link: shop.shipping_policy.url }}
+            {%- else -%}
+              {{ 'cart.taxes_and_shipping_at_checkout' | t }}
+            {%- endif -%}
+          </small>
+        </div>
+
+        {% comment %} CTAs {% endcomment %}
+
+        <div class="cart__ctas" {{ block.shopify_attributes }}>
+          <noscript>
+            <button type="submit" class="cart__update-button button button--secondary" form="CartDrawer-Form">
+              {{ 'cart.update' | t }}
+            </button>
+          </noscript>
+
+          <button style="margin: 20px auto;" type="submit" id="CartDrawer-Checkout" class="z-button-fill-middle cart__checkout-button button max-w-none" name="checkout" form="CartDrawer-Form"{% if cart == empty %} disabled{% endif %}>
+            {{ 'cart.checkout' | t }}
+            <jds-icon name="arrow-right" style="margin-left:2px;font-size:12px"></jds-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</cart-drawer>
+
+<script defer>
+  document.addEventListener('DOMContentLoaded', function() {
+    function isIE() {
+      const ua = window.navigator.userAgent;
+      const msie = ua.indexOf('MSIE ');
+      const trident = ua.indexOf('Trident/');
+
+      return (msie > 0 || trident > 0);
+    }
+
+    if (!isIE()) return;
+    const cartSubmitInput = document.createElement('input');
+    cartSubmitInput.setAttribute('name', 'checkout');
+    cartSubmitInput.setAttribute('type', 'hidden');
+    document.querySelector('#cart').appendChild(cartSubmitInput);
+    document.querySelector('#checkout').addEventListener('click', function(event) {
+      document.querySelector('#cart').submit();
+    });
+  });
+</script>
+

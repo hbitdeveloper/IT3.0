@@ -1,0 +1,271 @@
+{%- if settings.open_delivery_instructions == true -%}
+<style>
+#delivery-instructions-pop-box{
+  position: relative;
+  width: 640px;
+  height: auto;
+  max-height: calc(100vh - 128px);
+  padding: 0 32px;
+}
+#modal-close{
+  color: #242F20;
+}
+.delivery-instructions-pop-tab-box{
+  height: 94px; 
+  border-bottom: 1px solid #C6C7C8;
+}
+.delivery-instructions-pop-tab{
+  display: -webkit-box;
+  padding-bottom: 16px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.65);
+  border-bottom: 2px solid #fff;
+  font-size: 16px;
+  font-weight: 500;
+  -webkit-box-orient: vertical;  
+  -webkit-line-clamp: 3;          
+  overflow: hidden;
+  cursor: pointer
+}
+.delivery-instructions-pop-tab.active{
+  color: rgba(36, 47, 32, 1);
+  border-color: rgba(36, 47, 32, 1);
+  font-weight: 600;
+}
+.delivery-instructions-pop-content{
+  overflow-y: auto;
+  max-height: calc(100vh - 220px);
+}
+.delivery-instructions-pop-panel{
+  display: none;
+  color: rgba(0, 0, 0, 0.65);
+  font-weight: 500;
+}
+
+.delivery-instructions-pop-panel em{
+  font-style: italic;
+}
+.delivery-instructions-pop-panel a{
+  text-decoration: underline;
+}
+.delivery-instructions-pop-panel ul, 
+.delivery-instructions-pop-panel ol,
+.delivery-instructions-pop-panel ul li,
+.delivery-instructions-pop-panel ol li {
+  list-style: initial!important;        /* 恢复浏览器默认样式 */
+  padding-left: 1.25rem;
+  margin-bottom: 1em;         /* 列表间距 */
+}
+.delivery-instructions-pop-panel.active{
+  display: flex;
+}
+@media (min-width: 768px){
+  #modal-close.md\:w-9 {
+    width: 1.25rem
+  }
+   #modal-close.md\:h-9 {
+    height: 1.25rem
+  }
+}
+
+@media (max-width: 768px) {
+  #delivery-instructions-pop-box{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100dvw;
+    height: 31.25rem;
+    padding: 0 1rem;
+  }
+  .delivery-instructions-pop-tab-box{
+    height: 5.875rem; 
+  }
+  .delivery-instructions-pop-tab{
+    padding-bottom: 0.625rem;
+    font-size: 1rem;
+  }
+  .delivery-instructions-pop-content{
+    max-height: calc(31.25rem - 160px);
+  }
+}
+.delivery-instructions-pop-content h1,
+.delivery-instructions-pop-content h2,
+.delivery-instructions-pop-content h3,
+.delivery-instructions-pop-content h4,
+.delivery-instructions-pop-content h5,
+.delivery-instructions-pop-content h6 {
+  font-size: revert;
+  font-weight: revert;
+  line-height: revert;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+}
+</style>
+<div id="delivery-instructions-pop" class="fixed inset-0 flex justify-center items-center z-[9999999999] hidden bg-black bg-opacity-70 overflow-hidden">
+  <div id="delivery-instructions-pop-box" class="bg-white overflow-hidden">
+    {% comment %} 关闭按钮 {% endcomment %}
+    {% render 'icon-jds-dialog-close', class: 'icon absolute right-4 top-4 w-5 h-5 md:w-9 md:h-9 cursor-pointer z-20' %}
+
+    {% comment %} Tab栏 {% endcomment %}
+    <div class="delivery-instructions-pop-tab-box w-full flex justify-start items-end">
+      <div class="flex justify-start item-center gap-x-5 lg:gap-x-8 ">
+        <div class="delivery-instructions-pop-tab delivery-instructions-pop-freight active" data-tab="freight">{{ section.settings.freight_title }}</div>
+        <div class="delivery-instructions-pop-tab delivery-instructions-pop-time" data-tab="time">{{ section.settings.time_sensitive_title }}</div>
+        <div class="delivery-instructions-pop-tab delivery-instructions-pop-areas" data-tab="areas">{{ section.settings.delivery_areas_title }}</div>
+      </div>
+    </div>
+    {% comment %} 内容页 {% endcomment %}
+    <div class="delivery-instructions-pop-content py-6 lg:pt-8 lg:pb-12">
+      <div class="delivery-instructions-pop-panel flex flex-col gap-y-6 w-full text-sm lg:text-base active" data-tab="freight">{{ section.settings.freight_desc }}</div>
+      <div class="delivery-instructions-pop-panel flex flex-col gap-y-6 w-full text-sm lg:text-base" data-tab="time">{{ section.settings.time_sensitive_desc }}</div>
+      <div class="delivery-instructions-pop-panel flex flex-col gap-y-6 w-full text-sm lg:text-base" data-tab="areas">{{ section.settings.delivery_areas_desc }}</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+(function () {
+  // 获取全局弹窗节点
+  var modal = document.getElementById('delivery-instructions-pop');
+  if (!modal) return;
+
+  // 弹窗内部元素
+  var tabs = modal.querySelectorAll('.delivery-instructions-pop-tab');
+  var panels = modal.querySelectorAll('.delivery-instructions-pop-panel');
+  var closeBtn = modal.querySelector('#modal-close');
+  var contentBox = modal.querySelector('.delivery-instructions-pop-content');
+
+  // 切换 tab：高亮对应 tab 并显示对应内容，同时把内容滚动条回到顶部
+  function switchTab(tabName) {
+    if (contentBox) {
+      contentBox.scrollTop = 0;
+    }
+    tabs.forEach(function (tab) {
+      tab.classList.toggle('active', tab.dataset.tab === tabName);
+    });
+    panels.forEach(function (panel) {
+      panel.classList.toggle('active', panel.dataset.tab === tabName);
+    });
+  }
+
+  // 打开弹窗并切换到指定 tab
+  function openModal(tabName) {
+    switchTab(tabName);
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    // 弹窗显示后再重置一次滚动条；在 display:none 状态下设置 scrollTop 不会生效
+    if (contentBox) {
+      requestAnimationFrame(function () {
+        contentBox.scrollTop = 0;
+      });
+    }
+  }
+
+  // 关闭弹窗并恢复页面滚动
+  function closeModal() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // 埋码：用户点击配送说明项时上报 GA4 事件
+  function pushTracking(buttonName, productName) {
+    window.dataLayer = window.dataLayer || [];
+    // 先清空上一次的事件参数
+    window.dataLayer.push({ event_parameters: null });
+    window.dataLayer.push({
+      event: 'ga4Event',
+      event_name: 'products_details_page_user_clicks',
+      event_parameters: {
+        current_page: window.location.href,
+        product_spu_name: productName || '',
+        module: 'Text Display',
+        button_name: buttonName || ''
+      }
+    });
+  }
+
+  // 事件委托：监听商品详情页里的配送说明触发项点击
+  document.addEventListener('click', function (e) {
+    var trigger = e.target.closest('.delivery_instructions_box_item[data-delivery-tab]');
+    if (trigger) {
+      e.preventDefault();
+
+      // 从父容器读取产品标题，从当前项读取按钮名称
+      var box = trigger.closest('.delivery_instructions_box');
+      var productTitle = box ? box.dataset.productTitle : '';
+      var buttonName = trigger.textContent.trim().replace(/\s*\/\s*$/, '');
+
+      pushTracking(buttonName, productTitle);
+      openModal(trigger.dataset.deliveryTab);
+    }
+  });
+
+  // 弹窗内 tab 点击切换
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      switchTab(this.dataset.tab);
+    });
+  });
+
+  // 关闭弹窗：关闭按钮 / 点击遮罩 / 按 Esc
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeModal);
+  }
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  // 支持通过 URL hash 唤起弹窗（例如 <a href="#delivery-instructions-freight">）
+  // 只在 hash 变化时响应点击；页面加载时若残留旧 hash，仅清理，不自动打开弹窗
+  function handleHash() {
+    var hash = window.location.hash.replace(/^#/, '');
+    var match = hash.match(/^delivery-instructions-(freight|time|areas)$/);
+    if (match) {
+      openModal(match[1]);
+      // 打开后清除 hash，避免页面抖动并防止重复触发
+      if (window.history && window.history.replaceState) {
+        history.replaceState(null, null, window.location.pathname + window.location.search);
+      }
+    }
+  }
+  window.addEventListener('hashchange', handleHash);
+
+  // 页面加载时清理可能残留的 hash，避免后台关闭弹窗期间产生的 hash 在开启后误触发弹窗
+  var initialHash = window.location.hash.replace(/^#/, '');
+  if (/^delivery-instructions-(freight|time|areas)$/.test(initialHash)) {
+    if (window.history && window.history.replaceState) {
+      history.replaceState(null, null, window.location.pathname + window.location.search);
+    }
+  }
+})();
+</script>
+{%- endif -%}
+
+
+{% schema %}
+  {
+    "name": "配送与服务说明",
+    "tag": "section",
+    "settings": [
+      {"type": "text", "id": "freight_title", "label": "运费说明标题"},
+      {"type": "richtext", "id": "freight_desc", "label": "运费说明描述补充"},
+      {"type": "text", "id": "time_sensitive_title", "label": "时效标题"},
+      {"type": "richtext", "id": "time_sensitive_desc", "label": "时效描述补充"},
+      {"type": "text", "id": "delivery_areas_title", "label": "配送地区标题"},
+      {"type": "richtext", "id": "delivery_areas_desc", "label": "配送地区描述补充"},
+      
+    ],
+    "presets": [ 
+      {
+        "name": "配送与服务说明",
+      }
+    ]
+  } 
+  {% endschema %}

@@ -1,0 +1,464 @@
+{% comment %}
+  名称：太阳能火星机器人首屏KV组件
+  说明：https://alidocs.dingtalk.com/i/nodes/G1DKw2zgV2RMzkBkFrA92De5VB5r9YAn
+{% endcomment %}
+{% schema %}
+{
+  "name": "Solar Mars Bot KV",
+  "tag": "section",
+  "class": "solar-mars-bot-kv",
+  "settings": [
+    {
+      "type": "text",
+      "id": "firstParagraph",
+      "label": "First Paragraph",
+      "default": "Solar Mars Bot"
+    },
+    {
+      "type": "text",
+      "id": "secondParagraphFirstLineTxt",
+      "label": "Second Paragraph First Line Text",
+      "default": "IMAGING,"
+    },
+    {
+      "type": "text",
+      "id": "secondParagraphSecondLineTxt",
+      "label": "Second Paragraph Second Line Text",
+      "default": "What if your solar panel is not fixed and can move like a robot?"
+    },
+    {
+      "type": "text",
+      "id": "thirdParagraph",
+      "label": "Third Paragraph",
+      "default": "Making the future happen now"
+    },
+    {
+      "type": "image_picker",
+      "id": "firstPCBgImg",
+      "label": "First PC Background Image"
+    },
+    {
+      "type": "text",
+      "id": "pcBgImgNamePrefix",
+      "label": "PC Background Image Naming Prefix",
+      "default": "solar-mars-bot-kv-pc-"
+    },
+    {
+      "type": "number",
+      "id": "pcBgImgTotal",
+      "label": "PC Background Image Total",
+      "default": 41
+    },
+    {
+      "type": "text",
+      "id": "pcBgImgFormat",
+      "label": "PC Background Image Format",
+      "default": ".png"
+    },
+    {
+      "type": "image_picker",
+      "id": "firstMBBgImg",
+      "label": "First Mobile Background Image"
+    },
+    {
+      "type": "text",
+      "id": "mbBgImgNamePrefix",
+      "label": "Mobile Background Image Naming Prefix",
+      "default": "solar-mars-bot-kv-mb-"
+    },
+    {
+      "type": "number",
+      "id": "mbBgImgTotal",
+      "label": "Mobile Background Image Total",
+      "default": 41
+    },
+    {
+      "type": "text",
+      "id": "mbBgImgFormat",
+      "label": "Mobile Background Image Format",
+      "default": ".png"
+    }
+  ]
+}
+{% endschema %}
+<div class="solar-mars-bot-kv-box">
+  <div class="para-box relative">
+    <div class="bot-para first-para">
+      <div class="on-word">{{ section.settings.firstParagraph }}</div>
+      <div class="under-word">{{ section.settings.firstParagraph }}</div>
+    </div>
+    <div class="bot-para second-para">
+      <div class="item-box">
+        <div class="on-word word-1">{{ section.settings.secondParagraphFirstLineTxt }}</div>
+        <div class="under-word word-1">{{ section.settings.secondParagraphFirstLineTxt }}</div>
+      </div>
+      <div class="item-box">
+        <div class="on-word word-2">{{ section.settings.secondParagraphSecondLineTxt }}</div>
+        <div class="under-word word-2">{{ section.settings.secondParagraphSecondLineTxt }}</div>
+      </div>
+    </div>
+    <div class="bot-para third-para">
+      <div class="on-word">{{ section.settings.thirdParagraph }}</div>
+      <div class="under-word">{{ section.settings.thirdParagraph }}</div>
+    </div>
+  </div>
+  <div class="img-box">
+    <canvas id="botKvPCImgSequence" class="kv-img-sequence pc-show" width="1920" height="1080"></canvas>
+    <canvas id="botKvMBImgSequence" class="kv-img-sequence mb-show" width="750" height="1200"></canvas>
+  </div>
+</div>
+<script>
+  (function (){
+    $(function () {
+      class SolarMarsBotKV {
+        $botKvBox;
+        kvJson; // KV Json数据
+        scrollDirection; // 页面滚动方向
+        constructor() {
+          this.$botKvBox = $('.solar-mars-bot-kv-box');
+          this.kvJson = {
+            urls:[], // 所有配图路径
+            bgUrl: 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/', // 配图url
+            namePrefix: 'solar-mars-bot-kv-pc-', // 配图命名前缀
+            bgTotal: 34, // 配图总数
+            bgFormat: '.png', // 配图格式后缀
+            urlParam: 'v=1718590034', // 配图Url时间戳参数
+            canvasDOM: '#botKvPCImgSequence', // Canvas ID
+          };
+          this.init();
+        }
+        init(){
+          this.initData();
+          this.scrollTimeLine();
+          this.setUp();
+        }
+        initData(){
+          // 获取背景图路径相关数据
+          let firstBg = {{ section.settings.firstPCBgImg | img_url: 'master' | json }};
+          this.kvJson.namePrefix = "{{ section.settings.pcBgImgNamePrefix }}";
+          this.kvJson.bgTotal = Number("{{ section.settings.pcBgImgTotal }}");
+          this.kvJson.bgFormat = "{{ section.settings.pcBgImgFormat }}";
+          if (window.innerWidth < 1024) {
+            firstBg = {{ section.settings.firstMBBgImg | img_url: 'master' | json }};
+            this.kvJson.namePrefix = "{{ section.settings.mbBgImgNamePrefix }}";
+            this.kvJson.bgTotal = Number("{{ section.settings.mbBgImgTotal }}");
+            this.kvJson.bgFormat = "{{ section.settings.mbBgImgFormat }}";
+            this.kvJson.urlParam = 'v=1718590129';
+            this.kvJson.canvasDOM = '#botKvMBImgSequence';
+          }
+
+          if(firstBg && firstBg.indexOf('/shopify/assets/no-image-') === -1){
+            this.kvJson.bgUrl = firstBg.split(this.kvJson.namePrefix)[0];
+            this.kvJson.urlParam = firstBg.split('?')[1];
+          }
+
+					if(window.innerWidth < 1024){
+						this.$botKvBox.find('.second-para .on-word').empty();
+						this.$botKvBox.find('.third-para .on-word').empty();
+					}
+        }
+        // 获取Section中所有配图
+        loadSectionImg() {
+          const self = this;
+          self.kvJson.urls = new Array(self.kvJson.bgTotal).fill()
+              .map((o, i) => {
+                let num = i + 1;
+                let numStr = num.toString();
+                if (num < 10) {
+                  numStr = `0${num}`
+                }
+                return `${self.kvJson.bgUrl}${self.kvJson.namePrefix}${numStr}${self.kvJson.bgFormat}?${self.kvJson.urlParam}`
+              });
+        }
+
+        /*
+        辅助函数，用于通过一系列图像进行擦洗，并将适当的图像绘制到提供的画布上。
+        配置对象属性：
+        - urls [数组]：图像 URL 的数组
+        - canvas [画布]：用于绘制的 <canvas> 对象
+        - scrollTrigger [对象]：可选的 ScrollTrigger 配置对象，例如 {trigger: "#trigger", start: "top top", end: "+=1000", scrub: true, pin: true}
+        - clear [布尔值]：如果为 true，在绘制每一帧之前会清除画布（如果您的图像包含透明度，这很有用）
+        - paused [布尔值]：如果为 true，则返回的动画最初将暂停（如果您传入的是擦洗的 ScrollTrigger，则这不是必需的，但如果您只是想要一个正常的播放动画，则很有帮助）
+        - fps [数字]：可选的每秒帧数 - 这决定了返回的动画的持续时间。如果您使用的是擦洗的 ScrollTrigger，则这无关紧要。默认为 30 帧/秒。
+        - onUpdate [函数]：Tween 更新时的可选回调（可能不常用）。它将传递两个参数：1）图像的索引（基于零），2）绘制到画布上的图像
+
+          返回一个 Tween 实例
+        */
+        imageSequence(config) {
+          let playHead = { frame: 0 };
+          let canvas = window.gsap.utils.toArray(config.canvas)[0] || console.warn("canvas not defined");
+          let ctx = canvas.getContext("2d");
+          let curFrame = -1;
+          let onUpdate = config.onUpdate;
+          let images;
+          let updateImage = function () {
+            let frame = Math.round(playHead.frame);
+            if (frame !== curFrame) {
+              // 仅在必要时绘制
+              config.clear && ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(images[Math.round(playHead.frame)], 0, 0);
+              curFrame = frame;
+              onUpdate && onUpdate.call(this, frame, images[frame]);
+            }
+          };
+          images = config.urls.map((url, i) => {
+            let img = new Image();
+            img.src = url;
+            i || (img.onload = updateImage);
+            return img;
+          });
+
+          // 依据playHead中的frame，从0到 length-1(当前为40)逐渐变化进行补间动画
+          return window.gsap.to(playHead, {
+            frame: images.length - 1,
+            ease: "none",
+            onUpdate: updateImage,
+            duration: images.length / (config.fps || 30),
+            paused: !!config.paused,
+            scrollTrigger: config.scrollTrigger,
+          });
+        }
+        /**
+         * 依据canvas宽高比进行 px换算为vh
+         * 1080和1200分别对应canvas画板PC和移动端高度
+         * @param pxVal
+         * @returns {*}
+         */
+        getCalcVH(pxVal){
+          let moveY;
+          let windowW = window.innerWidth;
+          let moveYStr;
+          if (windowW < 1024) {
+            moveY = pxVal / 1200 * 100;
+            moveYStr = `${moveY}vh`;
+          }else {
+            moveY = pxVal / 1080 * 100;
+            moveYStr = `${moveY}vh`;
+          }
+          return moveYStr;
+        }
+
+        // 滚动动画
+        scrollTimeLine(){
+          const self = this;
+
+          window.gsap.registerPlugin(window.ScrollTrigger,window.TextPlugin);
+
+          let tl;
+
+          // 储存实例动画已经进行了多长的时间
+          const time = tl ? tl.time() : 0;
+          if (tl) {
+            tl.kill();
+          }
+          tl = window.gsap.timeline({
+            scrollTrigger: {
+              trigger: ".solar-mars-bot-kv-box",
+              pin: true, // 将触发元素固定，在激活时
+              start: `top top`, // 当触发元素的顶部碰到视口顶部时
+              end: `+=2000`, // 在起始位置滚动 xxx 后结束
+              scrub: 1, // 平滑擦洗，需要 1秒钟来“赶上”滚动条
+              snap: 0.1,
+              onUpdate: curr => {
+                self.scrollDirection = curr.direction;
+              }
+            }
+          });
+
+					if(window.innerWidth < 1024){
+						this.mbScroll(tl);
+					}else{
+						this.pcScroll(tl);
+					}
+
+          tl.time(time);
+        }
+
+				/**
+				 * PC端滚动动效
+				 * @param tl GSAP时间轴对象
+				 */
+				pcScroll(tl){
+					const self = this;
+					// 文字动效
+					tl.addLabel('start')
+						// 第一段文本
+						.addLabel('First Para')
+						.to('.bot-para', {
+							x:'-50%',
+							duration: 0,
+						})
+						.to('.first-para', {
+							visibility: 'visible',
+							duration: 0
+						})
+						.to('.first-para', {
+							y: `-${self.getCalcVH(400)}`,
+							ease: "none",
+							visibility: 'visible',
+							duration: 12,
+							snap: 0.1
+						})
+						.to('.first-para', {
+							visibility: 'hidden'
+						})
+						// 第二段文本
+						.addLabel('Second Para')
+						.to('.second-para', {
+							y: `-${self.getCalcVH(200)}`,
+							ease: "none",
+							visibility: 'visible',
+							duration: 6,
+							snap: 0.1
+						})
+						.to('.second-para', {
+							visibility: 'hidden'
+						})
+						// 第三段文本
+						.addLabel('Third Para')
+						.to('.third-para', {
+							y: `-${self.getCalcVH(100)}`,
+							ease: "none",
+							snap: 0.1,
+							visibility: 'visible',
+							duration: 4
+						})
+						.addLabel('end');
+				}
+				/**
+				 * 移动端滚动动效 （<1024px)
+				 * @param tl GSAP时间轴对象
+				 */
+				mbScroll(tl){
+					const self = this;
+					// 文字动效
+					tl.addLabel('start')
+						// 第一段文本
+						.addLabel('First Para')
+						.to('.bot-para', {
+							x:'-50%',
+							duration: 0,
+						})
+						.to('.first-para', {
+							visibility: 'visible',
+							duration: 0
+						})
+						.to('.first-para', {
+							y: `-${self.getCalcVH(400)}`,
+							ease: "none",
+							duration: 12,
+							snap: 0.1
+						})
+						.to('.first-para', {
+							visibility: 'hidden'
+						})
+						// 第二段文本
+						.addLabel('Second Para')
+						.to('.second-para', {
+							y: `-${self.getCalcVH(200)}`,
+							ease: "none",
+							visibility: 'visible',
+							duration: 6,
+							snap: 0.1
+						})
+						.to('.second-para .on-word.word-1', {
+							ease: "none",
+							text: {
+								value: "{{ section.settings.secondParagraphFirstLineTxt }}",
+								delimiter: " "
+							},
+							duration: 1,
+							snap: 0.1
+						}, '<')
+						.to('.second-para .on-word.word-2', {
+							ease: "none",
+							text: {
+								value: "{{ section.settings.secondParagraphSecondLineTxt }}",
+								delimiter: " "
+							},
+							duration: 5,
+							snap: 0.1
+						}, '>1')
+						.to('.second-para', {
+							visibility: 'hidden'
+						})
+						// 第三段文本
+						.addLabel('Third Para')
+						.to('.third-para', {
+							y: `-${self.getCalcVH(100)}`,
+							ease: "none",
+							snap: 0.1,
+							visibility: 'visible',
+							duration: 4
+						})
+						.to('.third-para .on-word', {
+							ease: "none",
+							text: {
+								value: "{{ section.settings.thirdParagraph }}",
+								delimiter: " "
+							},
+							snap: 0.1,
+							duration: 3
+						}, '<')
+						.addLabel('end');
+				}
+        setUp(){
+          // 监听是否在视窗内
+          const self = this;
+          if (window.Jackery.Utils.isElementInViewport(self.$botKvBox[0])) {
+            // 没有配图，就不渲染
+            if (self.kvJson.bgTotal === 0) {
+              return
+            }
+
+            // 加载图片
+            self.loadSectionImg();
+            self.imageSequence({
+              urls: self.kvJson.urls, // 图片 URL 数组
+              canvas: self.kvJson.canvasDOM, // 要绘制图像的 <canvas> 对象
+              clear: true, // 仅在您的图像包含透明度时才有必要
+              fps: 10,
+              scrollTrigger: {
+                start: 'top top', // 从顶部开始
+                end: "+=2000",
+                scrub: 1, // 重要！
+              },
+            });
+          }
+          // 滚动监听
+          window.addEventListener('scroll', function () {
+
+            // 没有配图，就不渲染
+            if (self.kvJson.bgTotal === 0) {
+              return
+            }
+
+            // 有配图，并已初始化请求时，不重复渲染
+            if (self.kvJson.urls && self.kvJson.urls.length > 0) {
+              return
+            }
+
+            if (window.Jackery.Utils.isElementInViewport(self.$botKvBox[0],400)) {
+              // 加载图片
+              self.loadSectionImg();
+
+              self.imageSequence({
+                urls: self.kvJson.urls, // 图片 URL 数组
+                canvas: self.kvJson.canvasDOM, // 要绘制图像的 <canvas> 对象
+                clear: true, // 仅在您的图像包含透明度时才有必要
+                fps: 10,
+                scrollTrigger: {
+                  start: 'top top', // 从顶部开始
+                  end: "+=2000",
+                  scrub: 1, // 重要！
+                },
+              });
+            }
+          })
+        }
+      }
+
+      new SolarMarsBotKV();
+    })
+  })();
+</script>

@@ -1,0 +1,149 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+<style>
+  .v5-app-pdp-benefit-items jds-dialog {
+    --v5-app-pdp-benefits-dialog-width: 40rem;
+  }
+  .v5-app-pdp-benefit-items jds-dialog::part(dialog-container) {
+    min-width: unset;
+  }
+  .v5-app-pdp-benefit-items jds-dialog.v5-app-pdp-benefits-dialog::part(dialog-container) {
+    min-height: unset;
+  }
+  .v5-app-pdp-benefit-items jds-dialog::part(dialog-content) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    margin-bottom: 2.5rem;
+    margin-right: 0;
+  }
+  .v5-app-pdp-benefit-items jds-dialog.v5-app-pdp-benefits-dialog {
+    height: fit-content;
+    --jds-dialog-min-height: unset;
+    --jds-dialog-max-height: min(39.75rem, 80vh);
+  }
+  @media screen and (max-width: 1023.98px) {
+    .v5-app-pdp-benefit-items jds-dialog {
+      --v5-app-pdp-benefits-dialog-width: 100vw;
+    }
+    .v5-app-pdp-benefit-items jds-dialog::part(dialog-content) {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    .v5-app-pdp-benefit-items jds-dialog.v5-app-pdp-benefits-dialog {
+      --jds-dialog-max-height: 32.3125rem;
+    }
+  }
+</style>
+
+<div
+  {{ block.shopify_attributes }}
+  class="v5-app-pdp-benefit-items w-full flex section-padding"
+  style="{{ style }}"
+  data-no-core-params-text="{{ block.settings.no_core_params_text | escape }}"
+>
+  <ul class="w-full flex flex-col lg:flex-row lg:flex-wrap bg-[#F5F5F3] px-3 py-2 lg:px-4 lg:py-1.5 gap-x-6 gap-y-1.5">
+    {% for i in (1..5) %}
+      {% capture icon_key %}benefit_{{ i }}_icon{% endcapture %}
+      {% capture title_key %}benefit_{{ i }}_title{% endcapture %}
+
+      {% assign icon_value = block.settings[icon_key] %}
+      {% assign title_value = block.settings[title_key] %}
+
+      {%- if icon_value != blank and title_value != blank -%}
+        <li class="flex items-center gap-x-2 h-6">
+          {% if icon_value == '30_day_money_back_return' %}
+            {% render 'v5-icon-30-money-back-guarantee', class: 'w-6 h-6 text-[#242F20]/60 shrink-0' %}
+          {% elsif icon_value == 'free_warranty_return' %}
+            {% render 'v5-icon-free-warrenty-return', class: 'w-6 h-6 text-[#242F20]/60 shrink-0' %}
+          {% elsif icon_value == '5_years_free_warranty' %}
+            {% render 'v5-icon-5-year-warrenty', class: 'w-6 h-6 text-[#242F20]/60 shrink-0' %}
+          {% elsif icon_value == 'fast_and_delivery' %}
+            {% render 'v5-icon-fast-and-delivery', class: 'w-6 h-6 text-[#242F20]/60 shrink-0' %}
+          {% else %}
+            {% render 'v5-icon-customer-support', class: 'w-6 h-6 text-[#242F20]/60 shrink-0' %}
+          {% endif %}
+          <span
+            class="flex-1 text-[#565656] font-normal text-sm line-clamp-1 cursor-pointer underline-offset-4 lg:hover:underline"
+            data-benefit-item
+          >
+            {{- title_value | escape -}}
+          </span>
+        </li>
+      {%- endif -%}
+    {% endfor %}
+  </ul>
+
+  {% comment %} 利益点弹窗 {% endcomment %}
+  <jds-dialog
+    class="v5-app-pdp-benefits-dialog"
+    caption="{{ block.settings.benefits_text | escape }}"
+    size="extra"
+    showclose=""
+    closeicon="close"
+    disablebodyscroll=""
+    style="--jds-dialog-index:20000;--jds-dialog-width:var(--v5-app-pdp-benefits-dialog-width)"
+  >
+    <ul class="grid grid-cols-1 gap-x-6 gap-y-3">
+      {%- for i in (1..5) -%}
+        {%- capture icon_key -%}benefit_{{ i }}_icon{%- endcapture -%}
+        {%- capture title_key -%}benefit_{{ i }}_title{%- endcapture -%}
+        {%- capture desc_key -%}benefit_{{ i }}_desc{%- endcapture -%}
+
+        {%- assign icon_value = block.settings[icon_key] -%}
+        {%- assign title_value = block.settings[title_key] -%}
+        {%- assign desc_value = block.settings[desc_key] -%}
+
+        {%- if icon_value != blank and title_value != blank -%}
+          <li class="flex items-start gap-x-3 lg:gap-x-4 border-0 border-b border-solid border-[#E8E8E5] pb-4 lg:pb-5 first-of-type:pt-4 lg:first-of-type:pt-5 last-of-type:border-b-0 last-of-type:pb-0">
+            {% if icon_value == '30_day_money_back_return' %}
+              {% render 'v5-icon-30-money-back-guarantee', class: 'w-8 h-8 lg:w-10 lg:h-10 text-[#242F20] shrink-0' %}
+            {% elsif icon_value == 'free_warranty_return' %}
+              {% render 'v5-icon-free-warrenty-return', class: 'w-8 h-8 lg:w-10 lg:h-10 text-[#242F20] shrink-0' %}
+            {% elsif icon_value == '5_years_free_warranty' %}
+              {% render 'v5-icon-5-year-warrenty', class: 'w-8 h-8 lg:w-10 lg:h-10 text-[#242F20] shrink-0' %}
+            {% elsif icon_value == 'fast_and_delivery' %}
+              {% render 'v5-icon-fast-and-delivery', class: 'w-8 h-8 lg:w-10 lg:h-10 text-[#242F20] shrink-0' %}
+            {% else %}
+              {% render 'v5-icon-customer-support', class: 'w-8 h-8 lg:w-10 lg:h-10 text-[#242F20] shrink-0' %}
+            {% endif %}
+            {%- if title_value != blank or desc_value != blank -%}
+              <div class="flex flex-col justify-start gap-y-2">
+                {%- if title_value != blank -%}
+                  <h4 class="flex-1 text-[#242F20] font-semibold text-sm lg:text-base">{{ title_value | escape }}</h4>
+                {%- endif -%}
+                {%- if desc_value != blank -%}
+                  <p class="text-black/65 font-normal text-sm lg:text-base">{{ desc_value | escape }}</p>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </li>
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </jds-dialog>
+</div>
+
+<script type="module">
+  document.querySelectorAll('.v5-app-pdp-benefit-items').forEach((root) => {
+    const benefitDialog = root.querySelector('.v5-app-pdp-benefits-dialog');
+    if (!benefitDialog) return;
+
+    root.addEventListener('click', (e) => {
+      if (!(e.target instanceof Element)) return;
+
+      const item = e.target.closest('[data-benefit-item]');
+      if (!item) return;
+
+      benefitDialog.setAttribute('open', true);
+
+      {% comment %} 数据埋码 {% endcomment %}
+      gaPushDataLayer('products_details_page_user_clicks', {
+        product_spu_name: '{{ product.title | escape }}',
+        module: "Benefit", // 固定模块命名Benefit
+        button_name: item.textContent,  // 按钮文本名称，根据业务配置的文本呈现
+      })
+    });
+  });
+</script>

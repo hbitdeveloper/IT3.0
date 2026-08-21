@@ -1,0 +1,153 @@
+{% comment %}
+  Renders 3d modal (3d 模型渲染)
+
+  Accepts:
+  - url: {String} model 地址
+  - preview_image: {Object} 封面地址
+
+    Usage: 
+    {%- render "jky-3dmodal", url: first_3d_model.sources[1].url, preview_image: first_3d_model.preview_image -%}
+{% endcomment %}
+
+{%- if url != blank -%}
+  <style>
+      product-model {display: block;width: 100%;height: 100%;position: relative;}
+      model-viewer,.shopify-model-viewer-ui {display: block;max-width: 100%;position: absolute;top: 0;left: 0;height: 100%;width: 100%;}
+      product-model .shopify-model-viewer-ui .shopify-model-viewer-ui__button:not(.focus-visible) {display: none!important;}
+      .jky-model-loading {top: 0;bottom: 0;left: 0;right: 0;z-index: 2;display: flex;align-items: center;z-index: 2;
+    justify-content: center;}
+      .jky-model-loading .loader {width: 350px;height: 180px;border-radius: 10px;background: #fff;display: flex;flex-direction: column;align-items: center;justify-content: space-evenly;padding: 30px;box-shadow: 2px 2px 10px -5px lightgrey;max-width:91.4666666666667vw;}
+      .jky-model-loading .loading {width: 100%;height: 10px;background: lightgrey;border-radius: 10px;position: relative;}
+      .jky-model-loading .loading::after {content: "";position: absolute;top: 0;left: 0;width: 50%;height: 10px;background: #002;border-radius: 10px;z-index: 1;animation: loading 0.6s alternate infinite;}
+      .jky-model-loading label {
+        color: #002;
+        font-size: 18px;
+        animation: bit 0.6s alternate infinite;
+      }
+
+      @keyframes bit {
+        from {opacity: 0.3;}
+        to {opacity: 1;}
+      }
+
+      @keyframes loading {
+        0% {left: 25%;}
+        100% {left: 50%;}
+        0% {left: 0%;}
+      }
+
+      @media screen and (max-width: 749px) {figure .swiper-slide product-model {height: 330px;}}
+  </style>
+
+  <link id="ModelViewerStyle" rel="stylesheet" href="https://cdn.shopify.com/shopifycloud/model-viewer-ui/assets/v1.0/model-viewer-ui.css" media="print" onload="this.media='all'">
+ 
+  <script async>
+    if (!customElements.get('product-model')) {
+      customElements.define('product-model', class ProductModel extends HTMLElement {
+        constructor() {
+          super();
+        }
+
+        loadContent(url = '{{ url }}', previewImage = '{{ preview_image | image_url: width: 650 }}') {
+          this.loadModelContent(url, previewImage); // lazyload 3d model sources
+          Shopify.loadFeatures([
+            {
+              name: 'model-viewer-ui',
+              version: '1.0',
+              onLoad: this.setupModelViewerUI.bind(this)
+            },
+          ])
+        }
+
+        setupModelViewerUI(errors) { 
+          if (errors) return;
+          this.modelViewerUI = new Shopify.ModelViewerUI(this.querySelector('model-viewer'));
+          this.time_id = setInterval(() => {
+            if(this.modelViewerUI.modelIsVisible || this.querySelector('model-viewer').loaded) {
+              this.querySelector(".jky-model-loading")?.classList?.add("hide")
+              clearInterval(this.time_id)
+            }
+          }, 1000)
+        }
+
+        loadModelContent(url, previewImage) {
+          if(!this.getAttribute('loaded')) {
+            const dom = `<model-viewer 
+              toggleable="true" 
+              src="${url}"
+              camera-controls="true" 
+              style="--poster-color: transparent;" 
+              data-shopify-feature="1.12"
+              alt="${previewImage.alt}"
+              poster="${previewImage}"
+              data-js-focus-visible="" 
+              ar-status="not-presenting" 
+              class="" 
+              tabindex="0"
+            ></model-viewer>`
+            
+            this.querySelector(".model-3d-container").innerHTML = dom;
+          }
+        }
+      });
+    }
+  </script>
+
+  {%- assign display_loading = true -%}
+  {%- if show_loading == false -%}
+    {%- assign display_loading = false -%}
+  {%- endif -%}
+
+  <product-model 
+    class="deferred-media media product__deferred-media"
+    data-media-id="{{preview_image.id}}"
+    data-index="{{index}}"
+    data-url="{{url}}"
+    data-preview-image="{{preview_image | image_url: width: 650}}"
+  >
+      <div class="model-3d-container shopify-model-viewer-ui"></div>
+
+      {%- if display_loading -%}
+        <div class="jky-model-loading absolute">
+          <div class="loader">
+            <label>{{ 'accessibility.loading' | t }}</label>
+            <div class="loading"></div>
+          </div>
+        </div>
+      {%- endif -%}
+  </product-model>
+
+  <script>
+    window.ProductModel = {
+      loadShopifyXR() {
+        Shopify.loadFeatures([
+          {
+            name: 'shopify-xr',
+            version: '1.0',
+            onLoad: this.setupShopifyXR.bind(this),
+          },
+        ]);
+      },
+
+      setupShopifyXR(errors) {
+        if (errors) return;
+
+        if (!window.ShopifyXR) {
+          document.addEventListener('shopify_xr_initialized', () =>
+            this.setupShopifyXR()
+          );
+          return;
+        }
+
+        document.querySelectorAll('[id^="ProductJSON-"]').forEach((modelJSON) => {
+          window.ShopifyXR.addModels(JSON.parse(modelJSON.textContent));
+          modelJSON.remove();
+        });
+        window.ShopifyXR.setupXRElements();
+      },
+    };
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.ProductModel) window.ProductModel.loadShopifyXR();
+    });
+  </script>
+{%- endif -%}

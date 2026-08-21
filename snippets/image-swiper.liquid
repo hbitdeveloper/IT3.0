@@ -1,0 +1,97 @@
+<div class="image-swiper page-section-swiper relative swiper">
+    <div class="image-container relative">
+        <div class="swiper-wrapper">
+            {% for block in blocks %}
+                {% case block.type %}
+                    {% when 'category_type' %}
+                    <div 
+                        class="swiper-slide flex flex-col" 
+                        block-id="{{block.id}}" 
+                    >
+                        <div class="image-imgblock relative">
+                            <img 
+                                class="pc-block lazyload"
+                                data-src="{{block.settings.image | img_url: '1200x'}}"
+                                alt="{{block.settings.title | escape}}"
+                            >
+
+                            <img 
+                                class="mobile-block lazyload"
+                                data-src="{{block.settings.m_image | img_url: '630x'}}"
+                                alt="{{block.settings.title | escape}}"
+                            >
+                        </div>
+                    </div>
+                {% endcase %}
+            {% endfor %}
+        </div>
+
+        <div class="index-container absolute slideshow-navigation">
+            <div class="slideshow-navigation-button prev"><span class="iconfont jackery-icon-Next"></span></div>
+            <div class="slideshow-navigation-button next"><span class="iconfont jackery-icon-Next"></span></div>
+        </div>
+    </div>
+
+    <div class="slideshow-pagination"></div>
+</div>
+
+<script>
+    class ImageSwiper {
+        constructor(el) {
+            this.DOM = {
+                el: el.el,
+                swiperContainer: el.swiperContainer
+            };
+            this.init();
+        }
+        init() {
+            const self = this
+            this.swiper = new Swiper(this.DOM.swiperContainer, {
+                slidesPerView: 'auto',
+                spaceBetween: 0,
+                centeredSlides: true,
+                loop: true,
+                autoplay: {
+                    delay: 7000,
+                    disableOnInteraction: false,
+                },
+                followFinger: false,
+                pagination: {
+                    el: `${this.DOM.el} .slideshow-pagination`,
+                    clickable: true,
+                    bulletClass: 'slideshow-pagination-item',
+                    bulletActiveClass: 'active pagination-active',
+                    clickableClass: 'slideshow-pagination-clickable',
+                    modifierClass: 'slideshow-pagination-',
+                    renderBullet: function (index, className) {
+                        var slideIndex = index,
+                            number = (index <= 8) ? '0' + (slideIndex + 1) : (slideIndex + 1);
+
+                        var paginationItem = '<span class="slideshow-pagination-item">';
+                        paginationItem = (index <= 8) ? paginationItem +
+                            '<span class="pagination-separator"><span class="pagination-separator-loader"></span></span>' :
+                            paginationItem;
+                        paginationItem += '</span>';
+                        return paginationItem;
+                    },
+                },
+                on: {
+                    resize: function () {
+                        setTimeout(() => { // FIX SWIPER PC-MOBILE CSS BUG
+                            this.update()
+                        }, 600);
+                    }
+                },
+                navigation: {
+                    nextEl: `${this.DOM.el} .slideshow-navigation-button.next`,
+                    prevEl: `${this.DOM.el} .slideshow-navigation-button.prev`,
+                },
+            });
+        }
+    }
+
+    new ImageSwiper({
+        swiperContainer: '.image-container',
+        el: '.image-swiper'
+    });
+</script>

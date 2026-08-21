@@ -1,0 +1,143 @@
+{% comment %} 1024以上 {% endcomment %}
+{% if section.settings.pcBottom == blank %}
+  {% assign back_top_icon_pc_bottom = '88px' %}
+{% else %}
+  {% assign back_top_icon_pc_bottom = section.settings.pcBottom | append: 'px' %}
+{% endif %}
+
+{% comment %} 768以下 {% endcomment %}
+{% if section.settings.mbBottom == blank %}
+  {% assign back_top_icon_mb_bottom = 88 | divided_by: 16.0 | append: 'rem' %}
+{% else %}
+  {% assign back_top_icon_mb_bottom = section.settings.mbBottom | divided_by: 16.0 | append: 'rem' %}
+{% endif %}
+
+{% assign back_top_icon_width  = '3rem' %}
+{% assign back_top_icon_height = '3rem' %}
+{% assign back_top_svg_width  = '2rem' %}
+{% assign back_top_svg_height  = '2rem' %}
+
+{% if section.settings.icon_type == 'medium' %}
+  {% assign back_top_icon_width  = '4rem' %}
+  {% assign back_top_icon_height = '4rem' %}
+  {% assign back_top_svg_width  = '3rem' %}
+  {% assign back_top_svg_height  = '3rem' %}
+{% elsif section.settings.icon_type == 'large' %}
+  {% assign back_top_icon_width  = '5rem' %}
+  {% assign back_top_icon_height = '5rem' %}
+  {% assign back_top_svg_width  = '4rem' %}
+  {% assign back_top_svg_height  = '4rem' %}
+{% endif %}
+
+{% style %}
+	#back-top-icon{
+    display: none;
+    position: fixed;
+    right: 20px;
+    bottom: {{ back_top_icon_pc_bottom }};
+		z-index: {{ settings.back_top_z_index | default: 99998 }};
+    cursor: pointer;
+	}
+  @media screen and (max-width: 1023.98px) {
+    #back-top-icon {
+      bottom: {{ back_top_icon_mb_bottom }};
+    }
+  }
+  .page-back-top-icon {
+    width: {{ back_top_icon_width }};
+    height: {{ back_top_icon_height }};
+    border-radius: 50%;
+  }
+  #back-top-svg {
+    position: fixed; 
+    right: 22px; 
+    bottom: {{ back_top_icon_pc_bottom }}; 
+    padding: 0.5rem; 
+    border-radius: 50%; 
+    line-height: 1!important;
+    background: var(--primary-color);
+  }
+  #back-top-svg svg {
+    fill: #fff; 
+    width: {{ back_top_svg_width }}; 
+    height: {{ back_top_svg_height }};
+  }
+
+  @media screen and (max-width: 768px) {
+    #back-top-svg {
+      bottom: {{ back_top_icon_mb_bottom }}
+    }
+  }
+{% endstyle %}
+
+{% schema %}
+{
+  "name": "回到顶部Icon",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_backtop",
+      "label": "显示回到顶部按钮",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "icon_type",
+      "label": "图片Size",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "small"
+    },
+    {
+      "type": "image_picker",
+      "id": "goback_icon",
+      "label": "Icon",
+	    "info": "图片Size设置为Small，icon尺寸建议为48*48，图片Size设置为Medium，icon建议为64*64，图片Size设置为Large，icon建议为80*80"
+    },
+    {
+      "type": "number",
+      "id": "pcBottom",
+      "label": "PC端Icon距离底部定位（px）",
+      "default": 88,
+    },
+    {
+      "type": "number",
+      "id": "mbBottom",
+      "label": "移动端Icon距离底部定位（px）",
+      "default": 88,
+      "info": "以响应式规范进行等比换算"
+    },
+	  {
+      "type": "textarea",
+      "id": "icon_note",
+      "label": "注意：",
+      "default": "Chatbot如果设置为small，那么当前icon距离底部建议设置为88，\n Chatbot如果设置为Medium，那么当icon距离底部建议设置为104，\n Chatbot如果设置为Large，那么当前icon距离底部建议设置为140"
+    },
+  ],
+  "presets": [
+    {
+      "name": "回到顶部Icon"
+    }
+  ]
+}
+{% endschema %}
+
+{% if section.settings.show_backtop %}
+<div id="back-top-icon"> 
+	{% if section.settings.goback_icon %}
+    {% render 'responsive-image', image: section.settings.goback_icon, image_class: 'page-back-top-icon object-cover object-center' %}
+  {% else %}
+		<div id='back-top-svg'>
+			<svg class="svg-icon" style="vertical-align: middle;overflow: hidden;" viewBox="0 0 1024 1024"><path d="M546.133333 989.955038C546.133333 1008.757555 530.982741 1024 512 1024L512 1024C493.148672 1024 477.866667 1008.94976 477.866667 989.954423L477.866667 113.1079 208.787627 382.186974C195.54246 395.432107 174.092083 395.456341 160.669252 382.03351L160.669252 382.03351C147.339332 368.703625 147.262293 347.168631 160.850807 333.580117L482.354586 12.076339C488.903817 5.527142 501.924659 0 511.168614 0 522.10374 0 534.958797 5.406754 541.628382 12.076339L863.13216 333.580117C876.56233 347.010287 876.736546 368.610679 863.313715 382.03351L863.313715 382.03351C849.983829 395.363396 828.400674 395.392273 815.19674 382.188373L546.133333 113.124932 546.133333 989.955038Z"  /></svg>
+		</div>
+	{% endif %}
+</div>
+<script src="{{ 'sections-backtop.js' | asset_url }}" defer></script>
+{% endif %}

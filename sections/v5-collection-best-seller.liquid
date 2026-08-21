@@ -1,0 +1,165 @@
+<section class="w-full flex flex-col pt-5 pb-6 gap-y-2 lg:gap-y-10 lg:pt-6 lg:pb-[3.125rem]">
+  <h2 class="section-container-lg text-center text-[#242F20] text-xl lg:text-5xl">{{ section.settings.title | escape }}</h2>
+  <div class="section-container-lg lg:!w-[90rem] mx-auto flex flex-col-reverse items-center gap-y-3 lg:flex-row lg:gap-x-5 lg:h-32">
+    <div class="w-full h-[6.5rem] lg:w-[21.75rem] lg:h-full">
+      {%- render 'diff-end-img',
+        class: 'w-full h-full object-cover',
+        pc_img: section.settings.pc_sale_img,
+        mb_img: section.settings.mb_sale_img,
+        pc_img_width: 348,
+        mb_img_width: 343,
+        placeholder_name: 'hero-apparel-1',
+        load_scene: section.settings.load_scene
+      -%}
+    </div>
+    <ul class="w-full flex-1 h-full flex flex-col items-center gap-y-3 lg:flex-row lg:gap-x-5">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign curr_product = block.settings.product
+          assign curr_variant_id = block.settings.variant_id
+          assign variant = curr_product.variants | where: "id", curr_variant_id | first
+          if variant == blank
+            assign variant = curr_product.selected_or_first_available_variant
+          endif
+
+          # 标题
+          assign display_title = curr_product.title
+          if variant.title != 'Default Title' and variant.title != blank
+            assign display_title = variant.title
+          endif
+
+          assign img_alt = display_title
+          if block.settings.product_title != blank
+              assign img_alt = block.settings.product_title
+          endif
+          assign title = img_alt | escape
+
+          # 图片
+          assign base_img = variant.featured_image | default: curr_product.featured_image
+          assign p_img = base_img
+          assign m_img = base_img
+
+          if block.settings.pc_product_image != blank
+            assign p_img = block.settings.pc_product_image
+          endif
+          if block.settings.mb_product_image != blank
+            assign m_img = block.settings.mb_product_image
+          endif
+        -%}
+        
+        <li class="w-full h-[6.5rem] lg:w-[21.5rem] lg:h-full flex items-center bg-[#FBF3E8] pl-3 pr-5 py-3 lg:pr-3 gap-x-4">
+          <div class="w-[8.125rem] h-[4.625rem] lg:w-[8.75rem] lg:h-20 shrink-0">
+            {%- render 'diff-end-img',
+              class: 'w-full h-full object-cover',
+              pc_img: p_img,
+              mb_img: m_img,
+              pc_img_width: 140,
+              mb_img_width: 130,
+              placeholder_name: 'hero-apparel-1',
+              load_scene: block.settings.load_scene,
+              alt: img_alt
+            -%}
+          </div>
+          <div class="flex flex-col items-start justify-center gap-y-3">
+            <span class="text-black/90 font-semibold text-base line-clamp-2">
+              {{ title }}
+            </span>
+            {%- if section.settings.shop_now_text != blank -%}
+              <a href="{{ variant.url }}" target="_self" class="font-semibold text-[#242F20] hover:text-primary visited:text-[#242F20] transition-all duration-300 flex items-center text-base lg:text-xl gap-x-2">
+                {{ section.settings.shop_now_text | escape }}
+                <svg class="text-primary" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g clip-path="url(#clip0_4559_7516)">
+                    <path d="M-1 9.25H11.2422" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M8.49219 3L14.7419 9.24976L8.49219 15.4995" stroke="currentColor" stroke-width="1.6"/>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_4559_7516">
+                      <rect width="16" height="16" fill="white"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+              </a>
+            {%- endif -%}
+          </div>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "V5-集合页-Best Seller",
+  "class": "section section-collection__best-seller",
+  "enabled_on": {
+    "templates": ["collection"]
+  },
+  "limit": 1,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "标题文案",
+      "default": "Best Seller"
+    },
+    {
+      "type": "image_picker",
+      "id": "pc_sale_img",
+      "label": "PC端促销图片"
+    },
+    {
+      "type": "image_picker",
+      "id": "mb_sale_img",
+      "label": "MB端促销图片"
+    },
+    {
+      "type": "select",
+      "id": "load_scene",
+      "label": "图片加载场景",
+      "options": [
+        { "value": "lcp", "label": "首屏关键图（LCP）" },
+        { "value": "default", "label": "普通图（默认）" },
+        { "value": "defer", "label": "次要/延后图" }
+      ],
+      "default": "default",
+    },
+    {
+      "type": "text",
+      "id": "shop_now_text",
+      "label": "Shop Now文案",
+      "default": "Shop Now"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "产品",
+      "limit": 3,
+      "settings": [
+        { "type": "product", "id": "product", "label": "选择产品" },
+        { "type": "number", "id": "variant_id", "label": "变体ID(必填)", "visible_if": "{{ block.settings.product != blank }}", "info": "相同商品，变体ID不能重复"},
+        { "type": "textarea", "id": "product_title", "label": "产品标题", "visible_if": "{{ block.settings.product != blank }}" },
+        { "type": "image_picker", "id": "pc_product_image", "label": "PC端产品图", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度280, 高度160" },
+        { "type": "image_picker", "id": "mb_product_image", "label": "MB端产品图", "visible_if": "{{ block.settings.product != blank }}", "info": "宽度280, 高度160" },
+        {
+          "type": "select",
+          "id": "load_scene",
+          "label": "图片加载场景",
+          "options": [
+            { "value": "lcp", "label": "首屏关键图（LCP）" },
+            { "value": "default", "label": "普通图（默认）" },
+            { "value": "defer", "label": "次要/延后图" }
+          ],
+          "default": "lcp",
+          "visible_if": "{{ block.settings.product != blank }}"
+        },
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-集合页-Best Seller"
+    }
+  ]
+}
+{% endschema %}

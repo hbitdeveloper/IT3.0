@@ -1,0 +1,361 @@
+{%- comment -%}
+  /**
+ * @overview
+ * 前端性能优化脚本, 使用到的页面需要经过严格的主流程测试，保证功能的完整性
+ * 核心目标：通过延迟加载和执行页面上的JavaScript脚本和iframe，极大地提升页面的初始加载速度和可交互性。
+ *
+ * 工作原理：
+ * 1. 拦截阶段：在页面解析时，通过`MutationObserver`自动拦截所有<script>和<iframe>标签。
+ *    - <script>标签的`type`被修改为`text/lazyload`，使其暂时失效，并被推入一个待处理队列`lazyScriptQueue`。
+ *    - <iframe>标签的`src`被移除，并存入`data-src`，阻止其加载。
+ * 2. 触发阶段：当用户产生交互行为（如点击、滚动）或DOM加载完毕后，触发加载流程。
+ * 3. 执行阶段：脚本会停止拦截，然后按照优先级（普通 > defer > async）依次、串行地加载并执行队列中的所有脚本，同时恢复iframe的加载。
+ */
+
+ <script>
+(function() {
+    // 使用立即调用函数表达式 (IIFE) 创建一个私有作用域，避免污染全局 window 对象。
+    // 白名单域名列表 - 这些域名的资源不会被懒加载
+    const whitelist = [
+        'www.googletagmanager.com',
+        'pixel.orichi.info',
+        'static.ads-twitter.com',
+        'js.ptengine.com'
+    ];
+    // path白名单
+    const pathlist = [
+        "global-unrefer.js",
+        "global.js",
+        "common-theme.min.js",
+        "common-header.min.js",
+        "global-components.min.js",
+        "vendor.min.js",
+        "section-v5-main-product.min.js",
+        "gsap.js",
+        "scrollTrigger.js",
+        "section-v5-scroll-pic-text.min.js",
+        "section-v5-pdp-tab.min.js",
+        "section-v5-pdp-tech.min.js",
+        "section-v5-scroll-video-kv-1.min.js",
+        "section-v5-scroll-video-kv-2.min.js",
+        "section-v5-scroll-video-kv-3.min.js",
+        "section-v5-scroll-pf-1.min.js",
+        "section-v5-scroll-pf-2.min.js",
+    ];
+
+    // 白名单内容列表 - 这些内容的资源不会被懒加载
+    const whitelistContents = [
+        `var Shopify = Shopify || {};`,
+        'www.googletagmanager.com',
+        'window.pageInfo ='
+    ];
+    
+    // 检查URL是否在白名单中
+    function isWhitelisted(url) {
+        if (!url) return false;
+        try {
+            const urlObj = new URL(url, window.location.href);
+            return whitelist.some(domain => urlObj.hostname.includes(domain)) || pathlist.some(path => urlObj.pathname.indexOf(path) > -1);
+        } catch (e) {
+            return false;
+        }
+    }
+    // 检查脚本内容是否在白名单中
+    function isWhitelistedContent(content) {
+        try {
+            return whitelistContents.some(item => content.indexOf(item) > -1);
+        } catch (e) {
+            return false;
+        }
+    }
+    // 创建一个全局队列，用于存放所有被拦截的、需要延迟加载的<script>元素。
+    window.lazyScriptQueue = [];
+
+    // 创建一个 MutationObserver 实例，用于实时监视DOM树的变化。这是实现自动拦截的核心。
+    window.observer = new MutationObserver((mutations) => {
+        // 遍历所有发生的DOM变化记录
+        mutations.forEach(({ addedNodes }) => {
+            // 遍历每个变化中被新添加到DOM的节点
+            addedNodes.forEach((node) => {
+                // 只处理元素节点 (nodeType === 1)
+                if (node.nodeType === 1) {
+
+                    // --- 拦截 <script> 标签 ---
+                    // 如果新节点是<script>标签，并且尚未被处理过（避免重复操作）
+                    if (node.tagName === "SCRIPT" && !node.dataset.processed) {
+                        // 检查脚本src是否在白名单中
+                        if (node.src && isWhitelisted(node.src)) {
+                            node.dataset.processed = true; // 标记为已处理，跳过懒加载
+                            return;
+                        }
+                        // 检查脚本内容是否在白名单中
+                        if ((!node.type || node.type == "text/javascript") && node.innerText && isWhitelistedContent(node.innerText)) {
+                            node.dataset.processed = true; // 标记为已处理，跳过懒加载
+                            return;
+                        }
+                        // 检查脚本类型是否是可执行的JavaScript
+                        if (["text/javascript", "module"].includes((node.type || "text/javascript"))) {
+                            // 将原始type保存到data-type属性中，以便后续恢复
+                            node.dataset.type = node.type || "text/javascript";
+                            // 修改type为一个浏览器不认识的值，从而阻止浏览器立即下载和执行它
+                            node.type = "text/lazyload";
+                        }
+                        // 确认脚本已被标记为待处理，然后将其加入队列
+                        if (node.getAttribute("type") === "text/lazyload") {
+                            window.lazyScriptQueue.push(node);
+                        }
+                    }
+
+                    // --- 优化 <a> 标签 ---
+                    // 如果是<a>标签且没有href属性，为其设置一个无害的默认值，防止点击时页面跳转或刷新。
+                    if (node.tagName === "A" && !node.href) {
+                        node.setAttribute('href', 'javascript:;');
+                    }
+
+                    // --- 拦截 <iframe> 标签 ---
+                    // 如果是<iframe>标签且有src属性
+                    if (node.tagName === "IFRAME" && node.src) {
+                        // 添加一个'lazy'类名，方便后续统一查询处理
+                        node.classList.add('lazy');
+                        // 将原始src存入data-src属性
+                        node.setAttribute('data-src', node.src);
+                        // 移除src属性，阻止iframe立即加载内容
+                        node.removeAttribute('src');
+                    }
+                }
+            });
+        });
+    });
+
+    // 启动观察者，配置它监视整个文档（从<html>根元素开始）的子节点添加和移除（childList: true），
+    // 并且递归地监视所有后代节点（subtree: true）。
+    window.observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+    });
+
+    // 定义状态标志，防止加载逻辑被重复执行
+    var script_loaded = false; // 标记脚本加载流程是否已启动
+    var isInitializing = false; // 标记是否正在初始化过程中
+    var page_loaded = false;   // 标记原始的 window.load 事件是否已触发
+    var loadPromise = null;    // 存储加载Promise，确保单次执行
+
+    /**
+     * 获取脚本的加载优先级。
+     * 规则：普通脚本（无async/defer）> defer脚本 > async脚本。
+     * 这是为了尽可能模拟浏览器默认的脚本执行顺序。
+     * @param {HTMLScriptElement} script - 脚本元素
+     * @returns {number} - 优先级，数值越小越高
+     */
+    function getScriptPriority(script) {
+        const isAsync = script.getAttribute('async') != null;
+        const isDefer = script.getAttribute('defer') != null;
+        if (!isAsync && !isDefer) return 1; // 最高优先级：同步脚本
+        if (isDefer) return 2; // 次高优先级：defer脚本
+        if (isAsync) return 3; // 最低优先级：async脚本
+        return 4; // 其他情况
+    }
+
+    /**
+     * 清理所有事件监听器，防止重复触发
+     */
+    function cleanupEventListeners() {
+        // 由于使用了once: true，大部分监听器应该已经自动移除
+        // 这里是额外的保护措施，确保彻底清理
+        activityEvents.forEach(eventName => {
+            try {
+                window.removeEventListener(eventName, handleUserInteraction);
+            } catch (e) {
+                // 忽略移除不存在监听器的错误
+            }
+        });
+    }
+
+    /**
+     * 执行实际的脚本加载逻辑
+     */
+    function performActualLoading() {
+        return new Promise((resolve) => {
+            // 1. 整理队列：根据优先级对所有待加载脚本进行排序。
+            window.lazyScriptQueue = Array.from(window.lazyScriptQueue).sort((first, next) => getScriptPriority(first) - getScriptPriority(next));
+
+            // 2. 停止观察：拦截任务已完成，断开MutationObserver，释放资源，避免不必要的性能开销。
+            if (window.observer) {
+                window.observer.disconnect();
+                window.observer = null;
+            }
+
+            // 3. 加载iframe：找到所有被延迟的iframe，将data-src的值恢复到src，使其开始加载。
+            document.querySelectorAll("iframe.lazy").forEach((iframe) => {
+                const datasrc = iframe.dataset.src;
+                if (datasrc != null) {
+                    iframe.src = datasrc;
+                }
+            });
+
+            /**
+             * 内部递归函数，用于按顺序串行加载和执行脚本。
+             */
+            function sequentialLoad() {
+                // 递归基线条件：如果队列为空，说明所有脚本都已加载完毕。
+                if (window.lazyScriptQueue.length === 0) {
+                    // 手动派发DOMContentLoaded和load事件，以确保依赖这些事件的其他库能够正常工作。
+                    if (page_loaded) {
+                        document.dispatchEvent(new CustomEvent("load"));
+                        window.dispatchEvent(new CustomEvent("load"));
+                    }
+                    resolve(); // 完成Promise
+                    return;
+                }
+
+                // 从队列头部取出一个脚本进行处理
+                const currentScript = window.lazyScriptQueue.shift();
+                const newScript = document.createElement("script");
+
+                // 复制原脚本的所有属性到新脚本上（除了type）
+                for (let a = 0; a < currentScript.attributes.length; a++) {
+                    const attr = currentScript.attributes[a];
+                    if (attr.name !== "type") {
+                        newScript.setAttribute(attr.name, attr.value);
+                    }
+                }
+
+                // 关键：强制新脚本同步执行（async=false），以保证脚本按队列顺序执行。
+                newScript.async = false;
+                // 标记此脚本已被处理
+                newScript.dataset.processed = true;
+                // 恢复其原始的type，使其成为可执行脚本
+                newScript.type = currentScript.dataset.type || "text/javascript";
+
+                // 将新创建的、可执行的脚本替换掉DOM中原来的占位脚本
+                if (currentScript.parentNode) {
+                    currentScript.parentNode.replaceChild(newScript, currentScript);
+                } else {
+                    document.head.appendChild(newScript); // 如果原脚本没有父节点，则添加到head
+                }
+
+                // 根据脚本是外部链接还是内联代码，决定如何触发下一个脚本的加载
+                if (currentScript.getAttribute("src")) {
+                    // 对于外部脚本 (有src属性)
+                    if (newScript.noModule) {
+                        // 如果是nomodule脚本，一些老浏览器可能不触发onload，直接开始下一个
+                        sequentialLoad();
+                    } else {
+                        // 在新脚本加载完成或失败后，通过回调继续加载队列中的下一个脚本
+                        newScript.onload = newScript.onerror = function() {
+                            sequentialLoad();
+                        };
+                    }
+                } else {
+                    // 对于内联脚本 (没有src属性)，直接将代码注入，然后立即递归调用以加载下一个脚本
+                    newScript.innerHTML = currentScript.innerHTML;
+                    sequentialLoad();
+                }
+            }
+
+            // 启动串行加载序列
+            sequentialLoad();
+        });
+    }
+
+    /**
+     * 核心函数：启动所有被延迟资源的加载流程。
+     * 使用多重保护机制防止重复执行
+     */
+    function loadJSscripts() {
+        // 多重检查确保只执行一次
+        if (script_loaded || isInitializing || loadPromise) {
+            return loadPromise || Promise.resolve();
+        }
+        
+        // 立即设置标志位，防止竞态条件
+        isInitializing = true;
+        
+        loadPromise = new Promise((resolve) => {
+            // 双重检查
+            if (script_loaded) {
+                isInitializing = false;
+                resolve();
+                return;
+            }
+            
+            script_loaded = true;
+            console.log('Lazy scripts loading process started.');
+            
+            // 立即清理所有可能的事件监听器
+            cleanupEventListeners();
+            
+            // 执行实际的脚本加载逻辑
+            performActualLoading().then(() => {
+                isInitializing = false;
+                resolve();
+            }).catch((error) => {
+                isInitializing = false;
+                console.error('Script loading failed:', error);
+                resolve(); // 即使失败也要resolve，避免阻塞
+            });
+        });
+        
+        return loadPromise;
+    }
+
+    /**
+     * 用户交互处理函数
+     */
+    function handleUserInteraction() {
+        // 如果文档还在加载中，则等待DOMContentLoaded事件后再执行，否则立即执行。
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", loadJSscripts, { once: true });
+        } else {
+            loadJSscripts();
+        }
+    }
+
+    // --- 触发机制 ---
+    // 定义一组用户交互事件
+    var activityEvents = ["mousedown", "mousemove", "keydown", "scroll", "touchstart", "click", "keypress", "touchmove"];
+
+    // 为每个交互事件添加一个一次性的监听器。一旦用户有任何动作，就立即触发脚本加载。
+    // 这是最主要的触发方式，因为它表明用户已经准备好与页面交互。
+    activityEvents.forEach(function(eventName) {
+        window.addEventListener(eventName, handleUserInteraction, {
+            capture: false,
+            once: true // once: true 保证监听器只触发一次后自动移除
+        });
+    });
+
+    // 备用触发机制：如果用户长时间没有交互，
+    // 在非 "Linux x86_64" 平台（可能是为了排除某些爬虫环境），当DOM解析完成后也自动触发加载。
+    if (navigator.platform != "Linux x86_64") {
+        document.addEventListener("DOMContentLoaded", loadJSscripts, { once: true });
+    }
+
+    // 监听原始的window.load事件，并更新page_loaded标志
+    window.addEventListener('load', function(event) {
+        page_loaded = true;
+        // 这是一个保护措施：如果原始的load事件触发时，我们的脚本还没加载完，
+        // 就阻止这个原始事件的冒泡，防止依赖它的功能过早执行。
+        if (script_loaded) {
+            if (window.lazyScriptQueue.length) {
+                event.stopImmediatePropagation();
+                event.preventDefault();
+            }
+        }
+    }, {
+        capture: false,
+        once: true,
+    });
+})();
+</script>
+{%- endcomment -%}
+{%- assign template_name = template | prepend: ',' | append: ',' -%}
+{%- if ',page.v5-ehb,product.v5-3600-plus,' contains template_name -%}
+{%- assign whitelist = settings.web_vitals_whitelist | default: 'www.googletagmanager.com,pixel.orichi.info,static.ads-twitter.com,js.ptengine.com' -%}
+{%- assign pathlist = settings.web_vitals_pathlist | default: 'global-unrefer.js,global.js,common-theme.min.js,common-header.min.js,global-components.min.js,vendor.min.js' -%}
+<script>
+(()=>{
+    var whitelist = {{ whitelist | split: ',' | json }};
+    var pathlist = {{ pathlist | split: ',' | json }};
+    var n=whitelist,o=pathlist,t=["var Shopify = Shopify || {};","www.googletagmanager.com","window.pageInfo ="];window.lazyScriptQueue=[],window.observer=new MutationObserver(function(e){e.forEach(function(e){e.addedNodes.forEach(function(e){if(1===e.nodeType){if("SCRIPT"===e.tagName&&!e.dataset.processed){if(e.src&&function(t){if(!t)return!1;try{var e=new URL(t,window.location.href);return n.some(function(n){return e.hostname.includes(n)})||o.some(function(n){return e.pathname.indexOf(n)>-1})}catch(n){return!1}}(e.src))return void(e.dataset.processed=!0);if((!e.type||"text/javascript"==e.type)&&e.innerText&&function(n){try{return t.some(function(o){return n.indexOf(o)>-1})}catch(n){return!1}}(e.innerText))return void(e.dataset.processed=!0);["text/javascript","module"].includes(e.type||"text/javascript")&&(e.dataset.type=e.type||"text/javascript",e.type="text/lazyload"),"text/lazyload"===e.getAttribute("type")&&window.lazyScriptQueue.push(e)}"A"!==e.tagName||e.href||e.setAttribute("href","javascript:;"),"IFRAME"===e.tagName&&e.src&&(e.classList.add("lazy"),e.setAttribute("data-src",e.src),e.removeAttribute("src"))}})})}),window.observer.observe(document.documentElement,{childList:!0,subtree:!0});var e=!1,i=!1,r=!1,c=null;function u(n){var o=null!=n.getAttribute("async"),t=null!=n.getAttribute("defer");return o||t?t?2:o?3:4:1}function a(){return e||i||c?c||Promise.resolve():(i=!0,c=new Promise(function(n){if(e)return i=!1,void n();e=!0,d.forEach(function(n){try{window.removeEventListener(n,w)}catch(n){}}),new Promise(function(n){window.lazyScriptQueue=Array.from(window.lazyScriptQueue).sort(function(n,o){return u(n)-u(o)}),window.observer&&(window.observer.disconnect(),window.observer=null),document.querySelectorAll("iframe.lazy").forEach(function(n){var o=n.dataset.src;null!=o&&(n.src=o)}),function o(){if(0===window.lazyScriptQueue.length)return r&&(document.dispatchEvent(new CustomEvent("load")),window.dispatchEvent(new CustomEvent("load"))),void n();for(var t=window.lazyScriptQueue.shift(),e=document.createElement("script"),i=0;i<t.attributes.length;i++){var c=t.attributes[i];"type"!==c.name&&e.setAttribute(c.name,c.value)}e.async=!1,e.dataset.processed=!0,e.type=t.dataset.type||"text/javascript",t.parentNode?t.parentNode.replaceChild(e,t):document.head.appendChild(e),t.getAttribute("src")?e.noModule?o():e.onload=e.onerror=function(){o()}:(e.innerHTML=t.innerHTML,o())}()}).then(function(){i=!1,n()}).catch(function(o){i=!1,n()})}))}function w(){"loading"===document.readyState?document.addEventListener("DOMContentLoaded",a,{once:!0}):a()}var d=["mousedown","mousemove","keydown","scroll","touchstart","click","keypress","touchmove"];d.forEach(function(n){window.addEventListener(n,w,{capture:!1,once:!0})}),"Linux x86_64"!=navigator.platform&&document.addEventListener("DOMContentLoaded",a,{once:!0}),window.addEventListener("load",function(n){r=!0,e&&window.lazyScriptQueue.length&&(n.stopImmediatePropagation(),n.preventDefault())},{capture:!1,once:!0})})();  
+</script>
+{%- endif -%}

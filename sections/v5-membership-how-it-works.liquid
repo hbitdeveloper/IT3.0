@@ -1,0 +1,320 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign is_login = false
+  if customer
+    assign is_login = true
+  endif
+-%}
+
+<div
+  class="v5-membership-how-it-works section-padding relative"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  style="{{ style }}"
+>
+  <div class="section-container-lg">
+    <div class="absolute top-11 lg:top-0 right-0 z-[-1] w-[150px] h-[196px] lg:w-[12.5rem] lg:h-[16.375rem]">
+      {% if section.settings.bg_img != blank %}
+        <img
+          src="{{ section.settings.bg_img | image_url:width:200,height:262 }}"
+          alt="{{ section.settings.title }}"
+          width="200"
+          height="262"
+        >
+      {% else %}
+        {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full object-cover' }}
+      {% endif %}
+    </div>
+    <div class="jds-h2 mb-10 text-center">{{ section.settings.title }}</div>
+    <div class="module-box flex flex-col lg:flex-row items-start gap-4 lg:gap-6">
+      {% for item in section.blocks %}
+        <div class="item-box flex flex-1 flex-col items-start pl-4 pt-6 pb-8 lg:pl-4 lg:py-6 lg:pr-10 border-b last:border-b-0 lg:border-b-0 lg:border-r last:lg:border-r-0 border-[#C6C7C8] border-solid" style="height:-webkit-fill-available;">
+          <jds-badge class="mb-10" size="medium" variant="solid" kind="neutral">{{ item.settings.step }}</jds-badge>
+          <div class="jds-h4 mb-6">{{ item.settings.title }}</div>
+          <div class="jds-b2 mb-6">{{ item.settings.desc }}</div>
+          {%- liquid
+            assign hide_class = ''
+            if is_login and item.settings.btn_action == 'hide'
+              assign hide_class = 'hidden'
+            endif
+          -%}
+          <jds-button
+            class="btn-anchor {{ hide_class }}"
+            {% if is_login and item.settings.btn_anchor != blank and item.settings.btn_action == 'jump' %}
+              data-anchor="{{ item.settings.btn_anchor | escape }}"
+            {% endif %}
+            variant="text"
+            size="large"
+            icon="arrow-right-long"
+            style="--jds-btn-large-padding-horizontal:0px;"
+            {% if is_login == false %}
+            onClick="window.Jackery.Utils.showLoginPopup('MEM-Register')"
+            {% endif %}
+          >
+            {{- item.settings.btn_text -}}
+          </jds-button>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "V5-会员-成为会员",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "基础配置"
+    },
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "标题",
+      "default": "How It Works"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_img",
+      "label": "右上角背景图片(200x262)"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 110
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+    {
+      "type": "paragraph",
+      "content": "1. 数值以750px稿即2倍图值为标准进行配置与换算。",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 举例如48px在750px稿上为48px，在375px稿上则为24px。",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "上边距",
+      "default": 128,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "下边距",
+      "default": 128,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "item",
+      "name": "步骤",
+      "settings": [
+        {
+          "type": "text",
+          "id": "step",
+          "label": "步骤",
+          "default": "Step1",
+          "info": "例如：Step1/Step2/Step3"
+        },
+        {
+          "type": "richtext",
+          "id": "title",
+          "label": "标题"
+        },
+        {
+          "type": "richtext",
+          "id": "desc",
+          "label": "描述"
+        },
+        {
+          "type": "header",
+          "content": "按钮"
+        },
+        {
+          "type": "paragraph",
+          "content": "1.登录前，点击拉起免密登录"
+        },
+        {
+          "type": "paragraph",
+          "content": "2.登录后，点击跳转至指定锚点位置"
+        },
+        {
+          "type": "text",
+          "id": "btn_text",
+          "label": "按钮文字"
+        },
+        {
+          "type": "select",
+          "id": "btn_action",
+          "options": [
+            {
+              "value": "hide",
+              "label": "隐藏"
+            },
+            {
+              "value": "jump",
+              "label": "跳转到锚点"
+            }
+          ],
+          "default": "jump",
+          "label": "登录后按钮交互"
+        },
+        {
+          "type": "text",
+          "id": "btn_anchor",
+          "label": "按钮绑定锚点组件",
+          "visible_if": "{{ block.settings.btn_action=='jump' }}"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-会员-成为会员",
+      "category": "V5",
+      "blocks": [
+        {
+          "type": "item",
+          "settings": {
+            "step": "Step1",
+            "title": "<p>Join Us</p>",
+            "desc": "<p>Register free in one step—no password needed. Get 500 bonus points instantly.</p>",
+            "btn_text": "Join Now",
+            "btn_action": "hide"
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "step": "Step2",
+            "title": "<p>Earn Rewards</p>",
+            "desc": "<p>Complete tasks to earn points. Plus, get 1 point for every $1 you spend.</p>",
+            "btn_text": "Earn Points",
+            "btn_action": "jump",
+            "btn_anchor": "earn_points"
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "step": "Step3",
+            "title": "<p>Redeem Your Points</p>",
+            "desc": "<p>Exchange your points for Jackery gifts, discount, gift cards, and other brand gift cards.</p>",
+            "btn_text": "Redeem Now",
+            "btn_action": "jump",
+            "btn_anchor": "redeem_now"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

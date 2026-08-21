@@ -1,0 +1,748 @@
+{% comment %} 德国阳台发电站问卷，仅限德国站使用，文案固定写死 {% endcomment %}
+<style>
+    .no-scroll {
+        overflow: hidden;
+    }
+
+    .de-balcony-power-questionnaire .container {
+        width: 1112px;
+        margin: 0 auto;
+    }
+
+    .de-balcony-power-questionnaire .title-zone {
+        width: 1000px;
+        text-align: center;
+        font-weight: 500;
+        margin: 106px auto 40px;
+    }
+
+    .de-balcony-power-questionnaire .subtitle {
+        font-size: 18px;
+        line-height: 26px;
+        margin: 16px auto 0;
+        color: rgba(26, 26, 26, 0.6);
+    }
+
+    .de-balcony-power-questionnaire .quiz {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 32px 16px;
+    }
+
+    .de-balcony-power-questionnaire .question {
+        display: flex;
+        flex-direction: column;
+        padding: 0 24px;
+    }
+
+    .de-balcony-power-questionnaire .option-btn {
+        position: relative;
+        box-sizing: border-box;
+        border: 1px solid rgb(221, 221, 221);
+        border-radius: 4px;
+        color: rgba(26, 26, 26, 0.6);
+        font-size: 16px;
+        font-weight: 500;
+        flex: 1;
+        padding: 16px 16px 15px;
+        text-align: center;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .de-balcony-power-questionnaire .option-btn:hover {
+        border: 1px solid rgb(102, 102, 102);
+    }
+
+    .de-balcony-power-questionnaire .question label {
+        color: rgb(26, 26, 26);
+        font-size: 18px;
+        font-weight: 500;
+        line-height: 26px;
+        text-align: left;
+        margin-bottom: 10px;
+        margin-top: 20px;
+    }
+
+    .de-balcony-power-questionnaire .options {
+        display: flex;
+        gap: 10px;
+    }
+
+    .de-balcony-power-questionnaire .dropdown {
+        position: relative;
+    }
+
+    .de-balcony-power-questionnaire .selections {
+        display: none;
+        position: absolute;
+        margin-left: 24px;
+        width: 500px;
+        left: 0;
+        top: 112px;
+        background: #fff;
+        border: 1px solid rgb(221, 221, 221);
+        border-radius: 4px;
+        overflow-y: auto;
+        z-index: 10;
+    }
+
+    .de-balcony-power-questionnaire .select {
+        text-align: left;
+    }
+
+    .de-balcony-power-questionnaire .select:after {
+        content: "";
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: solid currentColor;
+        border-width: 0 2px 2px 0;
+        transform-origin: 50% 50%;
+        transition: transform .3s ease;
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        color: #333333;
+        transform: translateY(-50%) rotate(45deg);
+    }
+
+    .de-balcony-power-questionnaire .select.active:after {
+        transform: translateY(0%) rotate(-135deg);
+    }
+
+    .de-balcony-power-questionnaire .selections .option-item {
+        height: 36px;
+        padding: 6px 15px;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 500;
+        color: rgb(102, 102, 102);
+    }
+
+    .de-balcony-power-questionnaire .selections .option-item:hover {
+        background: rgb(246, 246, 246);
+        color: var(--jds-color-primary)  ;
+    }
+
+    .de-balcony-power-questionnaire .selections .option-item.selected {
+        color: var(--jds-color-primary);
+        border: none;
+    }
+
+    .de-balcony-power-questionnaire .disable {
+        pointer-events: none;
+        color: rgba(26, 26, 26, 0.4);
+    }
+
+    .de-balcony-power-questionnaire .selected {
+        border: 2px solid var(--jds-color-primary);
+    }
+
+    .de-balcony-power-questionnaire .selected:hover {
+        border: 2px solid var(--jds-color-primary);
+    }
+
+    .de-balcony-power-questionnaire .buttons {
+        text-align: center;
+    }
+
+    .de-balcony-power-questionnaire .submit {
+        margin-top: 62px;
+        margin-bottom: 93px;
+        cursor: pointer;
+        width: 166px;
+        height: 48px;
+        border-radius: 28px;
+        background: var(--jds-color-primary);
+        color: rgb(255, 255, 255);
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .de-balcony-power-questionnaire .submit.disable {
+        cursor: none;
+        opacity: 0.4;
+    }
+
+    .de-balcony-power-questionnaire .overlay {
+        z-index: 9999;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    .de-balcony-power-questionnaire .modal {
+        position: relative;
+        width: 480px;
+        border-radius: 16px;
+        background: rgb(255, 255, 255);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        font-family: sans-serif;
+        color: #333;
+        visibility: visible;
+    }
+
+    .de-balcony-power-questionnaire .modal .icon {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 105px;
+        height: 105px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .de-balcony-power-questionnaire .modal.yes .icon {
+        box-shadow: 0 20px 40px 0 rgba(82, 196, 26, 0.3);
+        background: rgb(82, 196, 26);
+    }
+
+    .de-balcony-power-questionnaire .modal.no .icon {
+        box-shadow: 0 20px 40px 0 rgba(253, 165, 28, 0.3);
+        background: linear-gradient(0.00deg, rgb(255, 176, 30), rgb(255, 160, 28) 100%);
+    }
+
+    .de-balcony-power-questionnaire .modal.no .icon svg {
+        margin-top: 10px;
+    }
+
+    /* close “×” button */
+    .de-balcony-power-questionnaire .modal .close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: rgb(153, 153, 153);
+        border-radius: 50%;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1;
+        color: #FFFFFF;
+        cursor: pointer;
+    }
+
+    .de-balcony-power-questionnaire .modal .title {
+        color: rgb(26, 26, 26);
+        width: 366px;
+        font-size: 32px;
+        font-weight: 500;
+        line-height: 40px;
+        margin: 96px auto 0;
+    }
+
+    .de-balcony-power-questionnaire .modal .content {
+        color: rgba(26, 26, 26, 0.6);
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 24px;
+        width: 408px;
+        margin: 16px auto 40px;
+    }
+
+    .de-balcony-power-questionnaire .modal .btn {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        width: 432px;
+        height: 48px;
+        border-radius: 500px;
+        background: var(--jds-color-primary);
+        color: rgb(255, 255, 255);
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 20px;
+        text-align: center;
+    }
+
+    .de-balcony-power-questionnaire .modal .btn:hover {
+        opacity: 0.9;
+    }
+
+    @media (max-width: 1440px) {
+        .de-balcony-power-questionnaire .container {
+            width: calc(1112 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .title-zone {
+            width: calc(1000 / 1440 * 100vw);
+            margin: calc(106 / 1440 * 100vw) auto calc(40 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .subtitle {
+            font-size: calc(18 / 1440 * 100vw);
+            line-height: calc(26 / 1440 * 100vw);
+            margin: calc(16 / 1440 * 100vw) auto 0;
+        }
+
+        .de-balcony-power-questionnaire .quiz {
+            gap: calc(32 / 1440 * 100vw) calc(16 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .question {
+            padding: 0 calc(24 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .option-btn {
+            font-size: calc(16 / 1440 * 100vw);
+            padding: calc(16 / 1440 * 100vw) calc(16 / 1440 * 100vw) calc(15 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .question label {
+            font-size: calc(18 / 1440 * 100vw);
+            line-height: calc(26 / 1440 * 100vw);
+            margin-bottom: calc(10 / 1440 * 100vw);
+            margin-top: calc(20 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .options {
+            gap: calc(10 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .select:after {
+            right: calc(40 / 1440 * 100vw);
+            font-size: calc(30 / 1440 * 100vw);
+            bottom: calc(10 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .selections {
+            top: calc(112 / 1440 * 100vw);
+            margin-left: calc(24 / 1440 * 100vw);
+            width: calc(500 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .selections .option-item {
+            height: calc(36 / 1440 * 100vw);
+            line-height: calc(24 / 1440 * 100vw);
+            padding: calc(6 / 1440 * 100vw) calc(15 / 1440 * 100vw);
+            font-size: calc(16 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .submit {
+            margin-bottom: calc(93 / 1440 * 100vw);
+            margin-top: calc(62 / 1440 * 100vw);
+            width: calc(166 / 1440 * 100vw);
+            height: calc(48 / 1440 * 100vw);
+            border-radius: calc(28 / 1440 * 100vw);
+            font-size: calc(18 / 1440 * 100vw);
+        }
+
+        /* modal style */
+        .de-balcony-power-questionnaire .modal {
+            width: calc(480 / 1440 * 100vw);
+            border-radius: calc(16 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .icon {
+            width: calc(105 / 1440 * 100vw);
+            height: calc(105 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal.no .icon svg {
+            margin-top: calc(10 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .close {
+            top: calc(16 / 1440 * 100vw);
+            right: calc(16 / 1440 * 100vw);
+            width: calc(32 / 1440 * 100vw);
+            height: calc(32 / 1440 * 100vw);
+            font-size: calc(20 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .title {
+            width: calc(366 / 1440 * 100vw);
+            font-size: calc(32 / 1440 * 100vw);
+            line-height: calc(40 / 1440 * 100vw);
+            margin: calc(96 / 1440 * 100vw) auto 0;
+        }
+
+        .de-balcony-power-questionnaire .modal .content {
+            font-size: calc(16 / 1440 * 100vw);
+            line-height: calc(24 / 1440 * 100vw);
+            width: calc(408 / 1440 * 100vw);
+            margin: calc(16 / 1440 * 100vw) auto calc(40 / 1440 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .btn {
+            margin: 0 auto calc(24 / 1440 * 100vw);
+            width: calc(432 / 1440 * 100vw);
+            height: calc(48 / 1440 * 100vw);
+            border-radius: calc(500 / 1440 * 100vw);
+            font-size: calc(18 / 1440 * 100vw);
+            line-height: calc(20 / 1440 * 100vw);
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .de-balcony-power-questionnaire .container {
+            width: 100%;
+        }
+
+        .de-balcony-power-questionnaire .title-zone {
+            width: calc(622 / 750 * 100vw);
+            margin: calc(72 / 750 * 100vw) calc(64 / 750 * 100vw) calc(32 / 750 * 100vw);
+            text-align: left;
+        }
+
+        .de-balcony-power-questionnaire .subtitle {
+            font-size: calc(32 / 750 * 100vw);
+            line-height: calc(48 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .quiz {
+            margin: 0 calc(48 / 750 * 100vw);
+            grid-template-columns: 1fr;
+            gap: calc(40 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .select:after {
+            right: calc(25 / 750 * 100vw);
+            font-size: calc(45 / 750 * 100vw);
+            bottom: calc(20 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .selections {
+            top: calc(205 / 750 * 100vw);
+            margin-left: 0;
+            width: 100%;
+            border: 2px solid rgb(221, 221, 221);
+            border-radius: 8px;
+        }
+
+        .de-balcony-power-questionnaire .question {
+            padding: 0;
+        }
+
+        .de-balcony-power-questionnaire .question label {
+            font-size: calc(32 / 750 * 100vw);
+            line-height: calc(48 / 750 * 100vw);
+            margin-bottom: calc(20 / 750 * 100vw);
+            margin-top: calc(40 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .options {
+            gap: calc(24 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .option-btn {
+            border-width: calc(2 / 750 * 100vw);
+            border-radius: 8px;
+            font-size: calc(28 / 750 * 100vw);
+            padding: calc(30 / 750 * 100vw) calc(32 / 750 * 100vw);
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .de-balcony-power-questionnaire .submit {
+            width: calc(238 / 750 * 100vw);
+            height: calc(80 / 750 * 100vw);
+            border-radius: calc(40 / 750 * 100vw);
+            font-size: calc(28 / 750 * 100vw);
+            font-weight: 600;
+            margin-top: calc(56 / 750 * 100vw);
+            margin-bottom: calc(16 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .selections .option-item {
+            height: calc(72 / 750 * 100vw);
+            padding: calc(22 / 750 * 100vw);
+            font-size: calc(28 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal {
+            width: calc(654 / 750 * 100vw);
+            border-radius: calc(18 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .icon {
+            width: calc(158 / 750 * 100vw);
+            height: calc(158 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal.yes .icon svg {
+            width: calc(200 / 750 * 100vw);
+            height: calc(50 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal.no .icon svg {
+            margin-top: calc(10 / 750 * 100vw);
+            width: calc(200 / 750 * 100vw);
+            height: calc(200 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .close {
+            top: calc(16 / 750 * 100vw);
+            right: calc(16 / 750 * 100vw);
+            width: calc(48 / 750 * 100vw);
+            height: calc(48 / 750 * 100vw);
+            font-size: calc(48 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .title {
+            font-size: calc(40 / 750 * 100vw);
+            line-height: calc(56 / 750 * 100vw);
+            margin-top: calc(110 / 750 * 100vw);
+            width: calc(520 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .content {
+            font-size: calc(28 / 750 * 100vw);
+            line-height: calc(44 / 750 * 100vw);
+            width: calc(574 / 750 * 100vw);
+            margin-top: calc(16 / 750 * 100vw);
+            margin-bottom: calc(52 / 750 * 100vw);
+        }
+
+        .de-balcony-power-questionnaire .modal .btn {
+            width: calc(574 / 750 * 100vw);
+            height: calc(80 / 750 * 100vw);
+            font-size: calc(28 / 750 * 100vw);
+            line-height: calc(36 / 750 * 100vw);
+            margin-bottom: calc(40 / 750 * 100vw);
+        }
+    }
+</style>
+
+<div class="de-balcony-power-questionnaire">
+    <div class="container">
+        <div class="title-zone">
+            <h2 class="title">Kann jeder ein Balkonkraftwerk haben?</h2>
+            <div class="subtitle">
+                Finden Sie in 30 Sekunden heraus, ob Ihr Balkon bereit für Solarenergie ist!
+                Beantworten Sie ein paar einfache Fragen und erfahren Sie sofort, ob Sie ein
+                Balkonkraftwerk installieren können.
+            </div>
+        </div>
+
+        <div class="quiz">
+            <div class="question dropdown">
+                <label>1. Was ist Ihr Wohnungstyp?</label>
+                <div class="select option-btn">Wohnungstyp wählen</div>
+                <div class="selections">
+                    <div class="option-item">Apartment</div>
+                    <div class="option-item">Wohnblock</div>
+                    <div class="option-item">Einfamilienhaus</div>
+                    <div class="option-item">Mehrfamilienhaus </div>
+                    <div class="option-item">Reihenhaus</div>
+                    <div class="option-item">Villa</div>
+                    <div class="option-item">Sonstiges</div>
+                </div>
+            </div>
+
+            <div class="question">
+                <label>2. Verfügt Ihr Zuhause über einen Balkon?</label>
+                <div class="options">
+                    <button type="button" class="option-btn">Ja</button>
+                    <button type="button" class="option-btn">Nein</button>
+                </div>
+            </div>
+
+            <div class="question">
+                <label>3. Gibt es bei Ihnen einen Bereich mit direktem Sonnenlicht?</label>
+                <div class="options third">
+                    <button type="button" class="option-btn">Ja</button>
+                    <button type="button" class="option-btn">Nein</button>
+                </div>
+            </div>
+
+            <div class="question">
+                <label>4. Gibt es Platz für Solarmodule im Sonnenlicht?</label>
+                <div class="options">
+                    <button type="button" class="option-btn">Ja</button>
+                    <button type="button" class="option-btn">Nein</button>
+                </div>
+            </div>
+
+            <div class="question">
+                <label>5. Gibt es einen dynamischen Stromtarif in Ihrer Region?</label>
+                <div class="options">
+                    <button type="button" class="option-btn">Ja</button>
+                    <button type="button" class="option-btn">Nein</button>
+                </div>
+            </div>
+
+            <div class="question">
+                <label>6. Benötigen Sie eine Notstromversorgung oder Strom im Freien?</label>
+                <div class="options">
+                    <button type="button" class="option-btn">Ja</button>
+                    <button type="button" class="option-btn">Nein</button>
+                </div>
+            </div>
+        </div>
+        <div class="buttons">
+            <button class="submit disable">Ihr Ergebnis</button>
+        </div>
+    </div>
+    <div class="overlay" style="display: none">
+        <div class="modal yes" style="display: none">
+            <button class="close">&times;</button>
+            <div class="icon">
+                <svg width="48.000000" height="36.000000" viewBox="0 0 48 36" fill="none"
+                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <desc>
+                        Created with Pixso.
+                    </desc>
+                    <defs/>
+                    <path id="Path 13"
+                          d="M42.53 0.95C43.78 -0.32 45.81 -0.32 47.06 0.95C48.31 2.22 48.31 4.28 47.06 5.54L21.7 34.41C19.62 36.52 16.24 36.52 14.16 34.41L0.93 19.6C-0.32 18.33 -0.32 16.28 0.93 15.01C2.18 13.74 4.21 13.74 5.46 15.01L17.93 29.04L42.53 0.95Z"
+                          fill="#FFFFFF" fill-opacity="1.000000" fill-rule="nonzero"/>
+                </svg>
+            </div>
+            <div class="title">Super!</div>
+            <div class="content">Balkonkraftwerke sind für Sie geeignet. Versuchen Sie das Top-Balkonkraftwerk HomePower
+                2000 Ultra.
+            </div>
+            <a class="btn" href="https://de.jackery.com/products/jackery-homepower-2000-ultra">Alles klar</a>
+        </div>
+        <div class="modal no" style="display: none">
+            <button class="close">&times;</button>
+            <div class="icon">
+                <svg width="113.199219" height="110.400024" viewBox="0 0 113.199 110.4" fill="none"
+                     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <desc>
+                        Created with Pixso.
+                    </desc>
+                    <defs>
+                        <filter id="filter_273_356_dd" x="0.000000" y="0.000000" width="113.199219" height="110.400024"
+                                filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+                            <feColorMatrix in="SourceAlpha" type="matrix"
+                                           values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+                            <feOffset dx="0" dy="10"/>
+                            <feGaussianBlur stdDeviation="10"/>
+                            <feComposite in2="hardAlpha" operator="out" k2="-1" k3="1"/>
+                            <feColorMatrix type="matrix"
+                                           values="0 0 0 0 0.92549 0 0 0 0 0.55294 0 0 0 0 0.011765 0 0 0 1 0"/>
+                            <feBlend mode="normal" in2="BackgroundImageFix" result="effect_dropShadow_1"/>
+                            <feBlend mode="normal" in="SourceGraphic" in2="effect_dropShadow_1" result="shape"/>
+                        </filter>
+                    </defs>
+                    <g filter="url(#filter_273_356_dd)">
+                        <path id="Vector"
+                              d="M44 70.4C42.7 70.4 41.44 70 40.37 69.22C38.45 67.84 37.51 65.55 37.91 63.26L39.44 54.42C39.64 53.28 39.24 52.13 38.41 51.35L31.86 45.06C30.17 43.43 29.57 41.04 30.3 38.81C31.03 36.59 32.96 34.98 35.32 34.66L44.33 33.38C45.49 33.22 46.49 32.5 46.99 31.48L51.01 23.43C52.08 21.3 54.2 20 56.59 20C58.99 20 61.12 21.3 62.15 23.4L66.2 31.45C66.73 32.46 67.73 33.18 68.86 33.35L77.87 34.62C80.23 34.95 82.16 36.56 82.89 38.78C83.62 41.01 83.02 43.39 81.33 45.03L74.81 51.28C73.98 52.07 73.58 53.25 73.78 54.36L75.31 63.2C75.71 65.52 74.78 67.78 72.85 69.15C70.92 70.53 68.43 70.69 66.33 69.61L58.26 65.52C57.23 65 56 65 54.97 65.52L46.89 69.71C45.96 70.17 44.96 70.4 44 70.4Z"
+                              fill="#FFFFFF" fill-opacity="1.000000" fill-rule="nonzero"/>
+                    </g>
+                </svg>
+
+            </div>
+            <div class="title">Schade</div>
+            <div class="content">Leider sind Balkonkraftwerke für Sie NICHT geeignet. Aber wir haben noch weitere
+                Solarlösungen gefunden, die Ihren Bedürfnissen entsprechen könnten.
+            </div>
+            <a class="btn" href="https://de.jackery.com/collections/solar-generator">Alles klar</a>
+        </div>
+    </div>
+</div>
+
+<script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+<script type="module">
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkQuestions = () => {
+            let allAnswered = true;
+            $('.de-balcony-power-questionnaire .question').each(function () {
+                if ($(this).find('.selected').length === 0 && $(this).find('.option-btn.disable').length === 0) {
+                    allAnswered = false;
+                    return false;
+                }
+            });
+            if (allAnswered) {
+                $('.de-balcony-power-questionnaire .submit').removeClass('disable');
+            } else {
+                $('.de-balcony-power-questionnaire .submit').addClass('disable');
+            }
+        };
+        // Custom dropdown toggle
+        $('.de-balcony-power-questionnaire .select.option-btn').on('click', function (e) {
+            if ($(this).hasClass("active")) {
+                $(this).removeClass("active");
+            } else {
+                $(this).addClass("active");
+            }
+            var $selections = $(this).siblings('.selections');
+            // Close other open dropdowns
+            $('.de-balcony-power-questionnaire .selections').not($selections).slideUp(100);
+            $selections.slideToggle(100);
+        });
+        // Dropdown option click
+        $('.de-balcony-power-questionnaire .selections .option-item').on('click', function () {
+            var value = $(this).text();
+            var $question = $(this).closest('.question');
+            $question.find('.select.option-btn').text(value).addClass('selected');
+            // Highlight selected option
+            $(this).addClass('selected').siblings().removeClass('selected');
+            $question.find('.selections').slideUp(100);
+            checkQuestions();
+        });
+        // Close dropdown if clicking outside
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.de-balcony-power-questionnaire .select').length) {
+                $('.de-balcony-power-questionnaire .selections').slideUp(100);
+                $('.de-balcony-power-questionnaire .select').removeClass("active")
+            }
+        });
+        // Standard button selection for other questions
+        $('.de-balcony-power-questionnaire .question .options .option-btn').on('click', function () {
+            $(this).closest('.question').find('.options .option-btn').removeClass('selected');
+            $(this).addClass('selected');
+            if ($(this).parent().hasClass("third")) {
+                let options = $(this).parent().parent().next().find('.option-btn');
+                if ($(this).text() === 'Nein') {
+                    options.removeClass('selected');
+                    options.addClass('disable');
+                } else {
+                    options.removeClass('disable');
+                }
+            }
+            checkQuestions();
+        });
+        // Show modal on submit button click if all questions are answered
+        $('.de-balcony-power-questionnaire .submit').on('click', function () {
+            let fourthQuestionAnsweredNo = false;
+            let fifthQuestionAnsweredNo = false;
+            $('.de-balcony-power-questionnaire .question').each(function (index) {
+                const selectedAnswer = $(this).find('.selected').text();
+                if (index === 3) {
+                    if ($(this).find('.option-btn.disable').length > 0 || selectedAnswer === 'Nein') {
+                        fourthQuestionAnsweredNo = true;
+                    }
+                }
+                if (index === 4) {
+                    if (selectedAnswer === 'Nein') {
+                        fifthQuestionAnsweredNo = true;
+                    }
+                }
+            });
+            let showNoModal = fourthQuestionAnsweredNo && fifthQuestionAnsweredNo;
+            $('body').addClass('no-scroll');
+            $('.overlay').fadeIn(300);
+            if (showNoModal) {
+                $('.de-balcony-power-questionnaire .modal.yes').hide();
+                $('.de-balcony-power-questionnaire .modal.no').show();
+            } else {
+                $('.de-balcony-power-questionnaire .modal.yes').show();
+                $('.de-balcony-power-questionnaire .modal.no').hide();
+            }
+        });
+        // Close modal on close button click
+        $('.de-balcony-power-questionnaire .overlay .close').on('click', function () {
+            $('.overlay').fadeOut(300);
+            $('body').removeClass('no-scroll');
+        });
+    });
+</script>

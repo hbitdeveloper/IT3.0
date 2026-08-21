@@ -1,0 +1,387 @@
+{% comment %} 规范按钮 {% endcomment %}
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  # 判断是否登录
+  assign is_login = false
+  if customer
+    assign is_login = true
+  endif
+
+  # 判断是否展示模块
+  assign module_show_timing = block.settings.module_show_timing | default: 'default'
+  assign show_module = true
+  if module_show_timing == 'show_before_login' and is_login == true
+    assign show_module = false
+  endif
+  if module_show_timing == 'show_after_login' and is_login == false
+    assign show_module = false
+  endif
+
+  assign enable_login_popup = false
+  if module_show_timing == 'show_before_login' and block.settings.is_show_login_popup
+    assign enable_login_popup = true
+  endif
+
+  assign enable_zip_chat = false
+  if block.settings.is_show_zip_chat and enable_login_popup == false
+    assign enable_zip_chat = true
+  endif
+
+  if show_module == true
+    # 动效class
+    assign animated_class = ''
+    if block.settings.variant == 'primary' and block.settings.animated
+      assign animated_class = 'jds-animate'
+    endif
+
+    # 是否禁用hover效果
+    if block.settings.disable_on_hover
+      assign disable_on_hover_class = 'disable-on-hover'
+    else
+      assign disable_on_hover_class = ''
+    endif
+
+    # 是否展示icon图标
+    assign show_icon = false
+    if block.settings.icon != blank and animated_class != 'jds-animate'
+      assign show_icon = true
+    endif
+
+    # 判断是否为内部链接，若为外部链接需要添加noopener noreferrer
+    assign is_internal_link = false
+    assign href_downcase = block.settings.href | downcase
+    assign first_char = href_downcase | slice: 0, 1
+
+    if href_downcase contains 'jackery.com' or href_downcase contains 'jackery.jp' or href_downcase contains request.host or first_char == '/' or first_char == '#' or block.settings.href contains 'mailto:' or block.settings.href contains 'tel:'
+      assign is_internal_link = true
+    endif
+
+    assign btn_custom_style = ''
+    if block.settings.kind == 'custom'
+      if block.settings.custom_color != blank
+        assign btn_custom_style = '--jds-btn-custom-color:' | append: block.settings.custom_color | append: ';'
+      endif
+      if block.settings.custom_text_color != blank
+        assign btn_custom_style = btn_custom_style | append: '--jds-btn-primary-custom-text-color:' | append: block.settings.custom_text_color | append: ';'
+      endif
+    endif
+    if block.settings.full_width
+      assign btn_custom_style = btn_custom_style | append: '--jds-btn-display: block;'
+    endif
+  endif
+
+-%}
+
+{% if show_module == true %}
+  <jds-button
+    {{ block.shopify_attributes }}
+    class="section-padding {{ animated_class }} {{ disable_on_hover_class }}"
+    style="{{ btn_custom_style }}{{ style }}"
+    variant="{{block.settings.variant}}"
+    kind="{{block.settings.kind}}"
+    size="{{block.settings.size}}"
+    iconposition="{{ block.settings.icon_position }}"
+    interaction="{{ block.settings.interaction | default: 'default' }}"
+    label="{{ block.settings.content }}"
+    {% comment %} 非动效的按钮 展示对应icon图标 {% endcomment %}
+    {% if show_icon %}
+      icon="{{block.settings.icon}}"
+    {% endif %}
+    {%- if block.settings.href != blank and enable_login_popup == false and enable_zip_chat == false -%}
+      href="{{ block.settings.href | escape }}"
+      {%- if block.settings.target -%}
+        target="_blank"
+        {%- unless is_internal_link -%}
+          rel="noopener noreferrer"
+        {%- endunless -%}
+      {%- endif -%}
+    {%- endif -%}
+    {% if enable_login_popup == true and enable_zip_chat == false %}
+      onClick="window.Jackery.Utils.showLoginPopup('{{block.settings.register_tag | default: 'MEM-Register'}}')"
+    {% endif %}
+    {% if enable_zip_chat == true and enable_login_popup == false %}
+      onClick="(window.pageInfo && (window.pageInfo.cr === 'ES' || window.pageInfo.cr === 'EU')) ? window.Jackery.Utils.pullZipChat(event) : window.zE('messenger', 'open')"
+    {% endif %}
+    {% comment %} 实现胶囊动效按钮 箭头 {% endcomment %}
+    {% if animated_class == 'jds-animate' %}
+      icon="arrow-right-long"
+      icon-mode="capsule"
+    {% endif %}
+  >
+    {{- block.settings.content -}}
+  </jds-button>
+{% endif %}
+
+{% schema %}
+{
+  "name": "单个按钮",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "功能交互配置"
+    },
+    {
+      "type": "select",
+      "id": "module_show_timing",
+      "options": [
+        {
+          "value": "default",
+          "label": "一直展示"
+        },
+        {
+          "value": "show_before_login",
+          "label": "仅登录前展示"
+        },
+        {
+          "value": "show_after_login",
+          "label": "仅登录后展示"
+        }
+      ],
+      "label": "此版块展示时机",
+      "default": "default"
+    },
+    {
+      "type": "checkbox",
+      "id": "is_show_login_popup",
+      "label": "是否拉起免密登录",
+      "default": false,
+      "info": "仅在未登录时生效；与 AI Chat 互斥，二选一",
+      "visible_if": "{{ block.settings.module_show_timing == 'show_before_login' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "is_show_zip_chat",
+      "label": "是否拉起AI Chat",
+      "default": false,
+      "info": "与免密登录互斥；仅在“仅登录前展示”且已勾选免密登录时隐藏",
+      "visible_if": "{{ block.settings.module_show_timing != 'show_before_login' or block.settings.is_show_login_popup == false }}"
+    },
+    {
+      "type": "text",
+      "id": "register_tag",
+      "label": "注册标签",
+      "default": "MEM-Register",
+      "info": "用于标记免密登录/注册的来源",
+      "visible_if": "{{ block.settings.module_show_timing == 'show_before_login' and block.settings.is_show_login_popup == true }}"
+    },
+    {
+      "type": "header",
+      "content": "按钮配置"
+    },
+    {
+      "type": "text",
+      "id": "content",
+      "default": "实心按钮",
+      "label": "按钮文本"
+    },
+    {
+      "type": "select",
+      "id": "variant",
+      "label": "按钮变体",
+      "default": "primary",
+      "options": [
+        {
+          "value": "primary",
+          "label": "实心按钮"
+        },
+        {
+          "value": "secondary",
+          "label": "空心按钮"
+        },
+        {
+          "value": "text",
+          "label": "文本按钮"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "animated",
+      "label": "实心按钮悬浮动画",
+      "default": false,
+      "info": "仅在变体为【实心胶囊】时生效",
+      "visible_if": "{{block.settings.variant=='primary'}}"
+    },
+    {
+      "type": "select",
+      "id": "interaction",
+      "label": "实心按钮交互类型",
+      "default": "default",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "shine",
+          "label": "扫光"
+        }
+      ],
+      "info": "仅在变体为【实心胶囊】时生效",
+      "visible_if": "{{block.settings.variant=='primary'}}"
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_on_hover",
+      "label": "PC端悬浮按钮无交互",
+      "default": false,
+      "info": "特别提醒：【空心胶囊】时生效，防止配置【白色按钮】时交互异常",
+      "visible_if": "{{block.settings.variant=='secondary'}}"
+    },
+    {
+      "type": "select",
+      "id": "kind",
+      "label": "按钮颜色类型",
+      "default": "default",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "custom_color",
+      "label": "按钮颜色",
+      "default": "#fd5000",
+      "visible_if": "{{block.settings.kind=='custom'}}"
+    },
+    {
+      "type": "color",
+      "id": "custom_text_color",
+      "label": "按钮文本颜色",
+      "default": "#FFFFFF",
+      "info": "【实心胶囊】时生效",
+      "visible_if": "{{block.settings.kind=='custom' and block.settings.variant=='primary'}}"
+    },
+    {
+      "type": "select",
+      "id": "size",
+      "label": "按钮尺寸",
+      "default": "large",
+      "options": [
+        {
+          "value": "extra",
+          "label": "特大"
+        },
+        {
+          "value": "large",
+          "label": "大"
+        },
+        {
+          "value": "medium",
+          "label": "中"
+        },
+        {
+          "value": "small",
+          "label": "小"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "是否全宽按钮",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "icon",
+      "label": "按钮内图标",
+      "info": "设置图标名称，可通过 [Jackery设计系统图标库](https://design.jackery.com/icons/) 查看",
+      "visible_if": "{{block.settings.animated == false or block.settings.variant != 'primary'}}"
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "图标位置",
+      "default": "next",
+      "options": [
+        {
+          "value": "prev",
+          "label": "图标在文本前"
+        },
+        {
+          "value": "next",
+          "label": "图标在文本后"
+        }
+      ],
+      "visible_if": "{{block.settings.icon != blank and block.settings.animated == false or block.settings.variant != 'primary'}}"
+    },
+    {
+      "type": "url",
+      "id": "href",
+      "label": "链接地址"
+    },
+    {
+      "type": "checkbox",
+      "id": "target",
+      "label": "是否新标签页打开",
+      "default": false
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "单个按钮"
+    }
+  ]
+}
+{% endschema %}

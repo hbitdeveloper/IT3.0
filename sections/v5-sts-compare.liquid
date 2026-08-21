@@ -1,0 +1,289 @@
+{%- style -%}
+  .v5-sts-compare .sts-left-label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+{%- endstyle -%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="section-padding lg:w-[82.5rem] w-[21.4375rem] mx-auto v5-sts-compare"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  {{ section.shopify_attributes }}
+  style="{{style}}"
+>
+  <h2 class="lg:text-[3rem] text-[1.75rem] lg:mb-[4rem] mb-[2.5rem] font-semibold text-[rgba(0,0,0,0.9)] text-center">
+    {{ section.settings.title | escape }}
+  </h2>
+
+  <div>
+    <div class="grid lg:grid-cols-[1fr_2fr_2fr] grid-cols-[0fr_2fr_2fr] gap-0 items-end text-center">
+      <div class="w-1/5"></div>
+      <div class="flex justify-center items-center lg:w-[32.5rem] lg:h-[4.5rem] h-[3.8125rem]">
+        <span
+          class="bg-[#242F20] text-white lg:text-[1.25rem] text-[0.875rem] font-semibold w-full text-center leading-[4.5rem] line-clamp-1"
+        >
+          {{ section.settings.left_title }}
+        </span>
+      </div>
+
+      <div class="flex justify-center items-center lg:w-[32.5rem] lg:h-[4.5rem] h-[3.8125rem]">
+        <span class="lg:text-[1.25rem] font-semibold text-[#242F20] text-[0.875rem] line-clamp-1">
+          {{ section.settings.right_title }}
+        </span>
+      </div>
+    </div>
+
+    <div class="lg:mt-6 mt-[2.5rem] lg:mb-[1.5rem] grid lg:grid-cols-[1fr_2fr_2fr] grid-cols-[0fr_2fr_2fr] items-end">
+      <div></div>
+      <div class="flex justify-center">
+        {% render 'diff-end-img',
+          pc_img: section.settings.left_image,
+          mb_img: section.settings.left_image,
+          class: 'lg:w-[17rem] lg:h-[17rem] h-[10rem] w-[10rem]',
+          pc_img_width: 272,
+          mb_img_width: 160
+        %}
+      </div>
+
+      <div class="flex justify-center">
+        {% render 'diff-end-img',
+          pc_img: section.settings.right_image,
+          mb_img: section.settings.right_image,
+          class: 'lg:w-[17rem] lg:h-[17rem] h-[10rem] w-[10rem]',
+          pc_img_width: 272,
+          mb_img_width: 160
+        %}
+      </div>
+    </div>
+
+    {% for block in section.blocks %}
+      {%- if block.settings.label != blank -%}
+        <div
+          class="border-solid border-b border-[#F5F5F3] divide-y divide-[#F5F5F3] lg:text-[1.75rem] text-[0.875rem] leading-[2rem]"
+        >
+          <div class="grid lg:grid-cols-[1fr_2fr_2fr] grid-cols-[0fr_2fr_2fr] lg:py-3 py-0">
+            <div class="text-[1.25rem] text-[rgba(36,47,32,0.9)] lg:pl-[1.5rem] hidden lg:block line-clamp-1 sts-left-label">
+              {{ block.settings.label }}
+            </div>
+            <div class="text-center font-semibold text-[var(--jds-color-primary)] lg:w-auto w-[10.71875rem] line-clamp-1">
+              <div class="top pl-[1rem] text-left lg:hidden text-[rgba(36,47,32,0.9)] text-[0.875rem] w-[20rem] line-clamp-1">
+                {{ block.settings.label }}
+              </div>
+              {{ block.settings.left_value }}
+            </div>
+            <div class="text-center font-semibold text-[#242F20] lg:w-auto w-[10.71875rem] line-clamp-1">
+              <div class="top pl-[1rem] text-left invisible lg:hidden leading-1 line-clamp-1">
+                {{ block.settings.right_value }}
+              </div>
+              {{ block.settings.right_value }}
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "V5-配件对比",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 40,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 80,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    { "type": "text", "id": "title", "label": "主标题", "default": "STS vs Manual Transfer Switch" },
+    { "type": "text", "id": "left_title", "label": "左侧标题", "default": "Smart Transfer Switch" },
+    { "type": "image_picker", "id": "left_image", "label": "左侧图片", "info":"推荐图片尺寸: 272x272" },
+    { "type": "text", "id": "right_title", "label": "右侧标题", "default": "Manual Transfer Switch" },
+    { "type": "image_picker", "id": "right_image", "label": "右侧图片", "info":"推荐图片尺寸: 272x272" }
+  ],
+  "blocks": [
+    {
+      "type": "spec",
+      "name": "规格行",
+      "settings": [
+        { "type": "text", "id": "label", "label": "规格名", "default": "Grid Input" },
+        { "type": "text", "id": "left_value", "label": "左侧值", "default": "100A" },
+        { "type": "text", "id": "right_value", "label": "右侧值", "default": "30A" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-配件对比",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "spec",
+          "settings": {
+            "label": "Grid Input",
+            "left_value": "100A",
+            "right_value": "30A"
+          }
+        },
+        {
+          "type": "spec",
+          "settings": {
+            "label": "Maximum Output Power",
+            "left_value": "14.4kW",
+            "right_value": "7.5kW"
+          }
+        },
+        {
+          "type": "spec",
+          "settings": {
+            "label": "Switch Over Time",
+            "left_value": "UPS<20ms",
+            "right_value": "Manual Switch-over"
+          }
+        },
+        {
+          "type": "spec",
+          "settings": {
+            "label": "Rooftop RV",
+            "left_value": "Supported",
+            "right_value": "Not Supported"
+          }
+        },
+        {
+          "type": "spec",
+          "settings": {
+            "label": "App",
+            "left_value": "Supported",
+            "right_value": "Not Supported"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

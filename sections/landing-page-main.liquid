@@ -1,0 +1,103 @@
+{% comment %} 自定义活动落地页 {% endcomment %}
+<div class="landing-main-container">
+    <div class="landing--content_item">
+        {%- for block in section.blocks -%}
+            {%- case block.type -%}
+                {%- when 'landing_pic' -%}
+                    {%- render "landing-image", schema_settings: block.settings -%}
+                {%- when 'landing_products' -%}
+                    {%- assign p_cates = shop.metaobjects.landing_product_block[block.settings.handle] -%}
+                    {%- render "landing-product", p_cates: p_cates, schema_settings: block.settings -%}
+                {%- endcase -%}
+        {%- endfor -%}
+    </div>
+</div>
+
+{% schema %}
+    {
+        "name": "landing page main",
+        "tag": "section",
+        "class": "section section-custom-landing-main",
+        "settings": [
+         ],
+        "blocks": [
+            {
+                "type": "@app"
+            },
+            {
+                "type": "landing_pic",
+                "name": "图片",
+                "limit": 10,
+                "settings": [
+                    { "type": "text",  "id": "anchor", "label": "锚点定位" },
+                    { "type": "checkbox", "id": "full_width", "label": "是否全屏", "default": false },
+                    { "type": "range", "id": "pic_radius", "min": 0, "max": 40, "step": 4, "unit": "px", "label": "图片圆角", "default": 12 },
+                    { "type": "image_picker", "id": "pc_img", "label": "PC Image" },
+                    { "type": "image_picker", "id": "mb_img", "label": "Mobile Image" },
+                    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "px", "label": "顶部填充", "default": 120 },
+                    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "px", "label": "底部填充", "default": 120 },
+                    { "type": "range", "id": "padding_content", "min": 0, "max": 48, "step": 4, "unit": "px", "label": "标题内容填充", "default": 24 },
+                    {"type": "textarea", "id": "title", "label": "Heading"},
+                    { "type": "url", "id": "img_link", "label": "跳转URL" },
+                    {
+                        "type": "color_scheme",
+                        "id": "color_scheme",
+                        "label": "配色方案",
+                        "default": "jcolor-1"
+                    }
+                ]
+            },
+            {
+                "type": "landing_products",
+                "name": "产品", 
+                "limit": 10,
+                "settings": [
+                    { "type": "text",  "id": "anchor", "label": "锚点定位" },
+                    { "type": "text", "id": "handle", "label": "菜单Handle", "default": "landing_block_prods", "info": "元字段" },
+                    {"type": "checkbox", "id": "mb_colums_2", "label": "移动端两列显示？", "default": false, "info": "关闭则单列显示"},
+                    { "type": "range", "id": "columns_desktop", "min": 2, "max": 4, "step": 1, "default": 4, "label": "PC端产品显示列数" },
+                    { "type": "range", "id": "columns_gap", "min": 8, "max": 48, "step": 4, "default": 24, "label": "PC端产品卡片之间间隙" },
+                    { "type": "range", "id": "padding_top", "min": 0, "max": 150, "step": 10, "unit": "px", "label": "顶部填充", "default": 120 },
+                    { "type": "range", "id": "padding_bottom", "min": 0, "max": 150, "step": 10, "unit": "px", "label": "底部填充", "default": 120 },
+                    { "type": "color_scheme", "id": "color_scheme", "label": "模块配色方案", "default": "jcolor-1" },
+                    { "type": "text",  "id": "add_to_cart", "label": "按钮-加入购物车" },
+                    { "type": "text",  "id": "shop_now", "label": "按钮-商品详情" },
+                    { "type": "text",  "id": "buy_now", "label": "按钮-立即购买" },
+                    { "type": "text",  "id": "remind_me", "label": "按钮-售卖提醒" },
+                    { "type": "text",  "id": "all_txt", "label": "Tab标签-ALL配置" },
+                    { "type": "range", "id": "btns_font_size", "min": 12, "max": 18, "step": 1, "default": 14, "label": "按钮字号设置" },
+                    {"type": "checkbox", "id": "show_progress", "label": "是否显示售卖进度条", "default": false, "info": "关闭则所有产品卡片不显示"},
+                    {"type": "checkbox", "id": "link_blank", "label": "按钮点击默认行为（新开标签？？？）", "default": false},
+                    {
+                        "type": "select",
+                        "id": "cards_style",
+                        "options": [
+                            {
+                                "value": "cards_style_1",
+                                "label": "样式一（US）"
+                            },
+                            {
+                                "value": "cards_style_2",
+                                "label": "样式二（JP）"
+                            }
+                        ],
+                        "default": "cards_style_1",
+                        "label": "卡片样式"
+                    },
+                    {"type": "checkbox", "id": "show_tabs", "label": "是否显示Tab分类", "default": true, "info": "关闭则不显示Tab分类，并且只默认显示选中菜单的第一个产品分类"},
+                    { "type": "text", "id": "remind_title", "label": "开售提醒弹窗-标题" },
+                    { "type": "text", "id": "remind_des", "label": "开售提醒弹窗-描述" },
+                    { "type": "text", "id": "remind_email_place", "label": "开售提醒弹窗-邮件输入框label" },
+                    { "type": "text", "id": "remind_email_error", "label": "开售提醒弹窗-邮件输入框格式错误" },
+                    { "type": "text", "id": "remind_email_empty", "label": "开售提醒弹窗-邮件输入框未填错误" },
+                    { "type": "richtext", "id": "remind_policy", "label": "开售提醒弹窗-隐私政策" },
+                    { "type": "text", "id": "remind_policy_error", "label": "开售提醒弹窗-隐私政策勾选错误" },
+                    { "type": "text", "id": "remind_submit", "label": "开售提醒弹窗-提交按钮文案" },
+                    { "type": "text", "id": "remind_tag", "label": "开售提醒弹窗-订阅来源" },
+                    { "type": "text", "id": "remind_success_tip", "label": "开售提醒弹窗-订阅成功后提醒文案", "default": "SUCCESS" },
+                    { "type": "text", "id": "remind_error_tip", "label": "开售提醒弹窗-订阅失败后提醒文案", "default": "FAILED" }
+                ]
+            }
+        ]
+    }
+{% endschema %}

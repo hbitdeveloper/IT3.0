@@ -1,0 +1,178 @@
+<style>
+  .section-step-grid {
+      --color-step-grid-main: rgba(36, 47, 32, 1);
+  }
+  .section-step-grid-main-bg {
+      background: var(--color-step-grid-main);
+  }
+  .section-step-grid-main-text {
+      color: var(--color-step-grid-main);
+  }
+
+  .step-grid-item:not(:first-child)::after {
+      content: '';
+      position: absolute;
+      width: 2.5rem;
+      height: 1px;
+      background: rgba(198, 199, 200, 1);
+      top: 50%;
+      right: 100%;
+  }
+  @media (max-width: 1024px) {
+      .step-grid-item {
+          width: 14.375rem;
+          flex-shrink: 0;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+      }
+      .step-grid-item:not(:first-child)::after {
+          width: 1.5rem;
+      }
+      .collection-list-v5-scroll {overflow-x: auto;-webkit-overflow-scrolling: touch;scroll-snap-type: x mandatory;scroll-behavior: smooth;overscroll-behavior-x: contain;touch-action: pan-x;-ms-overflow-style: none;scrollbar-width: none;}
+      .collection-list-v5-scroll::-webkit-scrollbar { display: none; }
+  }
+</style>
+
+<div
+class="lg:pt-24 pt-16 pb-16"
+style="background: {{section.settings.bg_color | default: 'rgba(245, 245, 243, 1)' }};"
+>
+<div class="{{section.settings.page_width}}">
+  {%- if section.settings.heading != blank -%}
+    <h2 class="font-extrabold lg:text-7xl text-4xl text-center lg:mb-16 mb-8 v5-font-oxm">
+      {{ section.settings.heading | replace: '\n', '<br>' | strip }}
+    </h2>
+  {%- endif -%}
+
+  <div class="lg:grid flex grid-cols-5 gap-6 lg:gap-10 snap-x collection-list-v5-scroll">
+      {% assign block_size = section.blocks.size | default: 1 %}
+      {% assign sizes = 100 | divided_by: block_size | append: 'vw' %}
+      {%- for block in section.blocks -%}
+          {%- assign placeholder_image_index = forloop.index0 | modulo: 4 | plus: 1 -%}
+          {%- assign placeholder_image = 'collection-apparel-' | append: placeholder_image_index -%}
+          <div class="step-grid-item flex flex-col p-4 gap-y-6 bg-white relative">
+              <div class="flex-1 flex flex-col lg:gap-y-4 gap-y-3">
+                {%- if block.settings.tag != blank -%}
+                  <div class="section-step-grid-main-bg inline-block font-semibold lg:text-base text-xs text-white px-2 py-1 w-fit">{{ block.settings.tag }}</div>
+                {%- endif -%}
+
+                {%- if block.settings.heading != blank -%}
+                  <div class="font-semibold lg:text-base text-sm section-step-grid-main-text">{{ block.settings.heading }}</div>
+                {%- endif -%}
+
+                {%- if block.settings.subheading != blank -%}
+                  <div class="font-normal lg:text-sm text-xs section-step-grid-main-text">
+                    {{ block.settings.subheading }}
+                  </div>
+                {%- endif -%}
+
+              </div>
+              <div class="w-full h-36 overflow-hidden">
+                {%- if block.settings.img != blank -%}
+                  {{
+                    block.settings.img
+                    | image_url: width: 2400
+                    | image_tag:
+                      widths: '200, 250, 350, 500, 800, 1200, 2400',
+                      sizes: sizes,
+                      class: 'w-full h-full object-cover transition-transform duration-300 hover:scale-110'
+                  }}
+                {%- else -%}
+                  {{ placeholder_image | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover transition-transform duration-300 hover:scale-110' }}
+                {%- endif -%}
+              </div>
+          </div>
+      {%- endfor -%}
+  </div>
+</div>
+</div>
+{% schema %}
+{
+"name": "Step grid",
+"class": "section section-step-grid",
+"tag": "section",
+"disabled_on": {
+  "groups": ["header", "footer"]
+},
+"settings": [
+  {
+    "type": "select",
+    "id": "page_width",
+    "options": [
+      {
+        "value": "section-container",
+        "label": "版心/1200px"
+      },
+      {
+        "value": "section-container-lg",
+        "label": "大版心/1312px"
+      },
+      {
+        "value": "w-full",
+        "label": "铺满/100%"
+      }
+    ],
+    "default": "section-container-lg",
+    "label": "PC的组件宽度",
+    "info": "MB端组件宽度固定和设计稿一致，不可修改"
+  },
+  {
+    "type": "inline_richtext",
+    "id": "heading",
+    "label": "大标题",
+    "default": "Service & Support",
+    "info": "需要换行，请使用 \\n "
+  },
+  { "type": "color_background", "id": "bg_color", "label": "背景颜色" }
+],
+"blocks": [
+  {
+    "type": "step",
+    "name": "步骤卡片",
+    "settings": [
+      {
+        "type": "text",
+        "id": "tag",
+        "label": "步骤标签",
+        "default": "Step 1"
+      },
+      {
+        "type": "text",
+        "id": "heading",
+        "label": "标题",
+        "default": "Custom Design Lorem ipsum dolor sit amet c"
+      },
+      {
+        "type": "text",
+        "id": "subheading",
+        "label": "描述",
+        "default": "Professional on-site evaluation and Lorem ipsum dolor sit amet measurement."
+      },
+      { "type": "image_picker", "id": "img", "label": "图片" },
+    ]
+  }
+],
+"presets": [
+  {
+    "name": "Step grid",
+    "blocks": [
+      {
+        "type": "step"
+      },
+      {
+        "type": "step"
+      },
+      {
+        "type": "step"
+      },
+      {
+        "type": "step"
+      },
+      {
+        "type": "step"
+      }
+    ]
+  }
+]
+}
+{% endschema %}

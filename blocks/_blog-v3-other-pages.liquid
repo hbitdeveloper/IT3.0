@@ -1,0 +1,302 @@
+{% style %}
+  html[lang='ja'] .blog-v3-other-pages jds-button::part(button) {
+    font-weight: 600;
+  }
+{% endstyle %}
+{%- liquid
+  if block.settings.display_num == 'three'
+    assign loop_count = 3
+    assign image_width = 686
+    assign grid_class = 'grid-cols-1 gap-y-6'
+    assign image_class = 'mb-[0.75rem] lg:mb-3 aspect-[225/150] rounded-xl lg:rounded-lg'
+    assign title_class = ''
+  else
+    assign loop_count = 4
+    assign image_width = 331
+    assign grid_class = 'grid-cols-2 gap-y-8 gap-x-3'
+    assign image_class = 'mb-[0.5rem] lg:mb-3 aspect-[166/124] rounded'
+    assign title_class = 'font-medium line-clamp-3'
+  endif
+-%}
+
+<div
+  class="blog-v3-other-pages w-full mb-12 lg:mb-16 text-center"
+  {{ block.shopify_attributes }}
+  anchor-target="{{ block.settings.anchor | escape }}"
+  data-block-type="_blog-v3-other-pages"
+>
+  {%- if block.settings.h2_title != blank -%}
+    <h2 class="blog-v3-h2 font-medium w-full mb-3 lg:mb-4 text-left">
+      {{ block.settings.h2_title | escape_once }}
+    </h2>
+  {%- endif -%}
+
+  <div class="grid {{ grid_class }} lg:gap-y-0 lg:gap-x-3 lg:grid-cols-{{ loop_count }} text-left">
+    {% for i in (1..loop_count) %}
+      {% assign image_key = 'page_image_' | append: i %}
+      {% assign title_key = 'page_title_' | append: i %}
+      {% assign url_key = 'page_url_' | append: i %}
+
+      {% assign image = block.settings[image_key] %}
+      {% assign title = block.settings[title_key] %}
+      {% assign url = block.settings[url_key] %}
+
+      {% if image != blank or title != blank %}
+        {% if block.settings.display_num == 'three' and i == 4 %}
+          {% continue %}
+        {% endif %}
+        <a
+          href="{{ url }}"
+          {% if settings.article_new_blank %}
+            target="_blank"
+          {% endif %}
+          class="block"
+        >
+          <div
+            class="relative overflow-hidden {{ image_class }}"
+            data-ga-event="blogs_collection_user_clicks"
+            data-ga-action="click"
+            data-ga-params-module="{{ block.settings.h2_title | escape_once }}"
+            data-ga-params-position="{{ title | escape_once }}"
+            data-ga-params-button_name="ImageLink"
+            {%- if url != blank -%}
+              data-ga-params-link="{{ request.origin | append: url }}"
+            {%- endif -%}
+          >
+            {%- if image != blank -%}
+              {{
+                image
+                | image_url: width: image_width
+                | image_tag: loading: 'lazy', class: 'w-full h-full object-cover'
+              }}
+            {%- else -%}
+              {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full object-cover' }}
+            {%- endif -%}
+          </div>
+          <h3
+            class="jds-b1 {{ title_class }}"
+            style="--jds-rte-text-color: var(--jds-color-text-l1);"
+            data-ga-event="blogs_collection_user_clicks"
+            data-ga-action="click"
+            data-ga-params-module="{{ block.settings.h2_title | escape_once }}"
+            data-ga-params-position="{{ title | escape_once }}"
+            data-ga-params-button_name="TitleLink"
+            {%- if url != blank -%}
+              data-ga-params-link="{{ request.origin | append: url }}"
+            {%- endif -%}
+          >
+            {{ title | escape_once }}
+          </h3>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {%- if block.settings.view_more_text != blank -%}
+    <jds-button
+      class="mt-8 lg:mt-10"
+      kind="custom"
+      href="{{ block.settings.view_more_url }}"
+      {% if settings.article_new_blank %}
+        target="_blank"
+      {% endif %}
+      style="
+        --jds-btn-custom-color: var(--jds-color-primary)0A;
+        --jds-btn-primary-custom-text-color: var(--jds-color-primary);
+      "
+      data-ga-event="blogs_collection_user_clicks"
+      data-ga-action="click"
+      data-ga-params-module="{{ block.settings.h2_title | escape_once }}"
+      data-ga-params-position="ViewAll"
+      data-ga-params-button_name="{{ block.settings.view_more_text | escape_once }}"
+      {%- if block.settings.view_more_url != blank -%}
+        data-ga-params-link="{{ request.origin | append: block.settings.view_more_url }}"
+      {%- endif -%}
+    >
+      {{ block.settings.view_more_text | escape_once }}
+    </jds-button>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "V3博客-其他SEO页面入口",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)",
+      "default": "otherPages"
+    },
+    {
+      "type": "textarea",
+      "id": "h2_title",
+      "label": "H2标题",
+      "default": "Explore More Topics"
+    },
+    {
+      "type": "select",
+      "id": "display_num",
+      "label": "显示数量",
+      "options": [
+        {
+          "value": "three",
+          "label": "三个"
+        },
+        {
+          "value": "four",
+          "label": "四个"
+        }
+      ],
+      "default": "three"
+    },
+    {
+      "type": "paragraph",
+      "content": "说明：三张图片时推荐尺寸：225*150/686*457;四张图片推荐尺寸：166*124/331*247"
+    },
+    {
+      "type": "header",
+      "content": "页面一"
+    },
+    {
+      "type": "image_picker",
+      "id": "page_image_1",
+      "label": "图片"
+    },
+    {
+      "type": "paragraph",
+      "content": "图片推荐尺寸：225*150/686*457",
+      "visible_if": "{{ block.settings.display_num == 'three' }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "图片推荐尺寸：166*124/331*247",
+      "visible_if": "{{ block.settings.display_num == 'four' }}"
+    },
+    {
+      "type": "text",
+      "id": "page_title_1",
+      "label": "标题",
+      "default": "Page Title 1"
+    },
+    {
+      "type": "url",
+      "id": "page_url_1",
+      "label": "链接"
+    },
+    {
+      "type": "header",
+      "content": "页面二"
+    },
+    {
+      "type": "image_picker",
+      "id": "page_image_2",
+      "label": "图片"
+    },
+    {
+      "type": "paragraph",
+      "content": "图片推荐尺寸：225*150/686*457",
+      "visible_if": "{{ block.settings.display_num == 'three' }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "图片推荐尺寸：166*124/331*247",
+      "visible_if": "{{ block.settings.display_num == 'four' }}"
+    },
+    {
+      "type": "text",
+      "id": "page_title_2",
+      "label": "标题",
+      "default": "Page Title 2"
+    },
+    {
+      "type": "url",
+      "id": "page_url_2",
+      "label": "链接"
+    },
+    {
+      "type": "header",
+      "content": "页面三"
+    },
+    {
+      "type": "image_picker",
+      "id": "page_image_3",
+      "label": "图片"
+    },
+    {
+      "type": "paragraph",
+      "content": "图片推荐尺寸：225*150/686*457",
+      "visible_if": "{{ block.settings.display_num == 'three' }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "图片推荐尺寸：166*124/331*247",
+      "visible_if": "{{ block.settings.display_num == 'four' }}"
+    },
+    {
+      "type": "text",
+      "id": "page_title_3",
+      "label": "标题",
+      "default": "Page Title 3"
+    },
+    {
+      "type": "url",
+      "id": "page_url_3",
+      "label": "链接"
+    },
+    {
+      "type": "header",
+      "content": "页面四"
+    },
+    {
+      "type": "image_picker",
+      "id": "page_image_4",
+      "label": "图片"
+    },
+    {
+      "type": "paragraph",
+      "content": "图片推荐尺寸：225*150/686*457",
+      "visible_if": "{{ block.settings.display_num == 'three' }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "图片推荐尺寸：166*124/331*247",
+      "visible_if": "{{ block.settings.display_num == 'four' }}"
+    },
+    {
+      "type": "text",
+      "id": "page_title_4",
+      "label": "标题",
+      "default": "Page Title 4"
+    },
+    {
+      "type": "url",
+      "id": "page_url_4",
+      "label": "链接"
+    },
+    {
+      "type": "header",
+      "content": "查看更多按钮"
+    },
+    {
+      "type": "text",
+      "id": "view_more_text",
+      "label": "文案",
+      "default": "VIEW MORE",
+      "info": "文案不配置时，不显示按钮"
+    },
+    {
+      "type": "url",
+      "id": "view_more_url",
+      "label": "超链接"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V3博客-其他SEO页面入口",
+      "category": "Blog-V3"
+    }
+  ]
+}
+{% endschema %}

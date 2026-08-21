@@ -1,0 +1,361 @@
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+  {% render 'size-radius', settings: block.settings %}
+{%- endcapture -%}
+
+{% liquid
+    assign pc_width = "auto"
+    assign mb_width = "auto"
+    if block.settings.custom_width
+        if block.settings.pc_width > 0
+            assign pc_width = block.settings.pc_width | divided_by: 16.0 | append: 'rem'
+        endif
+        if block.settings.mb_width > 0
+            assign mb_width = block.settings.mb_width | divided_by: 32.0 | append: 'rem'
+        endif
+    endif
+
+    assign pc_height = "auto"
+    assign mb_height = "auto"
+    if block.settings.custom_height
+        if block.settings.pc_height > 0
+            assign pc_height = block.settings.pc_height | divided_by: 16.0 | append: 'rem'
+        endif
+        if block.settings.mb_height > 0
+            assign mb_height = block.settings.mb_height | divided_by: 32.0 | append: 'rem'
+        endif
+    endif
+%}
+
+<div {{ block.shopify_attributes }} class="v-block-container swiper-slide section-padding blocks-radius bg-[var(--bg-color)] w-[var(--mb-width)] lg:w-[var(--pc-width)] h-[var(--mb-height)] lg:h-[var(--pc-height)]" style="--justify-content: {{ block.settings.justify_content }}; --bg-color: {{ block.settings.bg_color }};--pc-width: {{ pc_width }}; --mb-width: {{ mb_width }}; --pc-height: {{ pc_height }}; --mb-height: {{ mb_height }}; {{ style }} ">
+    {% content_for 'blocks' %}
+</div>
+
+{% schema %}
+{
+  "name": "V-Block容器",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "@theme"
+    }
+  ],
+  "settings": [
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "背景颜色"
+    },
+    {
+      "type": "select",
+      "id": "justify_content",
+      "label": "内容显示位置",
+      "default": "flex-start",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "flex-start",
+          "label": "上"
+        },
+        {
+          "value": "center",
+          "label": "中"
+        },
+        {
+          "value": "flex-end",
+          "label": "下"
+        }
+      ]
+    },
+
+    {
+      "type": "checkbox",
+      "id": "custom_width",
+      "label": "自定义容器宽度",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "pc_width",
+      "label": "PC宽度",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.custom_width == true }}",
+      "default": -1
+    },
+    {
+      "type": "number",
+      "id": "mb_width",
+      "label": "MB宽度",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.custom_width == true }}",
+      "default": -1
+    },
+
+    {
+      "type": "checkbox",
+      "id": "custom_height",
+      "label": "自定义容器高度",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "pc_height",
+      "label": "PC高度",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.custom_height == true }}",
+      "default": -1
+    },
+    {
+      "type": "number",
+      "id": "mb_height",
+      "label": "MB高度",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.custom_height == true }}",
+      "default": -1
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "PC边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "MB边距"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "PC圆角"
+    },
+    {
+      "type": "range",
+      "id": "radius_1",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_2",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_3",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_4",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "MB圆角"
+    },
+    {
+      "type": "select",
+      "id": "mb_radius_type",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB圆角"
+    },
+    {
+      "type": "range",
+      "id": "radius_mb_1",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_radius_type == 'custom' }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "radius_mb_2",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_radius_type == 'custom' }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "radius_mb_3",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_radius_type == 'custom' }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "radius_mb_4",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_radius_type == 'custom' }}",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-Block容器",
+      "category": "Basic"
+    }
+  ]
+}
+{% endschema %}

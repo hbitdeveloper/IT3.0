@@ -1,0 +1,28 @@
+{%- comment -%}
+  为标准内边距配置生成对应的css样式变量
+
+  <div class="section-padding" style="{%  render 'spacing-padding', settings: section.settings %}">
+
+   Accepts: 
+      settings: {block.settings || section.settings}
+{%- endcomment -%}
+
+{%- liquid
+  assign block_start = settings.padding_top | default: 0
+  assign block_end = settings.padding_bottom | default: 0
+  assign inline_start = settings.padding_x | default: settings.padding_left | default: 0
+  assign inline_end = settings.padding_x | default: settings.padding_right | default: 0
+-%}
+
+{%- capture variables -%}
+    --section-padding-top: {{block_start}};--section-padding-bottom: {{block_end}};--section-padding-right: {{inline_end}};--section-padding-left: {{inline_start}};
+{%- endcapture -%}
+
+{% if settings.mb_padding_type == "custom" %}
+    {%- capture mb_variables -%}
+        --section-padding-top-mb: {{settings.padding_top_mb | default: 0 }};--section-padding-bottom-mb: {{settings.padding_bottom_mb | default: 0 }};--section-padding-right-mb: {{settings.padding_right_mb | default: 0 }};--section-padding-left-mb: {{settings.padding_left_mb | default: 0 }};
+    {%- endcapture -%}
+    {% assign variables = variables | append: mb_variables %}
+{% endif %}
+
+{{- variables | strip | strip_newlines -}}

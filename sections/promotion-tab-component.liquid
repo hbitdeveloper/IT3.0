@@ -1,0 +1,184 @@
+{% comment %} 产品宣传页签组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Promotion Tab Component",
+  "tag": "section",
+  "class": "promotion-tab-component layer-container section-container",
+  "blocks": [
+    {
+      "name": "Tab Card",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tabTitle",
+          "label": "Tab Title"
+        },
+        {
+          "type": "image_picker",
+          "id": "pcCardImg",
+          "label": "PC Card Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbCardImg",
+          "label": "Mobile Card Image"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<ul class="tab-title-list">
+  {% for block in section.blocks %}
+    {% if forloop.first %}
+      {% assign activeClass = 'active' %}
+    {% else %}
+      {% assign activeClass = '' %}
+    {% endif %}
+    <li class="{{ activeClass }}" data-name="{{ block.settings.tabTitle }}">{{ block.settings.tabTitle }}</li>
+  {% endfor %}
+</ul>
+<ul class="tab-img-list">
+  {% for block in section.blocks %}
+    {% if forloop.first %}
+      {% assign activeClass = 'active' %}
+    {% else %}
+      {% assign activeClass = '' %}
+    {% endif %}
+    <li class="{{ activeClass }}" data-name="{{ block.settings.tabTitle }}">
+      <img
+          class="pc-img"
+          src="{{block.settings.pcCardImg | image_url: width: 1920 }}"
+          alt="{{block.settings.pcCardImg.alt | escape}}" loading="lazy"
+      >
+      <img
+          class="mb-img"
+          src="{{block.settings.mbCardImg | image_url: width: 1024 }}"
+          alt="{{block.settings.mbCardImg.alt | escape}}" loading="lazy"
+      >
+    </li>
+  {% endfor %}
+</ul>
+
+<script defer>
+  (function () {
+    let promotionTab = {
+      selector: document.querySelector('.promotion-tab-component'),
+      tabTitle: document.querySelectorAll('.promotion-tab-component .tab-title-list li'),
+      init: function () {
+        this.componentInteraction();
+      },
+      // 交互
+      componentInteraction: function () {
+        this.tabTitle.forEach((tab) => {
+          tab.addEventListener('click', function () {
+            const name = this.getAttribute('data-name');
+            const titleSiblings = this.parentElement?.children || [];
+            Array.from(titleSiblings).forEach((item) => item.classList.remove('active'));
+            this.classList.add('active');
+
+            document.querySelectorAll(`.promotion-tab-component .tab-img-list li[data-name="${name}"]`).forEach((imgItem) => {
+              const imgSiblings = imgItem.parentElement?.children || [];
+              Array.from(imgSiblings).forEach((item) => item.classList.remove('active'));
+              imgItem.classList.add('active');
+            });
+          });
+        });
+      },
+    };
+
+    const initPromotionTab = () => {
+      if (promotionTab.selector) {
+        promotionTab.init();
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPromotionTab, { once: true });
+    } else {
+      initPromotionTab();
+    }
+  })();
+</script>
+<style>
+  .promotion-tab-component {
+    text-align: center;
+  }
+  .promotion-tab-component .tab-title-list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .promotion-tab-component .tab-title-list li {
+    position: relative;
+    font-weight: 400;
+    color: #000000;
+    cursor: pointer;
+  }
+  .promotion-tab-component .tab-title-list li:last-child {
+    margin-right: 0;
+  }
+  .promotion-tab-component .tab-title-list li.active,
+  .promotion-tab-component .tab-title-list li:hover {
+    font-weight: 600;
+  }
+  .promotion-tab-component .tab-title-list li:hover::after,
+  .promotion-tab-component .tab-title-list li.active::after {
+    content: ' ';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background-color: #ff4d00;
+  }
+  .promotion-tab-component .tab-img-list li {
+    display: none;
+  }
+  .promotion-tab-component .tab-img-list li.active {
+    display: block;
+  }
+  .promotion-tab-component .tab-img-list li img{
+    display: none;
+    margin: 0 auto;
+    width: 100%;
+  }
+  @media screen and (min-width: 1024px) {
+    .promotion-tab-component {
+      padding-top: 4.1667vw;
+      padding-bottom: 4.1667vw;
+    }
+    .promotion-tab-component .tab-title-list {
+      margin-bottom: 2.0833vw;
+    }
+    .promotion-tab-component .tab-title-list li {
+      margin-right: 3.125vw;
+      min-width: 4.6875vw;
+      font-size: 1.1458vw;
+      line-height: 1.77;
+    }
+    .promotion-tab-component .tab-img-list li img.pc-img{
+      display: block;
+    }
+  }
+  @media screen and (max-width: 1023px) {
+    .promotion-tab-component {
+      padding-top: 10.6667vw;
+      padding-bottom: 10.6667vw;
+    }
+    .promotion-tab-component .tab-title-list {
+      margin-bottom: 8vw;
+    }
+    .promotion-tab-component .tab-title-list li {
+      margin-right: 5.3333vw;
+      min-width: 14.6667vw;
+      font-size: 3.7333vw;
+      line-height: 1.39;
+    }
+    .promotion-tab-component .tab-img-list li img.mb-img{
+      display: block;
+    }
+  }
+</style>

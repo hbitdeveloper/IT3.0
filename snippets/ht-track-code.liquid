@@ -1,0 +1,168 @@
+{% comment %} AWIN 2023/6/8  {% endcomment %}
+<script type="text/javascript">
+        var iCookieLength = 30; // Cookie length in days
+        var sCookieName = "aw_source"; // Name of the first party cookie to utilise for last click referrer de-duplication
+        var sSourceParameterName = "utm_source"; // This is the name of the parameter used by your organisation that identifies the source of traffic that drove the user click. Please update this value accordingly
+        var _getQueryStringValue = function (sParameterName) {
+            var aQueryStringPairs = document.location.search.substring(1).split("&");
+            for (var i = 0; i < aQueryStringPairs.length; i++) {
+                var aQueryStringParts = aQueryStringPairs[i].split("=");
+                if (sParameterName.toLowerCase() == aQueryStringParts[0].toLowerCase()) {
+                    return decodeURIComponent(aQueryStringParts[1]).replace(/[^A-Z0-9]+/ig, "");
+                }
+            }
+        };
+        var _setCookie = function (sCookieName, sCookieContents, iCookieLength) {
+            var dCookieExpires = new Date();
+            dCookieExpires.setTime(dCookieExpires.getTime() + (iCookieLength * 24 * 60 * 60 * 1000));
+            document.cookie = sCookieName + "=" + sCookieContents + "; expires=" + dCookieExpires.toGMTString() + "; path=/;";
+        };
+        if (_getQueryStringValue(sSourceParameterName)) {
+            _setCookie(sCookieName, _getQueryStringValue(sSourceParameterName), iCookieLength);
+        }
+
+        if (document.cookie.indexOf("aw_source=") < 0){
+            _setCookie(sCookieName, "direct", iCookieLength);
+        }
+</script>
+<script src=" https://www.dwin1.com/30413.js"type="text/javascript" defer="defer"></script>
+{% comment %} AWIN END  {% endcomment %}
+<!-- Twitter conversion tracking base code -->
+<script>
+!function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
+},s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',
+a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
+twq('config','oe8bu');
+</script>
+<!-- End Twitter conversion tracking base code -->
+
+<script>
+  (function () {
+    function getParam(variable) {
+      function nonstandard() {
+        var v = location.href.split("&");
+        v.splice(0, 1);
+        return v
+      }
+      var query = window.location.search.substring(1), vars = query ? query.split("&") : nonstandard();
+      for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] === variable) { return decodeURI(pair[1]) }
+      }
+      return false
+    }
+    const currentVariant = function () {
+      let v = null, vid = getParam("variant");
+      if (vid) {
+        v = meta.product.variants.find(item => item.id === +vid)
+      } else {
+        v = meta.product.variants[0]
+      }
+      return v
+    }
+    const setup_init_code = function (ev) {
+      window.removeEventListener('load', setup_init_code);
+      // GTM GA4 Ecommerce [ view_item, add_to_cart, begin_checkout ]
+      const CURRENCY = '{{shop.currency}}';
+      // view product
+      if (location.pathname.startsWith('/products/') === true || location.pathname.startsWith('/collections/') === true) {
+        // Twitter product view
+        twq('event', 'tw-oe8bu-oe8by', {
+          value: parseInt('{{product.selected_or_first_available_variant.price}}'.replace(/[^0-9\.]+/g, '')) / 100, // use this to pass the value of the conversion (e.g. 5.00)
+          currency: CURRENCY // use this to pass the currency of the conversion with an ISO 4217 code (e.g. ‘USD’)
+        });
+      }
+      const cartItems_additional = [];
+      // add to cart (product view)
+      document.querySelectorAll('[name=add], #addtocart_button, .ProductForm__AddToCart, #sticky_addToCart, .lb-upsell-tot-btn').forEach(function (x) {
+        x.addEventListener('click', function (e) {
+          let _variant = currentVariant();
+
+          let item = {
+            item_id: "{{product.id}}",
+            item_name: "{{product.title | escape}}",
+            price: _variant.price / 100,
+            quantity: document.querySelector('input[name=quantity]')?.value ?? 1,
+            item_category: "{{product.selected_or_first_available_variant.sku | escape}}"
+          };
+
+          cartItems_additional.push(item);
+          // Twitter add to cart
+          twq('event', 'tw-oe8bu-oe8c1', {
+            value: parseInt('{{product.price}}') / 100, // use this to pass the value of the conversion (e.g. 5.00)
+            currency: CURRENCY // use this to pass the currency of the conversion with an ISO 4217 code (e.g. ‘USD’)
+          });
+
+          // TTD adsrvr
+          var img = new Image();
+          img.src = 'https://insight.adsrvr.org/track/pxl/?adv=bftsrg7&ct=0:bpj2s5z&fmt=3'
+        });
+      });
+      // begin checkout
+      function handle_begin_checkout(cartItems_additional = []) {
+        const items = [
+          {%- for line_item in cart.items %}
+            {
+              item_id: "{{line_item.product_id}}",
+              item_name: "{{line_item.title | escape}}",
+              price: parseInt('{{line_item.price}}') / 100,
+              quantity: parseInt('{{line_item.quantity}}'),
+              item_category: "{{line_item.sku | escape}}",
+            },
+          {% endfor %}
+        ].concat(cartItems_additional);
+        console.table(items);
+
+        // Twitter begin checkout
+        twq('event', 'tw-oe8bu-oe8qn', {
+          value: Math.round(items.map(function (x) { return x.quantity * x.price }).reduce(function (p, x) { return p + x; }) * 100) / 100, // use this to pass the value of the conversion (e.g. 5.00)
+          currency: CURRENCY // use this to pass the currency of the conversion with an ISO 4217 code (e.g. ‘USD’)
+        });
+      }
+      document.addEventListener('click', function (e) {
+        const Elem = e.target.closest('[name=checkout], .btn-checkout');
+        if (Elem === null) return;
+        handle_begin_checkout(cartItems_additional);
+      });
+
+      if (location.pathname.startsWith('/cart') === true) {
+        handle_begin_checkout();
+      }
+      // begin_checkout (product view - direct purchase 1 item)
+      document.addEventListener('click', function (e) {
+        const Elem = e.target.closest('.shopify-payment-button__button, .shopify-payment-button__more-options');
+        if (Elem === null) return;
+
+        let _variant = currentVariant();
+
+        // Twitter begin checkout
+        twq('event', 'tw-oe8bu-oe8qn', {
+          value: _variant.price / 100, // use this to pass the value of the conversion (e.g. 5.00)
+          currency: CURRENCY // use this to pass the currency of the conversion with an ISO 4217 code (e.g. ‘USD’)
+        })
+      })
+    };
+    window.addEventListener('DOMContentLoaded', setup_init_code);
+    window.addEventListener('load', setup_init_code);
+  })();
+</script>
+
+<script src="https://js.adsrvr.org/up_loader.1.1.0.js" type="text/javascript" onload="adsrvrScriptLoaded()"></script>
+<script type="text/javascript">
+  function adsrvrScriptLoaded(){
+    ttd_dom_ready( function() {
+      if (typeof TTDUniversalPixelApi === 'function') {
+        var universalPixelApi = new TTDUniversalPixelApi();
+        universalPixelApi.init("bftsrg7", ["0byqwok"], "https://insight.adsrvr.org/track/up");
+      }
+    })
+  }
+</script>
+
+{% if template contains 'cart' %}
+<img height="1" width="1" style="border-style:none;" alt="" src="https://insight.adsrvr.org/track/pxl/?adv=bftsrg7&ct=0:bpj2s5z&fmt=3"/>
+{%- endif -%}
+
+<!-- Start of jackeryeurope Zendesk Widget script, 20230424, liuzhiyuan(nick) -->
+{% comment %} <script id="ze-snippet" src="https://static.zdassets.com/ekr/snippet.js?key=70d36532-ef57-4fa8-8ad6-8507bb13ab50"> </script> {% endcomment %}
+<!-- End of jackeryeurope Zendesk Widget script -->

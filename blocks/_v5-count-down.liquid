@@ -1,0 +1,311 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  # 是否显示自定义宽度
+  assign show_custom_width = false
+  if block.settings.content_width != 'content_full'
+    assign show_custom_width = true
+  endif
+
+  # PC端文本内容区域宽度类
+  assign pc_width_class = ''
+
+  # PC端文本内容区域对齐类
+  assign pc_content_align_class = ''
+
+  if show_custom_width
+    assign pc_content_align_class = 'lg:flex ' | append: block.settings.content_alignment
+    assign pc_width_class = 'lg:w-[37.5rem]'
+    if block.settings.content_width == 'content_small'
+      assign pc_width_class = 'lg:w-[50rem]'
+    elsif block.settings.content_width == 'content_middle'
+      assign pc_width_class = 'lg:w-[60rem]'
+    elsif block.settings.content_width == 'custom'
+      assign custom_content_width = block.settings.custom_content_width | times: 1.0 | divided_by: 16
+      if custom_content_width > 0
+        assign pc_width_class = 'lg:w-[var(--v-heading-width)]'
+        assign custom_style = '--v-heading-width: ' | append: custom_content_width | append: 'rem;'
+      endif
+    endif
+  endif
+-%}
+
+<div
+  {{ block.shopify_attributes }}
+  class="count-down v5-countdown-js flex items-center gap-2 section-padding {{block.settings.page_width}} {{ pc_content_align_class }} {{ block.settings.mb_content_alignment }} {{ pc_width_class }}"
+  data-time="{{ block.settings.time | escape }}"
+  style="display: none;{{ custom_style }}{{ style }}"
+>
+  <div
+    class="time-content flex flex-col items-center justify-center lg:w-16 lg:h-16 w-[3.25rem] h-[3.25rem]"
+    style="background: {{ block.settings.bg_color }};"
+  >
+    <div
+      class="_days lg:text-[1.75rem] text-[1.25rem] font-bold leading-none"
+      style="color: {{ block.settings.number_color }}"
+    ></div>
+    <span class="units lg:text-[1rem] text-[0.75rem] leading-tight" style="color: {{ block.settings.text_color }}">
+      {{- block.settings.days -}}
+    </span>
+  </div>
+  <div class="colon lg:text-[1.75rem] text-[1.25rem] font-bold pb-1" style="color: {{ block.settings.bg_color }}">
+    :
+  </div>
+
+  <div
+    class="time-content flex flex-col items-center justify-center lg:w-16 lg:h-16 w-[3.25rem] h-[3.25rem]"
+    style="background: {{ block.settings.bg_color }};"
+  >
+    <div
+      class="_hours lg:text-[1.75rem] text-[1.25rem] font-bold leading-none"
+      style="color: {{ block.settings.number_color }}"
+    ></div>
+    <span class="units lg:text-[1rem] text-[0.75rem] leading-tight" style="color: {{ block.settings.text_color }}">
+      {{- block.settings.hours -}}
+    </span>
+  </div>
+  <div class="colon lg:text-[1.75rem] text-[1.25rem] font-bold pb-1" style="color: {{ block.settings.bg_color }}">
+    :
+  </div>
+  <div
+    class="time-content flex flex-col items-center justify-center lg:w-16 lg:h-16 w-[3.25rem] h-[3.25rem]"
+    style="background: {{ block.settings.bg_color }};"
+  >
+    <div
+      class="_mins lg:text-[1.75rem] text-[1.25rem] font-bold leading-none"
+      style="color: {{ block.settings.number_color }}"
+    ></div>
+    <span class="units lg:text-[1rem] text-[0.75rem] leading-tight" style="color: {{ block.settings.text_color }}">
+      {{- block.settings.mins -}}
+    </span>
+  </div>
+  <div class="colon lg:text-[1.75rem] text-[1.25rem] font-bold pb-1" style="color: {{ block.settings.bg_color }}">
+    :
+  </div>
+  <div
+    class="time-content flex flex-col items-center justify-center lg:w-16 lg:h-16 w-[3.25rem] h-[3.25rem]"
+    style="background: {{ block.settings.bg_color }};"
+  >
+    <div
+      class="_secs lg:text-[1.75rem] text-[1.25rem] font-bold leading-none"
+      style="color: {{ block.settings.number_color }}"
+    ></div>
+    <span class="units lg:text-[1rem] text-[0.75rem] leading-tight" style="color: {{ block.settings.text_color }}">
+      {{- block.settings.secs -}}
+    </span>
+  </div>
+</div>
+<script src="{{ 'snippet-v5-countdown.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "v5-倒计时",
+  "class": "w-full",
+  "settings": [
+    {
+      "type": "select",
+      "id": "content_width",
+      "options": [
+        {
+          "value": "content_full",
+          "label": "铺满"
+        },
+        {
+          "value": "content_middle",
+          "label": "960px"
+        },
+        {
+          "value": "content_small",
+          "label": "800px"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "content_full",
+      "label": "组件宽度"
+    },
+    {
+      "type": "number",
+      "id": "custom_content_width",
+      "visible_if": "{{ block.settings.content_width == 'custom' }}",
+      "label": "自定义宽度值",
+      "default": 500
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "options": [
+        {
+          "value": "lg:justify-start",
+          "label": "左对齐"
+        },
+        {
+          "value": "lg:justify-center",
+          "label": "居中"
+        },
+        {
+          "value": "lg:justify-end",
+          "label": "右对齐"
+        }
+      ],
+      "default": "lg:justify-center",
+      "label": "PC对齐方式",
+      "visible_if": "{{ block.settings.content_width != 'content_full' }}"
+    },
+        {
+      "type": "select",
+      "id": "mb_content_alignment",
+      "options": [
+        {
+          "value": "justify-start",
+          "label": "左对齐"
+        },
+        {
+          "value": "justify-center",
+          "label": "居中"
+        },
+        {
+          "value": "justify-end",
+          "label": "右对齐"
+        }
+      ],
+      "default": "justify-center",
+      "label": "MB对齐方式",
+      "visible_if": "{{ block.settings.content_width != 'content_full' }}"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "text",
+      "id": "time",
+      "label": "结束时间(必填)",
+      "info": "规则: YYYY/MM/DD hh:mm:ss, 例如: 2024/05/06 00:00:00"
+    },
+    { "type": "color", "id": "number_color", "label": "倒计时数字颜色", "default": "#FFFFFF" },
+    { "type": "color", "id": "text_color", "label": "倒计时文本颜色", "default": "#FFFFFF" },
+    { "type": "color_background", "id": "bg_color", "label": "倒计时背景颜色", "default": "#242424" },
+    { "type": "text", "id": "days", "label": "天文案", "default": "Days" },
+    { "type": "text", "id": "hours", "label": "时文案", "default": "Hrs" },
+    { "type": "text", "id": "mins", "label": "分文案", "default": "Mins" },
+    { "type": "text", "id": "secs", "label": "秒文案", "default": "Secs" }
+  ],
+  "presets": [
+    {
+      "name": "v5-倒计时"
+    }
+  ]
+}
+{% endschema %}

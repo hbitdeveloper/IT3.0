@@ -1,0 +1,133 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+{% comment %} banner {% endcomment %}
+<swiper-container
+  class="life-story-kv section-padding"
+  style="{{ style }}"
+  init="false"
+  pagination="true"
+  pagination-clickable="true"
+  loop="true"
+  autoplay-delay="5000"
+  autoplay-disable-on-interaction="false"
+>
+  {% for block in section.blocks %}
+    <swiper-slide>
+      <div
+        class="
+                    w-full h-1080 lg:j-h-800 xl:a-h-800 relative
+                    after:block after-content-[''] after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0
+                    after:bg-black/15 after:z-0
+                "
+      >
+        <div class="w-full flex-center flex-col absolute left-1/2 -translate-x-1/2 top-120 z-1 lg:j-top-150 xl:a-top-150">
+          <h2
+            class="
+                            text-white font-bold text-center
+                            w-full px-60 text-80 leading-88
+                            lg:j-w-1080 lg:j-px-0 lg:j-text-70 lg:j-leading-78
+                            xl:a-w-1080 xl:a-px-0 xl:a-text-70 xl:a-leading-78
+                        "
+          >{{ block.settings.banner_title | newline_to_br }}</h2>
+          <h2
+            class="
+                            text-white text-center line-clamp-4 font-400
+                            w-full px-60 mt-40 text-28 leading-34
+                            lg:j-w-1376 lg:j-px-0 lg:j-mt-0 lg:j-text-28 lg:j-leading-34 lg:line-clamp-2
+                            xl:a-w-1376 xl:a-px-0 xl:a-mt-0 xl:a-text-28 xl:a-leading-34 xl:line-clamp-2
+                        "
+          >{{ block.settings.banner_description | newline_to_br }}</h2>
+          {% if block.settings.banner_button_text != blank %}
+            {% if section.settings.open_modal %}
+              <div
+                class="
+                                    flex-center rounded-full bg-primary text-white font-semibold cursor-pointer
+                                    w-auto h-64 px-40 mt-48 text-28
+                                    lg:w-auto lg:j-h-48 lg:j-px-40 lg:j-mt-54 lg:j-text-18
+                                    xl:w-auto xl:a-h-48 xl:a-px-40 xl:a-mt-54 xl:a-text-18
+                                "
+                data-open-popup
+              >{{ block.settings.banner_button_text | escape }}</div>
+            {% else %}
+              <a
+                class="
+                                    flex-center rounded-full bg-primary text-white font-semibold cursor-pointer
+                                    w-auto h-64 px-40 mt-48 text-28
+                                    lg:w-auto lg:j-h-48 lg:j-px-40 lg:j-mt-54 lg:j-text-18
+                                    xl:w-auto xl:a-h-48 xl:a-px-40 xl:a-mt-54 xl:a-text-18
+                                "
+                href="{{ block.settings.banner_button_link }}"
+              >{{ block.settings.banner_button_text | escape }}</a>
+            {% endif %}
+          {% endif %}
+        </div>
+        <picture>
+          <source media="(min-width:1024px)" srcset="{{ block.settings.pc_banner_image | image_url: width: 1920 }}">
+          <img class="w-full h-1080 lg:j-h-800 xl:a-h-800 object-cover" src="{{ block.settings.mb_banner_image | image_url: width: 750 }}" alt="" loading="lazy">
+        </picture>
+      </div>
+    </swiper-slide>
+  {% endfor %}
+</swiper-container>
+{% if section.settings.open_modal %}
+  <div class="stories-banner-pop">
+    <div class="higher-output-box">
+      <jds-icon name="close-line" class="pop-close-icon"></jds-icon>
+      {% comment %} 购买意向表单 {% endcomment %}
+      {% render 'stories-recruit-form' %}
+    </div>
+  </div>
+{%endif%}
+
+
+{% comment %} swiper web components {% endcomment %}
+<script defer src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/swiper-element-bundle.min.js?v=1710123644" data-cookieconsent="ignore"></script>
+{% schema %}
+{
+  "name": "Stories Banner",
+  "class": "section-stories-collection section-stories-banner",
+  "settings": [
+    {"type": "checkbox", "id": "open_modal", "label": "是否打开弹窗", "default": false, "info": "true的话打开弹窗，false则跳转链接" },
+    { "type": "header", "content": "上下边距" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection_banner", "name": "Collection Banner",
+      "settings": [
+        {"type": "textarea", "id": "banner_title", "label": "Banner Title"},
+        {"type": "textarea", "id": "banner_description", "label": "Banner Description"},
+        {"type": "text", "id": "banner_button_text", "label": "Banner Button Text"},
+        {"type": "url", "id": "banner_button_link", "label": "Banner Button Link" },
+        {"type": "image_picker", "id": "pc_banner_image", "label": "PC Banner Image"},
+        {"type": "image_picker", "id": "mb_banner_image", "label": "Mobile Banner Image"}
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Stories Collection Banner section"
+    }
+  ]
+}
+{% endschema %}

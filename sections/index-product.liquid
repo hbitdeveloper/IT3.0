@@ -1,0 +1,220 @@
+{% if section.settings.type == 'swiper' %}
+    {% assign swiper_flag =  true %}
+{% else %}
+    {% assign swiper_flag =  false %}
+{% endif %}
+
+<style>
+  .index-new-products .swiper-slide {
+    width: calc(25% - 20px);
+    margin-right: 20px;
+  }
+  @media (max-width: 1024px) {
+    .index-new-products .swiper-slide {
+      width: calc(85% - 16px);
+      margin-right: 16px;
+    }
+  }
+</style>
+
+<div class="index-new-products  {{ section.settings.class | escape }} {% if section.settings.is_simple and section.settings.type != 'swiper'%} simple-product{% endif %} {% if section.settings.types == 'embed' %}embed-component{% endif %}" data-handle="{{ section.settings.handle }}" data-name="{{ section.settings.class | escape }}"  data-swiper="{{ swiper_flag }}"  anchor="{{ section.settings.anchor | escape }}">
+    <div class="new-main-container">
+        <div class="products  {% if section.settings.type == 'swiper' %} swiper-products {% endif %}">
+            <div class="module-title">
+                <div class="title"><span class="jky-slideup">{{ section.settings.module_title | escape}}</span></div>
+            </div>
+            {% comment %} 轮播切换 {% endcomment %}
+            {% if section.settings.type == 'swiper' %}
+                <div class="index-swiper-products">
+                    <div class="swiper product-swiper {{ section.settings.class | escape | append: '-swiper'}}">
+                        <div class="swiper-wrapper">
+                            {% for item in section.blocks %}
+                                {%- for variant in item.settings.product.variants -%}
+                                    {% if forloop.first %}
+                                        {%- assign variant_first = variant -%}
+                                      {% endif %}
+                                {%- endfor -%}
+                                <div class="swiper-slide">
+                                    {% render 'index-product-item',
+                                        module: section.settings.module_title,
+                                        simple: section.settings.is_simple,
+                                        product: item.settings.product,
+                                        variant: variant_first,
+                                        discount_price: item.settings.discount_price,
+                                        image: item.settings.image,
+                                        title: item.settings.title,
+                                        description: item.settings.description,
+                                        new_window: section.settings.new_window,
+                                        prefix: section.settings.prefix,
+                                        suffix: section.settings.suffix
+                                    %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="swiper-operate">
+                        <div class="product-swiper-navigation product-prev {{ section.settings.class | escape | append: '-prev'}}"> 
+                            {% render 'icon-arrow-left-default', class: 'icon-arrow icon-arrow-left-default' %}
+                        </div>
+                        <div class="product-pagination {{ section.settings.class | escape | append: '-pagination'}}"></div>
+                        <div class="product-swiper-navigation product-next {{ section.settings.class | escape | append: '-next'}}">
+                            {% render 'icon-arrow-right-default', class: 'icon-arrow icon-arrow-right-default' %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="box">
+                  {% for item in section.blocks %}
+                    {%- for variant in item.settings.product.variants -%}
+                        {% if forloop.first %}
+                            {%- assign variant_first = variant -%}
+                          {% endif %}
+                    {%- endfor -%}
+                    {% render 'index-product-item',
+                        module: section.settings.module_title,
+                        simple: section.settings.is_simple,
+                        product: item.settings.product,
+                        variant: variant_first,
+                        discount_price: item.settings.discount_price,
+                        image: item.settings.image,
+                        title: item.settings.title,
+                        description: item.settings.description,
+                        new_window: section.settings.new_window,
+                        prefix: section.settings.prefix,
+                        suffix: section.settings.suffix
+                    %}
+                  {% endfor %}
+                </div>
+            {% endif %}
+
+            {%- if section.settings.button_text != blank -%}
+                <div class="help-choose">
+                    <hr class="{% if section.settings.type == 'swiper' %} pc-block {% else %}box-hr{% endif %}">
+                    {% assign type = 'Product Display_ordinary' %}
+                    {%- if section.settings.is_simple == true -%}
+                        {% assign type = 'Product Display_brief' %}
+                    {%- endif -%}
+                    <div class="content pc-content">
+                        <div>
+                            <div class="text">{{ section.settings.button_subtext }}</div>
+                            <div class="link">
+                                <svg class="pc-block" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                        <g transform="translate(-694.000000, -311.000000)" fill="var(--jds-color-primary)" fill-rule="nonzero">
+                                            <g transform="translate(672.000000, 286.000000)">
+                                                <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                            </g>
+                                        </g>
+                                    </g>
+                                </svg>
+                                <a
+                                    data-ga-event="home_page_product_display4.0"
+                                    data-ga-action="click"
+                                    data-ga-params-module="{{ section.settings.module_title | escape }}"
+                                    data-ga-params-button_name="{{ section.settings.button_text | escape}}"
+                                    data-ga-params-link="{{section.settings.link }}"
+                                    data-ga-params-type="{{ type }}"
+                                    target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ section.settings.link }}">{{ section.settings.button_text | escape}}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <a
+                        data-ga-event="home_page_product_display4.0"
+                        data-ga-action="click"
+                        data-ga-params-module="{{ section.settings.module_title | escape }}"
+                        data-ga-params-button_name="{{ section.settings.button_text | escape}}"
+                        data-ga-params-link="{{section.settings.link }}"
+                        data-ga-params-type="{{ type }}"
+                        target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ section.settings.link }}">
+                        <div class="content mb-content">
+                            <div>
+                                <div class="text">{{ section.settings.button_subtext }}</div>
+                                <div class="link"> {{ section.settings.button_text | escape}} </div>
+                            </div>
+                            <svg class="mobile-block" width="20" height="15" viewBox="0 0 20 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <g transform="translate(-694.000000, -311.000000)" fill="var(--jds-color-primary)" fill-rule="nonzero">
+                                        <g transform="translate(672.000000, 286.000000)">
+                                            <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                        </g>
+                                    </g>
+                                </g>
+                            </svg>
+                        </div>
+                    </a>
+                </div>
+             {%- endif -%}
+        </div>
+    </div>
+</div>
+
+{% schema %}
+    {
+        "name": "首页-产品推荐",
+        "disabled_on": {
+            "templates": ["collection"]
+        },
+        "settings": [
+
+            { "type": "text", "id": "anchor", "label": "二级标题定位锚点", "info": "搭配二级导航锚点定位未使用到定位则不配置" },
+              {
+                "type": "select",
+                "id": "types",
+                "label": "类型",
+                "default": "independent",
+                "options": [
+                  {
+                    "value": "embed",
+                    "label": "内嵌使用"
+                  },
+                  {
+                    "value": "independent",
+                    "label": "独立使用"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "handle",
+                "label": "Handle（当前页面唯一的handle）",
+                "default": "embed-component-01"
+              },
+            { "type": "text", "id": "class", "label": "类名(必填：需具有唯一性)", "info": "用于区分当前页面多个产品推荐模块，建议以index-new-product-*开头" },
+            { "type": "text", "id": "module_title", "label": "模块标题(必填)" },
+            { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+            { "type": "select", "id": "type", "label": "展现形式",
+                "options": [{ "value": "swiper", "label": "轮播切换" }, { "value": "box", "label": "平铺" }],
+                "default": "swiper"
+            },
+            { "type": "checkbox", "id": "is_simple", "label": "轻量级展示", "default": false, "info": "只在平铺的模式下生效" },
+            { "type": "text", "id": "button_text", "label": "按钮文案" },
+            { "type": "text", "id": "button_subtext", "label": "按钮描述文案" },
+            { "type": "url",  "id": "link", "label": "按钮跳转链接" },
+            { "type": "text", "id": "prefix", "label": "优惠金额前缀" },
+            { "type": "text", "id": "suffix", "label": "优惠金额后缀" }
+        ],
+        "blocks": [
+            {
+                "type": "block",
+                "name": "产品",
+                "settings": [
+                    { "type": "product", "id": "product", "label": "选择产品(必填)" },
+                    { "type": "text", "id": "title", "label": "产品标题(不超过50字符)" },
+                    { "type": "image_picker", "id": "image", "label": "产品图片", "info": "大小: 300x300"},
+                    { "type": "textarea", "id": "description", "label": "产品卖点(不超过70字符)", "info": "当为轻量级时不需要配置" },
+                    { "type": "text", "id": "discount_price",   "label": "产品折扣价" }
+                ]
+            }
+        ],
+        "max_blocks": 8,
+        "presets": [
+            {
+                "name": "首页-产品推荐",
+                "settings": {
+                    "module_title": "Our Popular and Best Sellers",
+                    "new_window": false
+                }
+            }
+        ]
+    }
+{% endschema %}

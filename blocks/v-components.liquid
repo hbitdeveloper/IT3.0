@@ -1,0 +1,163 @@
+{% schema %}
+{
+  "name": "V-组件集合(Block级)",
+  "settings": [
+    {
+      "type": "header",
+      "content": "关于此组件",
+      "info": "自动获取所有规范定义的公有Block级别主题组件"
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+            "value": "section-container-lg",
+            "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "w-full",
+      "label": "组件宽度"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "PC边距"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "label": "右边距",
+      "default": 0
+    },
+
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "MB边距"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "上边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "下边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_left_mb",
+      "label": "左边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right_mb",
+      "label": "右边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-组件集合(Block级)",
+      "category": "可视化组件"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@theme"
+    }
+  ]
+}
+{% endschema %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% liquid
+    assign classes = block.settings.page_width | prepend: ' class="' | append: ' section-padding'
+
+    if block.settings.belongs_to != blank
+        assign classes = classes | append: ' hidden'
+    endif
+    assign classes = classes | append: '"'
+%}
+
+<div
+  {% if block.settings.anchor != blank %}anchor-target="{{block.settings.anchor | escape}}"{% endif %}
+  {% if block.settings.belongs_to != blank %}belongs-to-target="{{block.settings.belongs_to | escape}}"{% endif %}
+  {{ classes }}
+  style="{{ style }}; background: {{ block.settings.bg_color }};"
+>
+  {% content_for 'blocks' %}
+</div>

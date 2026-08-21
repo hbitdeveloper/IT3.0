@@ -1,0 +1,622 @@
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%  style %}
+  .v5-story-detail-main .story-detail-text h1,
+  .v5-story-detail-main .story-detail-text h2,
+  .v5-story-detail-main .story-detail-text h3,
+  .v5-story-detail-main .story-detail-text h4,
+  .v5-story-detail-main .story-detail-text h5,
+  .v5-story-detail-main .story-detail-text h6 {
+    font-weight: 600;
+    color: #000;
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  .v5-story-detail-main .v5-story-breadcrumbs {
+    position: sticky;
+    top: var(--jky-header-h);
+    z-index: 2;
+
+    /* 定义动画 */
+    animation: show-shadow linear both;
+    /* 绑定滚动进度：只要向下滚动，动画就开始 */
+    animation-timeline: scroll();
+    /* 动画触发范围：例如滚动 0px 到 50px 之间完成阴影切换 */
+    animation-range: 0px 50px;
+  }
+  @keyframes show-shadow {
+    from { box-shadow: none; }
+    to { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  }
+  .v5-story-detail-main .story-detail-right {
+    position: sticky;
+    --prefix: calc(var(--section-padding-top-mb, 0) + 104);
+    --top: calc(var(--prefix) / 32 * 1rem);
+    top: calc(var(--jky-header-h) + var(--top));
+  }
+  .v5-story-detail-main section.story-detail-images + section > .story-detail-text > h1,
+  .v5-story-detail-main section.story-detail-images + section > .story-detail-text > h2,
+  .v5-story-detail-main section.story-detail-images + section > .story-detail-text > h3,
+  .v5-story-detail-main section.story-detail-images + section > .story-detail-text > h4,
+  .v5-story-detail-main section.story-detail-images + section > .story-detail-text > h5,
+  .v5-story-detail-main section.story-detail-images + section > .story-detail-text > h6 {
+    margin-top: 0;
+  }
+  @media (min-width: 1024px) {
+    .v5-story-detail-main .story-detail-text h1,
+    .v5-story-detail-main .story-detail-text h2,
+    .v5-story-detail-main .story-detail-text h3,
+    .v5-story-detail-main .story-detail-text h4,
+    .v5-story-detail-main .story-detail-text h5,
+    .v5-story-detail-main .story-detail-text h6 {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+    .v5-story-detail-main .story-detail-right {
+      --prefix: calc(var(--section-padding-top, 0) + 40);
+      --top: calc(var(--prefix) / 16 * 1rem);
+    }
+  }
+  .v5-story-detail-main .iframe-wrap iframe {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+{% endstyle %}
+
+<div class="v5-story-detail-main w-full" style="background-color:{{ section.settings.bg_color | default: '#FFFFFF' }}">
+  {% comment %} 返回 {% endcomment %}
+  <div class="v5-story-breadcrumbs w-full" style="background-color:{{ section.settings.bg_color | default: '#FFFFFF' }}">
+    <div class="section-container-lg table min-h-[2.5rem] max-h-[3.25rem] py-1.5 lg:h-[3.5rem] lg:min-h-fit lg:max-h-fit">
+      <div class="w-full h-full table-cell align-middle">
+        <a href="{{ section.settings.back_url }}" class="text-[#242F20] {% if collection.handle != 'all' %} underline-offset-4 hover:underline {% endif %} text-xs lg:text-base">Jackery Stories</a>
+        <span class="mx-1 lg:mx-2">/</span>
+        <span class="text-[#242F20] text-xs lg:text-base">{{ section.settings.article_title | escape }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full lg:w-[82.5rem] mx-auto section-padding flex flex-col lg:flex-row lg:items-start justify-between lg:gap-x-[3.75rem]" style="{{ style }}">
+    {% comment %} 左侧 {% endcomment %}
+    <div class="flex-1 flex flex-col gap-y-4">
+      <div class="w-[21.4375rem] mx-auto lg:w-full flex flex-col gap-y-5 mb-6">
+        {% comment %} 文章标签 {% endcomment %}
+        {%- assign article_tags = section.settings.article_tags | split: ',' -%}
+        {%- if article_tags.size > 0 -%}
+          <div class="flex flex-wrap items-center gap-4">
+            {%- for tag in article_tags limit: 3 -%}
+              <span class="font-semibold lg:font-normal bg-[#242F20] text-white text-[0.75rem] lg:text-[1rem] h-7 leading-[1.75rem] px-2">{{ tag | escape }}</span>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        {% comment %} 文章标题 {% endcomment %}
+        <h2 data-story-title class="font-semibold text-black w-full text-xl lg:text-[1.75rem] lg:leading-[2.25rem]">
+          {{ section.settings.article_title | newline_to_br }}
+        </h2>
+
+        {% comment %} 预估阅读时长、发布时间 {% endcomment %}
+        {%- if section.settings.read_time != blank or section.settings.publish_time != blank -%}
+          <p class="flex items-center">
+            {%- if section.settings.read_time != blank -%}
+              <span class="text-sm lg:text-base text-black/65">{{ section.settings.read_time | escape }}</span>
+            {%- endif -%}
+            {%- if section.settings.read_time != blank and section.settings.publish_time != blank -%}
+              <span class="mx-1"> · </span>
+            {%- endif -%}
+            {%- if section.settings.publish_time != blank -%}
+              <span class="text-sm text-black/65 lg:text-base">{{ section.settings.publish_time | escape }}</span>
+            {%- endif -%}
+          </p>
+        {%- endif -%}
+      </div>
+
+      {% comment %} 图片、视频、音频 {% endcomment %}
+      <div class="w-[21.4375rem] mx-auto lg:w-full h-fit overflow-hidden relative">
+          {% if section.settings.main_banner_style == 'image_type' and section.settings.pc_main_img != blank %}
+            {%- render 'diff-end-img',
+              class: 'w-full h-auto object-cover',
+              pc_img: section.settings.pc_main_img,
+              mb_img: section.settings.mb_main_img,
+              pc_img_width: 840,
+              mb_img_width: 343,
+              load_scene: 'lcp'
+            -%}
+          {% elsif section.settings.main_banner_style == 'video_type' %}
+            {% if section.settings.pc_main_video != blank %}
+              <div class="lg:j-h-546 xl:a-h-546 hidden lg:block">
+                {%
+                  render 'jky-video',
+                  video_url: section.settings.pc_main_video,
+                  poster: section.settings.pc_main_video_img,
+                  autoplay: false,
+                  controls: true,
+                  loop: false,
+                  class: 'banner-video'
+                %}
+              </div>
+            {% endif %}
+            {% if section.settings.mb_main_video != blank %}
+              <div class="h-872 block lg:hidden">
+                {%
+                  render 'jky-video',
+                  video_url: section.settings.mb_main_video,
+                  poster: section.settings.mb_main_video_img,
+                  autoplay: false,
+                  controls: true,
+                  loop: false,
+                  class: 'banner-video'
+                %}
+              </div>
+            {% endif %}
+          {% elsif section.settings.main_banner_style == 'audio_type' %}
+            {% if section.settings.pc_main_audio != blank %}
+              <div class="hidden lg:block">
+                {{ section.settings.pc_main_audio | raw }}
+              </div>
+            {% endif %}
+            {% if section.settings.mb_main_audio != blank %}
+              <div class="block lg:hidden">
+                {{ section.settings.mb_main_audio | raw }}
+              </div>
+            {% endif %}
+          {% endif %}
+      </div>
+
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {% when 'article_text' %}
+            {% comment %} 纯文案 {% endcomment %}
+            <section class="w-[21.4375rem] mx-auto lg:w-full">
+              {% assign highlight_color = '<em style="color: ' | append: block.settings.article_text_item_highlight_color | append: '">' %}
+              <div class="story-detail-text flex flex-col gap-y-5 font-normal text-[#242F20]/90 w-full text-sm lg:text-base [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4">
+                {{ block.settings.article_text_item | replace: '<em>', highlight_color | newline_to_br }}
+              </div>
+            </section>
+
+          {% when 'article_images' %}
+            {% comment %} 2张图片或3张图片 {% endcomment %}
+            {% comment %} 检查是否有任何图片存在 {% endcomment %}
+            {% assign has_images = false %}
+            {%- for i in (1..4) -%}
+              {% assign image_pc_index = 'pc_image_' | append: i %}
+              {% assign image_mb_index = 'mb_image_' | append: i %}
+              {% if block.settings[image_pc_index] != blank or block.settings[image_mb_index] != blank %}
+                {% assign has_images = true %}
+                {% break %}
+              {% endif %}
+            {% endfor %}
+
+            {% if has_images %}
+              <section class="w-[21.4375rem] mx-auto lg:w-full story-detail-images my-6">
+                {%- assign has_pc_image = false -%}
+                {%- for i in (1..4) -%}
+                  {% assign image_pc_index = 'pc_image_' | append: i %}
+                  {% if block.settings[image_pc_index] != blank %}
+                    {% assign has_pc_image = true %}
+                  {% endif %}
+                {%- endfor -%}
+
+                {% if has_pc_image %}
+                  {% assign max_images = 4 %}
+                  {%- assign image_w = 'w-full' -%}
+                  {%- assign image_h = 'h-auto' -%}
+                  {% if block.settings.image_style == 'one' %}
+                    {% assign max_images = 1 %}
+                    {%- assign image_w = 'w-full' -%}
+                    {%- assign image_h = 'h-auto' -%}
+                  {% elsif block.settings.image_style == 'two' %}
+                    {% assign max_images = 2 %}
+                    {%- assign image_w = 'w-[25.5rem]' -%}
+                    {%- assign image_h = 'h-[17rem]' -%}
+                  {% elsif block.settings.image_style == 'three' %}
+                    {% assign max_images = 3 %}
+                    {%- assign image_w = 'w-[16.5rem]' -%}
+                    {%- assign image_h = 'h-[16.5rem]' -%}
+                  {% endif %}
+                  <ul class="hidden lg:flex gap-x-4 lg:gap-x-6 h-fit">
+                    {% assign displayed_count = 0 %}
+                    {%- for i in (1..4) -%}
+                      {% assign image_pc_index = 'pc_image_' | append: i %}
+                      {% if block.settings[image_pc_index] != blank and displayed_count < max_images %}
+                        <li class="shrink-0 {{ image_w }} {{ image_h }} overflow-hidden">
+                          {%- render 'diff-end-img',
+                            class: 'w-full h-full object-cover',
+                            pc_img: block.settings[image_pc_index],
+                            mb_img: block.settings[image_pc_index],
+                            pc_img_width: 840,
+                            mb_img_width: 343,
+                            load_scene: block.settings.load_scene,
+                          -%}
+                        </li>
+                        {% assign displayed_count = displayed_count | plus: 1 %}
+                      {% endif %}
+                    {%- endfor -%}
+                  </ul>
+                {% endif %}
+
+                {%- assign has_mb_image = false -%}
+                {%- for i in (1..4) -%}
+                  {% assign image_mb_index = 'mb_image_' | append: i %}
+                  {% if block.settings[image_mb_index] != blank %}
+                    {% assign has_mb_image = true %}
+                  {% endif %}
+                {%- endfor -%}
+
+                {% if has_mb_image %}
+                  {% assign max_images_mb = 4 %}
+                  {%- assign image_h_mb = 'h-auto' -%}
+                  {% if block.settings.image_style == 'one' %}
+                    {% assign max_images_mb = 1 %}
+                    {%- assign image_h_mb = 'h-auto' -%}
+                  {% elsif block.settings.image_style == 'two' %}
+                    {% assign max_images_mb = 2 %}
+                    {%- assign image_h_mb = 'h-[14.25rem]' -%}
+                  {% elsif block.settings.image_style == 'three' %}
+                    {% assign max_images_mb = 3 %}
+                    {%- assign image_h_mb = 'h-[21.4375rem]' -%}
+                  {% endif %}
+                  <ul class="flex lg:hidden {% if max_images_mb < 3 %} flex-col {% else %} flex-row overflow-x-auto {% endif %} gap-4 lg:gap-6 h-fit" style="scrollbar-width: none;">
+                    {% assign displayed_count_mb = 0 %}
+                    {%- for i in (1..4) -%}
+                      {% assign image_mb_index = 'mb_image_' | append: i %}
+                      {% if block.settings[image_mb_index] != blank and displayed_count_mb < max_images_mb %}
+                        <li class="shrink-0 w-full {{ image_h_mb }} overflow-hidden">
+                          {%- render 'diff-end-img',
+                            class: 'w-full h-full object-cover',
+                            pc_img: block.settings[image_mb_index],
+                            mb_img: block.settings[image_mb_index],
+                            pc_img_width: 840,
+                            mb_img_width: 343,
+                            load_scene: block.settings.load_scene,
+                          -%}
+                        </li>
+                        {% assign displayed_count_mb = displayed_count_mb | plus: 1 %}
+                      {% endif %}
+                    {%- endfor -%}
+                  </ul>
+                {% endif %}
+              </section>
+            {% endif %}
+
+          {% when 'article_video' %}
+            {% comment %} 视频 {% endcomment %}
+            <section class="w-[21.4375rem] mx-auto lg:w-full my-6 iframe-wrap">
+              {{ block.settings.youtube_video_code }}
+            </section>
+
+          {% comment %} 作者信息 {% endcomment %}
+          {%- when 'author_info' -%}
+            <div class="w-full mt-6">
+              {%- render 'v5-story-detail-author-info', block: block -%}
+            </div>
+
+          {% comment %} 相关产品 {% endcomment %}
+          {%- when 'relate_product' -%}
+            {%- if block.settings.title != blank or block.settings.product_1 != blank or block.settings.product_2 != blank -%}
+              <div class="w-full mt-6 flex flex-col bg-[#F5F5F3] gap-y-5 px-4 py-6 lg:gap-y-7">
+                {%- if block.settings.title != blank -%}
+                  <h2 class="font-semibold text-black lg:text-[#242F20] text-base lg:text-xl">{{ block.settings.title | newline_to_br }}</h2>
+                {%- endif -%}
+                {%- if block.settings.product_1 != blank or block.settings.product_2 != blank -%}
+                  <div class="w-full flex flex-col lg:flex-row justify-center gap-6 lg:gap-[1.125rem]">
+                    {%- if block.settings.product_1 != blank -%}
+                      {%- render 'v5-story-detail-products',
+                        card_class: 'w-full lg:w-[24.6875rem] bg-white',
+                        img_class: 'w-full h-[14.75rem] lg:h-[16.75rem]',
+                        product: block.settings.product_1,
+                        variant_id: block.settings.variant_1_id,
+                        product_title: block.settings.product_1_title,
+                        pc_product_image: block.settings.pc_product_1_image,
+                        mb_product_image: block.settings.mb_product_1_image,
+                        pc_img_width: 372,
+                        mb_img_width: 303,
+                      -%}
+                    {%- endif -%}
+                    {%- if block.settings.product_2 != blank -%}
+                      {%- render 'v5-story-detail-products',
+                        card_class: 'w-full lg:w-[24.6875rem] bg-white',
+                        img_class: 'w-full h-[14.75rem] lg:h-[16.75rem]',
+                        product: block.settings.product_2,
+                        variant_id: block.settings.variant_2_id,
+                        product_title: block.settings.product_2_title,
+                        pc_product_image: block.settings.pc_product_2_image,
+                        mb_product_image: block.settings.mb_product_2_image,
+                        pc_img_width: 355,
+                        mb_img_width: 303,
+                      -%}
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+
+    {% comment %} 右侧 {% endcomment %}
+    {%- assign recommend_story_blocks = section.blocks | where: 'type', 'recommend_story' -%}
+    {%- if recommend_story_blocks.size > 0 -%}
+      <div class="story-detail-right shrink-0 w-full flex flex-col gap-y-9 py-16 lg:w-[26.25rem] lg:p-10 bg-[#F5F5F3]">
+        {%- if section.settings.recommend_story_title != blank -%}
+          <h2 class="w-full px-4 lg:px-0 text-center lg:text-left font-semibold text-[#242F20] lg:text-black text-2xl">{{ section.settings.recommend_story_title | newline_to_br }}</h2>
+        {%- endif -%}
+        <ul class="w-full px-4 lg:px-0 flex flex-row lg:flex-col gap-4 lg:gap-10 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden" style="scrollbar-width: none;">
+          {%- for block in recommend_story_blocks -%}
+            <li class="focus-zoom-container bg-white">
+              {%- if block.settings.story_image != blank -%}
+                <a href="{{ block.settings.story_url }}" class="block w-80 h-[14.1875rem] lg:w-full lg:h-[15.9375rem] overflow-hidden">
+                  {%- render 'diff-end-img',
+                    class: 'focus-zoom w-full h-full object-cover',
+                    pc_img: block.settings.story_image,
+                    mb_img: block.settings.story_image,
+                    pc_img_width: 360,
+                    mb_img_width: 320
+                  -%}
+                </a>
+              {%- else -%}
+                <div class="w-80 h-[14.1875rem] lg:w-full lg:h-[15.9375rem] overflow-hidden">
+                  {{ 'hero-apparel-1' | placeholder_svg_tag: 'focus-zoom w-full h-full object-cover' }}
+                </div>
+              {%- endif -%}
+
+              {%- assign tags = block.settings.tags | split: ',' -%}
+
+              {%- if tags.size > 0 or block.settings.title != blank or block.settings.description != blank or block.settings.publish_time != blank -%}
+                <div class="w-full flex flex-col px-4 py-6 gap-y-4 lg:gap-y-5">
+                  <div class="flex flex-col-reverse lg:flex-col gap-y-3 lg:gap-y-2">
+                    {%- if tags.size > 0 -%}
+                      <div class="flex flex-wrap items-center gap-1 lg:gap-2">
+                        {%- for tag in tags limit: 3 -%}
+                          <span class="bg-[#F5F5F3] text-[#242F20]/90 text-xs lg:text-sm px-1">{{ tag | escape }}</span>
+                        {%- endfor -%}
+                      </div>
+                    {%- endif -%}
+                    
+                    {%- if block.settings.title != blank -%}
+                      <a href="{{ block.settings.story_url }}" class="font-semibold text-[#242F20] line-clamp-2 text-sm lg:text-base">
+                        {{ block.settings.title | newline_to_br }}
+                      </a>
+                    {%- endif -%}
+                  </div>
+                  {%- if block.settings.description != blank -%}
+                    <div class="max-lg:hidden font-normal text-[#242F20] lg:text-sm line-clamp-4">{{ block.settings.description | newline_to_br }}</div>
+                  {%- endif -%}
+                  {%- if block.settings.publish_time != blank -%}
+                    <p class="font-normal text-[#242F20] text-sm">{{ block.settings.publish_time | escape }}</p>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "V5-故事详情",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 48 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 48 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#FFFFFF" },
+
+    { "type": "text", "id": "back_url", "label": "面包屑返回链接", "default": "/pages/jackery-stories" },
+    { "type": "textarea", "id": "article_tags", "label": "文章标签", "default": "Tag1, Tag2, Tag3", "info": "多个标签之间用逗号隔开，最多支持3个" },
+    {"type": "textarea", "id": "article_title", "label": "Article Title"},
+    { "type": "text", "id": "read_time", "label": "阅读预估时长", "default": "10 min" },
+    { "type": "text", "id": "publish_time", "label": "发布时间", "default": "July 4, 2024" },
+    {
+      "type": "select",
+      "id": "main_banner_style",
+      "options": [
+        {
+          "value": "image_type",
+          "label": "图片"
+        },
+        {
+          "value": "video_type",
+          "label": "视频"
+        },
+        {
+          "value": "audio_type",
+          "label": "音频"
+        }
+      ],
+      "default": "image_type",
+      "label": "Banner类型"
+    },
+    { "type": "image_picker", "id": "pc_main_img", "label": "PC Main Image", "visible_if": "{{ section.settings.main_banner_style == 'image_type' }}" },
+    { "type": "image_picker", "id": "mb_main_img", "label": "Mobile Main Image", "visible_if": "{{ section.settings.main_banner_style == 'image_type' }}" },
+    { "type": "url", "id": "pc_main_video", "label": "PC Main Video", "visible_if": "{{ section.settings.main_banner_style == 'video_type' }}" },
+    { "type": "url", "id": "mb_main_video", "label": "Mobile Main Video", "visible_if": "{{ section.settings.main_banner_style == 'video_type' }}" },
+    { "type": "image_picker", "id": "pc_main_video_img", "label": "PC Main Video Image", "visible_if": "{{ section.settings.main_banner_style == 'video_type' }}" },
+    { "type": "image_picker", "id": "mb_main_video_img", "label": "Mobile Main Video Image", "visible_if": "{{ section.settings.main_banner_style == 'video_type' }}" },
+    { "type": "textarea", "id": "pc_main_audio", "label": "PC Main Audio", "visible_if": "{{ section.settings.main_banner_style == 'audio_type' }}" },
+    { "type": "textarea", "id": "mb_main_audio", "label": "Mobile Main Audio", "visible_if": "{{ section.settings.main_banner_style == 'audio_type' }}" },
+
+    { "type": "header", "content": "【推荐故事】板块标题" },
+    { "type": "textarea", "id": "recommend_story_title", "label": "标题", "default": "Other Stories for You" }
+  ],
+  "blocks": [
+    {
+      "type": "article_text", "name": "Article Text",
+      "settings": [
+        {"type": "richtext", "id": "article_text_item", "label": "Article Text【斜体=文案突出】" },
+        { "type": "color", "id": "article_text_item_highlight_color", "label": "突出文案颜色", "default": "#fd5000" }
+      ]
+    },
+    {
+      "type": "article_images", "name": "Article Images",
+      "settings": [
+        {
+          "type": "select",
+          "id": "image_style",
+          "options": [
+            {
+              "value": "one",
+              "label": "单张"
+            },
+            {
+              "value": "two",
+              "label": "两张"
+            },
+            {
+              "value": "three",
+              "label": "三张"
+            }
+          ],
+          "default": "one",
+          "label": "插入图片数量",
+          "info": "选择的数量会间接影响图片的高度"
+        },
+        {"type": "image_picker", "id": "pc_image_1", "label": "PC Image One"},
+        {"type": "image_picker", "id": "mb_image_1", "label": "Mobile Image One"},
+        {"type": "image_picker", "id": "pc_image_2", "label": "PC Image Two"},
+        {"type": "image_picker", "id": "mb_image_2", "label": "Mobile Image Two"},
+        {"type": "image_picker", "id": "pc_image_3", "label": "PC Image Three"},
+        {"type": "image_picker", "id": "mb_image_3", "label": "Mobile Image Three"},
+        {
+          "type": "select",
+          "id": "load_scene",
+          "label": "图片加载场景",
+          "options": [
+            { "value": "lcp", "label": "首屏关键图（LCP）" },
+            { "value": "default", "label": "普通图（默认）" },
+            { "value": "defer", "label": "次要/延后图" }
+          ],
+          "default": "default",
+        },
+      ]
+    },
+    {
+      "type": "article_video", "name": "Article Video",
+      "settings": [
+        {"type": "textarea", "id": "youtube_video_code", "label": "YouTube 视频代码", "info": "在此处粘贴嵌入代码"}
+      ]
+    },
+    {
+      "name": "作者信息",
+      "type": "author_info",
+      "limit": 1,
+      "settings": [
+        { "type": "textarea", "id": "title", "label": "标题", "default": "About the User" },
+        { "type": "image_picker", "id": "author_image", "label": "作者头像", "info": "头像尺寸140*140" },
+        { "type": "text", "id": "author_name", "label": "作者名称", "default": "Sarah · California" },
+        { "type": "textarea", "id": "tags", "label": "标签", "default": "Tag1, Tag2, Tag3", "info": "多个标签之间用逗号隔开，最多支持3个" },  
+        { "type": "textarea", "id": "author_description", "label": "个性签名", "default": "\"Jackery gives us peace of mind. We’re prepared without sacrificing comfort or simplicity.\"" }
+      ]
+    },
+    {
+      "name": "相关产品",
+      "type": "relate_product",
+      "limit": 1,
+      "settings": [
+        { "type": "textarea", "id": "title", "label": "标题", "default": "The Product Sarah Uses" },
+
+        { "type": "header", "content": "产品一配置" },
+        { "type": "product", "id": "product_1", "label": "选择产品" },
+        { "type": "number", "id": "variant_1_id", "label": "变体ID", "visible_if": "{{ block.settings.product_1 != blank }}", "info": "如果不填写, 则默认显示产品的第一个变体相同商品。变体ID不能重复"},
+        { "type": "textarea", "id": "product_1_title", "label": "产品标题", "visible_if": "{{ block.settings.product_1 != blank }}" },
+        { "type": "image_picker", "id": "pc_product_1_image", "label": "PC端产品图", "visible_if": "{{ block.settings.product_1 != blank }}", "info": "宽度356, 高度268" },
+        { "type": "image_picker", "id": "mb_product_1_image", "label": "MB端产品图", "visible_if": "{{ block.settings.product_1 != blank }}", "info": "宽度303, 高度236" },
+
+        { "type": "header", "content": "产品二配置" },
+        { "type": "product", "id": "product_2", "label": "选择产品" },
+        { "type": "number", "id": "variant_2_id", "label": "变体ID", "visible_if": "{{ block.settings.product_2 != blank }}", "info": "如果不填写, 则默认显示产品的第一个变体相同商品。相同商品，变体ID不能重复"},
+        { "type": "textarea", "id": "product_2_title", "label": "产品标题", "visible_if": "{{ block.settings.product_2 != blank }}" },
+        { "type": "image_picker", "id": "pc_product_2_image", "label": "PC端产品图", "visible_if": "{{ block.settings.product_2 != blank }}", "info": "宽度356, 高度268" },
+        { "type": "image_picker", "id": "mb_product_2_image", "label": "MB端产品图", "visible_if": "{{ block.settings.product_2 != blank }}", "info": "宽度303, 高度236" }
+      ]
+    },
+    {
+      "name": "推荐故事",
+      "type": "recommend_story",
+      "settings": [
+        { "type": "image_picker", "id": "story_image", "label": "故事图片" },
+        { "type": "textarea", "id": "tags", "label": "标签", "default": "Tag1, Tag2, Tag3", "info": "多个标签之间用逗号隔开，最多支持3个" },  
+        { "type": "textarea", "id": "title", "label": "标题", "default": "What Size Generator to Run Refrigerator and Freezer" },
+        { "type": "textarea", "id": "description", "label": "描述", "default": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+        { "type": "text", "id": "publish_time", "label": "发布时间", "default": "July 4, 2024" },
+        { "type": "url", "id": "story_url", "label": "故事链接" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-故事详情",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "author_info"
+        },
+        {
+          "type": "relate_product"
+        },
+        {
+          "type": "recommend_story"
+        },
+        {
+          "type": "recommend_story"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

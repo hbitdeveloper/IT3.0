@@ -1,0 +1,567 @@
+{% comment %} Shopify组件 {% endcomment %}
+{%- assign blocks_activity_size = 0 -%}
+{%- for block in section.blocks -%}
+    {%- assign blocks_type = block.type -%}
+    {%- assign blocks_activity_size = blocks_activity_size | plus: 1 -%}
+{%- endfor -%}
+
+{% comment %} Tab栏导航 {% endcomment %}
+{%- assign tabs_num = 0 -%}
+{%- assign tabs_list = '' -%}
+{%- assign tabs_id = '' -%}
+
+{%- for block in section.blocks -%}
+    {%- if block.settings.anchor != blank -%}
+        {%- assign tabs_num = tabs_num | plus: 1 -%}
+        {%- assign tabs_list = tabs_list | append: block.settings.anchor -%}
+        {%- assign tabs_id = tabs_id | append: block.settings.anchor_id -%}
+        {%- unless forloop.last -%}
+            {%- assign tabs_list = tabs_list | append: '-' -%}
+            {%- assign tabs_id = tabs_id | append: '-' -%}
+        {%- endunless -%}
+    {%- endif -%}
+{%- endfor -%}
+{%- assign bar_tran_w = 100 | divided_by: tabs_num -%}
+{%- assign tabs_list = tabs_list | split: '-' -%}
+{%- assign tabs_id = tabs_id | split: '-' -%}
+{%- render 'five-kwh-tab',
+        bar_tran_w: bar_tran_w,
+        list: tabs_list,
+        list_id: tabs_id
+-%}
+{% comment %} Tab栏导航 {% endcomment %}
+{% comment %} 自定义新人教育页 {% endcomment %}
+<div class="five-kwh--content">
+    <div class="newcomer--content_item">
+        {%- for block in section.blocks -%}
+            {%- case block.type -%}
+                {% comment %} 空盒子版块 {% endcomment %}
+                {% when 'empty-block-box' %}
+                    {% render 'empty-block-box',settings: block.settings, anchorID: block.settings.anchor_id, handle: block.settings.sourceHandle, index: forloop.index %}
+                {% comment %} 动效标题 {% endcomment %}
+                {%- when 'animated-title' -%}
+                    <div class="animated-title" {%if block.settings.anchor_id != blank%}anchor={{block.settings.anchor_id | escape}}{%endif%} data-index="{{ forloop.index }}">
+                        {% render 'new-title-v2',
+                                title: block.settings.title,
+                                type: block.settings.type,
+                                color: block.settings.title_color,
+                                formId: block.settings.form_id,
+                                bgColor: block.settings.bg_color
+                        %}
+                    </div>
+                {% comment %} 维护介绍组件 {% endcomment %}
+                {%- when 'newcomer-recharge' -%}
+                    {% render 'newcomer-recharge',settings: block.settings, anchorID: block.settings.anchor_id, index: forloop.index %}
+
+                {% comment %} 使用介绍组件 {% endcomment %}
+                {%- when 'newcomer-use' -%}
+                    {% render 'newcomer-use',settings: block.settings, anchorID: block.settings.anchor_id, index: forloop.index %}
+
+                {% comment %} 使用介绍组件 {% endcomment %}
+                {%- when 'newcomer-maintain' -%}
+                  {% render 'newcomer-maintain',settings: block.settings, anchorID: block.settings.anchor_id, index: forloop.index %}
+
+                {% comment %} 功能按钮组件 {% endcomment %}
+                {%- when 'newcomer-edu-buttons' -%}
+                  {% render 'newcomer-buttons',settings: block.settings, anchorID: block.settings.anchor_id, index: forloop.index, new_window: section.settings.new_window %}
+
+                {% comment %} 智能选购入口 {% endcomment %}
+                  {%- when 'newcomer-edu-smart' -%}
+                  {% render 'newcomer-smart',settings: block.settings, anchorID: block.settings.anchor_id, index: forloop.index, new_window: section.settings.new_window %}
+
+                {% comment %} 电器设备功率 {% endcomment %}
+                {%- when 'newcomer-find-power' -%}
+                  {% render 'newcomer-find-power',settings: block.settings, anchorID: block.settings.anchor_id, index: forloop.index %}
+
+                {% comment %} 设备储能 {% endcomment %}
+                {%- when 'newcomer-higher-output' -%}
+                  {% render 'newcomer-higher-output',settings: block.settings, anchorID: block.settings.anchor_id, index: forloop.index %}
+
+                {% comment %} 储能估算 {% endcomment %}
+                {%- when 'newcomer-calculator' -%}
+                  {% render 'newcomer-calculator',settings: block.settings, anchorID: block.settings.anchor_id, index: forloop.index %}
+
+                {% comment %} 智能选购 {% endcomment %}
+                {%- when 'newcomer-smart-recommend' -%}
+                  <div class="smart-box" style="background: {{ block.settings.bg_color }}">
+                   {% render 'smart-recommend-block',smart: block.settings, anchorID: block.settings.anchor_id, index: forloop.index %}
+                  </div>
+
+                {% comment %} 智能选购下面的按钮文案部分 {% endcomment %}
+                {%- when 'newcomer-smart-bottom' -%}
+                <div class="smart-box" style="background: {{ block.settings.bg_color }}">
+                  {% render 'newcomer-smart-btn',settings: block.settings, index: forloop.index %}
+                </div>
+            {%- endcase -%}
+        {% endfor %}
+    </div>
+</div>
+	<script defer>
+        (function() {
+            const init = function() {
+                const contentItem = document.querySelector('.newcomer--content_item');
+                const firstContentItem = contentItem ? contentItem.children[0] : null;
+                const fiveKwhTab = document.querySelector('.five-kwh-tab');
+
+                if (firstContentItem && fiveKwhTab) {
+                    const contentHeight = firstContentItem.offsetHeight;
+                    const contentOffset = firstContentItem.getBoundingClientRect().top + window.scrollY;
+
+                    let ticking = false;
+                    const update = function() {
+                        const scrollPosition = window.scrollY || document.documentElement.scrollTop || 0;
+                        const isVisible = scrollPosition >= contentOffset + contentHeight * 0.8;
+
+                        if (isVisible) {
+                            fiveKwhTab.classList.add('show-wrapper');
+                            fiveKwhTab.classList.remove('hide-wrapper');
+                        } else {
+                            fiveKwhTab.classList.add('hide-wrapper');
+                            fiveKwhTab.classList.remove('show-wrapper');
+                        }
+
+                        const shouldShow = scrollPosition >= contentOffset + contentHeight * 0.5;
+                        fiveKwhTab.style.display = shouldShow ? 'block' : 'none';
+                    };
+
+                    const onScroll = function() {
+                        if (ticking) return;
+                        ticking = true;
+                        requestAnimationFrame(function() {
+                            update();
+                            ticking = false;
+                        });
+                    };
+
+                    update();
+                    window.addEventListener('scroll', onScroll, { passive: true });
+                }
+
+                window.dataLayer = window.dataLayer || [];
+
+                //功能按钮组件埋点
+                document.querySelectorAll('.newcomer-education-buttons a').forEach(function(linkEl) {
+                    linkEl.addEventListener('click', function() {
+                        const currentHref = this.getAttribute('href');
+                        const button_name = (this.textContent || '').trim();
+
+                        const buttonsWrap = document.querySelector('.newcomer-education-buttons');
+                        let module = '';
+                        if (buttonsWrap) {
+                            let prev = buttonsWrap.previousElementSibling;
+                            while (prev) {
+                                if (prev.classList && prev.classList.contains('animated-title')) {
+                                    module = (prev.querySelector('.text')?.textContent || '').trim();
+                                    break;
+                                }
+                                prev = prev.previousElementSibling;
+                            }
+                        }
+
+                        let params ={
+                          link: currentHref,
+                          button_name: button_name,
+                          module: module
+                        }
+                        gaPushDataLayer('new_education_user_clicks', params);
+                    });
+                });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+
+
+    </script>
+{% schema %}
+
+
+{
+  "name": "newcomer education",
+  "tag": "section",
+  "class": "section section-custom-newcomer-main",
+  "enabled_on": {
+    "templates": ["page"]
+  },
+  "settings": [
+    { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "empty-block-box",
+      "name": "空盒子版块",
+      "settings": [
+        {
+          "type": "text",
+          "id": "sourceHandle",
+          "label": "绑定本页可内嵌组件的handle",
+          "info": "可内嵌: 1. 图文轮播-卡片切换 2. 左文右图（使用场景+设备时长） 3. 利益点",
+          "default": "embed-component-01"
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "对内标题，标识每个空盒子的功能"
+        },
+        { "type": "text",  "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+        {
+          "type": "color",
+          "id": "authorTipsColor",
+          "label": "编辑模式下提示文案颜色",
+          "default": "#333"
+        },
+        {
+          "type": "color",
+          "id": "bgColor",
+          "label": "背景色",
+          "default": "#fff"
+        },
+        {
+          "type": "header",
+          "content": "根据内嵌的组件设置合适高度"
+        },
+        {
+          "type": "number",
+          "id": "pcBoxH",
+          "label": "PC端盒子高度（单位：px）",
+          "info": "提示：各分辨率UI按照响应式规范进行换算",
+          "default": 200
+        },
+        {
+          "type": "number",
+          "id": "mbBoxH",
+          "label": "移动端盒子高度（单位：px）",
+          "info": "提示：各分辨率UI按照响应式规范进行换算",
+          "default": 460
+        }
+      ]
+    },
+    {
+      "type": "animated-title",
+      "name": "动效标题",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "标题"
+        },
+        { "type": "text",  "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color", "id": "title_color", "label": "标题整体颜色以及svg颜色", "default": "#fd5000" },
+        { "type": "color", "id": "bg_color", "label": "背景颜色", "default": "#FFF" },
+        {
+          "type": "select",
+          "id": "type",
+          "label": "标题的间距类型",
+          "default": "1",
+          "options": [
+            {
+              "value": "1",
+              "label": "小档"
+            },
+            {
+              "value": "2",
+              "label": "大档"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "newcomer-recharge",
+      "name": "充电介绍",
+      "settings": [
+        { "type":"header","content":"普通配置" },
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+        { "type": "richtext", "id": "title", "label": "标题" },
+        { "type": "richtext", "id": "description", "label": "副标题" },
+
+        { "type": "header", "content": "内容配置 - 标题1" },
+        { "type": "richtext", "id": "title_1", "label": "标题1" },
+        { "type": "image_picker", "id": "pc_img_1", "label": "PC图片1（266 x 300 单位px）" },
+        { "type": "image_picker", "id": "mb_img_1", "label": "MB图片1（426 x 480 单位px）" },
+        { "type": "header", "content": "内容配置 - 标题2" },
+        { "type": "richtext", "id": "title_2", "label": "标题2" },
+        { "type": "image_picker", "id": "pc_img_2", "label": "PC图片2（266 x 300 单位px）" },
+        { "type": "image_picker", "id": "mb_img_2", "label": "MB图片2（426 x 480 单位px）" },
+        { "type": "header", "content": "内容配置 - 标题3" },
+        { "type": "richtext", "id": "title_3", "label": "标题3" },
+        { "type": "image_picker", "id": "pc_img_3", "label": "PC图片3（266 x 300 单位px）" },
+        { "type": "image_picker", "id": "mb_img_3", "label": "MB图片3（426 x 480 单位px）" }
+      ]
+    },
+    {
+      "type": "newcomer-use",
+      "name": "使用介绍",
+      "settings": [
+        { "type":"header","content":"普通配置" },
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+
+        { "type": "header", "content": "内容配置" },
+        { "type": "richtext", "id": "title", "label": "标题" },
+        { "type": "richtext", "id": "description", "label": "副标题" },
+        { "type": "url", "id": "videoSrc", "label": "PC视频源（支持格式: mp4、mov、m4v）" },
+        { "type": "image_picker", "id": "poster", "label": "PC视频封面图（1200 x 560 单位px）" },
+        { "type": "url", "id": "videoSrcMB", "label": "MB视频源（支持格式: mp4、mov、m4v）" },
+        { "type": "image_picker", "id": "posterMB", "label": "MB视频封面图（750 x 480 单位px）" },
+        { "type": "checkbox", "id": "loop", "default": false, "label": "循环播放" },
+        { "type": "checkbox", "id": "controls", "default": true, "label": "显示控件" },
+        { "type": "checkbox", "id": "autoplay", "default": false, "label": "自动播放" }
+      ]
+    },
+    {
+      "type": "newcomer-maintain",
+      "name": "维护介绍",
+      "settings": [
+        { "type":"header","content":"普通配置" },
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+
+        { "type": "richtext", "id": "section_title","label": "版块标题" },
+        { "type": "header", "content": "Part1 图文" },
+        { "type": "richtext", "id": "part_title_1", "label": "标题" },
+        { "type": "richtext", "id": "part_subtitle_1", "label": "副标题" },
+        { "type": "image_picker", "id": "part_pc_img_1", "label": "PC端图片（590x 360 单位px）" },
+        { "type": "image_picker", "id": "part_mb_img_1", "label": "MB端图片（654x 400 单位px）" },
+
+        { "type": "header", "content": "Part2 图文" },
+        { "type": "richtext", "id": "part_title_2", "label": "标题" },
+        { "type": "richtext", "id": "part_subtitle_2", "label": "副标题" },
+        { "type": "image_picker", "id": "part_pc_img_2", "label": "PC端图片（590x 360 单位px）" },
+        { "type": "image_picker", "id": "part_mb_img_2", "label": "MB端图片（654x 400 单位px）" }
+      ]
+    },
+    {
+      "type": "newcomer-edu-buttons",
+      "name": "按钮入口",
+      "settings": [
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+        {
+          "type": "text",
+          "id": "left-text",
+          "label": "左边按钮文案"
+        },
+        {
+          "type": "url",
+          "id": "left-link",
+          "label": "左边按钮链接"
+        },
+        {
+          "type": "text",
+          "id": "right-text",
+          "label": "右边按钮文案"
+        },
+        {
+          "type": "url",
+          "id": "right-link",
+          "label": "右边按钮链接"
+        }
+
+      ]
+    },
+    {
+      "type": "newcomer-edu-smart",
+      "name": "智能选购入口",
+      "settings": [
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+        {
+          "type": "richtext",
+          "id": "title",
+          "label": "标题文案"
+        },
+        {
+          "type": "color",
+          "id": "title-color",
+          "label": "标题颜色"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "副标题"
+        },
+        {
+          "type": "text",
+          "id": "btn",
+          "label": "右边按钮文案"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "右边按钮链接"
+        }
+      ]
+    },
+    {
+      "type": "newcomer-find-power",
+      "name": "电器设备功率",
+      "settings": [
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+
+        { "type": "header", "content": "Find Power" },
+        { "type": "number", "id": "part_index", "label": "索引" },
+        { "type": "richtext", "id": "part_title", "label": "标题" },
+        { "type": "richtext", "id": "part_subtitle", "label": "副标题" },
+        { "type": "richtext", "id": "button_title", "label": "按钮标题" },
+        { "type": "richtext", "id": "table_title", "label": "表格标题" },
+        { "type":"url","id":"videoSrc","label":"PC视频源（支持格式: mp4、mov、m4v）" },
+        { "type":"image_picker","id":"poster","label":"PC视频封面图（480 x 480 单位px）" },
+        { "type":"url","id":"videoSrcMB","label":"MB视频源（支持格式: mp4、mov、m4v）" },
+        { "type":"image_picker","id":"posterMB","label":"MB视频封面图（750 x 320 单位px）" },
+        { "type": "checkbox", "id": "loop", "default": true, "label": "循环播放" },
+        { "type": "checkbox", "id": "controls", "default": false, "label": "显示控件" },
+        { "type": "checkbox", "id": "autoplay", "default": true, "label": "自动播放" },
+
+        { "type": "header", "content": "弹窗图片" },
+        { "type": "richtext", "id": "table_description", "label": "弹窗备注" },
+        { "type":"image_picker","id":"pop_image_pc","label":"PC弹窗图宽580px，高自动撑开" },
+        { "type":"image_picker","id":"pop_image_mb","label":"MB弹窗图宽630px，高自动撑开" }
+      ]
+    },
+    {
+      "type": "newcomer-higher-output",
+      "name": "设备储能",
+      "settings": [
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+
+        { "type": "header", "content": "Higher Output" },
+        { "type": "collection", "id": "collection_shop", "label": "产品系列" },
+        { "type": "number", "id": "part_index", "label": "索引" },
+        { "type": "richtext", "id": "part_title", "label": "标题" },
+        { "type": "richtext", "id": "part_subtitle", "label": "副标题" },
+        { "type": "richtext", "id": "button_title", "label": "按钮标题" },
+        { "type": "richtext", "id": "table_title", "label": "表格标题" },
+        { "type": "text", "id": "table_col_title_1", "label": "表格第一列标题" },
+        { "type": "text", "id": "table_col_title_2", "label": "表格第二列标题" },
+        { "type": "text", "id": "table_col_title_3", "label": "表格第三列标题" },
+
+        { "type":"url","id":"videoSrc","label":"PC视频源（支持格式: mp4、mov、m4v）" },
+        { "type":"image_picker","id":"poster","label":"PC视频封面图（480 x 480 单位px）" },
+        { "type":"url","id":"videoSrcMB","label":"MB视频源（支持格式: mp4、mov、m4v）" },
+        { "type":"image_picker","id":"posterMB","label":"MB视频封面图（750 x 320 单位px）" },
+        { "type": "checkbox", "id": "loop", "default": true, "label": "循环播放" },
+        { "type": "checkbox", "id": "controls", "default": false, "label": "显示控件" },
+        { "type": "checkbox", "id": "autoplay", "default": true, "label": "自动播放" },
+        { "type": "image_picker", "id": "pc_pop_poster", "label": "PC弹窗图片", "info": "建议宽度612px，高度自动撑开" },
+        { "type": "image_picker", "id": "mb_pop_poster", "label": "MB弹窗图片", "info": "建议宽度750px，高度自动撑开" }
+      ]
+    },
+    {
+      "type": "newcomer-calculator",
+      "name": "储能估算",
+      "settings": [
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+        { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+        { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+        { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+
+        { "type": "header", "content": "Calculator" },
+        { "type": "collection", "id": "collection_shop", "label": "产品系列" },
+        { "type": "number", "id": "part_index", "label": "索引" },
+        { "type": "richtext", "id": "part_title", "label": "标题" },
+        { "type": "richtext", "id": "part_subtitle", "label": "副标题" },
+        { "type": "richtext", "id": "table_description", "label": "备注" },
+        { "type": "image_picker", "id": "select_poster", "label": "未选择时候icon图片" },
+        { "type": "text", "id": "hour_text", "label": "小时数文案", "default": "Hrs"  },
+        { "type": "text", "id": "expected_text", "label": "预期运行时常文案"  },
+        { "type": "text", "id": "select_text", "label": "选择储能文案", "default": "select power station"  },
+        {
+          "type": "textarea",
+          "id": "errorTips",
+          "label": "错误提示",
+          "default": "Input power does not exceed ${power}W.",
+          "info": "${power}用于替换当前产品产品的最大功率，替换后示例：3000W;"
+        },
+        { "type": "text", "id": "w_text", "label": "瓦数名称", "default": "Wattage"  },
+        { "type": "text", "id": "button_tip_text", "label": "按钮提示语", "default": "calculation", "info": "日站填充文案：計算する"  },
+        { "type": "text", "id": "equipment", "label": "设备参数", "default": "Capacity ${capacity}, Output ${power}",
+          "info": " 1. ${power}用于替换当前产品产品的最大功率，替换后示例：3000W; 2. ${Capacity}用于替换当前产品的电池容量，替换后示例：2000Wh"  }
+      ]
+    },
+    {
+      "type": "newcomer-smart-recommend",
+      "name": "智能选购",
+      "limit": 1,
+      "settings": [
+        { "type": "color_background", "id": "bg_color", "label": "组件背景色", "default": "#F5F5F5" },
+        { "type": "text", "id": "anchor", "label": "锚点文案(支持空格，禁止使用-符号)"  },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "textarea", "id": "title", "label": "Title Text", "default": "Find Compatible Solar Panels" },
+        {"type": "text", "id": "choose_solar", "label": "Choose One Type of Solar Panel Text", "default": "Choose One Type of Solar Panel"},
+        {"type": "text", "id": "recharge_time", "label": "Recharging Time Text", "default": "Recharging Time"},
+        {"type": "text", "id": "save_time", "label": "Municipal Electricity Saving Text", "default": "Municipal Electricity Saving"},
+        {"type": "checkbox", "id": "show_result", "label": "Is Show Recommended Result", "default": true},
+        {"type": "textarea", "id": "recommend_result", "label": "Recommended Result Text", "default": "Recommended Solar Generator Solution"},
+        {"type": "text", "id": "access_text", "label": "Need Accessories Text", "default": "You Need These Accessories"},
+        {"type": "text", "id": "hour", "label": "Hours Unit Text", "default": "Hrs"},
+        {"type": "text", "id": "wh", "label": "WH Unit Text", "default": "wh"},
+        {"type": "text", "id": "total", "label": "Total Text", "default": "Total:"},
+        {"type": "text", "id": "cart", "label": "Add To Cart Text", "default": "Add To Cart"}
+      ]
+    },
+    {
+      "type": "newcomer-smart-bottom",
+      "name": "智能选购下面部分",
+      "settings": [
+        { "type": "color_background", "id": "bg_color", "label": "组件背景色", "default": "#F5F5F5" },
+        { "type": "richtext", "id": "button_title", "label": "按钮标题" },
+        { "type": "richtext", "id": "remark", "label": "底部备注文案" },
+        { "type": "richtext", "id": "table_title", "label": "表格标题" },
+        { "type": "richtext", "id": "table_description", "label": "弹窗备注" },
+        { "type": "image_picker", "id": "pc_pop_poster", "label": "PC弹窗图片", "info": "建议宽度612px，高度自动撑开" },
+        { "type": "image_picker", "id": "mb_pop_poster", "label": "MB弹窗图片", "info": "建议宽度750px，高度自动撑开" }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "newcomer education"
+  }]
+}
+{% endschema %}

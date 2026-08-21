@@ -1,0 +1,132 @@
+{%- comment -%}
+  Dependencies:
+  - video.js/video.css
+  Accepts:
+  - cover_image: {Object} video poster Image object
+  - heading: {String} video heading
+  - video_url: {String} video url
+  Usage:
+{%- endcomment -%}
+<style>
+  .video-block-main {overflow: hidden; min-height: unset; background-color: rgb(255, 255, 255);position:relative;padding-bottom:56.25%;height:0;background:transparent;}
+  .video-block-main video {width: 100%; border: none;height:100%;top: 0;left: 0;position:absolute;}
+  .video-block-main img {width: 100%;height:100%;top: 0;left: 0;position:absolute;border-radius: var(--g-radius);}
+  .js-youtube {border: none;top: 0;left: 0;width: 100%;height: 100%;position:absolute;}
+  .poster-img {width: 100%; border: none; position: relative; z-index: 9;}
+  .jackery-icon-24gl-playCircle {
+    font-size: 80px; color: #fff; cursor: pointer;
+    position: absolute; top: 50%; left: 50%; z-index: 10; transform: translate(-50%, -50%);
+    transition: transform .3s ease;
+  }
+  .jackery-icon-24gl-playCircle:hover {transform: translate(-50%, -50%) scale(1.1);}
+  @media screen and (max-width: 820px) {
+    .video-block-main {min-height: unset;}
+  }
+  @media screen and (max-width: 768px) {
+    .video-block-main {min-height: unset;background:transparent;}
+    .video-block-main video, .poster-img {height: auto; object-fit: cover;}
+    .video-img-box.layer-container{width: 85vw;}
+  }
+</style>
+
+<div class="video-block-main section-container relative swiper-no-swiping {{ class }}" style="">
+  {% if poster != blank %}
+    {% comment %} <img src="{{ poster | img_url: 'master' }}" class="poster-img" /> {% endcomment %}
+
+    {% render 'responsive-image', image: poster, image_class: 'poster-img' %}
+  {% endif %}
+
+  {% if video != blank %}
+    {%- if poster != blank -%}
+      <span class="js-video-play-btn iconfont jackery-icon-24gl-playCircle"></span>
+    {%- else -%}
+      {% unless video contains "youtube.com" or video contains "youtu.be" %}
+        <span class="js-video-play-btn iconfont jackery-icon-24gl-playCircle"></span>
+      {% endunless %}
+    {%- endif -%}
+  {% endif %}
+
+  {% if poster != blank %}<template>{% endif %}
+    {% if video contains "youtube.com" or video contains "youtu.be" %}
+      <iframe class="js-youtube absolute lazyload" data-src="{{ video }}" title="{{ title }}" frameborder="0" allow="autoplay;encrypted-media;web-share" allowfullscreen></iframe>
+    {% else %}
+      <video 
+        name="media" muted="" loop="" controls
+        class="slide-video lazyload"
+        {% if poster != blank %}poster="{{ poster | img_url: 'master' }}"{% endif %}
+        data-src="{{video}}"
+      >
+        <source data-src="{{ video }}" type="video/mp4" />
+      </video>
+    {% endif %}
+  {% if poster != blank %}</template>{% endif %}
+</div>
+
+<script defer>
+(function() {
+  {% if class != blank %}
+    document.querySelector('.{{ class }} .js-video-play-btn') && document.querySelector('.{{ class }} .js-video-play-btn').addEventListener('click', function() {
+      loadContent(document.querySelector('.{{ class }}'))
+    })
+  {% else %}
+    document.querySelector('.js-video-play-btn').addEventListener('click', function() {
+      loadContent(document.querySelector('.video-block-main'))
+    })
+  {% endif %}
+  
+  function loadContent(dom, focus = true) {
+    {% if class != blank %}
+      pauseAllMedia(document.querySelector('.{{ class }}'));
+    {% else %}
+      pauseAllMedia();
+    {% endif %}
+
+    {% if class != blank %}
+      {% assign class_selector = "." | append: class | append: " .poster-img" %}
+    {% else %}
+      {% assign class_selector = ".video-block-main .poster-img" %}
+    {% endif %}
+
+    if (document.querySelector('{{ class_selector }}')) {
+      if (!dom.getAttribute('loaded')) {
+        if (dom.querySelector('template')) {
+          const content = document.createElement('div');
+          content.appendChild(dom.querySelector('template').content.firstElementChild.cloneNode(true));
+          dom.setAttribute('loaded', true);
+          const deferredElement = dom.appendChild(content.querySelector('video, model-viewer, iframe'));
+        }
+        {% comment %} 设置iframe比例 {% endcomment %}
+        if(dom.querySelector('iframe[src*="www.youtube.com"]')) {
+          
+        }
+
+        autoplayVideo(dom);
+        $(dom).find('.poster-img,.js-video-play-btn').css('display', 'none');
+      }
+    } else {
+      autoplayVideo(dom);
+      $(dom).find('.poster-img,.js-video-play-btn').css('display', 'none');
+    }
+  }
+
+  function autoplayVideo(el = document) {
+    const video = el.querySelector('iframe[src*="www.youtube.com"], iframe[src*="player.vimeo.com"], video');
+    if (!video) return;
+    if (video.tagName.toLowerCase() === 'video') {
+      video.play();
+      return
+    }
+    video.src = `${video.src + (video.src.indexOf('?') < 0 ? '?' : '&')}autoplay=1`
+  }
+
+  function pauseAllMedia(el = document) {
+    el.querySelectorAll('.js-youtube').forEach((video) => {
+      video.contentWindow.postMessage('{"event":"command","func":"' + 'pauseVideo' + '","args":""}', '*');
+    });
+    el.querySelectorAll('.js-vimeo').forEach((video) => {
+      video.contentWindow.postMessage('{"method":"pause"}', '*')
+    });
+    el.querySelectorAll('video').forEach((video) => video.pause())
+  }
+})()
+</script>

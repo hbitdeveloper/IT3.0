@@ -1,0 +1,236 @@
+{{ 'blocks-video.css' | asset_url | stylesheet_tag }}
+<div 
+  class="blocks-video section-padding {{block.settings.page_width}} blocks-radius" {{ block.shopify_attributes }} 
+  style="--section-padding-top:{{block.settings.padding_top}}px;--section-padding-bottom:{{block.settings.padding_bottom}}px;--pc-media-size: {{block.settings.pc_media_size}};--mb-media-size: {{block.settings.mb_media_size}};--radius-top-left:{{block.settings.radius_1}}px;--radius-top-right:{{block.settings.radius_2}}px;--radius-bottom-right:{{block.settings.radius_3}}px;--radius-bottom-left:{{block.settings.radius_4}}px;">
+    {%- liquid
+        assign pcPoster = block.settings.poster_pc
+        assign pcUrl = block.settings.video_pc_url
+        assign mbPoster = block.settings.poster_mb
+        assign mbUrl = block.settings.video_mb_url
+        assign autoplay = block.settings.autoplay
+        assign loop = block.settings.loop
+        assign controls = block.settings.controls
+    -%}
+    <div class="blocks-video-wrap relative">
+        {% if pcPoster != blank and pcUrl == blank -%}
+            {%- render 'responsive-image', image: pcPoster, image_class: 'w-full hidden lg:block' -%}
+        {%- endif -%}
+
+        {%- if pcUrl != blank -%}
+            {%-
+            render 'jky-video',
+            class: "jky-video--pc",
+            poster: pcPoster,
+            video_url: pcUrl,
+            autoplay: autoplay,
+            loop: loop,
+            controls: controls,
+            -%}
+        {%- endif -%}
+
+        {% comment %} Mobile {% endcomment %}
+        {% if mbPoster != blank and mbUrl == blank  -%}
+            {%- render 'responsive-image', mimage: mbPoster, image_class: 'w-full block lg:hidden' -%}
+        {%- endif -%}
+
+        {%- if mbUrl != blank -%}
+            {%-
+                render 'jky-video',
+                class: "jky-video--mb",
+                poster: mbPoster,
+                mbPoster: mbPoster,
+                video_url: mbUrl,
+                autoplay: autoplay,
+                loop: loop,
+                controls: controls,
+            -%}
+        {%- endif -%}
+    </div>
+</div>
+
+{% schema %}
+{
+  "name": "视频",
+  "settings": [
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+            "value": "section-container-lg",
+            "label": "大版心/1312px"
+        },
+        {
+          "value": "container-fluid",
+          "label": "拉伸/铺满两边留白"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container",
+      "label": "组件宽度"
+    },
+    {
+      "type": "header",
+      "content": "上下边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36
+    },
+
+    {
+      "type": "header",
+      "content": "桌面端视频相关配置"
+    },
+    { "type": "image_picker", "id": "poster_pc", "label": "封面地址"},
+    { "type": "url", "id": "video_pc_url", "label": "视频地址", "info": "本地视频建议视频大小不超过10MB" },
+    {
+      "type": "select",
+      "id": "pc_media_size",
+      "options": [
+        {
+          "value": "56.25%",
+          "label": "16:9"
+        },
+        {
+          "value": "100%",
+          "label": "1:1"
+        },
+        {
+          "value": "177%",
+          "label": "9:16"
+        },
+        {
+          "value": "80%",
+          "label": "5:4"
+        },
+        {
+          "value": "125%",
+          "label": "4:5"
+        }
+      ],
+      "default": "56.25%",
+      "label": "媒体资源尺寸"
+    },
+
+    {
+      "type": "header",
+      "content": "移动端视频相关配置"
+    },
+    { "type": "image_picker", "id": "poster_mb", "label": "封面地址"},
+    { "type": "url", "id": "video_mb_url", "label": "视频地址", "info": "本地视频建议视频大小不超过10MB" },
+    {
+      "type": "select",
+      "id": "mb_media_size",
+      "options": [
+        {
+          "value": "56.25%",
+          "label": "16:9"
+        },
+        {
+          "value": "100%",
+          "label": "1:1"
+        },
+        {
+          "value": "177%",
+          "label": "9:16"
+        },
+        {
+          "value": "80%",
+          "label": "5:4"
+        },
+        {
+          "value": "125%",
+          "label": "4:5"
+        }
+      ],
+      "default": "177%",
+      "label": "媒体资源尺寸"
+    },
+
+    {
+      "type": "header",
+      "content": "播放设置"
+    },
+    { "type": "checkbox", "id": "autoplay", "label": "自动播放？", "default": false },
+    { "type": "checkbox", "id": "loop", "label": "循环播放？", "default": false },
+    { "type": "checkbox", "id": "controls", "label": "显示播放控件？", "default": true },
+    {
+      "type": "header",
+      "content": "圆角"
+    },
+    {
+      "type": "range",
+      "id": "radius_1",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_2",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右上角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_3",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "右下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    },
+    {
+      "type": "range",
+      "id": "radius_4",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "左下角圆角",
+      "default": 0,
+      "info": "移动端默认为设置的数值×0.75"
+    }
+  ],
+  "presets": [
+    {
+      "name": "视频"
+    }
+  ]
+}
+{% endschema %}

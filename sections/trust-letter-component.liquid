@@ -1,0 +1,219 @@
+{% schema %}
+{
+  "name": "首页-信任状",
+  "tag": "section",
+  "class": "trust-letter-component",
+  "disabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    { "type":"color_background","id":"bg-color","label":"Background"},
+    {
+      "type": "select",
+      "id": "letter-type",
+      "label": "Letter Type",
+      "default": "text",
+      "options": [
+        {
+          "value": "text",
+          "label": "text"
+        },
+        {
+          "value": "img",
+          "label": "image"
+        }
+      ]
+    },
+    {
+      "type": "richtext",
+      "id": "pc-title",
+      "label": "PC Title(必填)"
+    },
+    {
+      "type": "richtext",
+      "id": "mb-title",
+      "label": "MB Title(必填)"
+    },
+
+    {
+      "type": "text",
+      "id": "sec-title1",
+      "label": "Second Title1"
+    },
+    {
+      "type": "text",
+      "id": "sec-title2",
+      "label": "Second Title2"
+    },
+
+    {
+      "type": "color",
+      "id": "title-color",
+      "label": "Title Color",
+      "default": "#fd5000"
+    },
+
+    {
+      "type": "richtext",
+      "id": "sub-title",
+      "label": "SubTitle"
+    },
+
+    {
+      "type": "color",
+      "id": "sub-title-color",
+      "label": "SubTitle Color"
+    },
+
+    {
+      "type": "image_picker",
+      "id": "pc-letter-img",
+      "label": "PC Letter Image",
+      "info": "大小: 1440x68"
+    },
+    {
+      "type": "image_picker",
+      "id": "mb-letter-img",
+      "label": "MB Letter Image",
+      "info": "大小: 675x144"
+    }
+  ],
+  "presets": [
+    {
+      "name": "首页-信任状",
+      "settings": {
+        "letter-type": "text",
+        "pc-title": "<p>Jackery, Global Leading Brand<\/p>",
+        "mb-title": "<p>Jackery,<\/p><p>Global Leading Brand<\/p>",
+        "sec-title1": "4 Million Units",
+        "sec-title2": "12 Years Expertise",
+        "sub-title": "",
+        "pc-letter-img": "",
+        "mb-letter-img": ""
+      }
+    }
+  ]
+}
+{% endschema %}
+
+{%-liquid
+  assign bg_color = section.settings['bg-color'] | default: '#ffffff'
+  assign letter_type = section.settings['letter-type']
+  assign title_color = section.settings['title-color']
+  assign pc_title = section.settings['pc-title']
+  assign mb_title = section.settings['mb-title']
+  assign sec_title1 = section.settings['sec-title1']
+  assign sec_title2 = section.settings['sec-title2']
+  assign sub_title = section.settings['sub-title']
+  assign sub_title_color = section.settings['sub-title-color']
+  assign pc_letter_img = section.settings['pc-letter-img']
+  assign mb_letter_img = section.settings['mb-letter-img']
+-%}
+{{ 'sections-trust-letter-component.css' | asset_url | stylesheet_tag }}
+<div class="trust-letter-box" style="background: {{ bg_color }}">
+  {%- if letter_type == 'text' -%}
+    <div class="type-text">
+      <div class="title-box" style="color: {{ title_color }}">
+        <div class="title common-title pc-title change-color" id="txt1">
+          {{ pc_title | default: mb_title | default: '' }}
+        </div>
+        <div class="title common-title mb-title change-color">
+          {{ mb_title | default: pc_title | default: '' }}
+        </div>
+        <div class="sec-title common-title">
+          <p class="left-sec-title change-color" id="txt2">
+            {{ sec_title1 }}
+          </p>
+          {% if sec_title1 != blank or sec_title2 != blank %}
+            <div class="mid-img change-color">x</div>
+          {% endif %}
+          <p class="right-sec-title change-color" id="txt3">
+            {{ sec_title2 }}
+          </p>
+        </div>
+      </div>
+
+      <div class="des">
+        <div class="left-des common-des inb" style="color: {{ sub_title_color }}">
+          {{ sub_title }}
+        </div>
+      </div>
+    </div>
+  {% elsif letter_type == 'img' and pc_letter_img != blank %}
+    <div class="type-img">
+      {% render 'responsive-image',
+        image: pc_letter_img,
+        mimage: mb_letter_img,
+        image_class: 'letter-img'
+      %}
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  (function () {
+    function onReady(fn) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn, { once: true });
+        return;
+      }
+      fn();
+    }
+
+    function getScrollTop() {
+      return window.scrollY || document.documentElement.scrollTop || 0;
+    }
+
+    function getTitleBoxes() {
+      return Array.from(document.querySelectorAll('.trust-letter-box .title-box'));
+    }
+
+    function checkVisible(elements) {
+      if (!elements || elements.length === 0) return;
+
+      var windowHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      var windowTop = getScrollTop();
+      var windowBottom = windowTop + windowHeight;
+      var middleScreenTop = windowTop + windowHeight / 3;
+      var middleScreenBottom = windowBottom - windowHeight / 3;
+
+      elements.forEach(function (element) {
+        var rect = element.getBoundingClientRect();
+        var elementTop = rect.top + windowTop;
+        var elementBottom = elementTop + rect.height;
+
+        if (elementTop <= middleScreenBottom && elementBottom >= middleScreenTop) {
+          element.classList.add('changed');
+        } else {
+          element.classList.remove('changed');
+        }
+      });
+    }
+
+    onReady(function () {
+      var lastScrollTopNew = 0;
+      var ticking = false;
+
+      function update() {
+        var scrollTopNew = getScrollTop();
+        if (scrollTopNew > lastScrollTopNew) {
+          checkVisible(getTitleBoxes());
+        }
+        lastScrollTopNew = scrollTopNew;
+      }
+
+      window.addEventListener(
+        'scroll',
+        function () {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(function () {
+            update();
+            ticking = false;
+          });
+        },
+        { passive: true }
+      );
+    });
+  })();
+</script>

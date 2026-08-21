@@ -1,0 +1,91 @@
+{% doc %}
+    @description: 订阅组件
+    @param {string} id 唯一标识符
+    @param {string} tag：订阅标签
+    @param {string} klaviyo_id 如果配置了，则调取klaviyo的接口，没有则调用后端接口
+    @example
+        {% render 'subscribe-v1', id: id, tag: tag, klaviyo_id: klaviyo_id %}
+{% enddoc %}
+
+<style>
+    .jky-subscrible-v1 .form-error.error{ display: block; }
+    .jky-subscrible-v1 .jky-checkbox-label .jky-agree,
+    .jky-subscrible-v1 .jky-checkbox-label .jky-agree p,
+    .jky-subscrible-v1 .jky-checkbox-label .jky-agree a {
+      font-weight: 500;
+      font-size: 0.75rem;
+      color: #666666;
+      line-height: 1rem;
+      font-weight: 400;
+    }
+    .jky-subscrible-v1 jky-form .field_error-tips {
+        font-size: 0.75rem;
+        color: var(--jds-color-primary);
+        line-height: 1rem;
+    }
+    .jky-subscrible-v1 jky-form .form-item .subscrible-v1-input {
+        color: #222;
+    }
+
+</style>
+
+{%- assign url = '/osconsumerapi/v1/notice/subscribe' -%}
+{% if klaviyo_id != blank %}
+    {%- assign url = '/osconsumerapi/v1/notice/klaviyoSubscribe' -%}
+{% endif %}
+<jky-subscrible-v1>
+    <div id="{{ id }}" class="max-w-full jky-subscrible-v1">
+        <div class="text-[#1A1A1A] font-semibold lg:font-medium text-[1.125rem] lg:text-[1.5rem] leading-[1.625rem] lg:leading-[2rem] mb-[0.5rem] line-clamp-3 -tracking-[0.01rem] subscrible-title"> {{ settings.article_subscribe_title | escape }} </div>
+        <div class="text-[#666] font-normal text-[0.875rem] leading-[1.375rem] mb-[1rem]">{{ settings.article_subscribe_sub }}</div>
+        <jky-form
+            onsubmitcall="(e)=>toSubscribleSubmit(e)"
+            jky-form-id=" jky-subscrible-v1-email-subscribe"
+        >
+            <form data-action="{{ url }}" data-notscroll="true">
+                <div class="newbee-form newbee-form_{{id}}">
+                    <div class="mb-[0.75rem] lg:mb-4 w-full">
+                        <div class="form-item !min-h-[3.5rem] lg:!min-h-[4.25rem] required" data-field="input">
+                            <input
+                                class="subscrible-v1-input !px-[1.875rem] h-10 lg:h-12 {% if settings.jky_theme_version == "v4" %}rounded-lg{% endif %} border border-solid border-[#ccc] font-normal text-[0.875rem]"
+                                type="email" id="email-{{id}}" name="email"  placeholder="{{'newsletter.email_placeholder' | t}}"
+                                data-error="{{'newsletter.email_empty_info' | t}}"
+                                data-value="email" data-reg="email" data-regerror="{{'newsletter.email_error_info' | t}}"  />
+                            <div class="relative">
+                                <div class="absolute bottom-0 left-2 h-[2.625rem] lg:h-[3.125rem] text-[1.375rem] font-normal leading-[3.75rem] text-[var(--jds-color-primary)]">*</div>
+                            </div>
+                        </div>
+                        <div class="form-item form-item_const !hidden" data-field="input"><input class="hidden" type="text" data-value="componentName" name="componentName" value="博客订阅" /></div>
+                        <div class="form-item form-item_const !hidden" data-field="input"><input class="hidden subscrible-page-url" type="text" data-value="pageUrl" name="pageUrl" value="" /></div>
+                        {% if klaviyo_id == blank %}
+                            <div class="form-item form-item_const !hidden" data-field="input"><input class="hidden" type="text" data-value="tags" name="tags" value="{{ tag }}" /></div>
+                        {% else %}
+                            <div class="form-item form-item_const !hidden" data-field="input"><input class="hidden" type="text" data-value="list_id" name="list_id" value="{{ klaviyo_id }}" /></div>
+                            {%- assign CR = settings.shop_cr | default: localization.country.iso_code | default: 'US' -%}
+                            <div class="form-item form-item_const !hidden" data-field="input"><input class="hidden" data-value="cr" type="text" name="cr" value="{{ CR }}" /></div>
+                        {%- endif -%}
+                        <div
+                            class="flex justify-center items-center w-full form-row_submit"
+                            data-loading="{{settings.loading_btn}}"
+                        >
+                            <button
+                            class="w-full rounded-[var(--theme-btn-border-radius,0.5rem)] h-10 font-semibold text-[1rem] text-[#fff] bg-[var(--jds-color-primary)] form_sub_btn submit-btn"
+                            data-success="{{'newsletter.success' | t}}"
+                            data-tag="{{ settings.article_subscribe_tag }}"
+                            >
+                            {{ settings.article_subscribe_btn | default: 'SUBSCRIBE' }}
+                            </button>
+                        </div>
+                    </div>
+                    {% comment %} 隐私协议 {% endcomment %}
+                    <div class="mb-[0.75rem] lg:mb-0 privacy form-row_check_box flex full">
+                        <div class="form-item required !min-h-[auto] !mb-0" data-field="check_box"
+                            data-error="{{'newsletter.policy_empty_info' | t}}">
+                            {% render 'jky-formField-checkbox', key: settings.article_subscribe_privacy, value: 'agree_recevie' %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </jky-form>
+    </div>
+</jky-subscrible-v1>
+<script src="{{ 'snippets-subscribe-v1.js' | asset_url }}" defer></script>

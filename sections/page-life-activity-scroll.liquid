@@ -1,0 +1,58 @@
+{% comment %} jackery-life 活动 无缝滚动 {% endcomment %}
+{% assign scrollBlocks = section.blocks | where: 'type', "image_item" %}
+{% if scrollBlocks.size > 0 %}
+  <section class="w-full bg-white py-20 lg:j-py-16 xl:a-py-16">
+    {% comment %} 无缝滚动 {% endcomment %}
+    <div class="w-full swiper life-activity-explore swiper-no-swiping">
+      <div class="swiper-wrapper life-activity-explore-wrapper">
+        {% for block in section.blocks %}
+          {% case block.type %}
+            {% when 'image_item' %}
+            {% if block.settings.image_link != blank %}
+              <div class="swiper-slide w-500 lg:j-w-420 xl:a-w-420">
+                <a href="{{ block.settings.image_link | escape }}">
+                  <img
+                    class="w-500 h-333 rounded-20 lg:j-w-420 lg:j-h-280 lg:j-rounded-20 xl:a-w-420 xl:a-h-280 xl:a-rounded-20 object-cover"
+                    src="{{ block.settings.image_slide | image_url: width: 840}}"
+                    alt="jackery life" loading="lazy" />
+                </a>
+              </div>
+            {% else %}
+              <div class="swiper-slide w-500 lg:j-w-420 xl:a-w-420">
+                <img
+                  loading="lazy"
+                  class="w-500 h-333 rounded-20 lg:j-w-420 lg:j-h-280 lg:j-rounded-20 xl:a-w-420 xl:a-h-280 xl:a-rounded-20 object-cover"
+                  src="{{ block.settings.image_slide | image_url: width: 840}}"
+                  alt="jackery life" />
+              </div>
+            {% endif %}
+          {% endcase %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{% schema %}
+  {
+    "name": "Life Activity Scroll",
+    "class": "section-life-activity section-life-activity-scroll",
+    "blocks": [
+      {
+        "type": "image_item",
+        "name": "Image item",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image_slide",
+            "label": "Image Slide"
+          }, {
+            "type": "url",
+            "id": "image_link",
+            "label": "Image Link"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

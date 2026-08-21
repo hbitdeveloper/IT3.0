@@ -1,0 +1,1450 @@
+{%- assign product_form_id = 'product-form-' | append: sectionId -%}
+  
+{% comment %} 变体列表 {% endcomment %}
+{%- unless product.has_only_default_variant -%}
+  <div {{ block.shopify_attributes }} class="lg:pt-16 pt-8">
+    {% style %}
+      .variant-select-color input[type=radio] {
+        width: 0;
+        height: 0;
+        position: absolute;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0)
+      }
+      .variant-select-color .swatch {
+        display: block;
+        width: 2.5rem;
+        height: 2.5rem;
+        aspect-ratio: 1 / 1;
+        background: var(--swatch--background);
+        background-position: var(--swatch-focal-point, initial);
+        background-size: cover;
+        background-origin: border-box;
+        border: 1px solid #C6C7C8;
+        border-radius: 50%;
+        position: relative;
+      }
+      .variant-select-color .swatch::after {
+        display: block;
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 1;
+        border: 1px solid transparent;
+        border-radius: 50%;
+        transform: scale(1.2935);
+      }
+      .variant-select-color .swatch.swatch--unavailable {
+        border-style: dashed;
+        border-color: #C6C7C8;
+        background: linear-gradient(45deg, #f3f3f3, #e5e5e5);
+      }
+      .variant-select-color input[type=radio]:checked+label .swatch::after {
+        border: 1px solid #242F20;
+      }
+      .variant-select-color label.disabled > * {
+        opacity: .4;
+      }
+      .variant-select-color label.disabled .swatch::before {
+        display: block;
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        z-index: 1;
+        background-color: #C6C7C8;
+        transform: translateX(-50%) rotate(45deg);
+      }
+
+      .variant-select input[type=radio] {
+        width: 0;
+        height: 0;
+        position: absolute;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0)
+      }
+      .variant-select input[type=radio]:checked+label {
+        background: #ffffff;
+      }
+      .variant-select.variant-select--diy input[type=radio]:checked+label {
+        background: #242F20;
+        color: #ffffff;
+      }
+      .variant-select input[type=radio]:checked+label["data-diy"] {
+        background: #242F20;
+        color: #ffffff;
+        transition: all .24s ease;
+      }
+      .variant-select input[type=radio]:checked+label:not(.variant-select--panels__none)::after,
+      .diy-variant-select.active .diy-variant-select-wrapper::after {
+        border: solid 1px #242F20;
+        box-shadow: inset 0 0 0 0.5px #242F20;
+      }
+      .variant-select input[type=radio]:checked+label .variant-richtext-wrap,
+      .diy-variant-select.active .variant-richtext-wrap {
+        grid-template-rows: 1fr;
+      }
+      .variant-select label.disabled > * {
+        opacity: .4;
+      }
+      .variant-select label.disabled span.visually-hidden {
+        display: initial;
+        text-wrap: nowrap;
+        word-break: keep-all
+      }
+      .variant-select label::after,
+      .diy-variant-select-wrapper::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 1;
+        border: 1px solid #C6C7C8;
+      }
+      .variant-select label:hover::after,
+      .diy-variant-select:hover .diy-variant-select-wrapper::after {
+        border: solid 1px rgba(0, 0, 0, .4)
+      }
+
+      .variant-select .variant-richtext-wrap,
+      .diy-variant-select .variant-richtext-wrap {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.4s;
+      }
+      .variant-select .variant-richtext {
+        overflow: hidden;
+      }
+      .variant-select .variant-richtext .metafield-rich_text_field {
+        min-height: 0;
+        overflow: hidden;
+      }
+      .variant-select .variant-richtext .metafield-rich_text_field {
+        padding-top: 1.25rem;
+      }
+      .variant-select .variant-richtext p {
+        font-size: 1rem;
+        line-height: 1.375rem;
+        color: rgba(0, 0, 0, .65);
+        margin-top: 1.5rem;
+      }
+      .variant-select .variant-richtext .metafield-rich_text_field p:first-of-type {
+        margin-top: 0;
+      }
+      .variant-select .variant-richtext ul,
+      .variant-select .variant-richtext ol {
+        padding-left: 1rem;
+      }
+      .variant-select .variant-richtext ul li,
+      .variant-select .variant-richtext ol li {
+        list-style-position: inside;
+        font-size: 1rem;
+        line-height: 1.375rem;
+        color: rgba(0, 0, 0, .65);
+      }
+      .variant-select .variant-richtext ul li {
+        list-style-type: disc;
+      }
+      .variant-select .variant-richtext ol li {
+        list-style-type: decimal;
+      }
+      .variant-select .variant-richtext ul li p {
+        display: inline;
+      }
+      .variant-select .variant-richtext em {
+        display: inline-block;
+        font-size: 1rem;
+        line-height: 1.375rem;
+        color: var(--primary-color);
+        background-color: #F5F5F3;
+        padding: .125rem .5rem;
+      }
+      .variant-select .variant-richtext li em {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      @media screen and (max-width: 1023.98px) {
+        .variant-select .variant-richtext .metafield-rich_text_field {
+          padding-top: 1rem;
+        }
+        .variant-select .variant-richtext p {
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+          color: rgba(0, 0, 0, .65);
+          margin-top: 0.75rem;
+        }
+        .variant-select .variant-richtext ul,
+        .variant-select .variant-richtext ol {
+          padding-left: 1rem;
+        }
+        .variant-select .variant-richtext ul li,
+        .variant-select .variant-richtext ol li {
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+        }
+        .variant-select .variant-richtext em {
+          display: inline-block;
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+          color: var(--primary-color);
+          background-color: #F5F5F3;
+          padding: .125rem .5rem;
+        }
+      }
+
+      .variant-select--panels__none .count-panels-wrapper, .variant-select--panels__none .option-price {
+        display: none;
+      }
+      .variant-select--panels .count-panels-wrapper {
+        padding-left: 5.25rem;
+      }
+      .diy-variant-select-wrapper.disabled div {
+        opacity: .4;
+      }
+      @media screen and (max-width: 1023.98px) {
+        .variant-select--panels .count-panels-wrapper {
+          padding-left: 4.75rem;
+        }
+      }
+    {% endstyle %}
+
+    <variant-fields
+      id="variant-radios-{{ sectionId }}"
+      class="flex flex-col gap-y-8 lg:gap-y-12 lg:pb-6"
+      data-section="{{ sectionId }}"
+      data-url="{{ product.url }}"
+      {{ block.shopify_attributes }}
+      {% if product.selected_or_first_available_variant.option2 == section.settings.without_option %}
+        data-without="true"
+      {% else %}
+        data-without="false"
+      {% endif %}
+    >
+      {%- for option in product.options_with_values -%}
+        {%- assign swatch_count = option.values | map: 'swatch' | compact | size -%}
+        {%- if swatch_count > 0 -%}
+          <div 
+            class="product-form__input flex flex-col gap-y-4 lg:gap-y-5"
+          >
+            <div class="w-full lg:font-semibold font-medium text-[#242F20] text-base lg:text-2xl">{{ option.name }}</div>
+            <div class="w-full flex flex-wrap gap-6 px-1">
+              {%- for value in option.values -%}
+                {%- liquid
+                  assign swatch_focal_point = null
+                  if value.swatch.image
+                    assign image_url = value.swatch.image | image_url: width: 50
+                    assign swatch_value = 'url(' | append: image_url | append: ')'
+                    assign swatch_focal_point = value.swatch.image.presentation.focal_point
+                  elsif value.swatch.color
+                    assign swatch_value = 'rgb(' | append: value.swatch.color.rgb | append: ')'
+                  else
+                    assign swatch_value = null
+                  endif
+                  
+                  assign option_disabled = true
+                  assign matched_variant = nil
+                  assign selected_opt1 = product.selected_or_first_available_variant.option1
+                  assign selected_opt2 = product.selected_or_first_available_variant.option2
+                  assign selected_opt3 = product.selected_or_first_available_variant.option3
+                  for v in product.variants
+                    case option.position
+                      when 1
+                        if v.option1 == value
+                          if product.options.size > 1
+                            if product.options.size == 2
+                              if v.option2 == selected_opt2
+                                assign matched_variant = v
+                                break
+                              endif
+                            elsif product.options.size >= 3
+                              if v.option2 == selected_opt2 and v.option3 == selected_opt3
+                                assign matched_variant = v
+                                break
+                              endif
+                            endif
+                          else
+                            assign matched_variant = v
+                            break
+                          endif
+                        endif
+                      when 2
+                        if v.option2 == value and v.option1 == selected_opt1
+                          if product.options.size >= 3
+                            if v.option3 == selected_opt3
+                              assign matched_variant = v
+                              break
+                            endif
+                          else
+                            assign matched_variant = v
+                            break
+                          endif
+                        endif
+                      when 3
+                        if v.option3 == value and v.option1 == selected_opt1 and v.option2 == selected_opt2
+                          assign matched_variant = v
+                          break
+                        endif
+                    endcase
+                  endfor
+                  if matched_variant
+                    if matched_variant.available
+                      assign option_disabled = false
+                    else
+                      assign option_disabled = true
+                    endif
+                  endif
+                -%}
+                <div 
+                  class="variant-select-color"
+                >
+                  <input
+                    type="radio"
+                    id="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                    data-id="{{ matched_variant.id }}"
+                    name="{{ option.name }}"
+                    value="{{ value | escape }}"
+                    form="{{ product_form_id }}"
+                    corner="{{ matched_variant.metafields.custom.variant_tag | escape }}"
+                    {% if option.selected_value == value %} checked {% endif %}
+                    {% if option_disabled %} class="disabled" {% endif %}
+                  >
+                  <label
+                    class="relative cursor-pointer flex flex-col items-center gap-2 lg:min-w-12 {% if option_disabled %} disabled unavailable {% endif %}"
+                    for="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                  >
+                    <span
+                      {% if swatch_value %}
+                        class="swatch"
+                        style="--swatch--background: {{ swatch_value }};{% if swatch_focal_point %} --swatch-focal-point: {{ swatch_focal_point }};{% endif %}"
+                      {% else %}
+                        class="swatch swatch--unavailable"
+                      {% endif %}
+                    ></span>
+                    <span class="font-semibold text-[#242F20] text-sm lg:text-xl">{{ value | escape }}</span>
+                  </label>
+                </div>
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- else -%}
+          <div class="diy-product-option--{{ option.position }} product-form__input flex flex-col gap-y-4 lg:gap-y-6 {% if option.position == 3 %}-mt-6 lg:gap-y-5{% else %}lg:gap-y-6{% endif %}">
+            {%- if option.position != 3 -%}
+            <div class="font-semibold text-[#242F20] text-xl">
+              {%- if option.position == 1 -%}
+                {{ section.settings.step_1_label }}
+              {%- else -%}
+                {{ section.settings.step_2_label }}
+              {%- endif -%}
+            </div>
+            {%- endif -%}
+            
+            {%- for value in option.values -%}
+              {%- liquid
+                assign option_disabled = true
+                assign matched_variant = nil
+                assign selected_opt1 = product.selected_or_first_available_variant.option1
+                assign selected_opt2 = product.selected_or_first_available_variant.option2
+                assign selected_opt3 = product.selected_or_first_available_variant.option3
+                for v in product.variants
+                  case option.position
+                    when 1
+                      if v.option1 == value
+                        if product.options.size > 1
+                          if product.options.size == 2
+                            if v.option2 == selected_opt2
+                              assign matched_variant = v
+                              break
+                            endif
+                          elsif product.options.size >= 3
+                            if v.option2 == selected_opt2 and v.option3 == selected_opt3
+                              assign matched_variant = v
+                              break
+                            endif
+                          endif
+                        else
+                          assign matched_variant = v
+                          break
+                        endif
+                      endif
+                    when 2
+                      if v.option2 == value and v.option1 == selected_opt1
+                        if product.options.size >= 3
+                          if v.option3 == selected_opt3
+                            assign matched_variant = v
+                            break
+                          endif
+                        else
+                          assign matched_variant = v
+                          break
+                        endif
+                      endif
+                    when 3
+                      if v.option3 == value and v.option1 == selected_opt1 and v.option2 == selected_opt2
+                        assign matched_variant = v
+                        break
+                      endif
+                  endcase
+                endfor
+                if matched_variant
+                  if matched_variant.available
+                    assign option_disabled = false
+                  else
+                    assign option_disabled = true
+                  endif
+                endif
+              -%}
+              
+              {%- if matched_variant -%}
+                  {%- if option.position == 1 -%}
+                      <div class="variant-select">
+                          <input
+                              type="radio"
+                              id="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                              data-id="{{ matched_variant.id }}"
+                              name="{{ option.name }}"
+                              value="{{ value | escape }}"
+                              form="{{ product_form_id }}"
+                              corner="{{ matched_variant.metafields.custom.variant_tag | escape }}"
+                              {% if option.selected_value == value %} checked {% endif %}
+                              {% if option_disabled %} class="disabled" {% endif %}
+                          >
+                          {%- capture option_img -%}
+                            {%- 
+                              render 'variant-featured-image-by-values', 
+                              option_1_value: value,
+                              option_2_value: selected_opt2,
+                              option_3_value: selected_opt3
+                            -%}
+                          {%- endcapture -%}
+                          <label
+                              class="relative cursor-pointer flex flex-wrap p-4 min-h-[5.4375rem] lg:min-h-[6.125rem] {% if option_disabled %} disabled unavailable {% endif %} variant-media-label"
+                              for="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                              data-media="{{ option_img }}"
+                              data-options="{{ value }}-{{ selected_opt2 }}-{{ selected_opt3 }}"
+                          >
+                              {%-liquid
+                                  assign variant_metafields = matched_variant
+                                  assign option_index = forloop.index
+                                  if product.metafields.custom.diy.value.main_product.value != blank
+                                      for custom_variant in  product.metafields.custom.diy.value.main_product.value
+                                          if option_index == forloop.index
+                                              assign variant_metafields = custom_variant
+                                              break
+                                          endif
+                                      endfor
+                                  endif
+                              -%}
+                              
+                              {%- if option.position == 1 -%}
+                                  {% comment %} 主机 + 加电包 {% endcomment %}
+                                  <div class="flex lg:gap-x-8 gap-x-3 items-center w-full">
+                                      <div class="flex lg:gap-x-5 gap-x-3 items-center flex-1">
+                                          {%-liquid
+                                            assign variant_img = variant_metafields.featured_image | default: variant_metafields.product.featured_image
+                                          -%}
+                                          <img class="w-16 h-16 object-contain" src="{{ variant_img  | image_url: width: 150 }}" alt="{{ variant_metafields.title }}" loading="lazy" width="{{ variant_img.width }}" height="{{ variant_img.height }}" />
+                                          <h2 class="text-[#242F20] font-semibold text-sm lg:text-xl line-clamp-3">
+                                            {%- render 'variant-name', variant: variant_metafields -%}
+                                          </h2>
+                                          <span class="font-semibold pl-5 text-sm leading-6 lg:text-base hidden">{{ 'products.product.sold_out' | t }}</span>
+                                      </div>
+
+                                      <div
+                                          class="flex flex-col option-price items-end"
+                                          data-product-id="{{ product.id }}" 
+                                          data-variant-id="{{ matched_variant.id }}"
+                                          data-meta-variant-id="{{ variant_metafields.id }}"
+                                      >
+                                          {%- assign l_variant = variant_metafields -%}
+                                          {%- assign l_price = l_variant.price -%}
+                                          {%- assign l_origin_price = l_variant.compare_at_price | default: l_price -%}
+
+                                          {%- if l_origin_price < l_variant.price -%}
+                                              {%- assign l_origin_price = l_variant.price -%}
+                                          {%- endif -%}
+
+                                          <span class="price text-base lg:text-xl text-[#1A1A1A] font-semibold whitespace-nowrap">{{ l_price | money }}</span>
+                                          {%- if l_origin_price > l_price -%}
+                                              <span style="color: #999999;" class="origin-price text-xs lg:text-base font-medium  line-through">{{ l_origin_price | money }}</span>
+                                          {%- endif -%}
+                                      </div>
+                                  </div>
+                              {%- endif -%}
+                          </label>
+                      </div>
+                  {%- endif -%}
+
+                  {%- if option.position == 2 -%}
+                      {% comment %} 太阳板数量 - option2 {% endcomment %}
+                      {%- if value == section.settings.without_option -%}
+                          <div class="variant-select variant-select--without mb-2 lg:mb-2 {% if option.selected_value == value %}variant-select--without-checked{% endif %}">
+                              <input
+                                  type="radio"
+                                  id="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                                  data-id="{{ matched_variant.id }}"
+                                  name="{{ option.name }}"
+                                  value="{{ value | escape }}"
+                                  form="{{ product_form_id }}"
+                                  corner="{{ matched_variant.metafields.custom.variant_tag | escape }}"
+                                  {% if option.selected_value == value %} checked {% endif %}
+                                  {% if option_disabled %} class="disabled" {% endif %}
+                              >
+
+                              {%- capture option_img -%}
+                                {%- 
+                                  render 'variant-featured-image-by-values', 
+                                  option_1_value: selected_opt1,
+                                  option_2_value: value,
+                                  option_3_value: selected_opt3
+                                -%}
+                              {%- endcapture -%}
+                              <label
+                                  class="variant-media-label relative cursor-pointer flex flex-wrap lg:p-3 p-2 items-center {% if option_disabled %} disabled unavailable {% endif %}"
+                                  for="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                                  data-options="{{ selected_opt1 }}-{{ value }}-{{ selected_opt3 }}"
+                                  data-media="{{ option_img }}"
+                              >
+                                  {%-liquid
+                                      assign variant_metafields = matched_variant
+                                      assign option_index = forloop.index
+                                      if product.metafields.custom.diy.value.main_product.value != blank
+                                          for custom_variant in  product.metafields.custom.diy.value.main_product.value
+                                              if option_index == forloop.index
+                                                  assign variant_metafields = custom_variant
+                                                  break
+                                              endif
+                                          endfor
+                                      endif
+                                  -%}
+                                  
+                                  <div class="w-full flex text-center font-medium lg:text-xl text-base justify-center items-center">{{ section.settings.text_without }}</div>
+                              </label>
+                          </div>
+                      {%- endif -%}
+                  {%- endif -%}
+
+                  {%- if option.position == 3 -%}
+                      <div class="variant-select variant-select--panels">
+                          <input
+                              type="radio"
+                              id="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                              data-id="{{ matched_variant.id }}"
+                              name="{{ option.name }}"
+                              value="{{ value | escape }}"
+                              form="{{ product_form_id }}"
+                              corner="{{ matched_variant.metafields.custom.variant_tag | escape }}"
+                              {% if option.selected_value == value %} checked {% endif %}
+                              {% if option_disabled and option.selected_value != value %} class="disabled" {% endif %}
+                          >
+                          
+                          {%- assign option_img_value = '' -%}
+                          {%- if option.selected_value == value -%}
+                              {%- capture option_img -%}
+                                {%- 
+                                  render 'variant-featured-image-by-values', 
+                                  option_1_value: selected_opt1,
+                                  option_2_value: selected_opt2,
+                                  option_3_value: value
+                                -%}
+                              {%- endcapture -%}
+                          {%- else -%}
+                              {%- capture option_img -%}
+                                {%- 
+                                  render 'variant-featured-image-by-values', 
+                                  option_1_value: selected_opt1,
+                                  option_2_value: section.settings.default_option,
+                                  option_3_value: value
+                                -%}
+                              {%- endcapture -%}
+                          {%- endif -%}
+                          {%- assign option_img_value = option_img -%}
+                          <label
+                              class="variant-media-label {% if selected_opt2 == section.settings.without_option %}variant-select--panels__none{% endif %} relative cursor-pointer flex flex-wrap p-4 min-h-[5.4375rem] lg:min-h-[6.125rem] {% if option_disabled and option.selected_value != value %} disabled unavailable {% endif %}"
+                              for="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                              data-media="{{ option_img_value }}"
+                          >
+                            {% comment %} section.settings.default_option {% endcomment %}
+                              {%-liquid
+                                  assign variant_metafields = matched_variant
+                                  assign panels_metafields = matched_variant
+                                  assign option_index = forloop.index
+                                  if product.metafields.custom.diy.value.main_product.value != blank
+                                      for custom_variant in  product.metafields.custom.diy.value.main_product.value
+                                          if option_index == forloop.index
+                                              assign variant_metafields = custom_variant
+                                              break
+                                          endif
+                                      endfor
+                                  endif
+
+                                  if product.metafields.custom.diy.value.panels.value != blank
+                                      for custom_variant in  product.metafields.custom.diy.value.panels.value
+                                          if option_index == forloop.index
+                                              assign panels_metafields = custom_variant
+                                              break
+                                          endif
+                                      endfor
+                                  endif
+                              -%}
+                              
+                              {% comment %} 配件 {% endcomment %}
+                              <div class="w-full flex flex-col gap-y-3">
+                                  <div {% if option_disabled == true %}style="opacity: 0.6;"{% endif %} class="flex gap-x-8 items-center w-full">
+                                      <div class="flex lg:gap-x-5 gap-x-3 items-center flex-1">
+                                          {%-liquid
+                                            assign variant_img = panels_metafields.featured_image | default: panels_metafields.product.featured_image
+                                          -%}
+                                          <img class="w-16 h-16 object-contain" src="{{ variant_img  | image_url: width: 150 }}" alt="{{ panels_metafields.title }}" loading="lazy" width="{{ variant_img.width }}" height="{{ variant_img.height }}" />
+                                          <h2 class="text-[#242F20] font-semibold text-sm lg:text-xl line-clamp-3">{%- render 'variant-name', variant: panels_metafields -%}</h2>
+                                          <span class="font-semibold pl-5 text-sm leading-6 lg:text-base hidden">{{ 'products.product.sold_out' | t }}</span>
+                                      </div>
+
+                                      <div 
+                                          class="flex flex-col option-price items-end"
+                                          data-product-id="{{ product.id }}" 
+                                          data-variant-id="{{ matched_variant.id }}"
+                                      >
+                                          {% assign first_part = product.selected_or_first_available_variant.option2 | split: ' ' | first | times: 1 %}
+                                          {% assign first_char = product.selected_or_first_available_variant.option2 | slice: 0, 1 %}
+                                          {% if first_char == 'x' or first_char == 'X' %}
+                                            {% assign original_str = product.selected_or_first_available_variant.option2 %}
+                                            {% assign without_first = original_str | slice: 1, original_str.size %}
+                                            {% assign first_part = without_first | times: 1 %}
+                                          {% else %}
+                                            {% assign first_part = 1 %}
+                                          {% endif %}
+
+                                          {%- if option.selected_value != matched_variant.option3 -%}
+                                            {% assign first_part = 1 %}
+                                          {% endif %}
+
+                                          {%- assign l_variant = panels_metafields -%}
+                                          {%- assign l_price = l_variant.price -%}
+                                          {%- assign l_origin_price = l_variant.compare_at_price | default: l_price -%}
+                          
+                                          {%- if l_origin_price < l_variant.price -%}
+                                              {%- assign l_origin_price = l_variant.price -%}
+                                          {%- endif -%}
+
+                                          <span class="price text-base lg:text-xl text-[#1A1A1A] font-semibold whitespace-nowrap">{{ l_price | times: first_part | money }}</span>
+
+                                          {%- if l_origin_price > l_price -%}
+                                              <span style="color: #999999;" class="origin-price text-xs lg:text-base font-medium  line-through">
+                                                {{ l_origin_price | times: first_part | money }}
+                                              </span>
+                                          {%- endif -%}
+                                      </div>
+                                  </div>
+
+                                  {%- if option.selected_value == value -%}
+                                      <div class="count-panels-wrapper flex gap-3 justify-end relative z-[2] flex-wrap">
+                                          {%- for op in product.options_with_values -%}
+                                              {%- if op.position == 2 -%}
+                                                  {%- for vv in op.values -%}
+                                                      {%- if vv != section.settings.without_option -%}
+                                                          <div class="variant-select variant-select--diy flex-1 break-keep text-center whitespace-nowrap">
+                                                              <input
+                                                                  type="radio"
+                                                                  id="{{ sectionId }}-{{ op.position }}-{{ forloop.index0 }}--panels"
+                                                                  data-id="{{ matched_variant.id }}"
+                                                                  name="{{ op.name }}"
+                                                                  value="{{ vv | escape }}"
+                                                                  form="{{ product_form_id }}"
+                                                                  corner="{{ matched_variant.metafields.custom.variant_tag | escape }}"
+                                                                  {% if op.selected_value == vv %} checked {% endif %}
+                                                              >
+                                                              {%- capture option_img -%}
+                                                                {%- 
+                                                                  render 'variant-featured-image-by-values', 
+                                                                  option_1_value: selected_opt1,
+                                                                  option_2_value: vv,
+                                                                  option_3_value: selected_opt3
+                                                                -%}
+                                                              {%- endcapture -%}
+                                                              <label
+                                                                  data-diy
+                                                                  class="variant-media-label relative cursor-pointer flex flex-wrap lg:p-3 p-2"
+                                                                  for="{{ sectionId }}-{{ op.position }}-{{ forloop.index0 }}--panels"
+                                                                  data-media="{{ option_img }}"
+                                                              >
+                                                                  <div class="w-full flex text-center font-medium text-base justify-center">{{ vv }}</div>
+                                                              </label>
+                                                          </div>
+                                                      {%- endif -%}
+                                                  {%- endfor -%}
+                                              {%- endif -%}
+                                          {%- endfor -%}
+                                      </div>
+                                  {%- endif -%}
+                              </div>
+                          </label>
+                      </div>
+                  {%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </variant-fields>
+
+    <script type="module">
+      {% comment %} 变体选择 {% endcomment %}
+      if (!customElements.get('variant-fields')) {
+        customElements.define('variant-fields', class VariantFields extends HTMLElement {
+          constructor() {
+            super();
+            {% comment %} url链接，携带的【捆绑销售】标签 {% endcomment %}
+            this.bundledTag = getUrlQueryParams('bundled_action_tag') || ''
+            {% comment %} url链接，携带的【产品推荐】标签 {% endcomment %}
+            this.recommendedTag = getUrlQueryParams('action_tag') || ''
+
+            {% comment %} 用于中断未完成的fetch请求 {% endcomment %}
+            this.abortController = null;
+            this.init();
+          }
+          init() {
+            this.addEventListener('change', (e) => {
+              this.onVariantChange(null, e);
+            });
+
+            this.panelsSelect = this.querySelectorAll('.variant-select--panels');
+            this.selectedSummary = {
+              variant: this.currentVariant,
+              bundles: []
+            }
+            
+            this.updateOptions();
+            this.updateMasterId();
+            this.updateMedia();
+            this.updateColorAvailability();
+
+            {% comment %} 链接点击 {% endcomment %}
+            this.querySelectorAll('.variant-richtext a').forEach(a => {
+              a.addEventListener('click', e => {
+                e.stopPropagation()
+              })
+            })
+            this.handleSelectNone();
+            this.handleCountDefault();
+
+            this.handleRecommendSelect();
+            this.handleAdditionalOptionChange();
+
+            {% comment %} 预加载图片 srcset {% endcomment %}
+            this.preloadImgs();
+          }
+          
+          {% comment %} 处理库存限制 {% endcomment %}
+          handleQuantityLimit() {
+            if(!this.currentVariant) return
+            if(!document.querySelector(".v5-product-info-wrapper quantity-input input")) return
+            const quantityField = document.querySelector(".v5-product-info-wrapper quantity-input input")
+            const plusBtn = document.querySelector('.v5-product-info-wrapper quantity-input .quantity__button[name="plus"]')
+            const minusBtn = document.querySelector('.v5-product-info-wrapper quantity-input .quantity__button[name="minus"]')
+            if(!this.currentVariant?.inventory_quantity) {
+              quantityField.setAttribute("data-max", 1)
+              quantityField.setAttribute("max", 1)
+              plusBtn && plusBtn.setAttribute('disabled','disabled')
+              const minVal = parseInt(quantityField.getAttribute('data-min')) || 1
+              const curVal = parseInt(quantityField.value || minVal)
+              if (curVal <= minVal) {
+                minusBtn && minusBtn.setAttribute('disabled','disabled')
+              } else {
+                minusBtn && minusBtn.removeAttribute('disabled')
+              }
+              return
+            }
+            quantityField.setAttribute("data-max", this.currentVariant?.inventory_quantity)
+            quantityField.setAttribute("max", this.currentVariant?.inventory_quantity)
+            if (this.currentVariant?.inventory_quantity <= 1) {
+              plusBtn && plusBtn.setAttribute('disabled','disabled')
+            } else {
+              plusBtn && plusBtn.removeAttribute('disabled')
+            }
+            const minVal = parseInt(quantityField.getAttribute('data-min')) || 1
+            const curVal = parseInt(quantityField.value || minVal)
+            if (curVal <= minVal) {
+              minusBtn && minusBtn.setAttribute('disabled','disabled')
+            } else {
+              minusBtn && minusBtn.removeAttribute('disabled')
+            }
+          }
+          
+          {% comment %} 更新主图 {% endcomment %}
+          onVariantChange(id, e) {
+            this.updateOptions();
+            this.updateMasterId(id);
+            this.toggleAddButton(true);
+            this.updateVariantStatuses();
+
+            if (!this.currentVariant) {
+              this.setUnavailable();
+            } else {
+              this.updateMedia();
+              this.updateVariantInput();
+              this.renderProductInfo();
+              this.handleQuantityLimit();
+              requestAnimationFrame(() => {
+                setTimeout(() => {
+                  this.updateURL();
+                  if (!id && e) {
+                    const target = e.target.closest('.variant-select--panels')
+                    if (target) {
+                      const num = target.querySelector('.variant-select--diy input:checked')?.value
+                      gaPushDataLayer('user_interaction', {
+                        module_name: 'Product Selection',
+                        section_name: 'V5-DIY-PDP-橱窗产品信息',
+                        section_title: document.querySelector('v5-diy-main')?.querySelector?.('.diy-tabs-item.active')?.textContent?.trim?.() || '',
+                        content_name: document.querySelector('.diy-product-option--2 > div:first-of-type')?.textContent?.trim?.() || '',
+                        button_name: target.querySelector('h2').textContent?.trim?.() + (num ? `_${num}` : '') || '',
+                        element_type: 'option',
+                        interaction_type: 'click',
+                        interaction_effect: 'option_select',
+                        to_url: '',
+                        product_name: document.querySelector('.v5-product-info-wrapper')?.querySelector('h1')?.innerText?.replace(/\n/g, ' ') || '',
+                      });
+                    } else {
+                      gaPushDataLayer('user_interaction', {
+                        module_name: 'Product Selection',
+                        section_name: 'V5-DIY-PDP-橱窗产品信息',
+                        section_title: document.querySelector('v5-diy-main')?.querySelector?.('.diy-tabs-item.active')?.textContent?.trim?.() || '',
+                        content_name: document.querySelector('.diy-product-option--1 > div:first-of-type')?.textContent?.trim?.() || '',
+                        button_name: e.target.closest('.variant-select')?.querySelector('h2').textContent?.trim?.() || '',
+                        element_type: 'option',
+                        interaction_type: 'click',
+                        interaction_effect: 'option_select',
+                        to_url: '',
+                        product_name: document.querySelector('.v5-product-info-wrapper')?.querySelector('h1')?.innerText?.replace(/\n/g, ' ') || '',
+                      });
+                    }
+                  }
+                }, 0);
+              });
+            }
+
+            this.resetSummaryBundle();
+          }
+          {% comment %} 更新选项 {% endcomment %}
+          updateOptions() {
+            const fieldSets = Array.from(this.querySelectorAll('.product-form__input'))
+            this.options = fieldSets.map((fieldSet) => {
+              return Array.from(fieldSet.querySelectorAll('input:not(.variant-select--diy input)')).find((radio) => radio.checked)?.value
+            })
+
+            const diy_selected = Array.from(this.querySelectorAll('.variant-select--diy input')).find((radio) => radio.checked)?.value || null;
+
+            {% comment %} 主动选择数量 {% endcomment %}
+            if(diy_selected) {
+              this.options[1] = diy_selected
+            }
+
+            {% comment %} 用户未选择数量，默认选择数量 {% endcomment %}
+            if(!this.options[1]) {
+              this.options[1] = '{{ section.settings.default_option }}'
+            }
+          }
+          
+          {% comment %} 更新变体id。如果传入了确定的变体id， 直接执行切换 {% endcomment %}
+          updateMasterId(id) {
+            this.currentVariant = this.getVariantData().find((variant) => {
+              return !variant.options.map((option, index) => this.options[index] === option).includes(false)
+            })
+            this.selectedSummary.variant = this.currentVariant;
+
+            if (id && typeof (id) === 'number') {
+              this.currentVariant = this.getVariantData().find((variant) => variant.id == id)
+              this.selectedSummary.variant = this.currentVariant;
+            } else {
+              this.currentVariant = this.getVariantData().find((variant) => {
+                return !variant.options.map((option, index) => this.options[index] === option).includes(false)
+              })
+              this.selectedSummary.variant = this.currentVariant;
+            }
+          }
+          {% comment %} 更新 Url {% endcomment %}
+          updateURL() {
+            if (!this.currentVariant) return;
+
+            {% comment %} change url variant {% endcomment %}
+            const url = new URL(window.location);
+            url.searchParams.set("variant", this.currentVariant.id);
+
+            {% comment %} 携带 捆绑销售 标签 {% endcomment %}
+            if (this.bundledTag) {
+              url.searchParams.set("bundled_action_tag", this.bundledTag);
+            } 
+            {% comment %} 携带 产品推荐 标签 {% endcomment %}
+            else if (this.recommendedTag) {
+              url.searchParams.set("action_tag", this.recommendedTag);
+            }
+            window.history.replaceState({}, "", url);
+
+            const event_variant_change = new CustomEvent('variantChangeEvent', {
+              detail: {
+                variant: this.currentVariant,
+              }
+            })
+            document.dispatchEvent(event_variant_change)
+          }
+          {% comment %} 更新价格 & 购买按钮状态 & 到货提醒 {% endcomment %}
+          renderProductInfo() {
+            const sectionId = this.dataset.originalSection ? this.dataset.originalSection : this.dataset.section;
+            {% comment %} 中断上一次未完成的请求 {% endcomment %}
+            if (this.abortController) {
+              this.abortController.abort();
+            }
+            {% comment %} 创建新的AbortController {% endcomment %}
+            this.abortController = new AbortController();
+            const signal = this.abortController.signal;
+            
+            fetch(`${this.dataset.url}?variant=${this.currentVariant.id}&section_id=${sectionId}`, { signal })
+              .then((response) => response.text())
+              .then((responseText) => {
+                const html = new DOMParser().parseFromString(responseText, 'text/html');
+
+                const event_variant_change = new CustomEvent('diyVariantChangeEvent', {
+                  detail: {
+                    variant: this.currentVariant,
+                    html: html
+                  }
+                })
+                document.dispatchEvent(event_variant_change)
+
+                {% comment %} 更新价格 {% endcomment %}
+                 {% comment %} 开启了“价格直降”，名称变了 {% endcomment %}
+                const destination = document.getElementById(`price-${this.dataset.section}`) || document.getElementById(`djp-${this.dataset.section}`)
+                {% comment %} 开启了“价格直降”，名称变了; {% endcomment %}
+                const source = html.getElementById(`price-${sectionId}`) || html.getElementById(`djp-${sectionId}`)
+                if (source && destination) destination.innerHTML = source.innerHTML;
+
+                {% comment %} 变体信息 {% endcomment %}
+                const variants_source = html.getElementById(`variant-radios-${sectionId}`) || html.querySelector('variant-fields');
+                const variants_dom = this;
+                if (variants_source) {
+                  {% comment %} 【已登录】，更新 {% endcomment %}
+                  if (window.pageInfo?.customerInfo?.id && window.productMemberPriceInfo?.length > 0) {
+                    window.productMemberPriceInfo.forEach(item => {
+                      const source_clone = variants_source
+                      {% comment %} 更新选中变体的价格 {% endcomment %}
+                      if (source_clone.querySelector(`input[data-id="${item.id}"]`)?.parentElement?.querySelector('.option-price span.price')) {
+                        source_clone.querySelector(`input[data-id="${item.id}"]`).parentElement.querySelector('.option-price span.price').textContent = formatMoney(item.membership_price)
+                      }
+
+                      {% comment %} 添加 选中变体的划线价 {% endcomment %}
+                      if (
+                        !source_clone.querySelector(`input[data-id="${item.id}"]`)?.parentElement?.querySelector('.option-price span.origin-price')
+                        && item.compare_at_price > item.membership_price
+                      ) {
+                        source_clone.querySelector(`input[data-id="${item.id}"]`).parentElement.querySelector('.option-price')?.insertAdjacentHTML(
+                          'beforeend',
+                          `<span class="origin-price text-xs lg:text-sm text-black/65 line-through whitespace-nowrap">${formatMoney(item.compare_at_price)}</span>`
+                        )
+                      }
+                      variants_dom.innerHTML = source_clone.innerHTML;
+                    })
+                  } else {
+                    variants_dom.innerHTML = variants_source.innerHTML;
+                  }
+                }
+
+                {% comment %} 同步选中项到当前变体，并刷新可售状态 {% endcomment %}
+                if (this.currentVariant) {
+                  const opts = this.currentVariant.options || [];
+                  const sets = Array.from(document.getElementById(`variant-radios-${this.dataset.section}`).querySelectorAll('.product-form__input'));
+                  sets.forEach((set, idx) => {
+                    const val = opts[idx];
+                    const radio = Array.from(set.querySelectorAll('input[type="radio"]')).find(r => r.value === val);
+                    if (radio) radio.checked = true;
+                  });
+                  this.updateOptions();
+                  this.updateMasterId();
+                  this.updateVariantStatuses();
+                  this.pruneOptions();
+                  this.updateColorAvailability();
+                }
+
+                {% comment %} 更新购物车价格 {% endcomment %}
+                const productForm_dom = document.querySelector(`v5-product-form`);
+                const productForm_source = html.querySelector(`v5-product-form`);
+                if (productForm_dom && productForm_source) {
+                  {% comment %} 更新会员价信息 {% endcomment %}
+                  const variant = window.productMemberPriceInfo?.find(item => item.id.toString() == this.currentVariant.id.toString())
+                  const showAutoDiscount = productForm_dom.dataset.displayAutoDiscountPriceInStickyCart === 'true'
+                  
+                  {% comment %} 【已登录】，更新 {% endcomment %}
+                  if (window.pageInfo?.customerInfo?.id && variant) {
+                    const compared = showAutoDiscount ? variant.membership_price < variant.price : variant.membership_price < variant.shopify_price
+                    if (compared) {
+                      const productForm_clone = productForm_source
+  
+                      const currentPrice = formatMoney(variant?.membership_price || (showAutoDiscount ? variant?.price : variant?.shopify_price))
+
+
+                      if (productForm_dom.querySelector('[name="add"]')?.querySelector('span')) {
+                        const addToCart = productForm_dom.querySelector('[name="add"]');
+                        if(addToCart.getAttribute("is-diy") !== "true") {
+                          productForm_dom.querySelector('[name="add"]').querySelector('span').textContent = `${currentPrice} ${window.pageInfo.strings?.product?.inCart || ''}`
+                        }
+                      }
+                    }
+                  }
+                }
+
+                {% comment %} 更新推荐列表状态 - 在推荐状态下不覆盖dom内容 {% endcomment %}
+                 const tab_active = document.querySelector('v5-diy-main')?.active;
+                 if(tab_active.getAttribute('type') !== 'diy-custom-info') {
+                  const recommended_products_dom = document.querySelector('.diy-custom-info');
+                  const recommended_products_dom_source = html.querySelector(`.diy-custom-info`);
+                  if (productForm_dom && productForm_source) {
+                    recommended_products_dom.innerHTML = recommended_products_dom_source.innerHTML;
+                  }
+                 }
+
+                {% comment %} 到货提醒 {% endcomment %}
+                const shortage_dom = document.querySelector(`product-shortage`);
+                const shortage_source = html.querySelector(`product-shortage`);
+                if (shortage_dom && shortage_source) shortage_dom.innerHTML = shortage_source.innerHTML
+
+                {% comment %} 粘性购物车 {% endcomment %}
+                const sticky_dom = document.querySelector(`jky-v5-sticky-cart`);
+                const sticky_source = html.querySelector(`jky-v5-sticky-cart`);
+                if (sticky_dom && sticky_source) {
+                  sticky_dom.innerHTML = sticky_source.innerHTML
+                  sticky_dom.setAttribute("init-variant-id", sticky_source.getAttribute("init-variant-id"))
+                  sticky_dom.setAttribute("pd", sticky_source.getAttribute("pd"))
+                  sticky_dom.init && sticky_dom.init()
+                }
+
+                const price = document.getElementById(`price-${this.dataset.section}`);
+                if (price) price.classList.remove('visibility-hidden');
+
+                this.toggleAddButton(!this.currentVariant.available);
+
+                if (document.querySelector('.v5-product-info-wrapper')?.querySelector('quantity-input')) {
+                  const quantityInput = document.querySelector('.v5-product-info-wrapper').querySelector('quantity-input');
+                  
+                  {% comment %} 设置 数量选择器，ga埋码参数 {% endcomment %}
+                  const minusQuantityBtn = quantityInput.querySelector('.quantity__button[name="minus"]')
+                  minusQuantityBtn.setAttribute("data-ga-params-options", this?.currentVariant?.title)
+                  minusQuantityBtn.setAttribute("data-ga-params-corner", this.querySelector(':checked')?.getAttribute('corner'))
+                  minusQuantityBtn.setAttribute("data-ga-params-options_price", formatMoney(this.currentVariant.price, window?.pageInfo?.currency?.money_format))
+
+                  const plusQuantityBtn = quantityInput.querySelector('.quantity__button[name="plus"]')
+                  plusQuantityBtn.setAttribute("data-ga-params-options", this?.currentVariant?.title)
+                  plusQuantityBtn.setAttribute("data-ga-params-corner", this.querySelector(':checked')?.getAttribute('corner'))
+                  plusQuantityBtn.setAttribute("data-ga-params-options_price", formatMoney(this.currentVariant.price, window?.pageInfo?.currency?.money_format))
+                  const qtyField = document.querySelector('.v5-product-info-wrapper').querySelector('quantity-input input');
+                  qtyField.value = 1;
+                  const minVal = parseInt(qtyField.getAttribute('data-min')) || 1;
+                  if (parseInt(qtyField.value) <= minVal) {
+                    minusQuantityBtn && minusQuantityBtn.setAttribute('disabled','disabled');
+                  } else {
+                    minusQuantityBtn && minusQuantityBtn.removeAttribute('disabled');
+                  }
+                  document.querySelector(".v5-product-info-wrapper .add_cart_error_wrapper") && (document.querySelector(".v5-product-info-wrapper .add_cart_error_wrapper").textContent = '')
+                  if(this?.currentVariant?.inventory_quantity > 1) {
+                    plusQuantityBtn && plusQuantityBtn.removeAttribute("disabled")
+                  }
+                }
+
+                this.preloadImgs();
+              })
+              .catch((error) => {
+                {% comment %} 忽略中断错误 {% endcomment %}
+                if (error.name ==='AbortError') {
+                  console.warn('renderProductInfo AbortError:', error);
+                }
+              });
+          }
+          {% comment %} DIY 调用更新 {% endcomment %}
+          diyUpdatePicker(id) {
+            this.onVariantChange(id);
+          }
+          {% comment %} 更新variant id input {% endcomment %}
+          updateVariantInput() {
+            const productForms = document.querySelectorAll(`#product-form-${this.dataset.section}`);
+            productForms.forEach((productForm) => {
+              const input = productForm.querySelector('input[name="id"]');
+              input.value = this.currentVariant.id;
+              input.setAttribute("data-sku", this.currentVariant.sku)
+              input.setAttribute("data-sku-title", this.currentVariant.title)
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+          }
+          {% comment %} 更新 variant 状态（不依赖选项顺序） {% endcomment %}
+          updateVariantStatuses() {
+            const inputWrappers = [...this.querySelectorAll('.product-form__input')];
+            inputWrappers.forEach((wrapper, index) => {
+              const optionInputs = [...wrapper.querySelectorAll('input[type="radio"], option')];
+              optionInputs.forEach((input) => {
+                const value = input.getAttribute('value');
+                const target = [...this.options];
+                target[index] = value;
+                const candidates = this.variantData.filter(v => !v.options.map((opt, i) => (i === index ? value === opt : (target[i] ? target[i] === opt : true))).includes(false));
+                const availableAny = candidates.some(v => v.available);
+                const existsAny = candidates.length > 0;
+                const label = wrapper.querySelector(`label[for="${input.id}"]:not(.variant-select--panels label)`);
+                if (!label) return;
+                if (availableAny) {
+                  label.classList.remove('disabled', 'unavailable');
+                } else {
+
+                  label.classList.add('disabled');
+                  {% comment %} 如果完全不存在这种组合，标记为 unavailable {% endcomment %}
+                  if (!existsAny) {
+                    label.classList.add('unavailable');
+                  } else {
+                    label.classList.add('unavailable');
+                  }
+                }
+              });
+            });
+          }
+          {% comment %} 根据已选前缀裁剪选项 {% endcomment %}
+          pruneOptions() {
+            const inputWrappers = [...this.querySelectorAll('.product-form__input')];
+            inputWrappers.forEach((option, index) => {
+              const prefix = this.options.slice(0, index);
+              const validValues = this.variantData
+                .filter(v => prefix.every((val, i) => v[`option${i+1}`] === val))
+                .map(v => v[`option${index+1}`]);
+              [...option.querySelectorAll('input[type="radio"]')].forEach(r => {
+                const label = option.querySelector(`label[for="${r.id}"]`);
+                const available = validValues.includes(r.value);
+                if (label && !label.hasAttribute('data-diy')) {
+                  label.style.display = available ? '' : 'none';
+               }
+              });
+            });
+          }
+
+          {% comment %} 根据当前选择组合更新颜色可售状态（置灰不可售颜色）- 不依赖顺序 {% endcomment %}
+          updateColorAvailability() {
+            const inputWrappers = [...this.querySelectorAll('.product-form__input')];
+            const colorIndex = inputWrappers.findIndex(w => !!w.querySelector('.variant-select-color'));
+            if (colorIndex < 0) return;
+            const colorWrapper = inputWrappers[colorIndex];
+            const radios = [...colorWrapper.querySelectorAll('input[type="radio"]')];
+            radios.forEach(radio => {
+              const label = colorWrapper.querySelector(`label[for="${radio.id}"]`);
+              const target = [...this.options];
+              target[colorIndex] = radio.value;
+              const variant = this.variantData.find(v => !v.options.map((opt, i) => (target[i] ? target[i] === opt : true)).includes(false));
+              const available = !!(variant && variant.available);
+              if (label) {
+                if (available) {
+                  label.classList.remove('disabled', 'unavailable');
+                } else {
+                  label.classList.add('disabled', 'unavailable');
+                }
+              }
+            });
+          }
+          /**
+          * 设置加购按钮状态
+          * @param {boolean} disable - 状态（是否禁用）
+          * @param {string} text - 加购按钮显示文案替换
+          */
+          toggleAddButton(disable = true) {
+            const productForm = document.getElementById(`product-form-${this.dataset.section}`);
+            if (!productForm) return;
+            const addButton = productForm.querySelector('[name="add"]');
+            const addButtonText = productForm.querySelector('[name="add"] > span') || productForm.querySelector('[name="add"]');
+            if (!addButton) return;
+
+            const buyItNowButton = productForm.querySelector('[name="buy-it-now"]')
+
+            if (disable) {
+              addButton.setAttribute('disabled', 'disabled');
+              buyItNowButton?.setAttribute('disabled', 'disabled');
+            } else {
+              addButton.removeAttribute('disabled');
+              buyItNowButton?.removeAttribute('disabled');
+            }
+          }
+          {% comment %} 设置不可售 {% endcomment %}
+          setUnavailable() {
+            const button = document.getElementById(`product-form-${this.dataset.section}`);
+            const addButton = button.querySelector('[name="add"]');
+            const addButtonText = button.querySelector('[name="add"] > span');
+            const price = document.getElementById(`price-${this.dataset.section}`);
+            if (!addButton) return;
+            addButtonText.textContent = "Unavailable";
+            if (price) price.classList.add('visibility-hidden');
+          }
+          {% comment %} 更新图片 {% endcomment %}
+          updateMedia() {
+            if (!this.currentVariant) return;
+            if (!this.currentVariant.featured_media) return;
+            if (!document.querySelector("v5-product-gallery")) return
+            const imageGallery = document.querySelector("v5-product-gallery")
+            if (!imageGallery.product_gallery) return
+            const target_slide = imageGallery.querySelector('.product-media__box')?.querySelector(`.swiper-slide[media-id="${this.currentVariant.featured_media.id}"]`)
+            try {
+              const slides = Array.from(imageGallery.querySelectorAll('.swiper-slide'));
+              const targetIndex = slides.indexOf(target_slide);
+              if (targetIndex !== -1) {
+                imageGallery.product_gallery.slideTo(targetIndex, 1000, false);
+              }
+            } catch (e) {
+              console.error(e)
+            }
+          }
+          {% comment %} 获取 variant 数据 {% endcomment %}
+          getVariantData() {
+            this.variantData = this.variantData || JSON.parse(document.querySelector('[id="selected-variant"][type="application/json"]')?.textContent || '[]');
+            return this.variantData;
+          }
+          {% comment %} 选中 none 选项 {% endcomment %}
+          handleSelectNone() {
+            this.addEventListener("click", (e) => {
+              const target = e.target;
+              const withoutSelect = target.closest('.variant-select--without');
+              if(!withoutSelect) return;
+              if(withoutSelect.querySelector('input').checked) return;
+              try {
+                this.querySelectorAll(".diy-product-option--3 .variant-select--panels").forEach(pannel => {
+                  pannel.querySelectorAll(".count-panels-wrapper input").forEach(input => {
+                    input.checked = false;
+                  });
+                });
+
+                withoutSelect.querySelector('input').checked = true;
+                withoutSelect.querySelector('input').dispatchEvent(new Event('change', { bubbles: true }));
+
+                this.setAttribute("data-without", "true");
+
+                {% comment %} 预加载图片 srcset {% endcomment %}
+                const media = withoutSelect.querySelector('.variant-media-label')?.getAttribute("data-media");
+                this.handleChangeMainMedia(media);
+              } catch (err) {
+                console.error("stopPropagation error - handleSelectNone:", err);
+              }
+            });
+          }
+
+          handleCountDefault() {
+            this.addEventListener("click", (e) => {
+              const withoutSelect = this.querySelector(".variant-select--without");
+              const target = e.target;
+              const panelLabel = target.closest('.variant-select--panels label');
+              const isPanels = target.closest('.variant-select--panels');
+              if(!isPanels) return;
+              if(!panelLabel) return;
+              {% comment %} 切换panel维度 {% endcomment %}
+
+              if(!panelLabel.querySelector('.count-panels-wrapper')) {
+                Array.from(this.querySelectorAll('.variant-select--diy input')).forEach(input => {
+                  input.checked = false;
+                });
+              } else {
+                const id = target.closest('.variant-media-label')?.getAttribute("id");
+                if(id) {
+                  const label = this.querySelector(`label[for="${id}"]`);
+                  if(label) {
+                    const media = label.getAttribute("data-media");
+                    this.handleChangeMainMedia(media);
+                  }
+                }
+              }
+              try {
+                withoutSelect.querySelector('input').checked = false;
+                const hasChecked = panelLabel.querySelector('.count-panels-wrapper input:checked');
+                if(hasChecked) return;
+                panelLabel.previousElementSibling.checked = true;
+                panelLabel.previousElementSibling.dispatchEvent(new Event('change', { bubbles: true, detail: { source: 'default' } }));
+
+                this.setAttribute("data-without", "false");
+
+                {% comment %} 预加载图片 srcset {% endcomment %}
+                const media = panelLabel?.getAttribute("data-media");
+                this.handleChangeMainMedia(media);
+              } catch (err) {
+                console.error("stopPropagation error -- handleCountDefault:", err);
+              }
+            })
+          }
+
+          {% comment %} diy推荐商品选中事件 {% endcomment %}
+          handleRecommendSelect() {
+            const parentContainer = document.querySelector('.diy-custom-info');
+            parentContainer?.removeEventListener('click', this.handleVariantClick);
+            this.handleVariantClick = (e) => {
+              const variant = e.target.closest('.diy-variant-select');
+              {% comment %} 不是目标元素则直接返回 {% endcomment %}
+              if (!variant) return;
+              
+              const id = variant.getAttribute("data-variant");
+              if(!id) return;
+              
+              const recommendSelects = document.querySelectorAll('.diy-custom-info .diy-variant-select');
+              recommendSelects.forEach(v => {
+                v.classList.remove("active");
+              });
+              variant.classList.add("active");
+              this.diyUpdatePicker(Number(id));
+
+
+              {% comment %} 预加载图片 srcset {% endcomment %}
+              const media = variant.getAttribute("data-media");
+              this.handleChangeMainMedia(media);
+              gaPushDataLayer('user_interaction', {
+                module_name: 'Product Selection',
+                section_name: 'V5-DIY-PDP-橱窗产品信息',
+                section_title: document.querySelector('v5-diy-main')?.querySelector?.('.diy-tabs-item.active')?.textContent?.trim?.() || '',
+                content_name: document.querySelector('.diy-custom-info [data-diy-custom-info-title]')?.textContent?.trim?.() || '',
+                button_name: variant.querySelector('h2')?.textContent?.trim?.() || '',
+                element_type: 'option',
+                interaction_type: 'click',
+                interaction_effect: 'option_select',
+                to_url: '',
+                product_name: document.querySelector('.v5-product-info-wrapper')?.querySelector('h1')?.innerText?.replace(/\n/g, ' ') || '',
+              });
+            };
+            parentContainer?.addEventListener('click', this.handleVariantClick);
+          }
+
+          handleAdditionalOptionChange() {
+            document.addEventListener('diyBundleChangeEvent', (e) => {
+              const variant = e.detail.variant;
+              let quantity = variant._quantity ? Number(variant._quantity) : Number(variant.quantity) || 1;
+
+              const summaryLines = document.querySelector('.diy-product-summary-lines');
+              const target = this.isBundleIdExist(variant.skuId);
+              if(target) {
+                target.quantity = Number(quantity);
+                const lineItem = summaryLines.querySelector(`.diy-product-summary-lineItem__bundle[data-pid="${variant.skuId}"]`);
+
+                if(variant.remove) {
+                  lineItem && lineItem.remove();
+                  this.selectedSummary.bundles = this.selectedSummary.bundles.filter(item => String(item.skuId) !== String(variant.skuId));
+
+                  this.updateSummaryPrice();
+                  return;
+                }
+                lineItem.querySelector('.lineItem__bundle-qty').textContent = `x${target.quantity}`;
+
+                lineItem.querySelector('.summary-cart_line-price').textContent = formatMoney(variant.price * 100 * quantity);
+
+                lineItem.querySelector('.summary-cart_line-origin-price').textContent = variant.originPrice > variant.price ? formatMoney(variant.originPrice * 100 * quantity) : formatMoney(variant.price * 100 * quantity);
+                this.updateSummaryPrice();
+                return;
+              }
+              variant.quantity = Number(quantity) || 1;
+              const line = `
+                <div data-pid="${variant.skuId}" class="diy-product-summary-lineItem diy-product-summary-lineItem__bundle flex gap-x-4 pb-4 relative flex-col lg:flex-row">
+                    <div class="flex-1 flex lg:gap-x-6 gap-x-3">
+                        <img class="lg:w-20 w-14 lg:h-20 h-14 object-contain" src="${variant.image}" alt="${variant.title}">
+                        <div class="flex flex-col gap-y-4 pt-4">
+                            <div class="line-clamp-2 font-semibold lg:text-base text-sm text-main-color">${variant.title}</div>
+                            <div class="lineItem__bundle-qty font-semibold text-lg text-sub-color">x${quantity}</div>
+                        </div>
+                    </div>
+
+                    <div class="absolute lg:static bottom-4 right-0 flex lg:flex-col flex-row text-right lg:gap-y-1 gap-x-1 lg:gap-x-0 lg:pt-4 items-baseline">
+                        <div class="summary-cart_line-price font-semibold lg:text-xl text-base text-main-color">${formatMoney(variant.price * 100 * quantity)}</div>
+                        <div class="summary-cart_line-origin-price text-thin-color lg:text-base text-xs font-medium line-through">${variant.originPrice > variant.price ? formatMoney(variant.originPrice * 100 * quantity) : ''}</div>
+                    </div>
+                </div>
+              `
+              summaryLines.insertAdjacentHTML('beforeend', line);
+              this.selectedSummary.bundles.push(variant);
+
+              document.querySelector('.summary-footer__price').textContent = formatMoney(this.selectedSummary.variant.price * 100 + this.selectedSummary.bundles.reduce((acc, item) => acc + item.price * 100 * item.quantity, 0));
+              
+              document.querySelector('.summary-footer__origin-price').textContent = formatMoney(this.selectedSummary.variant.compare_at_price * 100 + this.selectedSummary.bundles.reduce((acc, item) => acc + item.originPrice * 100 * item.quantity, 0));
+
+              this.updateSummaryPrice();
+            });
+          }
+          isBundleIdExist(targetId) {
+            if (!Array.isArray(this.selectedSummary?.bundles)) return false;
+            
+            return this.selectedSummary.bundles.find(item => {
+              return item && String(item.skuId) === String(targetId);
+            });
+          }
+          updateSummaryPrice() {
+            const dom = document.querySelector('.diy-product-summary-footer');
+            if (!dom) return;
+            const origin_price_el = dom.querySelector('.summary-footer__origin-price');
+            const price_el = dom.querySelector('.summary-footer__price');
+            const price_save_el = dom.querySelector('.summary-footer__price-save');
+            let totalPrice = 0;
+            let totalOriginPrice = 0;
+
+            this.selectedSummary.bundles.forEach(item => {
+              if (!item || typeof item !== 'object') return;
+
+              const price = Number(item.price) || 0;
+              const originPrice = Number(item.originPrice) || 0;
+              const quantity = Number(item.quantity) || 0;
+
+              totalPrice += price * 100 * quantity;
+              totalOriginPrice += originPrice * 100 * quantity;
+            });
+            totalPrice += Number(this.selectedSummary.variant?.price || 0);
+            totalOriginPrice += Number(this.selectedSummary.variant?.compare_at_price || 0);
+            price_el && (price_el.textContent = formatMoney(totalPrice));
+            if(origin_price_el) {
+              if(totalOriginPrice > totalPrice) {
+                origin_price_el.textContent = formatMoney(totalOriginPrice);
+                price_save_el.classList.remove('hidden');
+
+                const formatSavePrice = document.querySelector('v5-diy-main').getAttribute('data-price-format');
+                price_save_el.textContent = formatSavePrice.replace("()", formatMoney(totalOriginPrice - totalPrice, formatNoDecimalsMoney()));
+              } else {
+                origin_price_el.textContent = '';
+                price_save_el.classList.add('hidden');
+                price_save_el.textContent = '';
+              }
+            }
+          }
+          resetSummaryBundle() {
+            const elements = document.querySelectorAll(".diy-product-summary-lineItem__bundle");
+
+            Array.from(elements).forEach(el => {
+              if (el && el.parentNode) {
+                el.parentNode.removeChild(el);
+              }
+            });
+
+            this.selectedSummary.bundles = [];
+
+            this.updateSummaryPrice();
+          }
+
+          preloadImgs() {
+            this.imgCache = new Set();
+            const containers = document.querySelectorAll('.diy-variant-select[data-media], .variant-media-label[data-media]');
+            containers.forEach(container => {
+              const media = container.getAttribute('data-media');
+              if (media && !this.imgCache.has(media)) {
+                this.imgCache.add(media);
+                const img = new Image();
+                img.src = media;
+              }
+            });
+          }
+
+          handleChangeMainMedia(media) {
+            if(media) {
+              const mainGalleryVarriant = document.querySelector('v5-product-gallery .product_gallery-imagebox .swiper-slide');
+              if(!mainGalleryVarriant || !mainGalleryVarriant.querySelector("img")) return;
+              mainGalleryVarriant.setAttribute('href', media);
+              mainGalleryVarriant.querySelector("img").setAttribute('src', media);
+              mainGalleryVarriant.querySelector("img").setAttribute('srcset', `${media}`);
+            }
+          }
+        })
+      }
+    </script>
+  </div>
+{%- endunless -%}

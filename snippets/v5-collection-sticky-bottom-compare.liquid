@@ -1,0 +1,371 @@
+{%- doc -%}
+  @description
+    产品集合页、产品聚合页，吸底产品对比模块
+    
+  @param { boolean } show_compare 是否显示产品对比模块
+
+  @param { string } collection_wrapper_selector 父容器选择器，默认.collection-wrapper。
+    功能：用于控制父容器添加max-num类名，达到上限不可选效果
+
+  @param { string } product_compare_selector 产品对比选择器，默认.collection-product--compare。
+    功能：用于监听产品对比checkbox变化，需要data-sku、data-image、data-title属性
+  
+  @example
+    {% render 'v5-collection-sticky-bottom-compare',
+      show_compare: true,
+      collection_wrapper_selector: ".collection-wrapper",
+      product_compare_selector: ".collection-product--compare"
+    %}
+{%- enddoc -%}
+
+{%- if show_compare -%}
+  
+  <style>
+    /* JS 切换的动态状态 */
+    .compare-wrapper.open {
+      transform: translateY(0);
+    }
+    /* nth-child 复杂选择器 — Tailwind 无法表达 */
+    .compare--item:nth-child(n+4) {
+      display: none;
+    }
+    /* 翻译文本中的 <small> 标签 — 无法直接加 Tailwind */
+    .compare-wrapper--header-title small {
+      font-weight: 400;
+      font-size: inherit;
+      color: inherit;
+    }
+    /* 自定义元素 + :not 伪类 */
+    .max-num jds-checkbox:not([checked]) {
+      opacity: 0.4;
+      cursor: none;
+      pointer-events: none;
+    }
+    /* WebKit 专有属性 — Tailwind 无法表达 */
+    .start_button {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ===== 移动端：仅保留 Tailwind 无法表达的规则 ===== */
+    @media screen and (max-width: 1024px) {
+      .compare-wrapper--main .compare--item:nth-of-type(2) {
+        padding-right: 0;
+      }
+      .compare--item.compare--item_add h3 {
+        color: rgba(0, 0, 0, 0.9);
+        font-weight: 400;
+      }
+      .compare--item .compare-img__wrapper img {
+        width: 99.5%;
+        height: 99.5%;
+      }
+      .compare--item:nth-child(n+3),
+      .compare-wrapper--sheetButtons {
+        display: none;
+      }
+    }
+  </style>
+
+  <v5-collection-sticky-bottom-compare
+    class="compare-wrapper fixed left-0 right-0 bottom-0 w-full transition-all duration-300 ease shadow-[0px_-2px_10px_0px_rgba(0,0,0,0.1)] bg-white h-[11.5rem] pt-3 pb-4 translate-y-full max-lg:w-auto max-lg:shadow-[0px_-1px_5px_0px_rgba(0,0,0,0.1)] max-lg:h-max max-lg:max-h-64 max-lg:flex-col max-lg:py-1.5 max-lg:px-0"
+    style="z-index: {{ settings.collection_sticky_bottom_compare_z_index | default: 99999 }}"
+    data-collection-wrapper-selector="{{ collection_wrapper_selector | default: '.collection-wrapper' }}"
+    data-product-compare-selector="{{ product_compare_selector | default: '.collection-product--compare' }}"
+  >
+    <div class="section-container-lg mx-auto">
+      <div class="compare-wrapper--header flex items-start lg:items-center justify-between">
+        <h2 class="compare-wrapper--header-title font-semibold text-black/90 text-base">{{ 'sections.collection_template.compare_title_html' | t: mount: 0, amount: 3 }}</h2>
+
+        <button
+          class="sheetButtons--clear appearance-none lg:bg-[#F5F5F3] bg-transparent"
+          style="font-size:0;"
+          data-ga-action="click"
+          data-ga-params-module="Compare"
+          data-ga-params-position="Clear All"
+          data-ga-event="section_products_compare_user_clicks"
+          aria-label="{{ 'sections.collection_template.compare_clear_button_text' | t }}"
+          type="button" class="compare--clean"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6.39945 18.6552L5.3457 17.6014L10.9457 12.0014L5.3457 6.40141L6.39945 5.34766L11.9995 10.9477L17.5995 5.34766L18.6532 6.40141L13.0532 12.0014L18.6532 17.6014L17.5995 18.6552L11.9995 13.0552L6.39945 18.6552Z" fill="#1F1F1F"/>
+          </svg>
+        </button>
+      </div>
+      <div class="compare-wrapper--main flex mt-3 gap-x-3 lg:gap-x-8 max-lg:gap-3 max-lg:justify-between">
+        <div class="compare--item compare--item_add shrink-0 flex items-end compare--item_add__1 gap-3 h-[8.25rem] pr-3 max-lg:flex-col max-lg:w-[10.34375rem] max-lg:h-[7.75rem] max-lg:gap-1 max-lg:pr-1.5">
+          <div
+            data-ga-event="section_products_compare_user_clicks"
+            data-ga-action="click"
+            data-ga-params-module="Compare"
+            data-ga-params-position=" Select another product"
+            class="relative compare-img__wrapper w-[21.5rem] h-[7.5rem] border border-dashed border-black cursor-pointer flex items-center justify-center max-lg:w-40 max-lg:h-[7.75rem]">
+          </div>
+        </div>
+
+        <div class="compare--item compare--item_add shrink-0 flex items-end gap-3 h-[8.25rem] pr-3 max-lg:flex-col max-lg:w-[10.34375rem] max-lg:h-[7.75rem] max-lg:gap-1 max-lg:pr-1.5">
+          <div
+            data-ga-event="section_products_compare_user_clicks"
+            data-ga-action="click"
+            data-ga-params-module="Compare"
+            data-ga-params-position=" Select another product"
+            class="relative compare-img__wrapper w-[21.5rem] h-[7.5rem] border border-dashed border-black cursor-pointer flex items-center justify-center max-lg:w-40 max-lg:h-[7.75rem]">
+          </div>
+        </div>
+
+        <div class="compare-wrapper--sheetButtons shrink-0 flex flex-col flex-1 justify-center lg:pt-3 lg:pr-6">
+          <button
+            type="button"
+            data-ga-action="click"
+            data-ga-params-module="Compare"
+            data-ga-params-position=""
+            data-ga-params-button_name="{{ 'sections.collection_template.compare_start_button_text' | t }}"
+            data-ga-event="section_products_compare_user_clicks"
+            class="w-full start_button start_compare h-12 w-max bg-[#242F20] border-2 border-[#242F20] text-white flex justify-center items-center cursor-pointer outline-none font-medium px-4 text-base transition-all duration-300 hover:opacity-90 active:bg-[#242F20] active:text-white lg:h-12 lg:text-xl"
+          >
+            {{ 'sections.collection_template.compare_start_button_text' | t }}
+          </button>
+        </div>
+      </div>
+      <div class="mb__compare_start flex flex-1 justify-end items-center mt-3 lg:hidden">
+        <button
+          type="button"
+          data-ga-action="click"
+          data-ga-params-module="Compare"
+          data-ga-params-position=""
+          data-ga-params-button_name="{{ 'sections.collection_template.compare_start_button_text' | t }}"
+          data-ga-event="section_products_compare_user_clicks"
+          class="start_button w-fit h-10 px-4 bg-[#242F20] border-2 border-[#242F20] text-white flex justify-center items-center cursor-pointer outline-none font-medium transition-all duration-300 hover:opacity-90 active:bg-[#242F20] active:text-white font-semibold text-base text-overflow-1"
+        >
+          {{ 'sections.collection_template.compare_start_button_text' | t }}
+        </button>
+      </div>
+    </div>
+  </v5-collection-sticky-bottom-compare>
+  <v5-app-compare-modal 
+    id="compareModal" 
+    data-open-auto-discount-price="{{settings.open_auto_discount_price}}"
+  ></v5-app-compare-modal>
+  
+  <script src="{{ 'snippet-v5-app-compare-modal.min.js' | asset_url }}" defer></script>
+  <script type="module">
+    if (!customElements.get('v5-collection-sticky-bottom-compare')) {
+      customElements.define('v5-collection-sticky-bottom-compare', class V5CollectionStickyBottomCompare extends HTMLElement {
+        constructor() {
+          super();
+
+          const mql = window.matchMedia('(max-width: 1024px)');
+          const limitAttr = parseInt(this.dataset.limit || '', 10);
+          this.compare_limit = Number.isFinite(limitAttr) ? limitAttr : (mql.matches ? 2 : 3);
+
+          this.compare_products = [];
+          this.show_diff_text = this.dataset.show_diff || '';
+
+          this._selectors = {
+            clearBtn: this.dataset.clearBtnSelector || '.sheetButtons--clear',
+            startBtns: this.dataset.startBtnSelector || '.compare-wrapper--sheetButtons .start_button, .mb__compare_start .start_button',
+            headerBlock: this.dataset.headerBlockSelector || 'h2.compare-wrapper--header-title block',
+            headerLimitSpan: this.dataset.headerLimitSpanSelector || '.compare-wrapper--header h2 span',
+            listWrapper: this.dataset.listWrapperSelector || '.compare-wrapper--main',
+            insertBeforeEl: this.dataset.insertBeforeSelector || '.compare--item_add__1',
+            removeIcon: this.dataset.removeIconSelector || '.compare-remove-icon',
+            collectionWrapper: this.dataset.collectionWrapperSelector || '.collection-wrapper',
+            productCompareItem: this.dataset.productCompareSelector || '.collection-product--compare'
+          };
+          
+          this._onDocChange = (e) => {
+            const rawTarget = e.target;
+            if (!(rawTarget instanceof HTMLElement)) return;
+            const checkbox = rawTarget.closest('jds-checkbox, input[type="checkbox"]');
+            if (!checkbox) return;
+            if (checkbox instanceof HTMLInputElement && checkbox.type !== 'checkbox') return;
+            const container = checkbox.closest(this._selectors.productCompareItem);
+            if (!container) return;
+            this.handleAddToCompare(checkbox, container);
+          };
+        }
+        connectedCallback() {
+          this.handleEventCompareClear();
+          this.handleCompareStart();
+          document.addEventListener('change', this._onDocChange, true);
+        }
+        disconnectedCallback() {
+          document.removeEventListener('change', this._onDocChange, true);
+        }
+        // 重置对比产品的checkbox
+        resetCompareCheckbox(wrapper) {
+          if (!wrapper) return;
+          let checkboxEl = null;
+          if (wrapper.matches('jds-checkbox, input[type="checkbox"]')) {
+            checkboxEl = wrapper;
+          } else {
+            checkboxEl = wrapper.querySelector('jds-checkbox, input[type="checkbox"]');
+          }
+          if (!checkboxEl) return;
+          if (checkboxEl instanceof HTMLInputElement) {
+            checkboxEl.checked = false;
+          } else {
+            checkboxEl.removeAttribute('checked');
+          }
+          checkboxEl.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        handleUpdataCompareTitle() {
+          setTimeout(() => {
+            const blockEl = this.querySelector(this._selectors.headerBlock);
+            if (blockEl) blockEl.textContent = String(this.compare_products.length);
+          }, 20);
+        }
+        handleEventCompareClear() {
+          const clear_btn = this.querySelector(this._selectors.clearBtn);
+          if (!clear_btn) return;
+          clear_btn.addEventListener("click", () => this.handleCompareClearClick());
+        }
+        handleCompareClearClick() {
+          this.compare_products = [];
+          this.handleUpdataCompareTitle();
+
+          const allItems = document.querySelectorAll(this._selectors.productCompareItem);
+          allItems.forEach(item => this.resetCompareCheckbox(item));
+
+          this.classList.remove("open");
+          const cw = document.querySelector(this._selectors.collectionWrapper);
+          if (cw) cw.classList.remove("max-num");
+        }
+
+        handleRemoveCompareItem(e) {
+          if (this.compare_products.length === 1) {
+            const clearBtn = this.querySelector(this._selectors.clearBtn);
+            if (clearBtn) clearBtn.click();
+            return;
+          }
+          const target_item = e.target.closest(".compare--item");
+          target_item.remove();
+          this.compare_products = this.compare_products.filter(item => item.skuId.toString() !== target_item.getAttribute("data-sku"));
+          this.handleUpdataCompareTitle();
+          const checkboxWrapper = document.querySelector(`${this._selectors.productCompareItem}[data-sku="${target_item.dataset.sku}"]`);
+          if (checkboxWrapper) this.resetCompareCheckbox(checkboxWrapper);
+
+          this.handleGAparams(this.compare_products)
+        }
+
+        handleRenderCompareList() {
+          const parent_wrapper = this.querySelector(this._selectors.listWrapper);
+          const items = parent_wrapper.querySelectorAll(".compare--item");
+          const compare_items = Array.from(items).slice(0, items.length - 2);
+          compare_items.forEach(item => item.remove());
+          this.compare_products.forEach(item => {
+            const htmlString = `
+              <div class="compare--item flex items-end shrink-0 gap-3 h-[8.25rem] pr-3 max-lg:flex-col max-lg:w-[10.34375rem] max-lg:h-[7.75rem] max-lg:gap-1 max-lg:pr-1.5" data-sku="${item.skuId}">
+                <div class="w-full h-full flex flex-col lg:flex-row items-center relative bg-[#F5F5F3] lg:w-[21.5rem] lg:h-[7.5rem] lg:gap-x-3 lg:px-3">
+                  <div class="compare-img my-1 lg:my-0">
+                    <img class="w-[8.375rem] h-[6.875rem] max-lg:w-[6.25rem] max-lg:h-[4.5rem]" src="${item.image || 'https://shop.sit-eu.jackery.com/cdn/shop/t/243/assets/placeholder.webp?width=134'}" alt="${item.title}" loading="lazy" />
+                  </div>
+                  <h3 class="text-overflow-3 flex-1 font-semibold text-base text-black/90 leading-6 text-left pr-2 max-lg:text-[0.625rem] max-lg:leading-[0.875rem] max-lg:pr-0 max-lg:text-center">${item.title}</h3>
+                  <svg class="absolute compare-remove-icon top-[-0.75rem] right-[-0.75rem] cursor-pointer w-4 h-4 lg:w-6 lg:h-6 border border-solid border-black max-lg:top-[-0.5rem] max-lg:right-[-0.5rem]" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6.05375 18.3075L5 17.2538L10.6 11.6538L5 6.05375L6.05375 5L11.6537 10.6L17.2537 5L18.3075 6.05375L12.7075 11.6538L18.3075 17.2538L17.2537 18.3075L11.6537 12.7075L6.05375 18.3075Z" fill="#1F1F1F"/>
+                  </svg>
+                </div>
+              </div>
+            `
+            let range = document.createRange();
+            let fragment = range.createContextualFragment(htmlString);
+
+            const beforeEl = this.querySelector(this._selectors.insertBeforeEl);
+            parent_wrapper.insertBefore(fragment, beforeEl);
+          })
+
+          const compare_icons = this.querySelectorAll(this._selectors.removeIcon);
+          compare_icons.forEach(item => {
+            item.addEventListener("click", (e) => this.handleRemoveCompareItem(e))
+          })
+        }
+
+        handleCompareDom(arr) {
+          if (!Array.isArray(arr)) return
+          const extractValues = (arr, keys) => arr.map(obj => String(obj[keys]));
+          const _variants = extractValues(arr, 'skuId')
+          window.openV5CompareModal(null, _variants)
+        }
+
+        handleCompareStart() {
+          const start_btns = this.querySelectorAll(this._selectors.startBtns);
+          const _this = this;
+          function handleCompareStartClick() {
+            if (_this.compare_products.length <= 1) {
+              window.pushErrorMessage(window.pageInfo.strings.collection.compare_min_limit_tips);
+              return
+            }
+
+            if (_this.compare_products.length > _this.compare_limit) {
+              const msg = window.pageInfo?.strings?.collection?.max_limit_local?.replace?.("<block></block>", _this.compare_limit);
+              window.pushErrorMessage?.(msg);
+              return
+            }
+
+            _this.handleCompareDom(_this.compare_products)
+          }
+          start_btns.forEach(start_btn => start_btn.addEventListener("click", () => handleCompareStartClick()))
+          const limitSpan = this.querySelector(this._selectors.headerLimitSpan);
+          if (limitSpan) limitSpan.innerHTML = String(this.compare_limit);
+        }
+
+        handleGAparams(products) {
+          const limit_num = this.compare_limit || 3
+          const cw = document.querySelector(this._selectors.collectionWrapper);
+          if (cw) {
+            if (products.length >= limit_num) {
+              cw.classList.add("max-num");
+            } else {
+              cw.classList.remove("max-num");
+            }
+          }
+          const compare_btn_els = this.querySelectorAll(this._selectors.startBtns);
+          compare_btn_els.forEach(compare_btn_el => {
+            compare_btn_el.setAttribute("data-ga-params-position", products.map(item => item.title).join(','));
+          });
+        }
+
+        handleAddToCompare(target, container) {
+          if (!container?.getAttribute("data-sku")) return
+          const skuId = container.getAttribute("data-sku");
+          const imgAttr = container.getAttribute('data-image');
+          const titleAttr = container.getAttribute('data-title');
+          const result = {
+            skuId,
+            image: imgAttr,
+            title: titleAttr,
+          };
+
+          if (!target.checked) {
+            this.compare_products = this.compare_products.filter(item => item.skuId.toString() !== result.skuId.toString());
+            this.querySelector(`.compare--item[data-sku="${result.skuId}"]`) && this.querySelector(`.compare--item[data-sku="${result.skuId}"]`).remove()
+            this.handleUpdataCompareTitle();
+            container.classList.remove("compare--selected")
+          } else {
+            container.classList.add("compare--selected")
+            if (this.compare_products.length < this.compare_limit) {
+              const exists = this.compare_products.some(p => p.skuId.toString() === result.skuId.toString());
+              if (!exists) {
+                this.compare_products = [...this.compare_products, result];
+                this.handleRenderCompareList();
+                this.handleUpdataCompareTitle();
+              }
+            } else {
+              container.querySelector("input").checked = false;
+              container.classList.remove("compare--selected")
+              const msg = window.pageInfo?.strings?.collection?.max_limit_local?.replace?.("<block></block>", this.compare_limit);
+              window.pushErrorMessage?.(msg);
+            }
+          }
+
+          if (this.compare_products.length) {
+            this.classList.add("open")
+          } else {
+            this.classList.remove("open")
+          }
+
+          this.handleGAparams(this.compare_products)
+        }
+      })
+    }
+  </script>
+{%- endif -%}

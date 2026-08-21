@@ -1,0 +1,1763 @@
+{%- liquid
+  assign image_media = product.media | where: 'media_type', 'image'
+  assign current_variant = product.selected_or_first_available_variant
+  assign requested_variant_id = request.params.variant | default: 0 | plus: 0
+  if requested_variant_id > 0
+    assign requested_variant = product.variants | where: 'id', requested_variant_id | first
+    if requested_variant != blank
+      assign current_variant = requested_variant
+    endif
+  endif
+  assign current_variant_media = blank
+  assign current_variant_media_id = blank
+  if current_variant.featured_media
+    assign current_variant_media = current_variant.featured_media
+  elsif product.featured_media
+    assign current_variant_media = product.featured_media
+  endif
+  if current_variant_media != blank
+    assign current_variant_media_id = current_variant_media.id
+  endif
+
+  assign selected_option_1 = current_variant.option1 | default: '' | strip | downcase
+  assign option1_values = '|'
+  for variant in product.variants
+    assign variant_option_1 = variant.option1 | default: '' | strip | downcase
+    if variant_option_1 != blank
+      assign option1_token = '|' | append: variant_option_1 | append: '|'
+      unless option1_values contains option1_token
+        assign option1_values = option1_values | append: variant_option_1 | append: '|'
+      endunless
+    endif
+  endfor
+  assign modal_meta = false
+  assign modal_meta_num = 0
+  if product.metafields.custom.modals_list.value != blank
+    assign model_3d = product.metafields.custom.modals_list.value
+    assign modal_meta = true
+  endif
+
+  assign has_modal = false
+  if modal_meta == true or model_3d.size > 0
+    assign has_modal = true
+  endif
+
+  assign variant_media_ids = '|'
+  for variant in product.variants
+    if variant.featured_media
+      assign variant_media_id_token = '|' | append: variant.featured_media.id | append: '|'
+      unless variant_media_ids contains variant_media_id_token
+        assign variant_media_ids = variant_media_ids | append: variant.featured_media.id | append: '|'
+      endunless
+    endif
+  endfor
+
+
+  assign visible_image_count = 0
+  if is_diy == true
+    if current_variant.featured_media
+      assign visible_image_count = visible_image_count | plus: 1
+    elsif product.featured_media
+      assign visible_image_count = visible_image_count | plus: 1
+    endif
+  endif
+
+  for media in image_media
+    assign show_media = true
+    assign media_alt = media.preview_image.alt | strip
+    assign media_alt_normalized = media_alt | downcase
+    assign media_is_generic = true
+    if media_alt_normalized != blank
+      assign media_option1_token = '|' | append: media_alt_normalized | append: '|'
+      if option1_values contains media_option1_token
+        assign media_is_generic = false
+      endif
+    endif
+
+    if is_diy == true
+      assign media_id_token = '|' | append: media.id | append: '|'
+      if variant_media_ids contains media_id_token
+        assign show_media = false
+      endif
+    endif
+
+    if show_media == true and media_is_generic == false and media_alt_normalized != selected_option_1
+      assign show_media = false
+    endif
+
+    if show_media == true
+      assign visible_image_count = visible_image_count | plus: 1
+    endif
+  endfor
+  assign lcp_media_id = blank
+  assign lcp_media = blank
+  if is_diy == true
+    if current_variant.featured_media
+      assign lcp_media_id = current_variant.featured_media.id
+      assign lcp_media = current_variant.featured_media
+    elsif product.featured_media
+      assign lcp_media_id = product.featured_media.id
+      assign lcp_media = product.featured_media
+    endif
+  endif
+
+  if lcp_media_id == blank
+    for media in image_media
+      assign show_media = true
+      assign media_alt = media.preview_image.alt | strip
+      assign media_alt_normalized = media_alt | downcase
+      assign media_is_generic = true
+      if media_alt_normalized != blank
+        assign media_option1_token = '|' | append: media_alt_normalized | append: '|'
+        if option1_values contains media_option1_token
+          assign media_is_generic = false
+        endif
+      endif
+
+      if is_diy == true
+        assign media_id_token = '|' | append: media.id | append: '|'
+        if variant_media_ids contains media_id_token
+          assign show_media = false
+        endif
+      endif
+
+      if show_media == true and media_is_generic == false and media_alt_normalized != selected_option_1
+        assign show_media = false
+      endif
+
+      if show_media == true and lcp_media_id == blank
+        assign lcp_media_id = media.id
+        assign lcp_media = media
+      endif
+    endfor
+  endif
+  assign priority_media_id = current_variant_media_id
+  if priority_media_id == blank
+    assign priority_media_id = lcp_media_id
+  endif
+  assign initial_thumb_limit = 10
+-%}
+
+<style>
+  /* 1. 基础容器与视频样式 */
+  .product-media-container__inner .product-media__box jky-video .jky-video_media {
+    object-fit: contain;
+    background-color: #000;
+  }
+  /* 2. Swiper 主图及导航控制 */
+  .product-media-container__inner .product-media__box .swiper .swiper-button-prev::after,
+  .product-media-container__inner .product-media__box .swiper .swiper-button-next::after {
+    display: none;
+  }
+  @media (max-width: 1023.98px) {
+    .product-media-container__inner .product-media__box .swiper .swiper-button-prev,
+    .product-media-container__inner .product-media__box .swiper .swiper-button-next {
+      display: none;
+    }
+  }
+  .product-media-container__inner .product-media__box .swiper .swiper-button-prev:not(.swiper-button-disabled) {
+    display: flex;
+  }
+  @media (max-width: 1023.98px) {
+    .product-media-container__inner .product-media__box .swiper .swiper-button-prev:not(.swiper-button-disabled) {
+      display: none;
+    }
+  }
+  /* 隐藏默认分页器 */
+  .product-media-container__inner .product-media__box .swiper-pagination {
+    display: none !important;
+  }
+  /* 3. 自定义标签栏（Tab Bar） */
+  .product-media-container__inner .product-media__box .product_gallery-tab-bar .product_gallery-tab_item:hover:not(.active) {
+    background-color: #F5F5F3;
+  }
+  .product-media-container__inner .product-media__box .product_gallery-tab-bar .product_gallery-tab_item.active {
+    color: #fff;
+  }
+  /* 4. 3D 视图与媒体盒控制 */
+  .product-media-container__inner .product-media__box .product_gallery-3d-tab .product_gallery-3d-tab_item.active {
+    color: #242F20;
+  }
+  .product-media-container__inner .product-media__box .product_gallery-videobox,
+  .product-media-container__inner .product-media__box .product_gallery-modelbox {
+    position: absolute;
+    top: 0;
+    padding-bottom: unset;
+    opacity: 0;
+    z-index: -1;
+    height: 100%;
+  }
+  .product-media-container__inner .product-media__box .product_gallery-videobox.active,
+  .product-media-container__inner .product-media__box .product_gallery-modelbox.active {
+    z-index: 2;
+    opacity: 1;
+  }
+  /* 5. 缩略图（默认与多端适配） */
+  .product-media-container__inner .product-image-thumbs {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%) scaleY(0.08333) scaleX(0.53);
+    z-index: 2;
+    height: 3rem;
+    margin-bottom: 0;
+    transition: all 0.3s;
+    transform-origin: 50% 100%;
+  }
+  @media (max-width: 1439.98px) {
+    .product-media-container__inner .product-image-thumbs {
+      height: 2.5rem;
+    }
+  }
+  @media (max-width: 1280px) {
+    .product-media-container__inner .product-image-thumbs {
+      height: 2rem;
+    }
+  }
+  @media (max-width: 1023.98px) {
+    .product-media-container__inner .product-image-thumbs {
+      height: 3px;
+      transform: translateX(-50%) scaleY(1) scaleX(1);
+      transition: none;
+    }
+  }
+  .product-media-container__inner .product-image-thumbs .swiper {
+    width: 36.75rem;
+    height: 100%;
+  }
+  @media (max-width: 1439.98px) {
+    .product-media-container__inner .product-image-thumbs .swiper {
+      width: 32rem;
+    }
+  }
+  @media (max-width: 1280px) {
+    .product-media-container__inner .product-image-thumbs .swiper {
+      width: 27rem;
+    }
+  }
+  @media (max-width: 1023.98px) {
+    .product-media-container__inner .product-image-thumbs .swiper {
+      width: 10.5rem;
+    }
+  }
+  .product-media-container__inner .product-image-thumbs .swiper .swiper-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.8125rem !important;
+    height: 2.8125rem !important;
+    border-radius: 0;
+    border: none;
+    overflow: hidden;
+    background-color: #D8D8D8;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  @media (max-width: 1439.98px) {
+    .product-media-container__inner .product-image-thumbs .swiper .swiper-slide {
+      width: 2.25rem !important;
+      height: 2.25rem !important;
+    }
+  }
+  @media (max-width: 1280px) {
+    .product-media-container__inner .product-image-thumbs .swiper .swiper-slide {
+      width: 1.75rem !important;
+      height: 1.75rem !important;
+    }
+  }
+  @media (max-width: 1023.98px) {
+    .product-media-container__inner .product-image-thumbs .swiper .swiper-slide {
+      width: 0.75rem !important;
+      height: 3px;
+      background-color: #E8E8E5;
+    }
+  }
+  .product-media-container__inner .product-image-thumbs .swiper .swiper-slide:last-child {
+    margin-right: 0 !important;
+  }
+  .product-media-container__inner .product-image-thumbs .swiper .swiper-slide img {
+    opacity: 0;
+    max-width: 100%;
+    max-height: 100%;
+    width: 2.5rem;
+    height: 2.5rem;
+    transition: all 0.3s;
+  }
+  @media (max-width: 1023.98px) {
+    .product-media-container__inner .product-image-thumbs .swiper .swiper-slide img {
+      display: none;
+    }
+  }
+  .product-media-container__inner .product-image-thumbs .swiper .swiper-slide.swiper-slide-thumb-active {
+    background-color: var(--primary-color);
+    width: 4.6875rem !important;
+  }
+  @media (max-width: 1439.98px) {
+    .product-media-container__inner .product-image-thumbs .swiper .swiper-slide.swiper-slide-thumb-active {
+      width: 4.125rem !important;
+    }
+  }
+  @media (max-width: 1280px) {
+    .product-media-container__inner .product-image-thumbs .swiper .swiper-slide.swiper-slide-thumb-active {
+      width: 3.75rem !important;
+    }
+  }
+  @media (max-width: 1023.98px) {
+    .product-media-container__inner .product-image-thumbs .swiper .swiper-slide.swiper-slide-thumb-active {
+      width: 1.5rem !important;
+      height: 3px;
+      background-color: var(--primary-color);
+    }
+  }
+  /* 6. 悬停展开状态（Hover Effect - PC端生效） */
+  @media (min-width: 1024px) {
+    .product-media-container__inner:hover .product-image-thumbs {
+      transform: translateX(-50%) scaleY(1) scaleX(1);
+    }
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide {
+      width: 3rem !important;
+      height: 3rem !important;
+      border: 1px solid rgba(153, 153, 153, 0.5);
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+  }
+  @media (min-width: 1024px) and (max-width: 1439.98px) {
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide {
+      width: 2.5rem !important;
+      height: 2.5rem !important;
+    }
+  }
+  @media (min-width: 1024px) and (max-width: 1280px) {
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide {
+      width: 2rem !important;
+      height: 2rem !important;
+    }
+  }
+  @media (min-width: 1024px) {
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide img {
+      opacity: 0.4;
+    }
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide:hover {
+      background-color: #fff;
+    }
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide:hover img {
+      opacity: 1;
+    }
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide.swiper-slide-thumb-active {
+      border: 1px solid #242F20;
+      background-color: #fff;
+      opacity: 1;
+      width: 3rem !important;
+    }
+  }
+  @media (min-width: 1024px) and (max-width: 1439.98px) {
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide.swiper-slide-thumb-active {
+      width: 2.5rem !important;
+    }
+  }
+  @media (min-width: 1024px) and (max-width: 1280px) {
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide.swiper-slide-thumb-active {
+      width: 2rem !important;
+    }
+  }
+  @media (min-width: 1024px) {
+    .product-media-container__inner:hover .product-image-thumbs .swiper .swiper-slide.swiper-slide-thumb-active img {
+      opacity: 1;
+    }
+  }
+</style>
+
+<v5-product-gallery
+  variant_media_ids="{{ variant_media_ids }}"
+  data-current-variant-id="{{ current_variant.id }}"
+  data-current-variant-media-id="{{ priority_media_id }}"
+  data-current-option1-value="{{ selected_option_1 | escape }}"
+>
+  <div class="product-media-container__inner relative {% if first_video_media == blank and has_modal == false %} pb-4 mb-0 lg:pb-[1.625rem] {% else %} pb-[3.5rem] mb-4 lg:mb-0 lg:pb-[4.125rem] {% endif %}">
+    <div data-sticky-cart-gallery-trigger class="product-media__box relative aspect-square lg:aspect-auto lg:h-[40.5rem] bg-white">
+      <div class="swiper product_gallery-imagebox h-full select-none" style="--swiper-theme-color: #ff6600;--swiper-preloader-color: #00ff33;">
+        <div class="swiper-wrapper">
+          {%- if is_diy == true -%}
+            {%- liquid
+              if current_variant.featured_media
+                assign seo_media = current_variant.featured_media
+                assign diy_selected = current_variant
+              else
+                assign seo_media = product.featured_media
+                assign diy_selected = product
+              endif
+            -%}
+
+            {% assign matched_variant = seo_media %}
+            {%- liquid
+              assign matched_variant_alt = matched_variant.preview_image.alt | strip
+              if matched_variant_alt == blank
+                assign matched_variant_alt = matched_variant.alt | strip
+              endif
+              assign matched_variant_alt_normalized = matched_variant_alt | downcase
+              assign matched_variant_is_generic = true
+              if matched_variant_alt_normalized != blank
+                assign matched_variant_option1_token = '|' | append: matched_variant_alt_normalized | append: '|'
+                if option1_values contains matched_variant_option1_token
+                  assign matched_variant_is_generic = false
+                endif
+              endif
+              if matched_variant_is_generic
+                assign matched_variant_alt_normalized = ''
+              endif
+              assign diy_fetch_priority = nil
+              assign diy_loading = 'lazy'
+              assign diy_decoding = 'async'
+              assign diy_load_scene = 'default'
+              if priority_media_id != blank and matched_variant.id == priority_media_id
+                assign diy_fetch_priority = 'high'
+                assign diy_loading = 'eager'
+                assign diy_decoding = 'sync'
+                assign diy_load_scene = 'lcp'
+              endif
+            -%}
+            <a
+              href="{{ matched_variant.preview_image | image_url: width: matched_variant.preview_image.width }}"
+              class="swiper-slide flex items-center justify-center cursor-zoom-in"
+              data-pswp-width="{{matched_variant.preview_image.width}}"
+              data-pswp-height="{{matched_variant.preview_image.height}}"
+              data-media-type="{{matched_variant.media_type}}"
+              data-media-id="{{matched_variant.id}}"
+              data-media-alt="{{ matched_variant_alt | escape }}"
+              data-option1-value="{{ matched_variant_alt_normalized | escape }}"
+              data-is-generic="{% if matched_variant_is_generic %}true{% else %}false{% endif %}"
+            >
+              {%- render 'diff-end-img',
+                picture_class: 'w-full h-full',
+                pc_img: matched_variant,
+                mb_img: matched_variant,
+                pc_img_width: 648,
+                mb_img_width: 375,
+                alt: product.title,
+                load_scene: diy_load_scene,
+                class: 'max-w-full max-h-full h-auto flex-none w-full object-contain'
+              -%}
+
+                <div class="diy-tag-wrapper">
+                  {%- render 'v5-product-tag',
+                    product: product,
+                    variant: diy_selected,
+                    img_product_tag_position_pc: img_product_tag_position_pc,
+                    img_product_tag_width_pc: img_product_tag_width_pc,
+                    img_product_tag_width_mb: img_product_tag_width_mb,
+                    is_diy: true
+                  -%}
+                </div>
+            </a>
+          {%- endif -%}
+
+          {%- for media in image_media -%}
+            {%- assign show_media = true -%}
+            {%- assign media_alt = media.preview_image.alt | strip -%}
+            {%- assign media_alt_normalized = media_alt | downcase -%}
+            {%- assign media_is_generic = true -%}
+            {%- if media_alt_normalized != blank -%}
+              {%- assign media_option1_token = '|' | append: media_alt_normalized | append: '|' -%}
+              {%- if option1_values contains media_option1_token -%}
+                {%- assign media_is_generic = false -%}
+              {%- endif -%}
+            {%- endif -%}
+            {%- assign media_option1_value = media_alt_normalized -%}
+            {%- if media_is_generic -%}
+              {%- assign media_option1_value = '' -%}
+            {%- endif -%}
+
+            {%- if is_diy == true -%}
+              {%- assign media_id_token = '|' | append: media.id | append: '|' -%}
+              {%- if variant_media_ids contains media_id_token -%}
+                {%- assign show_media = false -%}
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if show_media == true and media_is_generic == false and media_alt_normalized != selected_option_1 -%}
+              {%- assign show_media = false -%}
+            {%- endif -%}
+
+            {%- if show_media == true -%}
+              {% assign matched_variant = nil %}
+
+              {% comment %} 直接查找匹配的变体，避免嵌套循环 {% endcomment %}
+              {% if product.variants[0].title != 'Default Title' %}
+                {% for variant in product.variants %}
+                  {% if variant.featured_media and variant.featured_media.position == media.position %}
+                    {% assign matched_variant = variant %}
+                    {% break %}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+
+              {%-liquid
+                assign fetch_priority = nil
+                assign image_loading = 'lazy'
+                assign image_decoding = 'async'
+                assign image_load_scene = 'default'
+                if priority_media_id != blank and media.id == priority_media_id
+                  assign fetch_priority = 'high'
+                  assign image_loading = 'eager'
+                  assign image_decoding = 'sync'
+                  assign image_load_scene = 'lcp'
+                endif
+              -%}
+
+              <a
+                href="{{ media.preview_image | image_url: width: media.preview_image.width }}"
+                class="swiper-slide"
+                data-pswp-width="{{media.preview_image.width}}"
+                data-pswp-height="{{media.preview_image.height}}"
+                data-media-type="{{media.media_type}}"
+                data-media-id="{{media.id}}"
+              >
+              {%- render 'diff-end-img',
+                picture_class: 'w-full h-full',
+                pc_img: media.preview_image,
+                mb_img: media.preview_image,
+                pc_img_width: 648,
+                mb_img_width: 375,
+                alt: product.title,
+                load_scene: image_load_scene,
+                class: 'max-w-full max-h-full h-auto flex-none w-full object-contain'
+              -%}
+
+                {% comment %} 优化变体标签渲染逻辑 {% endcomment %}
+                {% if product.variants[0].title == 'Default Title' %}
+                  {% if forloop.index0 == 0 %}
+                    {% render 'v5-product-tag',
+                      product: product,
+                      variant: current_variant,
+                      img_product_tag_position_pc: img_product_tag_position_pc,
+                      img_product_tag_width_pc: img_product_tag_width_pc,
+                      img_product_tag_width_mb: img_product_tag_width_mb
+                    %}
+                  {% endif %}
+                {% else %}
+                  {% if forloop.index0 == 0 %}
+                    {% if matched_variant %}
+                      {% render 'v5-product-tag',
+                        product: product,
+                        variant: matched_variant,
+                        img_product_tag_position_pc: img_product_tag_position_pc,
+                        img_product_tag_width_pc: img_product_tag_width_pc,
+                        img_product_tag_width_mb: img_product_tag_width_mb
+                      %}
+                    {% else %}
+                      {% render 'v5-product-tag',
+                        product: product,
+                        variant: current_variant,
+                        img_product_tag_position_pc: img_product_tag_position_pc,
+                        img_product_tag_width_pc: img_product_tag_width_pc,
+                        img_product_tag_width_mb: img_product_tag_width_mb
+                      %}
+                    {% endif %}
+                  {% elsif matched_variant %}
+                    {% render 'v5-product-tag',
+                      product: product,
+                      variant: matched_variant,
+                      img_product_tag_position_pc: img_product_tag_position_pc,
+                      img_product_tag_width_pc: img_product_tag_width_pc,
+                      img_product_tag_width_mb: img_product_tag_width_mb
+                    %}
+                  {% endif %}
+                {% endif %}
+              </a>
+
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+
+        <div
+          class="hidden lg:flex swiper-button-prev lg:!w-10 lg:!h-10"
+          tabindex="0"
+          role="button"
+          aria-label="Previous slide"
+        >
+          {% render 'v5-icon-arrow-left', class: 'text-[#242F20]' %}
+        </div>
+        <div
+          class="hidden lg:flex swiper-button-next lg:!w-10 lg:!h-10"
+          tabindex="0"
+          role="button"
+          aria-label="Next slide"
+        >
+          {% render 'v5-icon-arrow-right', class: 'text-[#242F20]' %}
+        </div>
+      </div>
+
+      {% comment %} 图片、视频、3D 资源切换 {% endcomment %}
+      <div class="product_gallery-tab-bar w-[21.4375rem] h-8 mx-auto lg:mx-0 lg:w-full lg:h-10 flex items-center justify-center gap-x-3 absolute left-1/2 -translate-x-1/2 -bottom-[3.5rem] lg:-bottom-[4.125rem] z-[9] {% if first_video_media == blank and has_modal == false %} !hidden {% endif %}">
+        <div class="product_gallery-tab_item h-full flex items-center justify-center gap-x-2 transition-all duration-300 z-[1] text-[#242F20] text-sm lg:text-base cursor-pointer active bg-[#242f20] px-3 lg:px-4" data-type="image">
+          <svg class="shrink-0 w-4 h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.99967 9.33594H12.6663L10.3663 6.33594L8.83301 8.33594L7.79967 7.0026L5.99967 9.33594ZM3.99967 12.0026V1.33594H14.6663V12.0026H3.99967ZM5.33301 10.6693H13.333V2.66927H5.33301V10.6693ZM1.33301 14.6693V4.0026H2.66634V13.3359H11.9997V14.6693H1.33301Z" fill="currentColor"/>
+          </svg>
+          <span class="font-medium text-sm lg:font-semibold lg:text-base">{{ photos_i18n }}</span>
+        </div>
+
+        {%- if first_video_media -%}
+          <div class="product_gallery-tab_item h-full flex items-center justify-center gap-x-2 transition-all duration-300 z-[1] text-[#242F20] text-sm lg:text-base cursor-pointer px-3 lg:px-4" data-type="video">
+            <svg class="shrink-0 w-4 h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3.99967 10.6641H9.33301V10.2974C9.33301 9.80851 9.08856 9.41406 8.59967 9.11406C8.11079 8.81406 7.46634 8.66406 6.66634 8.66406C5.86634 8.66406 5.2219 8.81406 4.73301 9.11406C4.24412 9.41406 3.99967 9.80851 3.99967 10.2974V10.6641ZM6.66634 7.9974C7.03301 7.9974 7.3469 7.86684 7.60801 7.60573C7.86912 7.34462 7.99967 7.03073 7.99967 6.66406C7.99967 6.2974 7.86912 5.98351 7.60801 5.7224C7.3469 5.46128 7.03301 5.33073 6.66634 5.33073C6.29967 5.33073 5.98579 5.46128 5.72467 5.7224C5.46356 5.98351 5.33301 6.2974 5.33301 6.66406C5.33301 7.03073 5.46356 7.34462 5.72467 7.60573C5.98579 7.86684 6.29967 7.9974 6.66634 7.9974ZM1.33301 13.3307V2.66406H11.9997V6.9974L14.6663 4.33073V11.6641L11.9997 8.9974V13.3307H1.33301ZM2.66634 11.9974H10.6663V3.9974H2.66634V11.9974Z" fill="currentColor"/>
+            </svg>
+            <span class="font-medium text-sm lg:font-semibold lg:text-base">{{ video_i18n }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- if model_3d != blank -%}
+          {%- if modal_meta == true or model_3d.size > 0 -%}
+            <div class="product_gallery-tab_item h-full flex items-center justify-center gap-x-2 transition-all duration-300 z-[1] text-[#242F20] text-sm lg:text-base cursor-pointer px-3 lg:px-4" data-type="model">
+              <svg class="shrink-0 w-4 h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.99967 13.3693L3.33301 10.6859V5.31927L7.99967 2.63594L12.6663 5.31927V10.6859L7.99967 13.3693ZM7.33301 11.4526V8.38594L4.66634 6.83594V9.91927L7.33301 11.4526ZM8.66634 11.4526L11.333 9.91927V6.83594L8.66634 8.38594V11.4526ZM1.33301 4.66927V1.33594H4.66634V2.66927H2.66634V4.66927H1.33301ZM4.66634 14.6693H1.33301V11.3359H2.66634V13.3359H4.66634V14.6693ZM11.333 14.6693V13.3359H13.333V11.3359H14.6663V14.6693H11.333ZM13.333 4.66927V2.66927H11.333V1.33594H14.6663V4.66927H13.333ZM7.99967 7.23594L10.633 5.68594L7.99967 4.16927L5.36634 5.68594L7.99967 7.23594Z" fill="currentColor"/>
+              </svg>
+              <span class="font-medium text-sm lg:font-semibold lg:text-base">{{ model_i18n }}</span>
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+
+        <div class="product--list-tabs_slider absolute left-0 top-0 h-full bg-[#242F20] transition-all duration-300"></div>
+      </div>
+
+      {% comment %} video - 资源dom {% endcomment %}
+      {%- if first_video_media -%}
+        {%- case first_video_media.media_type -%}
+          {%- when 'external_video' -%}
+            {%- assign external_video_url = 'https://www.youtube.com/watch?v=' | append: first_video_media.external_id -%}
+            {%- render 'jky-video'
+              , video_url: external_video_url
+              , title: product.title
+              , class: "product_gallery-videobox"
+              , autoplay: false
+              , controls: true
+              , loop: false -%}
+
+          {%- when 'video' -%}
+            {%- assign video_url = '' -%}
+            {%- assign video_h = 0 -%}
+            {%- for item in first_video_media.sources -%}
+              {%- if item.format == 'mp4' and item.height > video_h -%}
+                {% assign video_url = item.url %}
+              {%- endif -%}
+            {%- endfor -%}
+
+            {%- render 'jky-video'
+              , video_url: video_url
+              , title: product.title
+              , class: "product_gallery-videobox"
+              , autoplay: false
+              , controls: true
+              , loop: false
+              , poster: first_video_media.preview_image -%}
+        {%- endcase -%}
+      {%- endif -%}
+
+      {% comment %} 3D 模型渲染 {% endcomment %}
+      {%- if model_3d != blank -%}
+        <script type="application/json" id="ProductJSON-{{ product.id }}">
+          {{ product.media | where: 'media_type', 'model' | json }}
+        </script>
+        <div class="w-full h-full product_gallery-modelbox">
+          {%- assign count = 1 -%}
+          {%- if show_3d_model_unfold -%}
+            {%- assign count = 2 -%}
+          {%- endif -%}
+
+          {%- for model in model_3d limit: count -%}
+            {%- assign index = forloop.index -%}
+            {%- if modal_meta == true -%}
+              {%- assign modal_meta_num = index -%}
+              {%- render "jky-3dmodal"
+                , url: model.url
+                , preview_image: model.preview_image
+                , show_loading: false
+                , index: index -%}
+            {%- else -%}
+              {%- for model_source in model.sources -%}
+                {%- if model_source.format == 'glb' -%}
+                  {%- render "jky-3dmodal"
+                    , url: model_source.url
+                    , preview_image: model.preview_image
+                    , show_loading: false
+                    , index: index -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {% comment %} 3D 模型切换 {% endcomment %}
+      {%- if model_3d != blank -%}
+        {%- if model_3d.size > 1 or modal_meta_num > 1 -%}
+          <div class="product_gallery-3d-tab absolute left-1/2 -translate-x-1/2 bottom-4 lg:bottom-6 flex items-center border-b border-black/15 border-solid gap-x-10 lg:gap-x-12 pb-2 z-[2] !hidden">
+            <div class="product_gallery-3d-tab_item font-normal text-sm lg:text-base text-[#999] cursor-pointer active" data-index="1">{{ unfolded_i18n }}</div>
+            <div class="product_gallery-3d-tab_item font-normal text-sm lg:text-base text-[#999] cursor-pointer" data-index="2">{{ folded_i18n }}</div>
+            <div class="product_gallery-3d-tab_highlight absolute left-0 bottom-[-1px] h-[3px] bg-[#242F20] transition-all duration-300"></div>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    {% comment %} 缩略图 swiper {% endcomment %}
+    <div class="product-image-thumbs {% if first_video_media == blank and has_modal == false %} bottom-9 lg:bottom-[2.625rem] {% else %} bottom-[4.75rem] lg:bottom-[5.125rem] {% endif %}">
+      <div class="swiper">
+        <div
+          class="swiper-wrapper gap-1 lg:gap-3"
+          {% if visible_image_count < 10 %}
+            style="justify-content:center;"
+          {% endif %}>
+          {%- assign initial_thumb_count = 0 -%}
+
+          {%- if is_diy == true -%}
+            {%- liquid
+              if current_variant.featured_media
+                assign seo_media = current_variant.featured_media
+              else
+                assign seo_media = product.featured_media
+              endif
+            -%}
+
+            {% assign matched_variant = seo_media %}
+            {%- liquid
+              assign matched_variant_alt = matched_variant.preview_image.alt | strip
+              if matched_variant_alt == blank
+                assign matched_variant_alt = matched_variant.alt | strip
+              endif
+              assign matched_variant_alt_normalized = matched_variant_alt | downcase
+              assign matched_variant_is_generic = true
+              if matched_variant_alt_normalized != blank
+                assign matched_variant_option1_token = '|' | append: matched_variant_alt_normalized | append: '|'
+                if option1_values contains matched_variant_option1_token
+                  assign matched_variant_is_generic = false
+                endif
+              endif
+              if matched_variant_is_generic
+                assign matched_variant_alt_normalized = ''
+              endif
+            -%}
+            {% assign matched_variant_alt_normalized = matched_variant_alt | downcase %}
+            {%- if initial_thumb_count < initial_thumb_limit -%}
+              <div class="swiper-slide" data-media="{{matched_variant.media_type}}" data-media-id="{{ matched_variant.id }}" data-media-alt="{{ matched_variant_alt | escape }}" data-option1-value="{{ matched_variant_alt_normalized | escape }}" data-is-generic="{% if matched_variant_is_generic %}true{% else %}false{% endif %}">
+                {%- render 'diff-end-img',
+                  picture_class: 'w-full h-full',
+                  pc_img: matched_variant,
+                  mb_img: matched_variant,
+                  pc_img_width: 72,
+                  mb_img_width: 72,
+                  alt: product.title,
+                  class: ''
+                -%}
+              </div>
+              {%- assign initial_thumb_count = initial_thumb_count | plus: 1 -%}
+            {%- endif -%}
+          {%- endif -%}
+
+
+          {%- for media in image_media -%}
+            {%- assign show_media = true -%}
+            {%- assign media_alt = media.preview_image.alt | strip -%}
+            {%- assign media_alt_normalized = media_alt | downcase -%}
+            {%- assign media_is_generic = true -%}
+            {%- if media_alt_normalized != blank -%}
+              {%- assign media_option1_token = '|' | append: media_alt_normalized | append: '|' -%}
+              {%- if option1_values contains media_option1_token -%}
+                {%- assign media_is_generic = false -%}
+              {%- endif -%}
+            {%- endif -%}
+            {%- assign media_option1_value = media_alt_normalized -%}
+            {%- if media_is_generic -%}
+              {%- assign media_option1_value = '' -%}
+            {%- endif -%}
+
+            {%- if is_diy == true -%}
+              {%- assign media_id_token = '|' | append: media.id | append: '|' -%}
+              {%- if variant_media_ids contains media_id_token -%}
+                {%- assign show_media = false -%}
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if show_media == true and media_is_generic == false and media_alt_normalized != selected_option_1 -%}
+              {%- assign show_media = false -%}
+            {%- endif -%}
+
+            {%- if show_media == true -%}
+              {%- if initial_thumb_count < initial_thumb_limit -%}
+                <div class="swiper-slide" data-media="{{media.media_type}}" data-media-id="{{ media.id }}" data-media-alt="{{ media_alt | escape }}" data-option1-value="{{ media_option1_value | escape }}" data-is-generic="{% if media_is_generic %}true{% else %}false{% endif %}">
+                  {%- render 'diff-end-img',
+                    picture_class: 'w-full h-full',
+                    pc_img: media.preview_image,
+                    mb_img: media.preview_image,
+                    pc_img_width: 72,
+                    mb_img_width: 72,
+                    alt: product.title,
+                    class: ''
+                  -%}
+                </div>
+                {%- assign initial_thumb_count = initial_thumb_count | plus: 1 -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+    <template data-gallery-main-source>
+      {%- if is_diy == true -%}
+        {%- liquid
+          if current_variant.featured_media
+            assign seo_media = current_variant.featured_media
+            assign diy_selected = current_variant
+          else
+            assign seo_media = product.featured_media
+            assign diy_selected = product
+          endif
+        -%}
+
+        {% assign matched_variant = seo_media %}
+        {%- liquid
+          assign matched_variant_alt = matched_variant.preview_image.alt | strip
+          if matched_variant_alt == blank
+            assign matched_variant_alt = matched_variant.alt | strip
+          endif
+          assign matched_variant_alt_normalized = matched_variant_alt | downcase
+          assign matched_variant_is_generic = true
+          if matched_variant_alt_normalized != blank
+            assign matched_variant_option1_token = '|' | append: matched_variant_alt_normalized | append: '|'
+            if option1_values contains matched_variant_option1_token
+              assign matched_variant_is_generic = false
+            endif
+          endif
+          if matched_variant_is_generic
+            assign matched_variant_alt_normalized = ''
+          endif
+        -%}
+        <a
+          href="{{ matched_variant.preview_image | image_url: width: matched_variant.preview_image.width }}"
+          class="swiper-slide"
+          data-pswp-width="{{matched_variant.preview_image.width}}"
+          data-pswp-height="{{matched_variant.preview_image.height}}"
+          data-media-type="{{matched_variant.media_type}}"
+          data-media-id="{{matched_variant.id}}"
+          data-media-alt="{{ matched_variant_alt | escape }}"
+          data-option1-value="{{ matched_variant_alt_normalized | escape }}"
+          data-is-generic="{% if matched_variant_is_generic %}true{% else %}false{% endif %}"
+        >
+          {%- liquid
+            assign template_diy_load_scene = 'default'
+            if priority_media_id != blank and matched_variant.id == priority_media_id
+              assign template_diy_load_scene = 'lcp'
+            endif
+          -%}
+          {%- render 'diff-end-img',
+            picture_class: 'w-full h-full',
+            pc_img: matched_variant,
+            mb_img: matched_variant,
+            pc_img_width: 648,
+            mb_img_width: 375,
+            alt: product.title,
+            load_scene: template_diy_load_scene,
+            class: 'max-w-full max-h-full h-auto flex-none w-full object-contain'
+          -%}
+
+            <div class="diy-tag-wrapper">
+              {%- render 'v5-product-tag',
+                product: product,
+                variant: diy_selected,
+                img_product_tag_position_pc: img_product_tag_position_pc,
+                img_product_tag_width_pc: img_product_tag_width_pc,
+                img_product_tag_width_mb: img_product_tag_width_mb,
+                is_diy: true
+              -%}
+            </div>
+        </a>
+      {%- endif -%}
+
+      {%- for media in image_media -%}
+        {%- assign show_media = true -%}
+        {%- assign media_alt = media.preview_image.alt | strip -%}
+        {%- assign media_alt_normalized = media_alt | downcase -%}
+        {%- assign media_is_generic = true -%}
+        {%- if media_alt_normalized != blank -%}
+          {%- assign media_option1_token = '|' | append: media_alt_normalized | append: '|' -%}
+          {%- if option1_values contains media_option1_token -%}
+            {%- assign media_is_generic = false -%}
+          {%- endif -%}
+        {%- endif -%}
+        {%- assign media_option1_value = media_alt_normalized -%}
+        {%- if media_is_generic -%}
+          {%- assign media_option1_value = '' -%}
+        {%- endif -%}
+
+        {%- if is_diy == true -%}
+          {%- assign media_id_token = '|' | append: media.id | append: '|' -%}
+          {%- if variant_media_ids contains media_id_token -%}
+            {%- assign show_media = false -%}
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- if show_media == true -%}
+          {% assign matched_variant = nil %}
+
+          {% if product.variants[0].title != 'Default Title' %}
+            {% for variant in product.variants %}
+              {% if variant.featured_media and variant.featured_media.position == media.position %}
+                {% assign matched_variant = variant %}
+                {% break %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+
+          <a
+            href="{{ media.preview_image | image_url: width: media.preview_image.width }}"
+            class="swiper-slide"
+            data-pswp-width="{{media.preview_image.width}}"
+            data-pswp-height="{{media.preview_image.height}}"
+            data-media-type="{{media.media_type}}"
+            data-media-id="{{media.id}}"
+            data-media-alt="{{ media_alt | escape }}"
+            data-option1-value="{{ media_option1_value | escape }}"
+            data-is-generic="{% if media_is_generic %}true{% else %}false{% endif %}"
+          >
+            {%- liquid
+              assign template_image_load_scene = 'default'
+              if priority_media_id != blank and media.id == priority_media_id
+                assign template_image_load_scene = 'lcp'
+              endif
+            -%}
+            {%- render 'diff-end-img',
+              picture_class: 'w-full h-full',
+              pc_img: media.preview_image,
+              mb_img: media.preview_image,
+              pc_img_width: 648,
+              mb_img_width: 375,
+              alt: media.preview_image.alt,
+              load_scene: template_image_load_scene,
+              class: 'max-w-full max-h-full h-auto flex-none w-full object-contain'
+            -%}
+
+            {% if product.variants[0].title == 'Default Title' %}
+              {% if forloop.index0 == 0 %}
+                {% render 'v5-product-tag',
+                  product: product,
+                  variant: current_variant,
+                  img_product_tag_position_pc: img_product_tag_position_pc,
+                  img_product_tag_width_pc: img_product_tag_width_pc,
+                  img_product_tag_width_mb: img_product_tag_width_mb,
+                %}
+              {% endif %}
+            {% else %}
+              {% if forloop.index0 == 0 %}
+                {% if matched_variant %}
+                  {% render 'v5-product-tag',
+                    product: product,
+                    variant: matched_variant,
+                    img_product_tag_position_pc: img_product_tag_position_pc,
+                    img_product_tag_width_pc: img_product_tag_width_pc,
+                    img_product_tag_width_mb: img_product_tag_width_mb,
+                  %}
+                {% else %}
+                  {% render 'v5-product-tag',
+                    product: product,
+                    variant: current_variant,
+                    img_product_tag_position_pc: img_product_tag_position_pc,
+                    img_product_tag_width_pc: img_product_tag_width_pc,
+                    img_product_tag_width_mb: img_product_tag_width_mb,
+                  %}
+                {% endif %}
+              {% elsif matched_variant %}
+                {% render 'v5-product-tag',
+                  product: product,
+                  variant: matched_variant,
+                  img_product_tag_position_pc: img_product_tag_position_pc,
+                  img_product_tag_width_pc: img_product_tag_width_pc,
+                  img_product_tag_width_mb: img_product_tag_width_mb,
+                %}
+              {% endif %}
+            {% endif %}
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </template>
+  </div>
+</v5-product-gallery>
+
+{%- assign photoswipe = 'photoswipe.js' | asset_url -%}
+{%- assign PhotoSwipeLightbox = 'photoswipelightbox.js' | asset_url -%}
+
+<script type="module">
+  if (!customElements.get('v5-product-gallery')) {
+    customElements.define('v5-product-gallery', class v5ProductGallery extends HTMLElement {
+      constructor() {
+        super()
+        this.product_gallery = null
+        this.gallery_thumb = null
+        this.variantListener = this.handleVariantChange.bind(this)
+        this.initialVariantId = this.dataset.currentVariantId || null
+        this.currentVariantMediaId = this.dataset.currentVariantMediaId || null
+        this.currentVariantId = this.initialVariantId || null
+        this.currentOption1Value = this.normalizeValue(this.dataset.currentOption1Value)
+
+        this.selectors = {
+          gallery_container: this.querySelector(".product-media__box .swiper"),
+          gallery_prev: this.querySelector(".product-media__box .swiper .swiper-button-prev"),
+          gallery_next: this.querySelector(".product-media__box .swiper .swiper-button-next"),
+          gallery_thumb: this.querySelector(".product-image-thumbs .swiper"),
+          play_video_btn: this.querySelector(".product_gallery-tab-bar .product_gallery-tab_item[data-type=video]"),
+
+          media_image_main: this.querySelector(".product-media-container__inner .product_gallery-imagebox"),
+          media_video_main: this.querySelector(".product-media-container__inner .product_gallery-videobox"),
+          media_model_main: this.querySelector(".product-media-container__inner .product_gallery-modelbox"),
+        }
+        this.mainTemplate = this.querySelector('template[data-gallery-main-source]')
+        this.variantData = this.getVariantData()
+        this.mainWrapper = this.selectors.gallery_container?.querySelector('.swiper-wrapper')
+        this.thumbWrapper = this.selectors.gallery_thumb?.querySelector('.swiper-wrapper')
+        this.allMainSlides = Array.from(this.mainTemplate?.content?.children || [])
+        this.allOption1Values = this.getAllOption1Values()
+
+        this.tabs = this.querySelectorAll('.product_gallery-tab_item')
+        this.slider = this.querySelector('.product--list-tabs_slider')
+        this.resizeId = 0
+        this.resizeSettledTimer = 0
+        this.currentThumbGap = 0
+
+        {% comment %} 3D model 数量 {% endcomment %}
+        {% if modal_meta == true %}
+          this.modelSize = '{{ modal_meta_num }}'
+        {% else %}
+          this.modelSize = '{{ model_3d.size }}'
+        {% endif %}
+
+        this.isThumbClick = false;
+        this.init()
+      }
+      connectedCallback() {
+        this.handleResize = this.handleResize.bind(this)
+
+        {% comment %} 窗口变化时，重新设置 高亮背景位置 {% endcomment %}
+        window.addEventListener('resize', this.handleResize)
+        document.addEventListener('variantChangeEvent', this.variantListener)
+      }
+      disconnectedCallback() {
+        window.removeEventListener('resize', this.handleResize)
+        document.removeEventListener('variantChangeEvent', this.variantListener)
+        cancelAnimationFrame(this.resizeId)
+        clearTimeout(this.resizeSettledTimer)
+      }
+      init() {
+        const that = this
+        const initialVariant = this.getSelectedVariant()
+        const initialVariantId = initialVariant?.id != null ? `${initialVariant.id}` : null
+        const initialOption1 = this.getVariantOptionValues(initialVariant)[0] || null
+        if (initialVariant && (this.currentVariantId !== initialVariantId || this.currentOption1Value !== initialOption1)) {
+          this.filterGalleryByVariant(initialVariant)
+        }
+
+        const thumbWrapper = this.selectors.gallery_thumb.querySelector('.swiper-wrapper')
+        const thumbGap = parseInt(getComputedStyle(thumbWrapper).gap) || 4
+        this.currentThumbGap = thumbGap
+        {% comment %} JS 初始化后由 Swiper spaceBetween 接管间距，移除 CSS gap 避免叠加 {% endcomment %}
+        thumbWrapper.classList.remove('gap-1', 'lg:gap-3')
+        this.gallery_thumb = new Swiper(this.selectors.gallery_thumb, {
+          slidesPerView: 10,
+          spaceBetween: thumbGap,
+          freeMode: true,
+          watchSlidesProgress: true,
+          on: {
+            click: function() {
+              {% comment %} 设置标志变量 {% endcomment %}
+              that.isThumbClick = true;
+            }
+          }
+        })
+
+        this.product_gallery = new Swiper(this.selectors.gallery_container, {
+            spaceBetween: 12,
+            navigation: {
+              nextEl: this.selectors.gallery_next,
+              prevEl: this.selectors.gallery_prev,
+            },
+            thumbs: {
+              swiper: this.gallery_thumb
+            },
+            on: {
+              slideChangeTransitionEnd: function(swiper) {
+                {% comment %} 获取主图 Swiper 的真实索引 {% endcomment %}
+                const realIndex = swiper.realIndex
+                that.realIndex = realIndex
+                {% comment %} 手动更新缩略图的位置。缩略图一行最多显示 10 个，限制最大滚动索引防止末尾被截断 {% endcomment %}
+                if (realIndex > 9) {
+                  const maxScrollIndex = Math.max(0, that.gallery_thumb.slides.length - 10);
+                  that.gallery_thumb.slideTo(Math.min(realIndex, maxScrollIndex));
+                }
+                const currentIndex = swiper.activeIndex;
+                const previousIndex = swiper.previousIndex;
+
+                if (that.isThumbClick) {
+                  gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                    "product_spu_name": "{{ product.title | escape }}",
+                    "module": "Product Image",
+                    "position": "Picture",
+                    "rank": realIndex + 1,
+                    "button_name": "picture",
+                  })
+                } else {
+                  gaPushDataLayer('5.0_products_details_page_user_clicks',{
+                    "product_spu_name": "{{ product.title | escape }}",
+                    "module": "Product Image",
+                    "position": "Picture",
+                    "rank": realIndex + 1,
+                    "button_name": currentIndex > previousIndex ? "right" : "left",
+                  })
+                }
+
+                that.isThumbClick = false
+              },
+            }
+        })
+
+        this.updateLcpPriority()
+        this.scheduleThumbHydration()
+
+        this.tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            if(tab.classList.contains("active")) return
+            this.tabs.forEach(t => t.classList.remove('active', 'bg-[#242f20]'))
+            tab.classList.add('active')
+            this.setSliderPosition(this.slider, tab)
+
+            if (tab.dataset.type === 'video') {
+              {% comment %} 隐藏 图片缩略图 {% endcomment %}
+              if (this.querySelector('.product-image-thumbs')) {
+                this.querySelector('.product-image-thumbs').style.display = 'none'
+              }
+              {% comment %} 隐藏 3D 切换 {% endcomment %}
+              if (this.querySelector('.product_gallery-3d-tab')) {
+                this.querySelector('.product_gallery-3d-tab').classList.add('!hidden')
+              }
+
+              this.selectors.media_image_main && (this.selectors.media_image_main.style.display = 'none')
+              this.selectors.media_video_main && (this.selectors.media_video_main.style.display = 'block')
+              if (this.selectors.media_model_main) {
+                this.selectors.media_model_main.classList.remove('active')
+                this.selectors.media_model_main.style.display = 'none'
+              }
+
+              this.playVideo()
+              this.product_gallery.allowTouchMove = false
+
+              gaPushDataLayer('5.0_products_details_page_user_clicks',{
+                "product_spu_name": '{{ product.title | escape }}',
+                "module": "Product Image",
+                "position": "Video",
+                "link": this.selectors.media_video_main.getAttribute('video-src'),
+              })
+            }
+            else if (tab.dataset.type === 'model') {
+              {% comment %} 隐藏 图片缩略图 {% endcomment %}
+              if (this.querySelector('.product-image-thumbs')) {
+                this.querySelector('.product-image-thumbs').style.display = 'none'
+              }
+              {% comment %} 显示 3D 切换 {% endcomment %}
+              if (this.querySelector('.product_gallery-3d-tab')) {
+                this.querySelector('.product_gallery-3d-tab').classList.remove('!hidden')
+              }
+
+              this.selectors.media_image_main && (this.selectors.media_image_main.style.display = 'none')
+              this.selectors.media_video_main && (this.selectors.media_video_main.style.display = 'none')
+              if (this.selectors.media_model_main) {
+                this.selectors.media_model_main.classList.add('active')
+                this.selectors.media_model_main.style.display = 'block'
+              }
+
+              if(this.querySelector("product-model")) {
+                try {
+                  {% comment %} 数量大于1个，并且 3D 切换DOM显示 {% endcomment %}
+                  if (this.modelSize > 1 && this.querySelector('.product_gallery-3d-tab')) {
+                    {% comment %} 默认都不显示 {% endcomment %}
+                    this.querySelector('product-model[data-index="1"]').style.display = 'none';
+                    this.querySelector('product-model[data-index="2"]').style.display = 'none';
+
+                    {% comment %} 显示并加载当前active {% endcomment %}
+                    const index = this.querySelector('.product_gallery-3d-tab_item.active').dataset.index
+                    const targetProductModel = this.querySelector(`product-model[data-index="${index}"]`)
+                    targetProductModel.style.display = 'block'
+                    targetProductModel.loadContent(targetProductModel.dataset.url, targetProductModel.dataset.previewImage)
+
+                    {% comment %} 初始化设置 3D切换 高亮下划线位置 {% endcomment %}
+                    this.setSliderPosition(this.querySelector('.product_gallery-3d-tab_highlight'), this.querySelector('.product_gallery-3d-tab_item.active'))
+                  } else {
+                    {% comment %} 只有1个，loadContent()会默认加载，不用传参 {% endcomment %}
+                    this.querySelector('product-model').style.display = 'block';
+                    this.querySelector("product-model").loadContent();
+                  }
+
+                  this.product_gallery.allowTouchMove = false
+                } catch (error) {
+                  console.info("not init 3d model script");
+                }
+              } else {
+                this.product_gallery.allowTouchMove = true
+              }
+
+              this.hideVideo()
+
+              gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                "product_spu_name": "{{ product.title | escape }}",
+                "module": "Product Image",
+                "position": "3D",
+              })
+            }
+            else {
+              if (this.querySelector('.product-image-thumbs')) {
+                this.querySelector('.product-image-thumbs').style.display = 'block'
+              }
+              if (this.querySelector('.product_gallery-3d-tab')) {
+                this.querySelector('.product_gallery-3d-tab').classList.add('!hidden')
+              }
+
+              this.selectors.media_image_main && (this.selectors.media_image_main.style.display = 'block')
+              this.selectors.media_video_main && (this.selectors.media_video_main.style.display = 'none')
+              if (this.selectors.media_model_main) {
+                this.selectors.media_model_main.classList.remove('active')
+                this.selectors.media_model_main.style.display = 'none'
+              }
+
+              this.hideVideo()
+
+              this.product_gallery.allowTouchMove = true
+              gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                "product_spu_name": "{{ product.title | escape }}",
+                "module": "Product Image",
+                "position": "Picture",
+              })
+            }
+          })
+        })
+
+        {% comment %} 3D 模型切换 {% endcomment %}
+        this.querySelectorAll('.product_gallery-3d-tab_item').forEach(tab => {
+          tab.addEventListener('click', () => {
+            if(tab.classList.contains("active")) return
+
+            this.querySelectorAll('.product_gallery-3d-tab_item').forEach(t => t.classList.remove('active'))
+            tab.classList.add('active')
+            this.setSliderPosition(this.querySelector('.product_gallery-3d-tab_highlight'), tab)
+
+            const index = tab.dataset.index
+            const targetProductModel = this.querySelector(`product-model[data-index="${index}"]`)
+            targetProductModel.style.display = 'block'
+            targetProductModel.loadContent(targetProductModel.dataset.url, targetProductModel.dataset.previewImage)
+
+            if (index === '1') {
+              this.querySelector('product-model[data-index="2"]').style.display = 'none'
+            } else {
+              this.querySelector('product-model[data-index="1"]').style.display = 'none'
+            }
+          })
+        })
+
+        {% comment %} 初始化设置 图片、视频、3D切换 高亮背景位置 {% endcomment %}
+        this.setSliderPosition(this.slider, this.querySelector('.product_gallery-tab_item.active'), false)
+      }
+      getSelectedVariant() {
+        const variantFields = document.querySelector('variant-fields')
+        if (variantFields?.currentVariant) return variantFields.currentVariant
+        if (!this.variantData.length) return null
+
+        const preferredVariantId = new URLSearchParams(window.location.search).get('variant') || this.initialVariantId
+
+        if (preferredVariantId) {
+          const matchedVariant = this.variantData.find((variant) => `${variant?.id}` === `${preferredVariantId}`)
+          if (matchedVariant) return matchedVariant
+        }
+
+        if (this.currentVariantMediaId) {
+          const matchedByMedia = this.variantData.find((variant) => `${variant?.featured_media?.id || ''}` === `${this.currentVariantMediaId}`)
+          if (matchedByMedia) return matchedByMedia
+        }
+
+        return this.variantData[0] || null
+      }
+      getVariantData() {
+        const selectedVariantNode = document.querySelector('#selected-variant[type="application/json"]')
+        if (!selectedVariantNode) return []
+
+        try {
+          const parsedVariantData = JSON.parse(selectedVariantNode.textContent)
+          return Array.isArray(parsedVariantData) ? parsedVariantData : [parsedVariantData]
+        } catch (error) {
+          return []
+        }
+      }
+      normalizeValue(value) {
+        return (value || '').toString().trim().toLowerCase()
+      }
+      getVariantOptionValues(variant) {
+        if (!variant) return []
+
+        const option1 = Array.isArray(variant.options)
+          ? variant.options[0]
+          : variant.option1
+
+        const normalizedOption1 = this.normalizeValue(option1)
+        return normalizedOption1 ? [normalizedOption1] : []
+      }
+      getAllOption1Values() {
+        const valuesFromVariants = [...new Set(
+          this.variantData
+            .map((variant) => Array.isArray(variant?.options) ? variant.options[0] : variant?.option1)
+            .map((value) => this.normalizeValue(value))
+            .filter(Boolean)
+        )]
+        if (valuesFromVariants.length) return valuesFromVariants
+
+        return [...new Set(
+          this.allMainSlides
+            .map((slide) => this.normalizeValue(slide?.getAttribute('data-option1-value')))
+            .filter(Boolean)
+        )]
+      }
+      shouldShowSlide(slide, optionValues) {
+        const isGeneric = slide?.dataset?.isGeneric === 'true'
+        if (isGeneric) return true
+
+        const option1Value = this.normalizeValue(slide?.dataset?.option1Value)
+        if (!option1Value) return true
+
+        if (!this.allOption1Values.length) {
+          return optionValues.includes(option1Value)
+        }
+
+        if (!this.allOption1Values.includes(option1Value)) return true
+
+        return optionValues.includes(option1Value)
+      }
+      getPrioritySlideIndex(slides) {
+        if (!Array.isArray(slides) || !slides.length || !this.currentVariantMediaId) return 0
+
+        const matchedIndex = slides.findIndex((slide) => slide.getAttribute('data-media-id') === this.currentVariantMediaId)
+        return matchedIndex >= 0 ? matchedIndex : 0
+      }
+      updateThumbAlignment(visibleThumbCount) {
+        if (!this.thumbWrapper) return
+
+        if (visibleThumbCount < 10) {
+          this.thumbWrapper.style.justifyContent = 'center'
+        } else {
+          this.thumbWrapper.style.justifyContent = ''
+        }
+      }
+      getThumbImageSrc(src) {
+        if (!src) return src
+        if (/([?&])width=\d+/i.test(src)) {
+          return src.replace(/([?&])width=\d+/i, '$1width=72')
+        }
+        return src
+      }
+      createThumbSlideFromMainSlide(slide) {
+        if (!slide) return null
+
+        const img = slide.querySelector('img')
+        if (!img) return null
+
+        const thumbSlide = document.createElement('div')
+        thumbSlide.className = 'swiper-slide'
+
+        const mediaType = slide.getAttribute('data-media-type')
+        const mediaId = slide.getAttribute('data-media-id')
+        if (mediaType) thumbSlide.setAttribute('data-media', mediaType)
+        if (mediaId) thumbSlide.setAttribute('data-media-id', mediaId)
+
+        const dataMediaAlt = slide.getAttribute('data-media-alt')
+        const dataOption1Value = slide.getAttribute('data-option1-value')
+        const dataIsGeneric = slide.getAttribute('data-is-generic')
+        if (dataMediaAlt != null) thumbSlide.setAttribute('data-media-alt', dataMediaAlt)
+        if (dataOption1Value != null) thumbSlide.setAttribute('data-option1-value', dataOption1Value)
+        if (dataIsGeneric != null) thumbSlide.setAttribute('data-is-generic', dataIsGeneric)
+
+        const picture = document.createElement('picture')
+        picture.className = 'w-full h-full flex items-center justify-center'
+
+        const thumbImg = img.cloneNode(true)
+        thumbImg.removeAttribute('srcset')
+        thumbImg.removeAttribute('sizes')
+        thumbImg.setAttribute('src', this.getThumbImageSrc(img.getAttribute('src')))
+        thumbImg.setAttribute('loading', 'lazy')
+        thumbImg.setAttribute('fetchpriority', 'auto')
+        thumbImg.setAttribute('decoding', 'async')
+        picture.appendChild(thumbImg)
+        thumbSlide.appendChild(picture)
+
+        return thumbSlide
+      }
+      buildThumbSlidesFromMainSlides(slides) {
+        return slides
+          .map((slide) => this.createThumbSlideFromMainSlide(slide))
+          .filter(Boolean)
+      }
+      getVisibleThumbSlides(sourceSlides = null) {
+        const slides = sourceSlides || Array.from(this.mainWrapper?.querySelectorAll('.swiper-slide') || [])
+
+        let visibleThumbSlides = this.buildThumbSlidesFromMainSlides(slides)
+
+        if (!visibleThumbSlides.length) {
+          visibleThumbSlides = this.buildThumbSlidesFromMainSlides(this.allMainSlides)
+        }
+
+        return visibleThumbSlides
+      }
+      hydrateThumbSlides() {
+        if (!this.thumbWrapper || !this.gallery_thumb) return
+
+        const visibleThumbSlides = this.getVisibleThumbSlides()
+        if (!visibleThumbSlides.length) return
+
+        const currentThumbCount = this.thumbWrapper.children.length
+        if (currentThumbCount >= visibleThumbSlides.length) return
+
+        const extraThumbSlides = visibleThumbSlides.slice(currentThumbCount)
+        if (!extraThumbSlides.length) return
+
+        this.thumbWrapper.append(...extraThumbSlides)
+        this.updateThumbAlignment(visibleThumbSlides.length)
+        this.gallery_thumb.update()
+      }
+      scheduleThumbHydration() {
+        const hydrate = () => requestAnimationFrame(() => this.hydrateThumbSlides())
+
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(hydrate, { timeout: 1200 })
+          return
+        }
+
+        window.setTimeout(hydrate, 300)
+      }
+      filterGalleryByVariant(variant) {
+        if (!this.mainWrapper || !this.thumbWrapper) return
+
+        const optionValues = this.getVariantOptionValues(variant)
+        this.currentVariantId = variant?.id != null ? `${variant.id}` : null
+        this.currentVariantMediaId = variant?.featured_media?.id != null ? `${variant.featured_media.id}` : null
+        this.currentOption1Value = optionValues[0] || null
+        let visibleMainSlides = this.allMainSlides
+          .filter((slide) => this.shouldShowSlide(slide, optionValues))
+          .map((slide) => slide.cloneNode(true))
+
+        if (!visibleMainSlides.length) {
+          visibleMainSlides = this.allMainSlides.map((slide) => slide.cloneNode(true))
+        }
+
+        const visibleThumbSlides = this.getVisibleThumbSlides(visibleMainSlides)
+        const prioritySlideIndex = this.getPrioritySlideIndex(visibleMainSlides)
+
+        this.mainWrapper.replaceChildren(...visibleMainSlides)
+        this.thumbWrapper.replaceChildren(...visibleThumbSlides)
+        this.updateThumbAlignment(visibleThumbSlides.length)
+
+        if (this.gallery_thumb && this.product_gallery) {
+          this.gallery_thumb.update()
+          this.product_gallery.update()
+          this.gallery_thumb.slideTo(prioritySlideIndex, 0)
+          this.product_gallery.slideTo(prioritySlideIndex, 0)
+        }
+
+        this.updateLcpPriority()
+      }
+      updateLcpPriority() {
+        const slides = Array.from(this.mainWrapper.querySelectorAll('.swiper-slide'))
+        const images = slides.map((slide) => slide.querySelector('img')).filter(Boolean)
+        if (!images.length) return
+
+        images.forEach((img) => {
+          img.setAttribute('fetchpriority', 'auto')
+          img.setAttribute('loading', 'lazy')
+          img.setAttribute('decoding', 'async')
+        })
+
+        const targetSlide = this.currentVariantMediaId
+          ? slides.find((slide) => slide.getAttribute('data-media-id') === this.currentVariantMediaId)
+          : null
+        const priorityImg = targetSlide?.querySelector('img') || images[0]
+        priorityImg.setAttribute('fetchpriority', 'high')
+        priorityImg.setAttribute('loading', 'eager')
+        priorityImg.setAttribute('decoding', 'sync')
+      }
+      handleVariantChange(e) {
+        const nextVariant = e.detail?.variant
+        if (!nextVariant) return
+
+        const nextVariantId = nextVariant?.id != null ? `${nextVariant.id}` : null
+        const nextOption1 = this.getVariantOptionValues(nextVariant)[0] || null
+        if (nextVariantId && this.currentVariantId === nextVariantId && this.currentOption1Value === nextOption1) return
+
+        requestAnimationFrame(() => this.filterGalleryByVariant(nextVariant))
+      }
+      handleResize() {
+        {% comment %} 取消上一次的请求 {% endcomment %}
+        cancelAnimationFrame(this.resizeId)
+        clearTimeout(this.resizeSettledTimer)
+        this.resizeId = requestAnimationFrame(() => {
+          const activeTab = this.querySelector('.product_gallery-tab_item.active')
+          this.setSliderPosition(this.slider, activeTab, false)
+          {% comment %} 更新缩略图 Swiper 的间距，响应窗口大小变化 {% endcomment %}
+          if (this.gallery_thumb) {
+            const thumbGap = window.innerWidth >= 1024 ? 12 : 4
+            if (thumbGap !== this.currentThumbGap) {
+              this.currentThumbGap = thumbGap
+              this.gallery_thumb.params.spaceBetween = thumbGap
+              this.gallery_thumb.update()
+            }
+          }
+        })
+        this.resizeSettledTimer = window.setTimeout(() => {
+          this.setSliderPosition(this.slider, this.querySelector('.product_gallery-tab_item.active'), false)
+        }, 120)
+      }
+      {% comment %} 设置 高亮背景 {% endcomment %}
+      setSliderPosition(slider, tab, needTransition = true) {
+        if (!slider || !tab) return
+
+        const nextWidth = `${tab.offsetWidth}px`
+        const nextLeft = `${tab.offsetLeft}px`
+
+        if (slider.style.width !== nextWidth) {
+          slider.style.width = nextWidth
+        }
+        if (slider.style.left !== nextLeft) {
+          slider.style.left = nextLeft
+        }
+        if (needTransition) {
+          slider.style.transition = 'width 0.3s, left 0.3s'
+        } else {
+          slider.style.transition = 'none'
+        }
+      }
+      hideVideo() {
+        if(this.selectors.media_video_main) {
+          this.selectors.media_video_main.classList.remove("active")
+          if(!this.selectors.media_video_main.pause) return
+          this.selectors.media_video_main.pause()
+        }
+      }
+      playVideo() {
+        if(this.selectors.media_video_main) {
+          this.selectors.media_video_main.classList.add("active")
+          if(!this.selectors.media_video_main.jsPlay) return
+          this.selectors.media_video_main.jsPlay()
+        }
+      }
+    })
+  }
+</script>
+
+<script type="module">
+  const galleryElement = document.querySelector('.product-media__box .product_gallery-imagebox .swiper-wrapper')
+  const sectionPreviewStyleHref = {{ 'section-v5-main-product.min.css' | asset_url | json }}
+  const photoswipeStyleHref = {{ 'photoswipe.css' | asset_url | json }}
+
+  if (galleryElement) {
+    let lightBoxInstance = null
+    let lightBoxPromise = null
+    let replayClick = false
+    let previewAssetsWarmed = false
+
+    const ensureStylesheet = (href) => {
+      if (document.querySelector('link[href="' + href + '"]')) return
+
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = href
+      document.head.appendChild(link)
+    }
+
+    const ensureSectionPreviewStyle = () => {
+      ensureStylesheet(sectionPreviewStyleHref)
+    }
+
+    const ensurePhotoSwipeStyle = () => {
+      ensureStylesheet(photoswipeStyleHref)
+    }
+
+    const ensureLightBox = async () => {
+      if (lightBoxInstance) return lightBoxInstance
+
+      if (!lightBoxPromise) {
+        lightBoxPromise = import(/* webpackChunkName: "photoswipe-lightBox" */ '{{ PhotoSwipeLightbox }}').then((module) => {
+          const PhotoSwipeLightBox = module.default
+          ensureSectionPreviewStyle()
+          ensurePhotoSwipeStyle()
+
+          const options = {
+            gallery: galleryElement,
+            children: 'a',
+            pswpModule: () => import('{{ photoswipe }}'),
+
+            wheelToZoom: true,
+            zoom: false,
+            padding: {
+              top: 32, bottom: 184, left: 0, right: 0
+            },
+            counter: false,
+            bgOpacity: 1,
+            arrowNextSVG: `<div class="swiper-button-next swiper--pagebtn" tabindex="0" role="button" aria-label="Next slide"></div>`,
+            arrowPrevSVG: `<div class="swiper-button-prev swiper--pagebtn" tabindex="0" role="button" aria-label="Previous slide"></div>`,
+            closeSVG: `<span class="close pswp--close">×</span>`
+          }
+
+          const lightBox = new PhotoSwipeLightBox(options)
+
+          {% comment %} 是否是点击 预览缩略图 {% endcomment %}
+          let isClickThumb = false
+          let isScale = false
+
+          const pos_parant = (element, parent) => {
+            var elementRect = element.getBoundingClientRect();
+            var elementLeft = elementRect.left;
+            var parentRect = parent.getBoundingClientRect();
+            var parentLeft = parentRect.left;
+            var parentWidth = parentRect.width;
+            var relativePosition = {
+                left: elementLeft - parentLeft,
+                right: parentLeft + parentWidth - elementLeft
+            };
+            return relativePosition
+          }
+
+          const isMobile = () => document.documentElement.clientWidth < 1024;
+
+          {% comment %} 监听 beforeOpen 事件 {% endcomment %}
+          lightBox.on('beforeOpen', () => isScale = true);
+
+          lightBox.on("uiRegister", function () {
+            lightBox.pswp.ui.registerElement({
+              name: 'bulletsIndicator',
+              className: 'pswp__bullets-indicator',
+
+              appendTo: "wrapper",
+              onInit: (el, pswp) => {
+                let pre_index = 0
+                const thumbs = document.querySelector(".product-image-thumbs .swiper")
+                if (!thumbs) return
+
+                let bullet = document.createElement("div");
+                let bullet_wrapper = document.createElement("div");
+                bullet.className = "pswp__thumbs swiper";
+                bullet_wrapper.className = "swiper-wrapper";
+
+                const imgLength = thumbs.querySelectorAll(".swiper-slide[data-media=image]").length
+                if (imgLength < 8 && isMobile()) {
+                  bullet_wrapper.className += " justify-center"
+                }
+
+                thumbs.querySelectorAll(".swiper-slide[data-media=image]").forEach(item => {
+                  const img = item.querySelector("img")
+                  const clone_img_node = img.cloneNode(true)
+                  let slide_wrapper = document.createElement("div");
+                  slide_wrapper.className = "swiper-slide";
+                  slide_wrapper.appendChild(clone_img_node)
+                  bullet_wrapper.appendChild(slide_wrapper)
+                })
+                bullet.appendChild(bullet_wrapper)
+                el.appendChild(bullet);
+
+                pswp.on("bindEvents", () => {
+                  document.querySelectorAll(".pswp__thumbs.swiper .swiper-slide").forEach((item, index) => {
+                    item.addEventListener("click", () => {
+                      if(item.classList.contains("active")) return
+
+                      isClickThumb = true
+                      pswp.goTo(index)
+                      pos_parant(item, document.querySelector(".pswp__thumbs .swiper-wrapper"))
+
+                      gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                        "product_spu_name": "{{ product.title | escape }}",
+                        "module": "Product Image",
+                        "position": "Picture",
+                        "rank": pswp.currSlide.index + 1,
+                        "button_name": "picture",
+                      })
+                    })
+                  })
+                })
+
+                pswp.on("change", () => {
+                  if(!document.querySelectorAll(".pswp__thumbs")?.length) return
+
+                  document.querySelectorAll(".pswp__thumbs.swiper .swiper-slide").forEach(item => item.classList.remove("active"))
+                  document.querySelectorAll(".pswp__thumbs .swiper-slide")[pswp.currSlide.index].classList.add("active")
+
+                  const current_dis = document.querySelector(".pswp__thumbs .swiper-wrapper").scrollLeft
+                  const pos_info = pos_parant(document.querySelectorAll(".pswp__thumbs.swiper .swiper-slide")[pswp.currSlide.index], document.querySelector(".pswp__thumbs .swiper-wrapper"))
+                  const slide_w = document.querySelector(".pswp__thumbs .swiper-wrapper .swiper-slide").offsetWidth
+
+                  let next = pswp.currSlide.index > pre_index
+                  if(pos_info.right < slide_w && next) {
+                    document.querySelector(".pswp__thumbs .swiper-wrapper").scrollLeft = current_dis + (12 + slide_w) * (pswp.currSlide.index - pre_index)
+                  }
+
+                  if(pos_info.left < 0 && !next) {
+                    document.querySelector(".pswp__thumbs .swiper-wrapper").scrollLeft = current_dis - (12 + slide_w) * (pre_index - pswp.currSlide.index)
+                  }
+
+                  if (!isClickThumb && !isScale) {
+                    gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                      "product_spu_name": "{{ product.title | escape }}",
+                      "module": "Product Image",
+                      "position": "Picture",
+                      "rank": pswp.currSlide.index + 1,
+                      "button_name": next ? "right" : "left",
+                    })
+                  }
+
+                  pre_index = pswp.currSlide.index
+                  isClickThumb = false
+                  isScale = false
+                })
+              },
+            });
+          });
+
+          lightBox.init()
+          lightBoxInstance = lightBox
+          return lightBox
+        })
+      }
+
+      return lightBoxPromise
+    }
+
+    const warmPreviewAssets = () => {
+      if (previewAssetsWarmed) return
+      previewAssetsWarmed = true
+      ensureSectionPreviewStyle()
+      ensurePhotoSwipeStyle()
+      void ensureLightBox()
+    }
+
+    const canHoverPreview = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+
+    if (canHoverPreview) {
+      galleryElement.addEventListener('mouseenter', warmPreviewAssets, { once: true })
+    } else {
+      galleryElement.addEventListener('pointerdown', warmPreviewAssets, { once: true, passive: true })
+      galleryElement.addEventListener('touchstart', warmPreviewAssets, { once: true, passive: true })
+    }
+    galleryElement.addEventListener('focusin', warmPreviewAssets, { once: true })
+
+    galleryElement.addEventListener('click', async (event) => {
+      const anchor = event.target.closest('a')
+      if (!anchor || replayClick) return
+      if (lightBoxInstance) return
+
+      event.preventDefault()
+      warmPreviewAssets()
+      await ensureLightBox()
+
+      replayClick = true
+      requestAnimationFrame(() => {
+        anchor.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }))
+        replayClick = false
+      })
+    }, true)
+  }
+</script>

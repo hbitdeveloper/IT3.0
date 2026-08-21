@@ -1,0 +1,147 @@
+{%- liquid
+  assign use_energy_dropdown = section.settings.savings_use_energy_dropdown
+  assign fixed_capacity = product.metafields.my_fields.wattage
+  assign fixed_efficiency = 0.8
+
+  if fixed_capacity != blank
+    if fixed_capacity >= 100 and fixed_capacity < 1000
+      assign fixed_efficiency = 0.82
+    elsif fixed_capacity >= 1000 and fixed_capacity < 1200
+      assign fixed_efficiency = 0.82
+    elsif fixed_capacity >= 1200 and fixed_capacity < 2100
+      assign fixed_efficiency = 0.82
+    elsif fixed_capacity >= 2100 and fixed_capacity < 3050
+      assign fixed_efficiency = 0.85
+    elsif fixed_capacity >= 3050 and fixed_capacity < 5000
+      assign fixed_efficiency = 0.85
+    elsif fixed_capacity >= 5000
+      assign fixed_efficiency = 0.85
+    endif
+
+    if product.metafields.custom.efficiency != blank
+      assign fixed_efficiency = product.metafields.custom.efficiency
+    endif
+  endif
+-%}
+
+{% if use_energy_dropdown or fixed_capacity != blank %}
+
+<div
+  class="pyp-card py-5 lg:py-5"
+  data-pyp-savings
+  data-pyp-fixed-capacity="{{ fixed_capacity | default: 0 }}"
+  data-pyp-fixed-efficiency="{{ fixed_efficiency }}"
+  data-pyp-money-format="{{ shop.money_format | escape }}"
+  data-pyp-currency-iso="{{ shop.currency | escape }}"
+  data-pyp-savings-use-energy-dropdown="{{ section.settings.savings_use_energy_dropdown }}"
+>
+  <div class="font-semibold text-base text-[#242F20] jky-ipad-text">
+    {{ section.settings.savings_title }}
+  </div>
+
+  <div class="mt-4 lg:mt-5 grid grid-cols-1 lg:grid-cols-[1fr_26.8125rem] gap-6 lg:gap-8">
+    <div class="bg-white border border-solid border-[#EEEEEE] px-3 py-6 lg:p-10">
+      {% if section.settings.savings_use_energy_dropdown %}
+        <div class="font-semibold text-base text-[#242F20] jky-ipad-text">
+          {{ section.settings.solar_choose_solar_label | escape }}
+        </div>
+        <div class="mt-4 mb-5 pyp-dropdown border border-[#e8e8e5] border-solid" data-pyp-savings-energy-dropdown>
+          <div class="w-full flex items-center justify-between lg:h-12 h-11 px-4" data-pyp-dropdown-selected>
+            <span class="font-normal text-base text-[rgba(0, 0, 0, 0.65)] line-clamp-1 leading-[1.4] jky-ipad-text" data-pyp-dropdown-label>
+              {{ section.settings.solar_select_placeholder }}
+            </span>
+            {%- render 'icon-select' -%}
+          </div>
+          <div class="pyp-dropdown-menu" data-pyp-dropdown-list></div>
+        </div>
+      {% endif %}
+      <div class="lg:font-medium font-semibold text-base text-[#242F20] jky-ipad-text">
+        {{ section.settings.savings_rate_label }}
+      </div>
+      <div class="mt-4 border border-solid border-[#E8E8E5] bg-white h-11 lg:h-12 flex items-center px-3">
+        <input
+          class="w-full bg-transparent outline-none font-semibold text-base lg:text-lg text-[#242F20]"
+          type="number"
+          min="0"
+          step="0.01"
+          value="0"
+          placeholder="{{ section.settings.savings_rate_placeholder | default: '' }}"
+          data-pyp-savings-rate
+        >
+      </div>
+      {% if section.settings.savings_rate_help != blank %}
+        <div class="mt-3 text-xs lg:text-sm text-[rgba(0,0,0,0.45)] jky-ipad-text-imp">
+          {{ section.settings.savings_rate_help }}
+        </div>
+      {% endif %}
+
+      <div class="lg:mt-12 mt-8 lg:font-medium font-semibold text-base text-[#242F20] jky-ipad-text">
+        {{ section.settings.savings_charges_label }}
+      </div>
+      <div class="mt-4 border border-solid border-[#E8E8E5] bg-white h-11 lg:h-12 flex items-center px-3">
+        <input
+          class="w-full bg-transparent outline-none font-semibold text-base lg:text-lg text-[#242F20]"
+          type="number"
+          min="0"
+          step="1"
+          value="0"
+          placeholder="{{ section.settings.savings_charges_placeholder | default: '' }}"
+          data-pyp-savings-charges
+        >
+      </div>
+
+      <button
+        type="button"
+        class="mt-5 w-full h-10 bg-[#242F20] text-white font-semibold text-base disabled:bg-[#C6C7C8] disabled:text-white disabled:cursor-not-allowed jky-ipad-text"
+        data-pyp-savings-calc
+        disabled
+      >
+        {{ section.settings.runtime_calculate_text | default: 'Calculate' | escape }}
+      </button>
+
+      {% if section.settings.savings_charges_help != blank %}
+        <div class="lg:mt-2 mt-3 text-sm text-[rgba(0,0,0,0.65)] jky-ipad-text-imp">
+          {{ section.settings.savings_charges_help }}
+        </div>
+      {% endif %}
+    </div>
+
+    {% if section.settings.savings_note != blank %}
+      <div class="-mt-1 text-sm text-[rgba(0,0,0,0.65)] lg:hidden block jky-ipad-text-imp">
+        {{ section.settings.savings_note }}
+      </div>
+    {% endif %}
+
+    <div class="bg-white border border-solid border-[#EEEEEE] px-4 py-6 lg:p-10 flex flex-col justify-center">
+      <div class="text-sm lg:text-base text-[#242F20] font-medium">
+        {{ section.settings.savings_result_title | default: 'Estimated Savings' }}
+      </div>
+      <div class="mt-6 lg:mt-4 items-baseline gap-2">
+        <div class="font-bold text-[#242F20] text-5xl lg:text-7xl leading-none" data-pyp-savings-yearly-money>{{ 0 | money }}</div>
+        <div class="mt-4 font-medium text-xl text-[#242F20] ">
+          {{ section.settings.savings_result_period | default: 'per year' }}
+        </div>
+      </div>
+      <div class="lg:my-8 my-7 right-box-border"></div>
+      <div class="grid lg:gap-6 gap-5 lg:text-base text-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-[rgba(0,0,0,0.65)] lg:w-[65%]">{{ section.settings.savings_kwh_label | default: 'Yearly kWh offset' }}</span>
+          <span class="font-semibold text-[#242F20] text-base jky-ipad-text"><span data-pyp-savings-kwh>0</span> kWh</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-[rgba(0,0,0,0.65)] lg:w-[65%]">{{ section.settings.savings_five_year_label | default: '5-year savings' }}</span>
+          <span class="font-semibold text-[#242F20] text-base jky-ipad-text" data-pyp-savings-five-year-money>{{ 0 | money }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if section.settings.savings_note != blank %}
+    <div class="mt-5 text-sm text-[rgba(0,0,0,0.65)] lg:block hidden jky-ipad-text-imp">
+      {{ section.settings.savings_note }}
+    </div>
+  {% endif %}
+</div>
+
+<script src="{{ 'section-pdp-calculator-plus-savings.min.js' | asset_url }}" defer></script>
+{% endif %}

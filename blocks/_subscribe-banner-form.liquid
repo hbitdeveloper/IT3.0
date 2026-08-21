@@ -1,0 +1,323 @@
+{% style %}
+  .agree_provicy a {color: unset!important;}
+  @media screen and (max-width: 1023.98px) {
+    .blocks-subscribe-banner-form .jky-checkbox-label .jky-agree, .blocks-subscribe-banner-form .jky-checkbox-label .jky-agree p {
+      font-size: 13px; 
+    }
+    .blocks-subscribe-banner-form .form-item input{
+      padding-left: 1.2rem;
+    }
+
+  }
+
+  @media screen and (min-width: 1440px) and (max-width: 1800px) {
+    .blocks-subscribe-banner-form .jky-checkbox-input .jky-checkbox-original:checked~.jky-checkbox-inner:after{
+      left: 20%;
+    }
+  }
+{% endstyle %}
+{%- liquid
+  assign subscribeAlignClass = ''
+  if block.settings.subscribe_align == 'center'
+    assign subscribeAlignClass = 'lg:mx-auto'
+  elsif block.settings.subscribe_align == 'right'
+    assign subscribeAlignClass = 'lg:ml-auto'
+  else
+    assign subscribeAlignClass = 'lg:mr-auto'
+  endif
+-%}
+<div
+    class="blocks-subscribe-banner-form section-padding relative 
+    rounded-xl {% if block.settings.has_blur == true %}backdrop-blur{% endif %} pt-4 lg:pt-6 pb-5 lg:pb-4 px-3 lg:px-6 box-border
+    w-full lg:w-[28rem] max-w-xl {{ subscribeAlignClass }}"
+    style="--section-padding-top:0;--section-padding-bottom:0;--section-bg:{{block.settings.bg_color | default: 'transparent'}};background: var(--section-bg);"
+    {{ block.shopify_attributes }}
+>
+  <div 
+    class="w-fit lg:w-full pr-7 lg:pr-5 relative blocks-subscribe-banner-form_inner z-[2]">
+    {% content_for 'blocks' %}
+
+    {%- if block.settings.subs_tips != blank -%}
+      <div class="absolute top-0 right-0 lg:top-[0.2rem] lg:-right-4 subs_mode_color--show hidden">
+        <div class="hidden tooltip__top tooltip__top--left tooltip__top--right tooltip__bottom tooltip__bottom--left tooltip__bottom--right"></div>
+        {%- render 'component-tooltip', content: block.settings.subs_tips, icon_color: block.settings.icon_tips_color -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  <jky-form
+    data-unpush
+    jky-form-id="subscribe-banner--{{block.id}}"
+    class="subscribe-email subscribe-banner-form_main"
+    onsubmitcall="(e)=>toSchedule(e)"
+  >
+    <form data-action="{% if block.settings.tag_type == 'klaviyo' and block.settings.klaviyo_id != blank %}/osconsumerapi/v1/notice/klaviyoSubscribe{% else %}/osconsumerapi/v1/notice/subscribe{% endif %}">
+      <div class="form-container w-full">
+        <div class="form-row flex flex-col full">
+          {% comment %} 邮箱 {% endcomment %}
+          <div 
+            class="flex w-full group form-item-group mb-6 lg:mb-5">
+            <div
+              class="subscribe-blocks-box form-item h-11 lg:h-12 bg-transparent required flex-1 relative
+                after:content-['*'] after:text-[var(--jds-color-primary)] after:absolute after:left-3 after:top-0 after:bottom-0 after:-translate-x-1/2 after:flex after:items-center after:font-[monospace]
+              "
+              data-field="input"
+              style="min-height: unset;"
+            >
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="{{'newsletter.email_placeholder' | t}}"
+                data-error="{{'newsletter.email_empty_info' | t}}"
+                data-value="email"
+                data-reg="email"
+                data-regerror="{{'newsletter.email_error_info' | t}}"
+                data-subscribe-email="{{ block.id }}"
+                class="h-full w-full text_b2 px-5 lg:px-6
+                  group-[.form-item-group]:rounded-l-lg group-[.form-item-group]:rounded-r-none"
+                {% if block.settings.input_text_color != blank %}
+                  style="color: {{ block.settings.input_text_color }};"
+                {% endif %}
+              >
+              {%- if block.settings.input_placeholder_color != blank -%}
+                <style>
+                  .blocks-subscribe-banner-form [data-subscribe-email="{{ block.id }}"]::placeholder{color: {{ block.settings.input_placeholder_color }};}
+                </style>
+              {%- endif -%}
+            </div>
+
+            <div
+              class="flex lg:group-[.form-item-group]:w-auto"
+            >
+              <button class="form_sub_btn z-button-middle text_b3 h-full lg:leading-[3rem]
+                group-[.form-item-group]:font-semibold group-[.form-item-group]:rounded-r-lg group-[.form-item-group]:rounded-l-none px-2 lg:px-4"
+                data-success="{{'newsletter.success' | t}}"
+                style="background:{{ block.settings.subcribe_btn_color | default: "#FD5000" }}"
+              >{{ block.settings.subcribe_btn }}</button>
+            </div>
+          </div>
+
+          {% comment %} 隐私协议 {% endcomment %}
+          <div
+            class="form-row form-row_check_box flex full lg:mb-6 mb-2"
+          >
+            <div
+              class="form-item required relative"
+              data-field="check_box"
+              data-error="{{'newsletter.policy_empty_info' | t}}"
+              style="min-height: unset;color:{{block.settings.policy_color}};"
+            >
+              {% render 'jky-formField-checkbox', key: block.settings.privacy_policy | newline_to_br, value: 'agree_recevie', class: 'text_b3 agree_provicy' %}
+            </div>
+          </div>
+
+          <div
+            style="display: none;" class="form-row flex full"
+          >
+            <div class="form-item form-item_const" data-field="input">
+              {%- if block.settings.tag_type == 'klaviyo' -%}
+                <input
+                  type="text"
+                  id="list_id"
+                  name="list_id"
+                  data-value="list_id"
+                  value="{{block.settings.klaviyo_id}}"
+                >
+              {%- else -%}
+                <input
+                  type="text"
+                  id="tags"
+                  name="tags"
+                  data-value="tags"
+                  value="{% if block.settings.subs_tag != blank %}{{block.settings.subs_tag}}{% else %}{{request.path | split: '/' | last}}{% endif %}"
+                >
+              {%- endif -%}
+            </div>
+          </div>
+
+           {% if block.settings.klaviyo_id != blank %}
+              {%- assign CR = settings.shop_cr | default: localization.country.iso_code | default: 'US' -%}
+              <div style="display: none;" class="form-row flex  full">
+                  <div class="form-item form-item_const" data-field="input">
+                      <input
+                              type="text"
+                              id="cr"
+                              name="cr"
+                              data-error=""
+                              data-value="cr"
+                              data-reg=""
+                              value="{{ CR }}"
+                              data-regerror=""
+                      >
+                  </div>
+              </div>
+          {% endif %}
+
+          <div style="display: none;" class="form-row flex">
+            <div class="form-item form-item_const" data-field="input">
+              <input type="text" id="componentName" name="componentName" data-value="componentName" value="{{block.settings.component_name}}">
+            </div>
+          </div>
+
+          <div style="display: none;" class="form-row flex">
+            <div class="form-item form-item_const" data-field="input">
+              {%- assign pageUrlWithHost = content_for_header | split:'"pageurl":"' | last | split:'"' | first | replace:'\/','/' | replace:'%20',' ' | replace:'\u0026','&' -%}
+              <input type="text" id="pageUrl" name="pageUrl" data-value="pageUrl" value="{{pageUrlWithHost}}">
+            </div>
+          </div>
+
+          {% content_for "block", type: "_subscribe-banner-modal", id: "subscribe-banner-modal" %}
+        </div>
+      </div>
+    </form>
+  </jky-form>
+
+  {%- if block.settings.subs_tips != blank -%}
+    <div class="absolute top-3 right-3 lg:top-6 lg:right-6 subs_mode_pic--show hidden z-[2]">
+      <div class="hidden tooltip__top tooltip__top--left tooltip__top--right tooltip__bottom tooltip__bottom--left tooltip__bottom--right"></div>
+      {%- render 'component-tooltip', content: block.settings.subs_tips, icon_color: block.settings.icon_tips_color -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "订阅Form",
+  "class": "lg:w-fit subscribe-blocks",
+  "blocks": [{"type": "v-heading-content"}],
+  "settings": [
+    {"type": "header", "content": "表单信息配置"},
+    {
+      "type": "select",
+      "id": "subscribe_align",
+      "label": "PC端位置(v-通用banner支持)",
+      "options": [
+        { "value": "left", "label": "左" },
+        { "value": "center", "label": "中" },
+        { "value": "right", "label": "右" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "richtext",
+      "id": "privacy_policy",
+      "label": "隐私协议条款",
+      "default": "<p>I agree to Jackery's Terms of Service and Privacy policy.</p>"
+    },
+    { "type": "color", "id": "policy_color", "label": "隐私协议条款颜色", "default": "#ffffff" },
+    {
+      "type": "text",
+      "id": "subcribe_btn",
+      "label": "订阅按钮文案",
+      "default": "SUBSCRIBE"
+    },
+    { "type": "color", "id": "subcribe_btn_color", "label": "订阅按钮颜色", "default": "#FD5000" },
+    {
+      "type": "select",
+      "id": "tag_type",
+      "label": "用户标签类型",
+      "options": [
+        {
+          "value": "custome",
+          "label": "自研"
+        },
+        {
+          "value": "klaviyo",
+          "label": "Klaviyo"
+        }
+      ],
+      "default": "custome"
+    },
+    {
+      "type": "text",
+      "id": "subs_tag",
+      "label": "用户订阅标签",
+      "info": "留空则使用页面地址标记，例如/pages/login，则新增login标签",
+      "visible_if": "{{ block.settings.tag_type == 'custome' }}"
+    },
+    {
+      "type": "text",
+      "id": "klaviyo_id",
+      "label": "Klaviyo的List对象ID",
+      "info": "填写则走Klaviyo订阅接口，否则使用自研订阅接口",
+      "visible_if": "{{ block.settings.tag_type == 'klaviyo' }}"
+    },
+    {
+      "type": "text",
+      "id": "component_name",
+      "label": "用户订阅组件名称",
+      "default": "V-订阅组件",
+      "info": "用户订阅时候的场景参数（根据实际场景设置，可以为空）"
+    },
+    {"type": "header", "content": "说明信息配置"},
+    { "type": "color", "id": "icon_tips_color", "label": "说明ICON颜色", "default": "#ffffff" },
+    {
+      "type": "richtext",
+      "id": "subs_tips",
+      "label": "订阅说明文案",
+      "default": "<p>If it is an inductive load appliance, such as a household refrigerator, induction cooker, etc., the utput power of the energy storage needs to be greater than the starting power of the appliance.tput power of the energy storage needs to be greater than the starting.</p>",
+      "info": "留空则不显示"
+    },
+    {"type": "header", "content": "表单样式配置"},
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色",
+      "default": "linear-gradient(180deg, rgba(188, 187, 187, 0.3) 0%, rgba(101, 95, 84, 0.3) 100%)"
+    },
+    { "type": "color", "id": "input_text_color", "label": "Input文字颜色" },
+    { "type": "color", "id": "input_placeholder_color", "label": "Placeholder颜色" },
+    { "type": "checkbox", "id": "has_blur", "label": "开启毛玻璃？", "default": true }
+  ],
+  "presets": [
+    {
+      "name": "订阅Form",
+      "blocks": [
+        {
+            "type": "v-heading-content",
+            "settings": {
+                "page_width": "w-full",
+                "padding_top": 0,
+                "padding_bottom": 16
+            }
+        },
+        {
+          "type": "_subscribe-banner-modal",
+          "static": true,
+          "id": "subscribe-banner-modal",
+          "settings": {
+
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{% comment %} 同步直播日历订阅 {% endcomment %}
+<script type="module">
+  function toSchedule(data) {
+    if (data.response?.code === 200) {
+      const msg =
+        document.querySelector('.subscribe-banner-form_main .form_sub_btn')
+          ?.getAttribute('data-success') ||
+        data.response.message;
+
+      pushSuccessMessage(msg);
+
+      const buttons = document.querySelectorAll('.schedule-item jds-button');
+      if (!buttons.length) return;
+
+      const subscribedText = buttons[0].getAttribute('data-subscribed');
+      if (!subscribedText) return;
+
+      buttons.forEach((btn) => {
+        btn.textContent = subscribedText;
+        btn.classList.add('active');
+      });
+    }
+  }
+  window.toSchedule = toSchedule;
+</script>

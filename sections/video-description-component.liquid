@@ -1,0 +1,141 @@
+{% comment %} 视频描述组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Video Description",
+  "tag": "section",
+  "class": "video-description-component",
+  "disabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {
+      "type": "html",
+      "id": "topDes",
+      "label": "Top Description"
+    },
+    {
+      "type": "select",
+      "id": "contentAlign",
+      "label": "Content Align",
+      "default": "center",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Auto Play",
+      "default": false,
+      "info": "开启后，自动播放"
+    },
+    {
+      "type": "checkbox",
+      "id": "control_video",
+      "label": "Whether To Control",
+      "default": false,
+      "info": "开启后，显示控件"
+    },
+    {
+      "type": "url",
+      "id": "desVideoPC",
+      "label": "Video Link (PC)"
+    },
+    {
+      "type": "url",
+      "id": "desVideoMB",
+      "label": "Video Link (MB)"
+    },
+    {
+      "type": "image_picker",
+      "id": "desVideoPosterPC", 
+      "label": "Video Poster (PC)"
+    },
+    {
+      "type": "image_picker",
+      "id": "desVideoPosterMB", 
+      "label": "Video Poster (MB)"
+    },
+    {
+      "type": "url",
+      "id": "desVideoBotPC",
+      "label": "Video Link Bottom (PC)"
+    },
+    {
+      "type": "url",
+      "id": "desVideoBotMB",
+      "label": "Video Link Bottom (MB)"
+    },
+    {
+      "type": "image_picker",
+      "id": "desVideoPosterBotPC", 
+      "label": "Video Poster Bottom (PC)"
+    },
+    {
+      "type": "image_picker",
+      "id": "desVideoPosterBotMB", 
+      "label": "Video Poster Bottom (MB)"
+    }
+
+  ],
+  "presets": [{
+    "name": "video description"
+  }]
+}
+{% endschema %}
+{% if section.settings.desVideoPC != blank or section.settings.desVideoBotPC != blank %}
+  <div class="video-description-box">
+    {% if section.settings.topDes != blank %}
+      <div class="top-des section-container common-des type-{{ section.settings.contentAlign }}">{{ section.settings.topDes }}</div>
+    {% endif %}
+    {% comment %} 视频1 {% endcomment %}
+    {% if section.settings.desVideoPC != blank %}
+      <div class="video-img-box layer-container section-container pc-block">
+            {%- render 'jky-video', video_url: section.settings.desVideoPC, poster: section.settings.desVideoPosterPC, class: "features-media", autoplay: section.settings.autoplay, controls: section.settings.control_video, loop: true -%}
+      </div>
+    {% endif %}
+    {% if section.settings.desVideoMB != blank%}
+      <div class="video-img-box layer-container section-container mb-block">
+        {%- render 'jky-video', video_url: section.settings.desVideoMB, 
+        poster: section.settings.desVideoPosterMB, 
+        class: "features-media", autoplay: section.settings.autoplay, controls: section.settings.control_video, loop: true -%}
+      </div>
+      {%- elsif section.settings.desVideoPC != blank-%}
+      <div class="video-img-box layer-container section-container mb-block">
+        {%- render 'jky-video', video_url: section.settings.desVideoPC, 
+        poster: section.settings.desVideoPosterPC, 
+        class: "features-media", autoplay: section.settings.autoplay, controls: section.settings.control_video, loop: true -%}
+      </div>
+    {% endif %}
+
+    {% comment %} 视频2 {% endcomment %}
+    {% if section.settings.desVideoBotPC != blank %}
+      <div class="video-img-box video-img-box-bottom layer-container section-container pc-block">
+            {%- render 'jky-video', video_url: section.settings.desVideoBotPC, poster: section.settings.desVideoPosterBotPC, class: "features-media", autoplay: section.settings.autoplay, controls: section.settings.control_video, loop: true -%}
+      </div>
+    {% endif %}
+
+    {% if section.settings.desVideoBotMB != blank%}
+      <div class="video-img-box video-img-box-bottom layer-container section-container mb-block">
+            {%- render 'jky-video', video_url: section.settings.desVideoBotMB, poster: section.settings.desVideoPosterBotMB, class: "features-media", autoplay: section.settings.autoplay, controls: section.settings.control_video, loop: true -%}
+      </div>
+
+      {%- elsif section.settings.desVideoBotPC != blank-%}
+        <div class="video-img-box video-img-box-bottom layer-container section-container mb-block">
+              {%- render 'jky-video', video_url: section.settings.desVideoBotPC, poster: section.settings.desVideoPosterBotPC, class: "features-media", autoplay: section.settings.autoplay, controls: section.settings.control_video, loop: true -%}
+        </div>
+    {% endif %}
+  </div>
+{% endif %}
+

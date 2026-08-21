@@ -1,0 +1,24 @@
+
+{% liquid
+
+  assign current_variant = variant
+   if current_variant == blank
+    assign current_variant = product.variants | first
+  endif
+
+  assign info = blank
+  if settings.open_auto_discount_price
+    assign discount_percent = settings.discount_percent_display_style
+    assign discount_percentage_value = current_variant.metafields.custom.auto_discount_percentage | times: 1
+    if discount_percentage_value > 0
+      assign info = discount_percent | replace: '()', discount_percentage_value
+    endif
+  endif
+
+ %}
+
+{%- if info != blank -%}
+  <div class="discount-product-label-tag absolute right-[0.5rem] top-[0.5rem] lg:right-4 lg:top-4">
+    <span class="font-semibold text-[0.75rem] lg:text-lg text-[var(--jds-color-primary)] leading-[0.5rem] lg:leading-4"> {{ info }} </span>
+  </div>
+{%- endif -%}

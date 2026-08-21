@@ -1,0 +1,48 @@
+{% assign title_lc = card_product.title | downcase %}
+{% assign is_kit = false %}
+{% if title_lc contains 'solar generator' or title_lc contains 'solar-generator'%}
+  {% assign is_kit = true %}
+{% endif %}
+<div class="w-full focus-zoom-container flex items-center border-0 border-b-[1px] border-solid border-[#E8E8E5] gap-x-4 pb-4 lg:gap-x-10 lg:pb-6" data-product-id="{{ card_product.id }}" data-product-handle="{{ card_product.handle }}" data-product-available="{{ card_product.available }}" data-is-kit="{{ is_kit }}">
+  <img
+    class="object-cover focus-zoom w-20 h-20 lg:w-[10.375rem] lg:h-[10.375rem] shrink-0"
+    src="{{ card_product.featured_media | image_url: width: 332 }}"
+    alt="{{ card_product.featured_media.alt }}"
+    width="166"
+    height="166"
+    {% if lazy_load %}
+      loading="lazy"
+      fetchpriority="auto"
+      decoding="async"
+    {% else %}
+      loading="eager"
+      fetchpriority="high"
+      decoding="sync"
+    {% endif %}
+  >
+  <div class="flex-1 flex flex-col gap-y-3 lg:gap-y-4">
+    <h2 class="font-semibold text-black/90 line-clamp-2 text-xs lg:text-xl">{{ card_product.title | escape }}</h2>
+    <p class="text-xs lg:text-base text-black/90">
+      {%- if card_product.metafields.custom.product_features_info != blank -%}
+        {{ card_product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+      {%- endif -%}
+    </p>
+    <div class="w-full flex items-center justify-between lg:justify-start lg:gap-x-10 lg:h-8">
+      {%- render 'v5-price', product: card_product -%}
+      <a href="{{ card_product.url }}" class="flex items-center gap-x-1 lg:gap-x-2 font-semibold text-primary text-xs lg:text-xl">
+        {{ 'general.action_text.shop_now' | t }}
+        <svg class="text-primary w-3.5 h-3.5 lg:w-4 lg:h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g clip-path="url(#clip0_4559_7516)">
+            <path d="M-1 9.25H11.2422" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M8.49219 3L14.7419 9.24976L8.49219 15.4995" stroke="currentColor" stroke-width="1.6"/>
+          </g>
+          <defs>
+            <clipPath id="clip0_4559_7516">
+              <rect width="16" height="16" fill="white"/>
+            </clipPath>
+          </defs>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>

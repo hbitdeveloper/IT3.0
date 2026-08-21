@@ -1,0 +1,80 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- if product.description != blank -%}
+  <style>
+    .v5-app-pdp-description {
+      background-color: var(--bg-color-pc);
+    }
+    @media screen and (max-width: 1023.98px) {
+      .v5-app-pdp-description {
+        background-color: var(--bg-color-mb);
+      }
+    }
+  </style>
+  {% capture description_root_id %}app-description-{{ block.id }}{% endcapture %}
+  {%- assign description_root_selector = '#' | append: description_root_id -%}
+  <div id="{{ description_root_id }}" {{ block.shopify_attributes }} class="v5-app-pdp-description section-padding {% unless is_plus %}px-3 lg:px-0{% endunless %}" style="--bg-color-pc:{{ block.settings.description_bg_color }};--bg-color-mb:{{ block.settings.description_bg_color_mb }};{{ style }}">
+
+    {% style %}
+      v5-product-description { display: block; }
+      v5-product-description .description-content { max-height: 11.25rem; overflow: hidden; transition: max-height .35s ease; }
+      .section-v5-main-product-plus v5-product-description .description-content { max-height: 5.75rem; }
+      v5-product-description .description-content.has-overflow::after {
+        content: ""; display: block; position: absolute; z-index: 1; inset: auto 0 0; height: 2rem;
+        background: linear-gradient(to top, {{ block.settings.description_bg_color }}, rgba(255,255,255,0));
+        transition: opacity .35s ease;
+      }
+      v5-product-description .description-content.has-overflow.active::after { opacity: 0; }
+      v5-product-description .description-content :is(h1,h2,h3,h4,h5,h6) { font-size: 1.25rem; line-height: 1.75rem; color: #242F20; font-weight: 600; }
+      .section-v5-main-product-plus v5-product-description .description-content :is(h1,h2,h3,h4,h5,h6) { font-size: 1.125rem; line-height: 1.75rem; color: #242F20; font-weight: 600; }
+      v5-product-description .description-content :is(h1,h2,h3,h4,h5,h6) + p { margin-top: 0.75rem; }
+      .section-v5-main-product-plus v5-product-description .description-content :is(h1,h2,h3,h4,h5,h6) + p { margin-top: 0.5rem; }
+      v5-product-description .description-content :is(p, li) { font-size: 1rem; line-height: 1.375rem; color: rgba(0,0,0,.65); }
+      v5-product-description .description-content p + :is(p, h1, h2, h3, h4, h5, h6) { margin-top: 1rem; }
+      v5-product-description .description-content :is(ul, ol) { margin-bottom: 0; padding-left: 1rem; }
+      v5-product-description .description-content :is(ul, ol) li { list-style-position: inside; }
+      v5-product-description .description-content ul li { list-style-type: disc; }
+      v5-product-description .description-content ol li { list-style-type: decimal; }
+      v5-product-description .description-content ul li p { display: inline; }
+      @media (max-width: 1023.98px) {
+        .section-v5-main-product-plus v5-product-description .description-content { max-height: 4.5rem; }
+        v5-product-description .description-content.has-overflow::after {
+          background: linear-gradient(to top, {{ block.settings.description_bg_color_mb }}, rgba(255,255,255,0));
+        }
+        v5-product-description .description-content :is(h1,h2,h3,h4,h5,h6) { font-size: 0.875rem; line-height: 1.25rem; }
+        .section-v5-main-product-plus v5-product-description .description-content :is(h1,h2,h3,h4,h5,h6) { font-size: 0.875rem; line-height: 1.25rem; }
+        v5-product-description .description-content :is(h1,h2,h3,h4,h5,h6) + p { margin-top: 0.5rem; }
+        .section-v5-main-product-plus v5-product-description .description-content :is(h1,h2,h3,h4,h5,h6) + p { margin-top: 0.25rem; }
+        v5-product-description .description-content :is(p, li) { font-size: 0.875rem; line-height: 1.25rem; }
+        v5-product-description .description-content p + :is(p, h1, h2, h3, h4, h5, h6) { margin-top: 0.75rem; }
+      }
+    {% endstyle %}
+
+    <v5-product-description class="block">
+      <div class="description-content relative{% unless block.settings.show_description %} has-overflow{% endunless %}">{{product.description}}</div>
+      <button
+        class="group appearance-none bg-transparent font-semibold flex items-center text-primary text-sm gap-x-2 pt-2 lg:text-lg lg:pt-2.5{% if block.settings.show_description %} hidden{% endif %}"
+        data-product-title="{{ product.title | escape }}"
+        data-show-all-des="{{ block.settings.show_description }}"
+        data-view-more-text="{{ block.settings.learn_more_text | escape }}"
+        data-hide-text="{{ block.settings.learn_less_text | escape }}"
+      >
+        <span>{{ block.settings.learn_more_text | escape }}</span>
+        <svg class="group-[.active]:rotate-180 transition-transform duration-300 w-4 h-4 lg:w-5 lg:h-5" width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+          <g fill="none" fill-rule="evenodd">
+            <path d="M27.88 40.753a2.3 2.3 0 001.686-.734l19.487-20.07a2.22 2.22 0 00.68-1.62c0-.44-.1-.836-.302-1.19a2.228 2.228 0 00-.818-.835A2.265 2.265 0 0047.442 16c-.621 0-1.167.22-1.637.658L26.52 36.475h2.694L9.928 16.658A2.268 2.268 0 008.29 16c-.436 0-.827.101-1.17.304-.345.202-.617.48-.819.835-.201.354-.302.75-.302 1.19a2.287 2.287 0 00.68 1.645l19.487 20.045c.504.489 1.074.734 1.712.734z" fill="currentColor" fill-rule="nonzero"></path>
+            <path d="M0 0h56v56H0z"></path>
+          </g>
+        </svg>
+      </button>
+    </v5-product-description>
+
+    {% render 'lazy-load-asset-group',
+      script: 'snippet-v5-app-pdp-description.js',
+      strategy: 'visible',
+      root_selector: description_root_selector
+    %}
+  </div>
+{%- endif -%}

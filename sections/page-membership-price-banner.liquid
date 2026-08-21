@@ -1,0 +1,127 @@
+{% comment %} banner {% endcomment %}
+<section class="w-full h-1080 lg:j-h-640 xl:a-h-640 relative">
+  {% comment %} banner image {% endcomment %}
+  {% render 'responsive-image',
+    image: section.settings.pc_banner_img,
+    mimage: section.settings.mb_banner_img,
+    image_class: 'w-full h-full object-cover'
+  %}
+  <div
+    class="
+      w-630 flex items-center flex-col absolute left-1/2 -translate-x-1/2 top-45
+      lg:items-start lg:j-w-1200 lg:j-top-85
+      xl:a-w-1200 xl:a-top-85
+      {% if customer.id != blank %} justify-between min-h-516 lg:j-min-h-470 xl:a-min-h-470 {% endif %}
+    "
+  >
+      <div class="min-h-200 lg:j-min-h-144 xl:a-min-h-144">
+        {% if section.settings.banner_highlight_title != blank %}
+          <h3 class="text-#FFD76A font-semibold w-full mb-5 text-30 leading-36 text-center lg:text-left lg:j-w-570 lg:j-mb-6 lg:j-text-24 lg:j-leading-26 xl:a-w-570 xl:a-mb-6 xl:a-text-24 xl:a-leading-26 line-clamp-2">{{ section.settings.banner_highlight_title | newline_to_br }}</h3>
+        {% endif %}
+        {% if section.settings.banner_title != blank %}
+          <h2 class="w-full text-70 leading-84 mb-4 text-center lg:text-left lg:j-w-570 lg:j-text-64 lg:j-leading-72 lg:j-mb-20 xl:a-w-570 xl:a-text-64 xl:a-leading-72 xl:a-mb-20 font-700 text-white line-clamp-2">{{ section.settings.banner_title |  newline_to_br }}</h2>
+        {% endif %}
+        {% if section.settings.banner_sub_title != blank %}
+          <p class="w-full text-26 leading-34 mb-76 text-center lg:text-left lg:j-w-570 lg:j-text-18 lg:j-leading-26 lg:j-mb-72 xl:a-w-570 xl:a-text-18 xl:a-leading-26 xl:a-mb-72 text-white font-normal line-clamp-2">{{ section.settings.banner_sub_title | newline_to_br }}</p>
+        {% endif %}
+      </div>
+
+      {% if section.settings.login_register_button_text != blank and customer.id == blank %}
+        <button
+          class="membership-price-button membership-price-login-button mb-30 lg:j-mb-60 xl:a-mb-60"
+          data-membership-login-button
+          data-ga-event="membership_price_user_clicks"
+          data-ga-action="click"
+          data-ga-params-module="{% if section.settings.banner_title != blank %}{{ section.settings.banner_title }}{% else %}first_banner{% endif %}"
+          data-ga-params-position="default"
+          data-ga-params-button_name="{{ section.settings.login_register_button_text | escape }}"
+        >
+          <span class="line-clamp-1">{{ section.settings.login_register_button_text | escape }}</span>
+        </button>
+      {% endif %}
+      <div
+        class="inline-flex flex-col items-center opacity-0 translate-y-[20px] transition-all duration-300"
+        data-countdown-main
+        data-countdown-start-str="{{ section.settings.start_time_str | escape }}"
+        data-countdown-end-str="{{ section.settings.end_time_str | escape }}"
+        data-countdown-label-str="{{ section.settings.countdown_labels | escape }}"
+      >
+        <h4 class="font-normal text-white text-24 lg:j-text-18 xl:a-text-18">{{ section.settings.countdown_title | newline_to_br }}</h4>
+        <div
+          class="flex gap-x-32 mt-10 mb-6 lg:j-gap-x-26 lg:j-mt-20 lg:j-mb-12 xl:a-gap-x-26 xl:a-mt-20 xl:a-mb-12"
+          data-countdown-time
+        ></div>
+        <div
+          class="flex gap-x-32 lg:j-gap-x-26 xl:a-gap-x-26"
+          data-countdown-label
+        ></div>
+      </div>
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Membership Price Banner",
+    "class": "section-membership-price section-membership-price-banner",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "pc_banner_img",
+        "label": "PC Banner Image"
+      },
+      {
+        "type": "image_picker",
+        "id": "mb_banner_img",
+        "label": "Mobile Banner Image"
+      },
+      {
+        "type": "textarea",
+        "id": "banner_highlight_title",
+        "label": "Banner Highlight Title",
+        "default": "Exclusive Member Sale "
+      },
+      {
+        "type": "textarea",
+        "id": "banner_title",
+        "label": "Banner Title",
+        "default": "Up to 34% OFF"
+      },
+      {
+        "type": "textarea",
+        "id": "banner_sub_title",
+        "label": "Banner Sub Title"
+      },
+      {
+        "type": "text",
+        "id": "login_register_button_text",
+        "label": "Login/Register Button Text",
+        "default": "Login/Register"
+      },
+      {
+        "type": "text",
+        "id": "countdown_title",
+        "label": "Countdown Title",
+        "default": "Sale Countdown"
+      },
+      {
+        "type": "text",
+        "id": "start_time_str",
+        "label": "Countdown Start Time",
+        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2023/01/01 00:00:00（开始时间必须小于结束时间）"
+      },
+      {
+        "type": "text",
+        "id": "end_time_str",
+        "label": "Countdown End Time",
+        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2023/01/01 00:00:00（开始时间必须小于结束时间）"
+      },
+      {
+        "type": "textarea",
+        "id": "countdown_labels",
+        "label": "Countdown Labels",
+        "default": "Days,Hrs,Mins,Secs",
+        "info": "请用英文逗号,隔开"
+      }
+    ]
+  }
+{% endschema %}

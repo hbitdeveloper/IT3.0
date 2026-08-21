@@ -1,0 +1,58 @@
+{%- comment -%}
+  输出博客列表当前分页中的 BlogPosting 实体。
+
+  参数：
+  - articles：当前分页作用域实际展示的文章数组
+  - organization_id：共享的 Organization 实体 ID
+  - include_organization_reference：是否允许 publisher 引用 Organization
+{%- endcomment -%}
+{%- if articles != blank -%}
+  {%- liquid
+    assign blog_schema_url = request.origin | append: blog.url
+    assign blog_schema_id = blog_schema_url | append: '#blog'
+  -%}
+  <script id="blog-posts-structured-data" type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {%- for article in articles -%}
+          {%- liquid
+            assign article_url = request.origin | append: article.url
+            assign article_schema_id = article_url | append: '#article'
+            assign article_description = article.excerpt_or_content | strip_html | strip | truncate: 300
+          -%}
+          {
+            "@type": "BlogPosting",
+            "@id": {{ article_schema_id | json | replace: '\/', '/' }},
+            "headline": {{ article.title | strip | json }},
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": {{ article_url | json | replace: '\/', '/' }}
+            },
+            "url": {{ article_url | json | replace: '\/', '/' }},
+            "isPartOf": {
+              "@id": {{ blog_schema_id | json | replace: '\/', '/' }}
+            },
+            "dateCreated": {{ article.created_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+            "datePublished": {{ article.published_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }},
+            "dateModified": {{ article.updated_at | date: '%Y-%m-%dT%H:%M:%S%z' | json }}{% if article_description != blank %},
+            "description": {{ article_description | json }}{% endif %}{% if article.image != blank %},
+            "image": {
+              "@type": "ImageObject",
+              "url": {{ article.image | image_url: width: article.image.width | prepend: 'https:' | json | replace: '\/', '/' }},
+              "width": {{ article.image.width | json }},
+              "height": {{ article.image.height | json }}
+            }{% endif %}{% if article.author != blank %},
+            "author": {
+              "@type": "Person",
+              "name": {{ article.author | strip | json }}
+            }{% endif %}{% if include_organization_reference %},
+            "publisher": {
+              "@id": {{ organization_id | json | replace: '\/', '/' }}
+            }{% endif %}
+          }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      ]
+    }
+  </script>
+{%- endif -%}

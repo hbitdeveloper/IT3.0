@@ -1,0 +1,152 @@
+{% comment %} 
+    1、 首页产品Item
+    2、params：
+        1、module: 当前的模块标题
+        2、类型: 简易版或普通版本
+        3、product: 产品
+        4、variant: 产品中的某一个变体
+        5：image: 配置项中的产品图
+        6：title: 配置项中的产品名称
+        7、description: 配置项中的产品描述
+        8、new_window: 是否新开标签页
+        9、prefix: 优惠价格前缀
+        10、suffix: 优惠价格后缀
+        11、discount_price: 折扣价
+{% endcomment %}
+{% comment %} 产品名称 {% endcomment %}
+{% assign productTitle = '' %}
+{% if title != blank %}
+    {% assign productTitle = title | escape %}
+{%- elsif variant.title != 'Default Title' -%}
+    {% assign productTitle = variant.title | replace_first: 'Jackery', '' %}
+{% else %}
+    {% assign productTitle = product.title | replace_first: 'Jackery', '' %}
+{% endif %}
+
+{% comment %} 产品类型，简易版/普通版 {% endcomment %}
+
+{% assign type = 'Product Display_ordinary' %}
+{%- if simple == true -%}
+    {% assign type = 'Product Display_brief' %}
+{%- endif -%}
+
+<a 
+    data-ga-event="home_page_product_display4.0" 
+    data-ga-action="click" 
+    data-ga-params-module="{{ module }}" 
+    data-ga-params-position="{{ productTitle }}"
+    data-ga-params-link="{{ product.url | append: '?variant=' | append: variant.id }}"
+    data-ga-params-type="{{ type }}"
+    class="product-content"  target="{% if new_window %}_blank{% else %}_self{% endif %}" href="{{ product.url | append: '?variant=' | append: variant.id }}">
+    <div class="content-image">
+        <div class="main-image">
+            {% assign img = image | default: variant.featured_image | default: product.featured_image %}
+            {% if img != blank %}
+                {%- 
+                    render 'responsive-image', 
+                    image: img,
+                    width: 300, 
+                    mwidth: 582,
+                    image_class: 'w-full'
+                -%}
+            {% endif %}
+        </div>
+        <div class="index-arrow">
+            <svg class="line" width="20" height="15" viewBox="0 0 20 15" version="1.1">
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                        <g transform="translate(672.000000, 286.000000)">
+                            <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                        </g>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <div class="icons">
+            {% render 'product-tag', product: product %}
+        </div>
+    </div>
+    <div class="content-info">
+        <div>
+          <div class="icons">
+            {% render 'product-tag', product: product %}
+          </div>
+            <div class="title line-clamp-2">
+                {{ productTitle }}
+            </div>
+            {%- if description != blank -%}
+                <div class="sub-title line-clamp-2"> {{ description | newline_to_br}} </div>
+            {%- endif -%}
+        </div>
+        <div class="price-msg ellipsis">
+            {%- assign price_discounted = product.metafields.custom.manual_discounted_price -%}
+
+            {% comment %} 如果折扣价配置 {% endcomment %}
+            {%- if discount_price != blank -%}
+                {%- assign dis_count = discount_price | times: 100 -%}
+                <span class="price">{{ dis_count | money }}</span>
+                {%- if dis_count < variant.price -%}
+                    {% assign price = variant.price | minus: dis_count%}
+                    <span class="line-price">{{ variant.price | money }}</span>
+                    <span class="discount">{{ prefix }}{{ price | money }}{{ suffix }}</span>
+                {%- endif -%}
+            {%- elsif price_discounted != blank -%}
+                {% comment %} 如果在产品元字段配置了手动设置折扣价 {% endcomment %}
+                {% assign price_discounted = product.metafields.custom.manual_discounted_price | times: 100 %}
+                <span class="price">{{ price_discounted | money }}</span>
+                {%- if price_discounted < variant.price -%}
+                    {% assign price = variant.price | minus:  price_discounted%}
+                    <span class="line-price">{{ variant.price | money }}</span>
+                    <span class="discount">{{ prefix }}{{ price | money }}{{ suffix }}</span>
+                {%- endif -%}
+            {%- else -%}
+                {% comment %} 如果开启了全局的 自动计算折扣价 {% endcomment %}
+                {%- if settings.open_auto_discount_price -%}
+                    {% comment %} 产品折扣价优惠金额展示形式 {% endcomment %}
+                    {%- assign discount_amount_price_style = settings.discount_price_amount_display_style -%}
+                    {% comment %} 自动计算 - 折后价格 {% endcomment %}
+                    {%- assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1 -%}
+                    {% comment %} 自动计算 - 折扣金额 {% endcomment %}
+                    {%- assign auto_discount_amount = variant.metafields.custom.auto_discount_amount | times: 1 -%}
+
+                    {%- if auto_discount_price > 0 and auto_discount_amount > 0 -%}
+                        {% comment %} 当前价格 {% endcomment %}
+                        {%- assign current_price = variant.price -%}
+                        {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+                        {%- if auto_discount_price < current_price -%}
+                            {%- assign current_price = auto_discount_price -%}
+                        {%- endif -%}
+                        
+                        <span class="price">{{ current_price | money }}</span>
+                        {%- if variant.compare_at_price > current_price -%}
+                            <span class="line-price">{{ variant.compare_at_price | money }}</span>
+                            {%- assign auto_discount_amount_value = variant.metafields.custom.auto_discount_amount | money -%}
+                            <span class="discount">{{ discount_amount_price_style | replace: '()', auto_discount_amount_value }}</span>
+                        {%- else -%}
+                            {%- if variant.price > auto_discount_price -%}
+                                <span class="line-price">{{ variant.price | money }}</span>
+                                {%- assign auto_discount_amount_value = variant.metafields.custom.auto_discount_amount | money -%}
+                                <span class="discount">{{ discount_amount_price_style | replace: '()', auto_discount_amount_value }}</span>
+                            {%- endif -%}
+                        {%- endif -%}
+                    {%- else -%}
+                        <span class="price">{{ variant.price | money }}</span>
+                        {%- if variant.compare_at_price > variant.price -%}
+                            {%- assign price = variant.compare_at_price | minus: variant.price -%}
+                            <span class="line-price">{{ variant.compare_at_price | money }}</span>
+                            <span class="discount">{{ prefix }}{{ price | money }}{{ suffix }}</span>
+                        {%- endif -%}
+                    {% endif %}
+                {%- else -%}
+                    <span class="price">{{ variant.price | money }}</span>
+                    {%- if variant.compare_at_price > variant.price -%}
+                        {%- assign price = variant.compare_at_price | minus: variant.price -%}
+                        <span class="line-price">{{ variant.compare_at_price | money }}</span>
+                        <span class="discount">{{ prefix }}{{ price | money }}{{ suffix }}</span>
+                    {%- endif -%}
+                {%- endif -%}
+            {%- endif -%}
+        </div>
+    </div>
+</a>

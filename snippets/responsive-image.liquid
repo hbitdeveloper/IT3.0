@@ -1,0 +1,86 @@
+{% comment %}
+  响应式图片
+  Accepts:
+  - width: {Number} PC端显示宽度.
+  - mwidth: {Number?} Mb端显示宽度.
+  - image_style: {String?} img样式属性.
+  - picture_class: {String?} picture样式类名.
+  - mimage: {image_picker?} Mobile图片对象.
+  - image: {image_picker} PC图片对象.
+  - alt: {string?} 图片alt.
+  - loading: {string?} 图片loading属性.
+  - fcp: {boolean?} 是否为FCP首屏图片.
+  - fetchpriority: {string?} img原生属性.
+
+  Usage:
+  {% render 'responsive-image', image: image, width: 500, image_class: "banner_img" %}
+{% endcomment %}
+{%- assign image_mobile = mimage -%}
+{%- if mimage == blank -%}
+    {%- assign image_mobile = image -%}
+{%- endif -%}
+{% comment %} picture attrs {% endcomment %}
+{%- assign loading = loading | default: 'lazy' -%}
+{%- assign img_alt = alt | default: image.alt -%}
+<picture class="{% if picture_class != blank %} {{picture_class}}{% endif %}">
+    {%- if mwidth != blank -%}
+        {% comment %} mb SOURCE sizes {% endcomment %}
+        {%- assign w_mb = mwidth | default: image_mobile.width | default: 414 -%}
+        {%- assign w_mb_2x = mwidth | default: image_mobile.width | default: 414 | times: 2 -%}
+        {%- assign w_mb_3x = mwidth | default: image_mobile.width | default: 414 | times: 3 -%}
+        {%- assign w_pad = w_mb | times: 2 -%}
+        {%- assign w_pad_2x = w_pad | times: 2 -%}
+        {%- assign w_pad_3x = w_pad | times: 3 -%}
+        <source media="(max-width:749.9px)" srcset="{{ image_mobile | image_url: width: w_mb}}, {{ image_mobile | image_url: width: w_mb_2x}} 2x, {{ image_mobile | image_url: width: w_mb_3x}} 3x">
+        <source media="(min-width:750px) and (max-width:1023.98px)" srcset="{{ image_mobile | image_url: width: w_pad}}, {{ image_mobile | image_url: width: w_pad_2x}} 2x, {{ image_mobile | image_url: width: w_pad_3x}} 3x">
+    {%- else -%}
+        <source 
+            media="(max-width: 1023.9px)" 
+            srcset="
+            {%- if image_mobile.width >= 375 -%}{{ image_mobile | image_url: width: 375 }} 375w,{%- endif -%}
+            {%- if image_mobile.width >= 550 -%}{{ image_mobile | image_url: width: 550 }} 550w,{%- endif -%}
+            {%- if image_mobile.width >= 768 -%}{{ image_mobile | image_url: width: 768 }} 768w,{%- endif -%}
+            {%- if image_mobile.width >= 1024 -%}{{ image_mobile | image_url: width: 1024 }} 1024w,{%- endif -%}
+            {%- if image_mobile.width >= 1600 -%}{{ image_mobile | image_url: width: 1600 }} 1600w,{%- endif -%}
+            {{ image_mobile | image_url: width: image_mobile.width }} {{ image_mobile.width }}w
+            " 
+            sizes="(max-width: 1023.98px) 100vw, 100vw"
+        >
+    {%- endif -%}
+    {% comment %} pc SOURCE {% endcomment %}
+    {%- if width != blank -%}
+        {% comment %} pc SOURCE sizes {% endcomment %}
+        {%- assign w_pc = width  | default: image.width | default: 1920 -%}
+        {%- assign w_pc_2x = width | default: image.width | default: 1920 | times: 2 -%}
+        {%- assign w_pc_3x = width | default: image.width | default: 1920 | times: 3 -%}
+        <source media="(min-width:1024px)" srcset="{{image | image_url: width: w_pc}}, {{image | image_url: width: w_pc_2x}} 2x, {{image | image_url: width: w_pc_3x}} 3x">
+    {%- else -%}
+        <source
+            media="(min-width: 1024px)" 
+            srcset="
+            {%- if image.width >= 1100 -%}{{ image | image_url: width: 1100 }} 1100w,{%- endif -%} 
+            {%- if image.width >= 1280 -%}{{ image | image_url: width: 1280 }} 1280w,{%- endif -%} 
+            {%- if image.width >= 1600 -%}{{ image | image_url: width: 1600 }} 1600w,{%- endif -%} 
+            {%- if image.width >= 2200 -%}{{ image | image_url: width: 2200 }} 2200w,{%- endif -%} 
+            {%- if image.width >= 2600 -%}{{ image | image_url: width: 2600 }} 2600w,{%- endif -%}
+            {%- if image.width >= 3000 -%}{{ image | image_url: width: 3000 }} 3000w,{%- endif -%}
+            {%- if image.width >= 3840 -%}{{ image | image_url: width: 3840 }} 3840w,{%- endif -%}
+            {{ image | image_url: width: image.width }} {{ image.width }}w
+            "
+            sizes="(min-width: 1024px) 100vw, 100vw"
+        >
+    {%- endif -%}
+    <img class="{{image_class}}" width="{{ image.width }}" height="{{ image.height }}" 
+        {% if fcp == true %}
+            src="{{ image | image_url: width: w_pc}}"
+            fetchpriority="high"
+            loading="eager"
+            decoding="async"
+        {% else %}
+            src="{{ image | image_url: width: w_pc}}"
+            {% if  fetchpriority %}fetchpriority="{{ fetchpriority }}"{% endif %}
+            loading="{{ loading }}"
+        {% endif %}
+        alt="{{img_alt}}"
+    >
+</picture>

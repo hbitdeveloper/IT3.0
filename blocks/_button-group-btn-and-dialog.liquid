@@ -1,0 +1,474 @@
+{% comment %} 单个按钮 + 弹窗 {% endcomment %}
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  # 判断是否登录
+  assign is_login = false
+  if customer
+    assign is_login = true
+  endif
+
+  # 判断是否展示模块
+  assign module_show_timing = block.settings.module_show_timing | default: 'default'
+  assign show_module = true
+  if module_show_timing == 'show_before_login' and is_login == true
+    assign show_module = false
+  endif
+  if module_show_timing == 'show_after_login' and is_login == false
+    assign show_module = false
+  endif
+
+  if show_module == true
+    # 动效class
+    assign animated_class = ''
+    if block.settings.variant == 'primary' and block.settings.animated
+      assign animated_class = 'jds-animate'
+    endif
+
+    # 是否禁用hover效果
+    if block.settings.disable_on_hover
+      assign disable_on_hover_class = 'disable-on-hover'
+    else
+      assign disable_on_hover_class = ''
+    endif
+
+    # 是否展示icon图标
+    assign show_icon = false
+    if block.settings.icon != blank and animated_class != 'jds-animate'
+      assign show_icon = true
+    endif
+
+    assign critical = block.settings.critical
+    assign dialog_title_align = block.settings.dialog_title_align
+    assign dialog_index = block.settings.dialog_index
+
+    assign btn_custom_style = ''
+    if block.settings.kind == 'custom'
+      if block.settings.custom_color != blank
+        assign btn_custom_style = '--jds-btn-custom-color:' | append: block.settings.custom_color | append: ';'
+      endif
+      if block.settings.custom_text_color != blank
+        assign btn_custom_style = btn_custom_style | append: '--jds-btn-primary-custom-text-color:' | append: block.settings.custom_text_color | append: ';'
+      endif
+    endif
+    if block.settings.full_width
+      assign btn_custom_style = btn_custom_style | append: '--jds-btn-display: block;'
+    endif
+    # 智能选购弹窗
+    assign enable_smart_recommend = false
+    if block.settings.dialog_type == 'special' and block.settings.special_dialog_type == 'smart_recommend'
+      assign enable_smart_recommend = true
+    endif
+    
+    # 常规弹窗，比如视频等
+    assign use_block_dialog_logic = false
+    if block.settings.dialog_type == 'common' or block.settings.special_dialog_type == 'other'
+      assign use_block_dialog_logic = true
+    endif
+  endif
+-%}
+
+{% if show_module == true %}
+  <div id="{{ block.id }}" {{ block.shopify_attributes }} class="block-btn-and-dialog {{ custom_class }}">
+    <jds-button
+      class="section-padding {{ animated_class }} {{ disable_on_hover_class }}"
+      style="{{ btn_custom_style }}{{ style }}"
+      variant="{{block.settings.variant}}"
+      kind="{{block.settings.kind}}"
+      size="{{block.settings.size}}"
+      iconposition="{{ block.settings.icon_position }}"
+      label="{{ block.settings.content }}"
+      {% if enable_smart_recommend %}
+        data-open-v5-help-you-choose-modal
+        data-compare-id="{{ block.settings.smart_recommend_compare_id }}"
+      {% endif %}
+      interaction="{{ block.settings.interaction | default: 'default' }}"
+      {% comment %} 非动效的按钮 展示对应icon图标 {% endcomment %}
+      {% if show_icon %}
+        icon="{{block.settings.icon}}"
+      {% endif %}
+      {% comment %} 实现胶囊动效按钮 箭头 {% endcomment %}
+      {% if animated_class == 'jds-animate' %}
+        icon="arrow-right-long"
+        icon-mode="capsule"
+      {% endif %}
+    >
+      {{- block.settings.content -}}
+    </jds-button>
+
+    {% if enable_smart_recommend %}
+      {% render 'plugin-v5-help-you-choose-modal-global', compare_id: block.settings.smart_recommend_compare_id  %}
+    {% endif %}
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const button = document.querySelector('#{{ block.id }} jds-button');
+        if (!button) return;
+
+        const jdsDialog = document.querySelector('jds-dialog#{{ block.id }}');
+        // 如果没有，则创建
+        if (jdsDialog === null && {{ use_block_dialog_logic | json }} === true) {
+          const dialog = document.createElement('jds-dialog');
+          dialog.id = '{{ block.id }}';
+          '{{ critical }}' === 'true' && dialog.setAttribute('critical', '');
+          dialog.setAttribute('size', 'large');
+          dialog.setAttribute(
+            'style',
+            '--jds-dialog-title-align: {{ dialog_title_align }};--jds-dialog-index: {{ dialog_index }};'
+          );
+
+          // 设置 class
+          const blockClass = button.closest('.shopify-block')?.className?.replace('shopify-block', '')?.trim();
+          blockClass && dialog?.setAttribute('class', `${blockClass.split(' ')[0]}-dialog`);
+
+          // 如果是通用弹窗
+          if ('{{ block.settings.dialog_type }}' === 'common') {
+            dialog.setAttribute('caption', '{{ block.settings.dialog_title }}');
+            dialog.innerHTML = `<div class="jds-rte">{{ block.settings.dialog_content }}</div>`;
+            document.body.appendChild(dialog);
+          }
+          // 如果是特定弹窗
+          else {
+            document.body.appendChild(dialog);
+          }
+        }
+
+        button.addEventListener('click', () => {
+          if ({{ use_block_dialog_logic | json }} !== true) return;
+          if ('{{ block.settings.dialog_type }}' === 'common') {
+            document.querySelector('jds-dialog#{{ block.id }}')?.setAttribute('open', true);
+          } else {
+            // 派发事件
+            const jds_button_open_dialog = new CustomEvent('jdsButtonOpenDialog', {
+              detail: { id: '{{ block.id }}', node: button },
+            });
+            document.dispatchEvent(jds_button_open_dialog);
+          }
+        });
+      });
+    </script>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "按钮 + 弹窗",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "功能交互配置"
+    },
+    {
+      "type": "select",
+      "id": "module_show_timing",
+      "options": [
+        {
+          "value": "default",
+          "label": "一直展示"
+        },
+        {
+          "value": "show_before_login",
+          "label": "仅登录前展示"
+        },
+        {
+          "value": "show_after_login",
+          "label": "仅登录后展示"
+        }
+      ],
+      "label": "此版块展示时机",
+      "default": "default"
+    },
+    {
+      "type": "header",
+      "content": "按钮配置"
+    },
+    {
+      "type": "text",
+      "id": "content",
+      "default": "点击显示弹窗",
+      "label": "按钮文本"
+    },
+    {
+      "type": "select",
+      "id": "variant",
+      "label": "按钮变体",
+      "default": "primary",
+      "options": [
+        {
+          "value": "primary",
+          "label": "实心按钮"
+        },
+        {
+          "value": "secondary",
+          "label": "空心按钮"
+        },
+        {
+          "value": "text",
+          "label": "文本按钮"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "animated",
+      "label": "实心按钮悬浮动画",
+      "default": false,
+      "info": "仅在变体为【实心胶囊】时生效",
+      "visible_if": "{{block.settings.variant=='primary'}}"
+    },
+    {
+      "type": "select",
+      "id": "interaction",
+      "label": "实心按钮交互类型",
+      "default": "default",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "shine",
+          "label": "扫光"
+        }
+      ],
+      "info": "仅在变体为【实心胶囊】时生效",
+      "visible_if": "{{block.settings.variant=='primary'}}"
+    },
+    {
+      "type": "checkbox",
+      "id": "disable_on_hover",
+      "label": "PC端悬浮按钮无交互",
+      "default": false,
+      "info": "特别提醒：【空心胶囊】时生效，防止配置【白色按钮】时交互异常",
+      "visible_if": "{{block.settings.variant=='secondary'}}"
+    },
+    {
+      "type": "select",
+      "id": "kind",
+      "label": "按钮颜色类型",
+      "default": "default",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "custom_color",
+      "label": "按钮颜色",
+      "default": "#fd5000",
+      "visible_if": "{{block.settings.kind=='custom'}}"
+    },
+    {
+      "type": "color",
+      "id": "custom_text_color",
+      "label": "按钮文本颜色",
+      "default": "#FFFFFF",
+      "info": "【实心胶囊】时生效",
+      "visible_if": "{{block.settings.kind=='custom' and block.settings.variant=='primary'}}"
+    },
+    {
+      "type": "select",
+      "id": "size",
+      "label": "按钮尺寸",
+      "default": "large",
+      "options": [
+        {
+          "value": "extra",
+          "label": "特大"
+        },
+        {
+          "value": "large",
+          "label": "大"
+        },
+        {
+          "value": "medium",
+          "label": "中"
+        },
+        {
+          "value": "small",
+          "label": "小"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "是否全宽按钮",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "icon",
+      "label": "按钮内图标",
+      "info": "设置图标名称，可通过 [Jackery设计系统图标库](https://design.jackery.com/icons/) 查看",
+      "visible_if": "{{block.settings.animated == false or block.settings.variant != 'primary'}}"
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "图标位置",
+      "default": "next",
+      "options": [
+        {
+          "value": "prev",
+          "label": "图标在文本前"
+        },
+        {
+          "value": "next",
+          "label": "图标在文本后"
+        }
+      ],
+      "visible_if": "{{block.settings.icon != blank and block.settings.animated == false or block.settings.variant != 'primary'}}"
+    },
+    {
+      "type": "header",
+      "content": "弹窗配置"
+    },
+    {
+      "type": "select",
+      "id": "dialog_type",
+      "label": "弹窗类型",
+      "options": [
+        {
+          "value": "common",
+          "label": "通用弹窗"
+        },
+        {
+          "value": "special",
+          "label": "特定弹窗"
+        }
+      ],
+      "default": "common",
+      "info": "【特定弹窗】是针对特定场景的弹窗，比如：视频弹窗播放"
+    },
+    {
+      "type": "richtext",
+      "id": "dialog_title",
+      "default": "<p>Dialog Title</p>",
+      "label": "弹窗标题",
+      "visible_if": "{{ block.settings.dialog_type == 'common' }}"
+    },
+    {
+      "type": "select",
+      "id": "dialog_title_align",
+      "label": "弹窗标题对齐方式",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "左对齐"
+        },
+        {
+          "value": "center",
+          "label": "居中对齐"
+        }
+      ],
+      "visible_if": "{{ block.settings.dialog_type == 'common' }}"
+    },
+    {
+      "type": "richtext",
+      "id": "dialog_content",
+      "label": "弹窗内容",
+      "default": "<p>Dialog Content</p>",
+      "visible_if": "{{ block.settings.dialog_type == 'common' }}"
+    },
+    {
+      "type": "select",
+      "id": "special_dialog_type",
+      "label": "特定弹窗类型",
+      "default": "other",
+      "options": [
+        {
+          "value": "smart_recommend",
+          "label": "智能选购"
+        },
+        {
+          "value": "other",
+          "label": "其它"
+        }
+      ],
+      "visible_if": "{{ block.settings.dialog_type == 'special' }}"
+    },
+    {
+      "type": "text",
+      "id": "smart_recommend_compare_id",
+      "label": "智能选购对比ID",
+      "info": "不配置时，结果页不会显示对比入口",
+      "visible_if": "{{ block.settings.dialog_type == 'special' and block.settings.special_dialog_type == 'smart_recommend' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "critical",
+      "label": "是否为关键弹窗",
+      "default": true,
+      "info": "关键弹窗，无法通过键盘操作或点击遮罩层进行关闭"
+    },
+    {
+      "type": "number",
+      "id": "dialog_index",
+      "label": "弹窗层级",
+      "default": 10000,
+      "info": "默认层级为10000，如遇多个弹窗叠加时层级冲突问题，可根据实际需求适当提升"
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "按钮 + 弹窗"
+    }
+  ]
+}
+{% endschema %}

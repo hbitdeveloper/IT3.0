@@ -1,0 +1,283 @@
+{% comment %}
+    V5 图文滚动动画
+{% endcomment %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{% style %}
+    v5-scroll-pic-text .scroll-pic-text {
+        will-change: transform, opacity;
+    }
+    v5-scroll-pic-text .scence-image,
+    v5-scroll-pic-text .text-block,
+    v5-scroll-pic-text .sub-title {
+        will-change: opacity, max-height;
+    }
+    v5-scroll-pic-text .text-block::before,
+    v5-scroll-pic-text .text-info::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0.25rem;
+      height: 100%;
+      background-color: #ffffff;
+      border-radius: 0.5rem;
+      transition: background-color 0.1s ease;
+    }
+    v5-scroll-pic-text .text-info::before{
+        background-color: transparent;
+        transition: background-color 0.4s ease;
+    }
+    v5-scroll-pic-text .text-block.active::before,
+    v5-scroll-pic-text .mb-card.active .text-info::before
+    {
+      background-color: var(--jds-color-primary);
+    }
+    v5-scroll-pic-text .text-block.active .title,
+    v5-scroll-pic-text .mb-card.active .mb-card-title {
+        opacity: 0.9;
+        margin-bottom: 1rem;
+    }
+    v5-scroll-pic-text .mb-card.active .mb-card-sub-title{
+        height: auto;
+        opacity: 0.6;
+    }
+    v5-scroll-pic-text .mb-card.active .mb-card-image{
+        height: 13.625rem;
+        opacity: 1;
+        margin-top: 1rem;
+    }
+    v5-scroll-pic-text .mb-card:last-child{
+        margin-bottom: 0;
+    }
+
+{% endstyle %}
+
+{% assign page_type = 'page' %}
+{%- if template contains 'product.' -%}
+    {% assign page_type = 'product' %}
+{%- endif -%}
+
+<div
+    {{ section.shopify_attributes }}
+    {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %}
+>
+    <v5-scroll-pic-text data-type="{{ page_type }}">
+        <div id="scroll-pic-text" class="section-padding" style="background: {{section.settings.bg_color}};{{style}}">
+            {%- if section.settings.pc_title != blank -%}
+                <div class="v5-font-oxm font-extrabold text-[#242F20] w-[21.9375rem] hidden lg:block lg:w-[75rem] mx-auto text-center lg:text-[4.5rem] mb-[1.5rem] lg:mb-[2.5rem]">{{ section.settings.pc_title | newline_to_br }}</div>
+            {%- endif -%}
+            {%- if section.settings.mb_title != blank -%}
+                <div class="v5-font-oxm font-extrabold text-[#242F20] w-[21.9375rem] block lg:hidden mx-auto text-center text-[3rem] mb-[1.5rem] lg:mb-[2.5rem]">{{ section.settings.mb_title | newline_to_br }}</div>
+            {%- endif -%}
+            <div class="w-full lg:w-[82rem] mx-auto">
+                {% comment %} pc {% endcomment %}
+                <div class="hidden lg:flex gap-6 relative">
+                    <div class="flex-1 relative">
+                        <div class="relative w-[40.25rem] h-[34.5rem] overflow-hidden rounded-lg aspect-[644/552]">
+                            {% for item in section.blocks %}
+                                {% render 'diff-end-img', pc_img: item.settings.pc_image, mb_img: item.settings.mb_image, pc_img_width: 644, mb_img_width: 343, class: 'absolute inset-0 w-full h-full object-cover opacity-0 scence-image' %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="flex-1 relative">
+                        {% for item in section.blocks %}
+                            <div class="relative my-16 pl-6 text-block">
+                                {% assign text_color = item.settings.text_color | default: '#000' %}
+                                {% assign highlight_color = item.settings.highlight_color | default: 'var(--jds-color-primary)' %}
+                                {% assign highlight_style = '<em style="color:' | append: highlight_color | append: '">' %}
+                                <div class="text-[1.75rem] font-semibold opacity-40 title" style="color: {{ text_color }};">{{ item.settings.title | replace: '<em>', highlight_style }}</div>
+                                <div class="overflow-hidden font-normal text-[1.125rem] max-h-0 opacity-0 leading-[1.5rem] -tracking-tighter sub-title" style="color: {{ text_color }};">{{ item.settings.desc  | replace: '<em>', highlight_style }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% comment %} 移动端 {% endcomment %}
+                <div class="lg:hidden w-[21.4375rem] mx-auto">
+                    {% for item in section.blocks %}
+                        {% assign text_color = item.settings.text_color | default: '#000' %}
+                        {% assign highlight_color = item.settings.highlight_color | default: 'var(--jds-color-primary)' %}
+                        {% assign highlight_style = '<em style="color:' | append: highlight_color | append: '">' %}
+                        <div class="mb-6 mb-card {% if forloop.first %} active {% endif %}" data-index="{{ forloop.index }}">
+                            <div class="pl-6 relative text-info">
+                                <div class="text-[1.25rem] leading-6 font-semibold text-[rgba(0,0,0,1)] opacity-60 mb-card-title" style="color: {{ text_color }};" data-index="{{ forloop.index }}">{{ item.settings.title | replace: '<em>', highlight_style }}</div>
+                                <div class="overflow-hidden font-normal text-[1rem] leading-[1.5rem] h-0 opacity-0 text-[rgba(0,0,0,1)] transition-[height,opacity] duration-500 ease-out mb-card-sub-title" style="color: {{ text_color }};">{{ item.settings.desc  | replace: '<em>', highlight_style }}</div>
+                            </div>
+                            <div class="w-full rounded-[0.25rem] overflow-hidden h-0 opacity-0 transition-[height,opacity] mb-card-image">
+                                {% render 'diff-end-img', mb_img: item.settings.mb_image, mb_img_width: 343,  class: "w-full h-full object-cover" %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </v5-scroll-pic-text>
+</div>
+<script src="{{ 'gsap.js' | asset_url }}" defer></script>
+<script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+<script src="{{ 'section-v5-scroll-pic-text.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "V5-图文滚动动画",
+        "limit": 1,
+        "enabled_on": {
+            "templates": ["product", "page"]
+        },
+        "settings": [
+            {
+                "type": "select",
+                "id": "style_type",
+                "options": [
+                    {
+                    "value": "default",
+                    "label": "默认"
+                    },
+                    {
+                    "value": "custom",
+                    "label": "自定义"
+                    }
+                ],
+                "default": "default",
+                "label": "样式类型"
+            },
+            { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+            { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#F9F7F3" },
+            { "type": "textarea", "id": "pc_title", "label": "PC标题", "default": "Easy Backup, Convenient for Everyone" },
+            { "type": "textarea", "id": "mb_title", "label": "MB标题", "default": "Easy Backup, Convenient for Everyone" },
+            { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+            {
+                "type": "range",
+                "id": "padding_top",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "上边距",
+                "default": 80,
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "下边距",
+                "default": 80,
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_left",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "左边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_right",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "右边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+
+            { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+            {
+                "type": "select",
+                "id": "mb_padding_type",
+                "options": [
+                    {
+                    "value": "default",
+                    "label": "默认"
+                    },
+                    {
+                    "value": "custom",
+                    "label": "自定义"
+                    }
+                ],
+                "default": "custom",
+                "label": "MB边距",
+                "visible_if": "{{ section.settings.style_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_top_mb",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "上边距",
+                "default": 64,
+                "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_bottom_mb",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "下边距",
+                "default": 64,
+                "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_left_mb",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "左边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+            },
+            {
+                "type": "range",
+                "id": "padding_right_mb",
+                "min": 0,
+                "max": 100,
+                "step": 1,
+                "unit": "px",
+                "label": "右边距",
+                "default": 0,
+                "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+            }
+        ],
+        "blocks": [
+            {
+                "type": "scroll-pic-text",
+                "name": "图文滚动",
+                "limit": 4,
+                "settings": [
+                    { "type": "richtext", "id": "title", "label": "标题" },
+                    { "type": "richtext", "id": "desc", "label": "描述" },
+                    { "type": "image_picker", "id": "pc_image", "label": "PC图片(644*552)" },
+                    { "type": "image_picker", "id": "mb_image", "label": "MB图片(343*218)" },
+                    { "type": "color", "id": "text_color", "label": "文字颜色", "default": "#000" },
+                    { "type": "color", "id": "highlight_color", "label": "高亮颜色", "default": "#fd5000" }
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "V5-图文滚动动画",
+                "category": "V5.0"
+            }
+        ]
+    }
+{% endschema %}

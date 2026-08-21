@@ -1,0 +1,228 @@
+
+<style>
+    .contact-us-form .form-wrap {
+        width: 100%;
+    }
+
+    .contact-us-form .form-box .form-wrap .row .form-item {
+        font-size: 1rem;
+        line-height: 120%;
+    }
+
+    .contact-us-form .form-box .submit span {
+        font-size: 1rem;
+        margin-top: 2rem;
+    }
+
+    .contact-us-form jds-dialog p {
+      padding-top: 0.75rem;
+      color: rgba(0, 0, 0, 0.65);
+    }
+    .contact-us-form jds-dialog .has-border {
+        padding-bottom: 0.75rem;
+        padding-top: 0.375rem;
+        border-bottom: 1px solid #C6C7C8;
+        font-weight: 600;
+        color: #242F20;
+    }
+    .contact-us-form .form-box .customer-support .form-wrap {
+        margin-top: 2rem;
+    }
+
+    @media screen and (max-width: 1024px) {
+
+      .contact-us-form .contact-info-item {
+        padding: 0 1rem;
+      }
+
+      .contact-us-form .form-box .customer-support .form-wrap {
+          padding: 0 1rem;
+          margin-top: 1.5rem;
+      }
+    }
+</style>
+
+<div
+  class="de-cancel-contract-form contact-us-form index-container py-18"
+  data-success-message="{{ section.settings.success_message | escape }}"
+  data-error-message="{{ section.settings.error_message | escape }}"
+>
+  <div class="form-wrap" >
+
+    <div class="text-center text-2xl lg:text-[2rem] font-semibold mb-4 lg:mb-6 mx-4 lg:mx-0">{{ section.settings.tab_title | escape }}</div>
+    <div class="text-left text-base font-normal mx-4 lg:mx-0">{{ section.settings.tab_description | escape }}</div>
+
+    <div class="form-box J-contact-form">
+      <div class="customer-support J-customer-support active">
+        <div class="form-wrap">
+
+          <div class="row">
+            <div class="form-item">
+              <label for="Contact_Customer_Name">{{ section.settings.name_label | escape }}<span>*</span></label>
+              <input type="text" id="Contact_Customer_Name" name="Contact_Customer_Name" maxlength="50" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-item">
+              <label for="Contact_Customer_Email">{{ section.settings.email_label | escape }}<span>*</span></label>
+              <input type="text" id="Contact_Customer_Email" name="Contact_Customer_Email" maxlength="100" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-item">
+              <label for="Contact_Customer_Message">{{ section.settings.order_number_label | escape }}<span>*</span></label>
+              <input type="text" id="Contact_Customer_Message" name="Contact_Customer_Message" maxlength="50" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form-item">
+              <label for="Contact_Customer_Product">{{ section.settings.product_label | escape }}<span>*</span></label>
+              <input type="text" id="Contact_Customer_Product" name="Contact_Customer_Product" maxlength="500" />
+              {% comment %}{% render 'tree-select', class: 'contact-us__tree_field' %}{% endcomment %}
+            </div>
+          </div>
+
+          {%- if section.settings.privacy != blank -%}
+          <div class="row">
+            <div class="form-item">
+               <div class="form-check">
+                  <input class="form-checkbox" id="agree" type="checkbox" name="agree">
+                  <label class="form-label checkbox-label" id="checkbox-label" for="agree"></label>
+                  <span class="info">{{ section.settings.privacy }} </span>
+              </div>
+              <p class="error-tip hidden" id="error-agree">{{ section.settings.policy_error_text | escape }}</p>
+            </div>
+          </div>
+          {%- endif -%}
+
+        </div>
+        <div class="submit">
+          <span class="J-de-cancel-contract-submit">{{ section.settings.submit_text | escape }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="info-wrap">
+    {% if section.blocks.size > 0 %}
+      {% for block in section.blocks %}
+        {% if block.type == "contact-info" %}
+          <div class="contact-info-item" data-block-id="{{ block.id }}">
+            {% comment %} AI CHAT {% endcomment %}
+            {% if block.settings.add_ai_chat == 'true' %}
+              <div class="title">{{ block.settings.ai_chat_title }}</div>
+              <div class="text jds_zip_chat_click" style="cursor: pointer;" onClick="(window.pageInfo && (window.pageInfo.cr === 'ES' || window.pageInfo.cr === 'EU')) ? window.Jackery.Utils.pullZipChat(event) : window.zE('messenger', 'open')">{{ block.settings.ai_chat_value }}</div>
+              {%- style -%}
+                .jds_zip_chat_click:hover{
+                text-decoration: underline;
+                }
+              {%- endstyle -%}
+            {% else %}
+              {% comment %} 普通文案 {% endcomment %}
+              <div class="title">{{ block.settings.contact_item_title }}</div>
+              <div class="text">
+                {% if block.settings.add_contact_item_url == 'true' %}
+                  <a href="{{ block.settings.contact_item_url | default: email_to }}" target="_blank" rel="noopener noreferrer">
+                    {{ block.settings.contact_item_value | newline_to_br }}
+                  </a>
+                  {%- style -%}
+                    .contact-info-item a:hover{
+                    text-decoration: underline;
+                    }
+                  {%- endstyle -%}
+                {% else %}
+                  {{ block.settings.contact_item_value | newline_to_br }}
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <jds-dialog class="without-title" size="large" closeicon="close" style="--jds-dialog-index: 20000;">
+      <div>
+        <p class="text-xl has-border lg:text-2xl">{{ section.settings.cancel_confirm_title | escape }}</p>
+        <p class="text-sm pb-3 lg:text-base">{{ section.settings.cancel_confirm_description  | escape }}</p>
+        <p class="">{{ section.settings.name_label }}</p>
+        <p class="name-label has-border"></p>
+        <p class="">{{ section.settings.email_label }}</p>
+        <p class="email-label has-border"></p>
+        <p class="">{{ section.settings.order_number_label }}</p>
+        <p class="order_number-label has-border"></p>
+        <p class="">{{ section.settings.cancel_confirm_product }}</p>
+        <p class="product-label has-border"></p>
+        <jds-button class="confirm-cancel w-full mt-4">{{ section.settings.cancel_confirm_button | escape }}</jds-button>
+      </div>
+  </jds-dialog>
+</div>
+
+<script src="{{ 'sections-de-cancel-contract-form.js' | asset_url }}" defer></script>
+
+{% schema %}
+  {
+    "name": "contact us form",
+    "tag": "div",
+    "settings": [
+      {"type": "header", "content": "Contact Form Plate"},
+      { "type": "textarea", "id": "success_message", "label": "Success Message", "default": "Submitted successfully." },
+      { "type": "textarea", "id": "error_message", "label": "Error Message", "default": "Submission failed. Please try again." },
+      { "type": "textarea", "id": "tab_title", "label": "Tab Title", "default": "Elektronische Widerrufsfunktion" },
+      { "type": "textarea", "id": "tab_description", "label": "Tab Description", "default": "Für die Nutzung der elektronischen Widerrufsfunktion für Fernabsatzverträge müssen Sie uns die nachfolgenden Informationen zur Verfügung stellen und dann die Schaltfläche „Vertrag widerrufen“ anklicken. Danach gelangen Sie zu einer Übersichtsseite, auf der Sie die eingegebenen Daten nochmals prüfen und den Widerruf bestätigen können. Diese Felder müssen ausgefüllt werden." },
+      { "type": "textarea", "id": "name_label", "label": "Name Label", "default": "Vor- und Nachname" },
+      { "type": "textarea", "id": "email_label", "label": "Email Label", "default": "Die von Ihnen anzugebende elektronische Kommunikationsmethode (z. B. E‑Mail-Adresse) für die Zusendung der Widerrufsbestätigung muss der bei Ihrer Bestellung hinterlegten E‑Mail-Adresse entsprechen." },
+      { "type": "textarea", "id": "product_label", "label": "Product Label", "default": "Für welche Produkte möchten Sie den Widerruf erklären?(Mehrere Produkte durch Kommas getrennt.)" },
+      { "type": "textarea", "id": "order_number_label", "label": "Order Number Label", "default": "Angaben zur Identifizierung des Vertrages (z.B. Bestellnummer)" },
+      { "type": "textarea", "id": "policy_error_text", "label": "Policy Error Text", "default": "Please agree to the Privacy Policy." },
+      { "type": "textarea", "id": "cancel_confirm_title", "label": "Cancel Confirm Title", "default": "Bitte bestätigen Sie Ihren Widerruf" },
+      { "type": "textarea", "id": "cancel_confirm_description", "label": "Cancel Confirm Description", "default": "Bitte prüfen Sie die untenstehenden Informationen, die Sie durch die Nutzung der elektronischen Widerrufsfunktion eingegeben haben. Um den Widerruf zu bestätigen, klicken Sie auf die Schaltfläche „Widerruf bestätigen." },
+      { "type": "textarea", "id": "cancel_confirm_product", "label": "Cancel Confirm Product Description", "default": "Sofern Sie mit ihrer Bestellung mehrere Produkte bestellt haben und Sie bei Verwendung der elektronischen Widerrufsfunktion Angaben dazu gemacht haben, für welche Produkte Sie den Widerruf erklären möchten (Teilwiderruf), werden diese nachfolgend aufgeführt:" },
+      { "type": "text", "id": "submit_text", "label": "Submit Text", "default": "Vertrag widerrufen" },
+      { "type": "text", "id": "cancel_confirm_button", "label": "Cancel Confirm Button Text", "default": "Widerruf bestätigen" },
+      { "type": "richtext", "id": "privacy", "label": "Privacy Policy"}
+    ],
+    "blocks": [
+      {
+        "type": "contact-info",
+        "name": "Contact Item",
+        "limit": 8,
+        "settings": [
+          {
+            "type": "select",
+            "id": "add_ai_chat",
+            "label": "是否添加AI Chat",
+            "options": [
+              { "value": "false", "label": "否,普通文案" },
+              { "value": "true", "label": "是，AIChat入口" }
+            ],
+            "default": "false"
+          },
+          { "type": "text", "id": "ai_chat_title", "label": "AI Chat Title", "default": "Pre-Sale AI Chat", "visible_if": "{{ block.settings.add_ai_chat == 'true' }}" },
+          { "type": "text", "id": "ai_chat_value", "label": "AI Chat Message", "default": "Chat Now(24/7 Support)", "visible_if": "{{ block.settings.add_ai_chat == 'true' }}" },
+          { "type": "text", "id": "contact_item_title", "label": "Contact Title", "visible_if": "{{ block.settings.add_ai_chat == 'false' }}"  },
+          { "type": "textarea", "id": "contact_item_value", "label": "Contact Message", "visible_if": "{{ block.settings.add_ai_chat == 'false' }}"  },
+          {
+            "type": "select",
+            "id": "add_contact_item_url",
+            "label": "是否添加超链接",
+            "options": [
+              { "value": "false", "label": "否" },
+              { "value": "true", "label": "是" }
+            ],
+            "default": "false",
+            "visible_if": "{{ block.settings.add_ai_chat == 'false' }}"
+          },
+          {
+            "type": "url",
+            "id": "contact_item_url",
+            "label": "超链接地址",
+            "visible_if": "{{ block.settings.add_ai_chat == 'false' and block.settings.add_contact_item_url == 'true' }}"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

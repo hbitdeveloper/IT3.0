@@ -1,0 +1,608 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+<style>
+  @media screen and (max-width: 1023.98px) {
+    html[lang="de"] v5-product-form .jky-v5-button,
+    html[lang="fr"] v5-product-form .jky-v5-button,
+    html[lang="nl"] v5-product-form .jky-v5-button {
+      font-size: 0.875rem;
+      line-height: 1.2;
+    }
+    html[lang="de"] v5-product-form .djp-wrap,
+    html[lang="fr"] v5-product-form .djp-wrap,
+    html[lang="nl"] v5-product-form .djp-wrap {
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    html[lang="de"] v5-product-form .cart-icon-btn,
+    html[lang="fr"] v5-product-form .cart-icon-btn,
+    html[lang="nl"] v5-product-form .cart-icon-btn {
+      width: 1.75rem;
+      height: 1.75rem;
+    }
+  }
+</style>
+
+<div {{ block.shopify_attributes }} class="section-padding" style="{{ style }}">
+  {%- liquid
+    assign product_form_id = 'product-form-' | append: sectionId
+
+    assign check_against_inventory = true
+    if product.selected_or_first_available_variant.inventory_management != 'shopify' or product.selected_or_first_available_variant.inventory_policy == 'continue'
+      assign check_against_inventory = false
+    endif
+    if product.selected_or_first_available_variant.quantity_rule.min > product.selected_or_first_available_variant.inventory_quantity and check_against_inventory
+      assign quantity_rule_sold_out = true
+    endif
+
+    assign sku_warranty_info = product.selected_or_first_available_variant.metafields.custom.sku_warranty_info.value | default: product.selected_or_first_available_variant.metafields.custom.sku_warranty_info
+    assign sku_warranty_info = sku_warranty_info | strip
+    assign sku_warranty_info_normalized = sku_warranty_info | replace: '：', ':'
+    assign product_warranty_key = ''
+    assign product_warranty_value = ''
+    if sku_warranty_info_normalized contains ':'
+      assign product_warranty_parts = sku_warranty_info_normalized | split: ':'
+      assign product_warranty_key = product_warranty_parts | first | strip
+      assign product_warranty_value = sku_warranty_info_normalized | remove_first: product_warranty_key | remove_first: ':' | strip
+    endif
+  -%}
+
+  <v5-product-form
+    {% if is_diy == true %}diy-product-form {% endif %}
+    class="product-form"
+    product-title="{{ product.title | escape }}"
+    data-section-id="{{ sectionId }}"
+    data-display-auto-discount-price-in-sticky-cart="{{ settings.display_auto_discount_price_in_sticky_cart }}"
+  >
+    {%- form 'product',
+      product,
+      id: product_form_id,
+      class: 'form',
+      novalidate: 'novalidate',
+      data-type: 'add-to-cart-form'
+    -%}
+      <input
+        type="hidden"
+        name="id"
+        value="{{ product.selected_or_first_available_variant.id }}"
+        data-sku="{{ product.selected_or_first_available_variant.sku }}"
+        data-sku-title="{{ product.selected_or_first_available_variant.title }}"
+        data-product-warranty-info="{{ sku_warranty_info | escape }}"
+        data-tax-free-popup="{{ product.selected_or_first_available_variant.metafields.custom.open_tax_free_popup_before_buy.value | json }}"
+        class="product-variant-id"
+      >
+      {%- if product_warranty_key != blank and product_warranty_value != blank -%}
+        <input
+          type="hidden"
+          name="properties[{{ product_warranty_key | escape }}]"
+          value="{{ product_warranty_value | escape }}"
+          data-product-warranty-property="true"
+        >
+      {%- endif -%}
+
+      <input
+        type="hidden"
+        name="quantity"
+        value="{{ product.selected_or_first_available_variant.quantity_rule.min | default: 1 }}"
+        class="product-form-quantity-hidden"
+      >
+
+      <div class="product-form__buttons w-full flex gap-x-4 lg:gap-x-6">
+        {%- liquid
+          assign current_variant = product.selected_or_first_available_variant
+          if current_variant == blank and product.variants[0] != blank
+            assign current_variant = product.variants[0]
+          endif
+
+          assign price = current_variant.price | default: 1999
+          assign compare_at_price = current_variant.compare_at_price | default: price
+
+          if settings.open_auto_discount_price and settings.display_auto_discount_price_in_sticky_cart
+            assign auto_discount_price = current_variant.metafields.custom.auto_discount_price | times: 1
+            if auto_discount_price > 0 and auto_discount_price < current_variant.price
+              assign price = auto_discount_price
+            endif
+          endif
+
+          if compare_at_price < current_variant.price
+            assign compare_at_price = current_variant.price
+          endif
+
+          assign money_price = price | money
+
+          if current_variant == product and product.price_varies
+            assign money_price = 'products.product.price.from_price_html' | t: price: money_price
+          endif
+        -%}
+
+        <button
+          class="jky-v5-button disabled:opacity-40 disabled:cursor-not-allowed appearance-none flex items-center justify-center bg-primary text-white font-semibold border border-solid border-primary flex-1 text-base h-10 gap-x-2 lg:text-xl lg:h-12 lg:gap-x-4"
+          id="ProductSubmitButton-{{ sectionId }}"
+          type="submit"
+          name="add"
+          {% if is_diy == true %}is-diy="true"{% endif %}
+          {% if block.settings.hide_add_to_cart_price == true %}hide-price="true" {% endif %}
+          {% if product.selected_or_first_available_variant.available == false or quantity_rule_sold_out %}
+            disabled
+          {% endif %}
+        >
+          {%- if is_diy == true or block.settings.hide_add_to_cart_price == true -%}
+            <span>{{ 'products.product.add_to_cart' | t }}</span>
+          {%- else -%}
+            {% render 'v5-icon-cart', stroke_width: 2, class: 'cart-icon-btn text-white w-[2.125rem] h-[2.125rem] lg:w-10 lg:h-10' %}
+            <div class="djp-wrap flex items-center justify-center gap-x-1">
+              <span>{{ money_price }}</span>
+              <span>{{ 'products.product.in_cart' | t }}</span>
+            </div>
+          {%- endif -%}
+        </button>
+
+        {%- if customer and customer.current_company -%}
+          {% comment %} B2B 用户 {% endcomment %}
+          <div style="flex: 1;" class="buy-now--box">{{ form | payment_button }}</div>
+        {%- else -%}
+          {% comment %} 2C 用户 {% endcomment %}
+          <button
+            class="jky-v5-button-ghost buy-now--box buy-it-now-custom-btn disabled:opacity-40 disabled:cursor-not-allowed appearance-none flex items-center justify-center bg-transparent text-primary font-semibold border border-solid border-primary text-base min-w-[6.375rem] h-10 lg:text-xl lg:min-w-[10rem] lg:h-12 {% if is_diy == true or block.settings.hide_add_to_cart_price == true %}flex-1{% endif %}"
+            type="button"
+            name="buy-it-now"
+            {% if product.selected_or_first_available_variant.available == false or quantity_rule_sold_out %}
+              disabled
+            {% endif %}
+          >
+            <span>{{ 'products.product.buy_it_now' | t }}</span>
+          </button>
+        {%- endif -%}
+      </div>
+
+      {% comment %} 2C 用户，按需显示【Shopify立即购买】按钮 {% endcomment %}
+      {%- unless customer and customer.current_company -%}
+        {%- if block.settings.show_shopify_buy_it_now -%}
+          <div class="w-full buy-now--box mt-4">{{ form | payment_button }}</div>
+        {%- endif -%}
+      {%- endunless -%}
+    {%- endform -%}
+
+    {%- render 'v5-app-pdp-shortage-remind', section: section, product: product, block: block -%}
+  </v5-product-form>
+
+  <script type="module">
+    if (!customElements.get('v5-product-form')) {
+      customElements.define('v5-product-form', class ProductForm extends HTMLElement {
+        constructor() {
+          super();
+
+          this.diy_tag = null;
+          this.is_diy = this.hasAttribute('diy-product-form');
+
+          {% comment %} url链接，携带的【捆绑销售】标签 {% endcomment %}
+          this.bundledTag = getUrlQueryParams('bundled_action_tag') || ''
+          {% comment %} url链接，携带的【产品推荐】标签 {% endcomment %}
+          this.recommendedTag = getUrlQueryParams('action_tag') || ''
+
+          {% comment %} selling_plan 参数值 {% endcomment %}
+          this.sellingPlan = this.querySelector('input[name="selling_plan"]') || '';
+          this.externalQuantityInput = null
+          this.externalQuantitySyncHandler = null
+
+          this.form = this.querySelector('form');
+          this.form.querySelector('[name=id]').disabled = false;
+          this.form.addEventListener('submit', (e) => {
+            e?.preventDefault();
+            {% comment %} 变体需要免税弹窗确认 {% endcomment %}
+            if (this.currentVariant?.open_tax_free_popup_before_buy) {
+              try {
+                this.showTaxFreePopup(() => this.handleAddToCart())
+              } catch (err) {
+                this.handleAddToCart()
+              }
+            } else {
+              this.handleAddToCart()
+            }
+          });
+          this.cart = document.querySelector('cart-notification') || document.querySelector('cart-drawer');
+          this.submitButton = this.querySelector('[type="submit"]');
+
+          this.currentVariant = document.querySelector("variant-fields")?.currentVariant
+          if (!this.currentVariant) {
+            this.currentVariant = this.getSelectedVariant()
+          }
+          this.syncProductWarrantyPropertyInput()
+
+          this.buyItNowButton = this.form.querySelector('.buy-it-now-custom-btn')
+          {% comment %} 如果是自研的 Buy Now 按钮，则监听点击事件 {% endcomment %}
+          if (this.buyItNowButton) {
+            this.buyItNowButton.addEventListener('click', (e) => {
+              e?.preventDefault()
+              {% comment %} 变体需要免税弹窗确认 {% endcomment %}
+              if (this.currentVariant?.open_tax_free_popup_before_buy) {
+                try {
+                  this.showTaxFreePopup(() => this.handleBuy())
+                } catch (err) {
+                  this.handleBuy()
+                }
+              } else {
+                this.handleBuy();
+              }
+            })
+          }
+
+          document.addEventListener('variantChangeEvent', (e) => {
+            const currentVariant = e.detail.variant
+            if (currentVariant) {
+              this.currentVariant = currentVariant
+              this.syncProductWarrantyPropertyInput()
+              this.syncQuantityHiddenInput()
+            }
+          })
+
+          document.addEventListener('memberPriceReady', () => {
+            // 会员价就绪后，通知 variant picker 刷新按钮价格
+            if (document.querySelector('variant-fields')) {
+              document.querySelector('variant-fields').toggleAddButton(false)
+            }
+          })
+
+          this.handleQuantityLimit()
+          this.syncQuantityHiddenInput()
+        }
+        {% comment %} 同步隐藏的 quantity input 到 payment_button 可用的 form 内 {% endcomment %}
+        syncQuantityHiddenInput(nextQuantity) {
+          const hiddenQty = this.form.querySelector('.product-form-quantity-hidden')
+          const externalQtyInput = document.querySelector('quantity-input[data-v5-app-pdp-quantity] input')
+          if (!hiddenQty) return
+
+          if (nextQuantity != null && nextQuantity !== '') {
+            hiddenQty.value = nextQuantity
+          } else if (externalQtyInput) {
+            hiddenQty.value = externalQtyInput.value || externalQtyInput.getAttribute('min') || 1
+          }
+
+          if (!externalQtyInput) return
+
+          if (this.externalQuantityInput !== externalQtyInput) {
+            if (this.externalQuantityInput && this.externalQuantitySyncHandler) {
+              this.externalQuantityInput.removeEventListener('input', this.externalQuantitySyncHandler)
+              this.externalQuantityInput.removeEventListener('change', this.externalQuantitySyncHandler)
+            }
+
+            this.externalQuantityInput = externalQtyInput
+            this.externalQuantitySyncHandler = () => {
+              const currentHiddenQty = this.form.querySelector('.product-form-quantity-hidden')
+              if (!currentHiddenQty) return
+              currentHiddenQty.value = externalQtyInput.value || externalQtyInput.getAttribute('min') || 1
+            }
+
+            externalQtyInput.addEventListener('input', this.externalQuantitySyncHandler)
+            externalQtyInput.addEventListener('change', this.externalQuantitySyncHandler)
+          }
+        }
+        {% comment %} 获取当前变体信息 {% endcomment %}
+        getSelectedVariant() {
+          const wrapper = document.querySelector(".v5-product-info-wrapper")
+          if(!wrapper || wrapper.getAttribute("onlyVariant") !== "true") return {}
+          const data = JSON.parse(document.querySelector('#selected-variant[type="application/json"]')?.textContent || 'null')
+          return Array.isArray(data) ? (data[0] || null) : data
+        }
+        {% comment %} 处理数量限制 {% endcomment %}
+        handleQuantityLimit() {
+          if(!this.currentVariant) this.currentVariant = this.getSelectedVariant()
+          const quantityField = document.querySelector(".v5-product-info-wrapper quantity-input input")
+          if (!quantityField) return
+          const max = this.currentVariant?.inventory_quantity || 1
+          quantityField.setAttribute("data-max", max)
+          quantityField.setAttribute("max", max)
+          if (max > 1) {
+            const plusBtn = document.querySelector(".v5-product-info-wrapper quantity-input .quantity__button[name='plus']")
+            plusBtn && plusBtn.removeAttribute("disabled")
+          }
+        }
+        {% comment %} 处理错误信息 {% endcomment %}
+        handleErrorMsg(msg) {
+          const errWrapper = document.querySelector(".v5-product-info-wrapper .add_cart_error_wrapper")
+          if(!errWrapper) return
+          errWrapper.toggleAttribute('hidden', !msg);
+          errWrapper.textContent = msg
+        }
+        getBundleActionProperties() {
+          if (this.bundledTag) {
+            return { Action: this.bundledTag.replace('_', ' ') }
+          }
+
+          if (this.recommendedTag) {
+            return { Action: this.recommendedTag }
+          }
+
+          return {}
+        }
+        getSelectedBundlesFromDom() {
+          const roots = [...document.querySelectorAll('jky-v5-app-bundled-sale-plus, jky-v5-app-bundled-sale')]
+          if (!roots.length) return []
+
+          const selectedBundles = []
+          roots.forEach((root) => {
+            const checked = [...root.querySelectorAll('input[type="checkbox"][data-bundle-sku-id]:checked, input[type="checkbox"][skuId]:checked')]
+            checked.forEach((input) => {
+              const label = input.closest('label')
+              const qtyInput = label?.querySelector('[data-quantity-input], input[type="number"][skuId], input[type="number"][data-sku-id]')
+              const skuId = Number(input.dataset.bundleSkuId || input.getAttribute('skuId') || qtyInput?.dataset?.skuId || qtyInput?.getAttribute('skuId') || qtyInput?.getAttribute('data-sku-id') || 0)
+              if (Number.isFinite(skuId) && skuId > 0) {
+                selectedBundles.push({ skuId, quantity: Number(qtyInput?.value || 1) })
+              }
+            })
+          })
+          return selectedBundles
+        }
+        buildBundledItems(variantId, quantity = 1) {
+          const actionProperties = this.getBundleActionProperties()
+          const items = [{
+            id: Number(variantId),
+            quantity: Number(quantity || 1),
+            properties: {
+              ...this.getProductWarrantyProperties(),
+              ...actionProperties
+            }
+          }]
+
+          if (this.sellingPlan?.value) {
+            items[0].selling_plan = this.sellingPlan.value
+          }
+
+          this.getSelectedBundlesFromDom().forEach((bundle) => {
+            items.push({
+              id: Number(bundle.skuId),
+              quantity: Number(bundle.quantity || 1),
+              properties: actionProperties
+            })
+          })
+
+          return items
+        }
+        parseProductWarrantyInfo(info) {
+          const normalized = String(info || '').trim().replace(/：/g, ':')
+          const separatorIndex = normalized.indexOf(':')
+          if (separatorIndex < 0) return { key: '', value: '', properties: {} }
+          const key = normalized.slice(0, separatorIndex).trim()
+          const value = normalized.slice(separatorIndex + 1).trim()
+          if (!key || !value) return { key: '', value: '', properties: {} }
+          return {
+            key,
+            value,
+            properties: { [key]: value }
+          }
+        }
+        getCurrentProductWarrantyInfo() {
+          return this.currentVariant?.sku_warranty_info || this.form.querySelector('[name="id"]')?.dataset.productWarrantyInfo || ''
+        }
+        syncProductWarrantyPropertyInput() {
+          const idInput = this.form.querySelector('[name="id"]')
+          const currentWarrantyInfo = this.getCurrentProductWarrantyInfo()
+          if (idInput) {
+            if (currentWarrantyInfo) {
+              idInput.setAttribute('data-product-warranty-info', currentWarrantyInfo)
+            } else {
+              idInput.removeAttribute('data-product-warranty-info')
+            }
+          }
+          this.form.querySelectorAll('[data-product-warranty-property]').forEach((input) => input.remove())
+          const { key, value } = this.parseProductWarrantyInfo(currentWarrantyInfo)
+          if (!key || !value) return
+          const hiddenInput = document.createElement('input')
+          hiddenInput.type = 'hidden'
+          hiddenInput.name = `properties[${key}]`
+          hiddenInput.value = value
+          hiddenInput.setAttribute('data-product-warranty-property', 'true')
+          this.form.appendChild(hiddenInput)
+        }
+        getProductWarrantyProperties() {
+          return this.parseProductWarrantyInfo(this.getCurrentProductWarrantyInfo()).properties
+        }
+        handleAddToCart() {
+          this.sellingPlan = this.querySelector('input[name="selling_plan"]') || '';
+          if (this.submitButton.getAttribute('aria-disabled') === 'true') return;
+          this.handleErrorMsg()
+          this.submitButton.setAttribute('aria-disabled', true);
+          this.submitButton.classList.add('loading');
+
+          const formData = new FormData(this.form);
+          const id = formData.get('id');
+          const quantity = document.querySelector('quantity-input[data-v5-app-pdp-quantity]')?.querySelector('input')?.value || 1;
+
+          const addItems = this.is_diy
+            ? this.handleDiyAddToCart()
+            : this.buildBundledItems(id, quantity);
+
+          {% comment %} selling_plan {% endcomment %}
+          fetch('/cart/add.js', {
+            credentials: 'same-origin',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/json;',
+            },
+            method: 'POST',
+            body: JSON.stringify({ items: addItems }),
+          }).then((r) => {
+            let { status, statusText } = r;
+            if (status === 422) {
+              r.json().then(errorData => {
+                const message = errorData.message || statusText;
+                pushErrorMessage(message);
+              })
+            } else {
+              {% comment %}  只要状态码是以2或者3开始的，才是真正的获取成功 {% endcomment %}
+
+              if(this.cart) {
+                this.cart.renderContents(r)
+              } else {
+                window.location.href = '/cart'
+              }
+  
+              gaPushDataLayer('5.0_products_details_page_user_clicks', {
+                product_spu_name: this.getAttribute('product-title'),
+                module: "Product Selection",
+                position: this.currentVariant?.title, 
+                button_name: this.form.querySelector('[name="add"]')?.textContent?.trim(),
+                quantity: quantity
+              })
+            }
+          }).catch(err => {
+            this.handleErrorMsg(err.statusText)
+          }).finally(() => {
+            this.submitButton.classList.remove('loading');
+            this.submitButton.removeAttribute('aria-disabled');
+            if (this.cart && this.cart.classList.contains('is-empty')) this.cart.classList.remove('is-empty');
+          })
+        }
+
+        {% comment %} diy 加购 {% endcomment %}
+        handleDiyAddToCart() {
+          this.diy_tag = null;
+          if(this.is_diy) {
+            if(document.querySelector("v5-diy-main")?.active?.getAttribute?.('data-tab') === 'diy-custom-info') {
+              this.diy_tag = 'recommend';
+            } else {
+              this.diy_tag = 'diy';
+            }
+          }
+
+          const picker = document.querySelector('variant-fields');
+          if(!picker) return;
+          return this.processDiySkuData(picker.selectedSummary);
+        }
+        processDiySkuData(inputData) {
+          const result = [];
+
+          if (Array.isArray(inputData.bundles) && inputData.bundles.length > 0) {
+            inputData.bundles.forEach(bundle => {
+              const id = bundle.skuId;
+              if (id) {
+                const item = {
+                  id,
+                  quantity: bundle.quantity ?? 1,
+                  properties: this.getProductWarrantyProperties()
+                };
+                if (this.sellingPlan) item.selling_plan = this.sellingPlan?.value || '';
+                result.push(item);
+              }
+            });
+          }
+        
+          if (inputData.variant?.id) {
+            const item = {
+              id: inputData.variant.id,
+              quantity: 1,
+              properties: this.getProductWarrantyProperties()
+            };
+            if (this.sellingPlan) item.selling_plan = this.sellingPlan?.value || '';
+            result.push(item);
+          }
+
+          if (this.diy_tag) {
+            result.forEach(item => {
+              item.properties = { ...item.properties, _DIY_tab: this.diy_tag };
+            });
+          }
+        
+          return result;
+        }
+
+        {% comment %} 立即购买 {% endcomment %}
+        async handleBuy() {
+          {% comment %} loading {% endcomment %}
+          this.buyItNowButton.classList.add('loading')
+
+          {% comment %} 数据埋码 主体产品加购数量 {% endcomment %}
+          const quantity = document.querySelector('quantity-input[data-v5-app-pdp-quantity]')?.querySelector('input')?.value || 1
+          const variantId = this.form.querySelector('[name=id]').value
+          
+          if (!this.is_diy) this.sellingPlan = this.querySelector('input[name="selling_plan"]') || '';
+          const items = this.is_diy
+            ? this.handleDiyAddToCart()
+            : this.buildBundledItems(variantId, quantity);
+
+          {% comment %} 创建购物车并返回 checkout url 并跳转，方法内部已做容错处理，一定会返回 checkout url {% endcomment %}
+          const checkoutUrl = await createCartAndCheckout(items) 
+          window.location.href = checkoutUrl
+          this.buyItNowButton.classList.remove('loading')
+
+          gaPushDataLayer('5.0_products_details_page_user_clicks', {
+            {% comment %} 识别页面产品spu标题名称text {% endcomment %}
+            product_spu_name: this.getAttribute('product-title'),
+            {% comment %} 固定模块命名Product Selection {% endcomment %}
+            module: "Product Selection",
+            position: this.currentVariant?.title,
+            button_name: this.buyItNowButton?.textContent?.trim(),
+            quantity: quantity
+          })
+        }
+        {% comment %} 渲染免税弹窗DOM {% endcomment %}
+        renderTaxFreePopup(data) {
+          const { title, content, checkbox_text, checkbox_text_color, button_text } = data
+          return `
+            <h4>${title}</h4>
+            <div class="content rte">${content}</div>
+            <div class="footer">
+              <label>
+                <input type="checkbox" ${checkbox_text_color ? `style="border-color:${checkbox_text_color}"` : ""} />
+                <span ${checkbox_text_color ? `style="color:${checkbox_text_color}"` : ""}>${checkbox_text}</span>
+              </label>
+              <button disabled="disabled" data-submit-button>${button_text}</button>
+            </div>
+          `
+        }
+
+        {% comment %} 显示免税弹窗 {% endcomment %}
+        showTaxFreePopup(callback) {
+          const scriptTag = document.querySelector('script[type="application/json"][id="tax-free-popup-json"]');
+          if (scriptTag) {
+            const data = JSON.parse(scriptTag.textContent)
+            const isEmpty = p => p?.trim() == ''
+
+            {% comment %} 所有配置项都有值，才弹窗 {% endcomment %}
+            if (!isEmpty(data?.title) && !isEmpty(data?.content) && !isEmpty(data?.checkbox_text) && !isEmpty(data?.button_text)) {
+              this.modalInstance = ZModle.getInstance(this.renderTaxFreePopup(data), {
+                id: "product-detail-tax-free-dialog",
+                class: "product-detail-tax-free-dialog",
+                destroyOnClose: true,
+                cb: (modal) => {
+                  modal.style.zIndex = '{{ settings.tax_free_popup_z_index | default: 9999999999 }}'
+                  const submitButton = modal.querySelector('[data-submit-button]')
+                  const checkbox = modal.querySelector('input[type="checkbox"]')
+                  const closeBtn = modal.querySelector('.close')    
+
+                  {% comment %} 替换关闭按钮的SVG为纯黑色图标 {% endcomment %}
+                  closeBtn.innerHTML = `
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>`
+              
+                  {% comment %} 复选框变更事件 {% endcomment %}
+                  checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) {
+                      submitButton.removeAttribute('disabled')
+                    } else {
+                      submitButton.setAttribute('disabled', 'disabled')
+                    }
+                  })
+
+                  {% comment %} 提交按钮事件 {% endcomment %}
+                  submitButton.onclick = () => {
+                    if (!checkbox.checked) return
+                    this.modalInstance?.closeModal()
+                    callback && callback()
+                  }
+                }
+              })
+            } else {
+              callback && callback()
+            }
+          } else {
+            callback && callback()
+          }
+        }
+      })
+    }
+  </script>
+</div>

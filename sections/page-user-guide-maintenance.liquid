@@ -1,0 +1,75 @@
+{% assign PPS = section.blocks | where: 'type', "Maintenance_PPS" %}
+{% assign SP = section.blocks | where: 'type', "Maintenance_SP" %}
+
+<h2 class="jky-text-2xl">{{ section.settings.title }}</h2>
+<div class="tab-container">
+  <ul class="tab">
+    <li class="jky-text-lg underlines-btn active" data-type="pps">{{ 'collection.portable_power_station' | t }}</li>
+    <li class="jky-text-lg underlines-btn" data-type="sp">{{ 'collection.solar_panel' | t }}</li>
+  </ul>
+</div>
+
+<ul class="list tab-content pps active">
+  {% for block in PPS limit: 3 %}
+  <li>
+    <img src="{{ block.settings.image | image_url: width: 840 }}" alt="{{ block.settings.title }}" loading="lazy" />
+    <p class="info">
+      <b class="jky-text-lg">{{ block.settings.title }}</b>
+      <button class="z-button-fill-middle">{{ section.settings.more }}<jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon></button>
+    </p>
+  </li>
+  {% endfor %}
+</ul>
+
+<ul class="list tab-content sp">
+  {% for block in SP limit: 3 %}
+  <li>
+    <img src="{{ block.settings.image | image_url: width: 840 }}" alt="{{ block.settings.title }}" loading="lazy" />
+    <p class="info">
+      <b class="jky-text-lg">{{ block.settings.title }}</b>
+      <button class="z-button-fill-middle">{{ section.settings.more }}<jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon></button>
+    </p>
+  </li>
+  {% endfor %}
+</ul>
+
+<script type="application/ld+json" id="product-maintenance">
+{
+  "pps": [
+    {% for block in PPS %}
+      {"title": "{{ block.settings.title }}", "content": "{{ block.settings.content }}", "image": "{{ block.settings.image | image_url: width: 840 }}"}{% if forloop.last != true %},{% endif %}
+    {% endfor %}
+  ],
+  "sp": [
+    {% for block in SP %}
+      {"title": "{{ block.settings.title }}", "content": "{{ block.settings.content }}", "image": "{{ block.settings.image | image_url: width: 840 }}"}{% if forloop.last != true %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+
+{% schema %}
+{
+  "name": "product maintenance", "class": "layer layer-container manuals maintenance", "tag": "div",
+  "settings": [
+    {"type": "text", "id": "title", "label": "title", "default": "Product Maintenance"},
+    {"type": "text", "id": "more", "label": "Learn More text", "default": "LEARN MORE"}
+  ],
+  "blocks": [
+    {
+      "type": "Maintenance_PPS", "name": "Power Station Maintenance", "settings": [
+        {"type": "text", "id": "title", "label": "Maintenance Title", "default": "The use environment of Power station"},
+        {"type": "richtext", "id": "content", "label": "Maintenance Content"},
+        {"type": "image_picker", "id": "image", "label": "Maintenance image", "info": "Recommended size: 840px*378px"}
+      ]
+    },
+    {
+      "type": "Maintenance_SP", "name": "Solar Panel Maintenance", "settings": [
+        {"type": "text", "id": "title", "label": "Maintenance Title", "default": "The use environment of solar panel"},
+        {"type": "richtext", "id": "content", "label": "Maintenance Content"},
+        {"type": "image_picker", "id": "image", "label": "Maintenance image", "info": "Recommended size: 840px*378px"}
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,216 @@
+<style>
+  .section-keyword-collection-anchor {
+    position: sticky;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    margin-bottom: 7.0313vw;
+  }
+
+  .section-keyword-collection-anchor .sticky {
+    position: -webkit-sticky;
+    position: sticky;
+    background-color: rgb(255 255 255);
+    top: 0;
+    left: 0;
+    z-index: 10;
+  }
+
+  .section-keyword-collection-anchor ul {
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    display: flex;
+  }
+
+  .section-keyword-collection-anchor ul li {
+    width: 20.2083vw;
+    height: 3.4375vw;
+    background: #ffffff;
+    border: 0.1042vw solid #eeeeee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.5625vw;
+    font-weight: 500;
+    color: #333333;
+  }
+
+  .section-keyword-collection-anchor ul li.border-left-none {
+    border-left: none;
+  }
+
+  .section-keyword-collection-anchor ul li.active {
+    color: #ffffff;
+    background: var(--primary-color);
+  }
+
+  @media screen and (max-width: 768px) {
+    .section-keyword-collection-anchor .sticky {
+      display: flex;
+      justify-content: center;
+    }
+    .section-keyword-collection-anchor ul {
+      width: 100%;
+    }
+    .section-keyword-collection-anchor ul li {
+      width: max-content;
+      height: max-content;
+      background: #ffffff;
+      border: 0.1042vw solid #eeeeee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      flex: auto;
+      padding: 2.8vw 0;
+      font-size: 4.2667vw;
+    }
+  }
+</style>
+
+{% comment %} tabs {% endcomment %}
+<div class="sticky cal_scroll_target" anchor="{{ section.settings.anchor | escape }}">
+  <ul class="keyword-collection-anchor-ul">
+    {% for block in section.blocks %}
+      <li
+        class="{% if forloop.index0 == 0 %} active {% endif %}{% if forloop.index0 > 0 %} border-left-none {% endif %}"
+        data-tab-id="{{block.settings.anchor_type}}"
+      >
+        {{- block.settings.anchor_title | escape -}}
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<script defer>
+  class keywordAnchor {
+    constructor() {
+      // tab 锚点
+      this.tabs = document.querySelectorAll('[data-tab-id]');
+
+      // 当前高亮索引
+      this.index = 0;
+      this.lockScroll = false;
+      this.scrollTop = 0;
+      this.timer = null;
+
+      this._init();
+
+      this.watchScrollEvent = this.watchScrollEvent.bind(this)
+      window.addEventListener('scroll', this.watchScrollEvent, false);
+      window.onbeforeunload = function () {
+        window.removeEventListener('scroll', this.watchScrollEvent);
+        this.timer = null;
+      };
+    }
+    _init() {
+      this.tabs.forEach((it) => (it.onclick = () => this.handleTabClick(it)));
+    }
+    // tab 点击事件
+    handleTabClick(it) {
+      this.tabs.forEach((v) => v.classList.remove('active'));
+      it.classList.add('active');
+      this.lockScroll = true;
+
+      const offset = this.scrollToBlock(it);
+
+      this.timer = setInterval(() => {
+        if (this.scrollTop.toFixed() === offset.toFixed()) {
+          this.lockScroll = false;
+          clearInterval(this.timer);
+        }
+      }, 50);
+    }
+    // 滚动到 对应的 DOM
+    scrollToBlock(it) {
+      const parentHeight = it.parentNode.offsetHeight;
+      const tab = it.dataset.tabId;
+      const offsetTop = tab && document.querySelector(`#${tab}`)?.offsetTop;
+
+      window.scrollTo({
+        top: offsetTop - parentHeight,
+        behavior: 'smooth',
+      });
+
+      return offsetTop - parentHeight;
+    }
+    // 监听滚动事件
+    watchScrollEvent() {
+      this.scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+
+      let offsetTopArray = [];
+      this.tabs.forEach((it) => {
+        const parentHeight = it.parentNode.offsetHeight;
+        const tab = it.dataset.tabId;
+        const offsetTop = tab && document.querySelector(`#${tab}`)?.offsetTop;
+        offsetTopArray.push(offsetTop - parentHeight);
+      });
+
+      !this.lockScroll && this.highlightTab(offsetTopArray);
+    }
+    // 高亮 tab
+    highlightTab(offsetTopArray = []) {
+      if (this.scrollTop >= offsetTopArray[this.index + 1]) {
+        this.index += 1;
+      }
+
+      if (this.scrollTop < offsetTopArray[this.index]) {
+        this.index = this.index === 0 ? 0 : this.index - 1;
+      }
+
+      this.tabs.forEach((it) => it.classList.remove('active'));
+      this.tabs[this.index].classList.add('active');
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', function () {
+    new keywordAnchor();
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Keyword Collection Anchor",
+  "class": "section section-keyword-collection-anchor",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位文案" }
+  ],
+  "blocks": [
+    {
+      "type": "anchor-item",
+      "name": "Anchor Item",
+      "settings": [
+        {
+          "type": "select",
+          "id": "anchor_type",
+          "label": "Anchor Type",
+          "options": [
+            {
+              "value": "benefits",
+              "label": "Benefits"
+            },
+            {
+              "value": "solar-generators",
+              "label": "Solar Generators"
+            },
+            {
+              "value": "applications",
+              "label": "Applications"
+            }
+          ]
+        },
+        { "type": "text", "id": "anchor_title", "label": "Anchor Title" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Keyword Collection Anchor",
+      "category": "Keyword"
+    }
+  ]
+}
+{% endschema %}

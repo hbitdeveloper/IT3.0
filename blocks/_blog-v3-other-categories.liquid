@@ -1,0 +1,62 @@
+<div
+  class="w-full mb-12 lg:mb-16"
+  {{ block.shopify_attributes }}
+  anchor-target="{{ block.settings.anchor | escape }}"
+  data-block-type="_blog-v3-other-categories"
+>
+  {%- if block.settings.h2_title != blank -%}
+    <h2 class="blog-v3-other-categories-title blog-v3-h2 font-medium w-full mb-3 lg:mb-4">{{ block.settings.h2_title | escape_once }}</h2>
+  {%- endif -%}
+  <ul class="flex flex-wrap gap-1.5 lg:gap-2">
+    {% content_for 'blocks' %}
+  </ul>
+</div>
+
+{%- javascript -%}
+  document.addEventListener('DOMContentLoaded', function () {
+    const h2Title = document.querySelector('.blog-v3-other-categories-title')?.textContent || '';
+    document.querySelectorAll('.blog-v3-other-category-item').forEach((item) => {
+      item.addEventListener('click', function () {
+        const aDom = item.querySelector('a');
+        gaPushDataLayer('blogs_collection_user_clicks', {
+          module: h2Title, // 识别分类标题H2text
+          button_name: aDom.textContent, // 识别按钮内容text
+          link: aDom.href, // 完整跳转链接,未配置则为：null(非字符串)
+        });
+      });
+    });
+  });
+{%- endjavascript -%}
+
+{% schema %}
+{
+  "name": "V3博客-其他分类入口",
+  "tag": null,
+  "blocks": [{ "type": "_blog-v3-other-category-item" }],
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)",
+      "default": "otherCategories"
+    },
+    {
+      "type": "textarea",
+      "id": "h2_title",
+      "label": "H2标题",
+      "default": "Most Popular Blogs"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V3博客-其他分类入口",
+      "category": "Blog-V3",
+      "blocks": [
+        {
+          "type": "_blog-v3-other-category-item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

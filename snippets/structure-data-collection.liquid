@@ -1,0 +1,102 @@
+{%- comment -%}
+  新版集合结构化数据：输出 CollectionPage 以及最多包含 50 个集合产品的 ItemList。
+  CollectionPage 通过实体 ID 关联 WebSite、Organization 和当前集合的 ItemList。
+{%- endcomment -%}
+{%- liquid
+  assign collection_page_url = canonical_url
+  assign collection_page_schema_id = collection_page_url | append: '#webpage'
+  assign collection_item_list_schema_id = collection_page_url | append: '#itemlist'
+  assign collection_description = page_description | default: collection.description | strip_html | strip
+  assign collection_image_url = blank
+  if collection.image != blank
+    assign collection_image_url = collection.image | image_url: width: 1600
+    assign collection_image_prefix = collection_image_url | slice: 0, 2
+    assign collection_image_first_character = collection_image_url | slice: 0, 1
+    if collection_image_prefix == '//'
+      assign collection_image_url = collection_image_url | prepend: 'https:'
+    elsif collection_image_first_character == '/'
+      assign collection_image_url = collection_image_url | prepend: request.origin
+    endif
+  endif
+
+  assign collection_item_count = collection.products.size
+  if collection_item_count > 50
+    assign collection_item_count = 50
+  endif
+
+-%}
+
+{%- capture collection_item_list_json -%}
+  {%- if output_collection_itemlist_schema -%}
+    {%- for list_product in collection.products limit: 50 -%}
+      {%- assign list_product_url = request.origin | append: list_product.url -%}
+      {%- assign list_product_schema_id = list_product_url | append: '#product' -%}
+      {%- assign list_product_brand = list_product.vendor | default: shop.name -%}
+      {%- assign list_product_image_url = blank -%}
+      {%- if list_product.featured_image -%}
+        {%- assign list_product_image_url = list_product.featured_image | image_url: width: 1200 -%}
+        {%- assign list_product_image_prefix = list_product_image_url | slice: 0, 2 -%}
+        {%- assign list_product_image_first_character = list_product_image_url | slice: 0, 1 -%}
+        {%- if list_product_image_prefix == '//' -%}
+          {%- assign list_product_image_url = list_product_image_url | prepend: 'https:' -%}
+        {%- elsif list_product_image_first_character == '/' -%}
+          {%- assign list_product_image_url = list_product_image_url | prepend: request.origin -%}
+        {%- endif -%}
+      {%- endif -%}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.index }},
+        "item": {
+          "@type": "Product",
+        "@id": {{ list_product_schema_id | json | replace: '\/', '/' }},
+          "name": {{ list_product.title | json }},
+        "url": {{ list_product_url | json | replace: '\/', '/' }}{% if list_product.featured_image and list_product_image_url != blank %},
+        "image": {{ list_product_image_url | json | replace: '\/', '/' }}{% endif %},
+          "brand": {
+            "@type": "Brand",
+            "name": {{ list_product_brand | json }}
+          }
+        }
+      }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- assign collection_item_list_json = collection_item_list_json | strip -%}
+
+{% if output_collection_page_schema %}
+<script id="collection-page-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": {{ collection_page_schema_id | json | replace: '\/', '/' }},
+    "url": {{ collection_page_url | json | replace: '\/', '/' }},
+    "name": {{ collection.title | json }}{% if collection_description != blank %},
+    "description": {{ collection_description | json }}{% endif %}{% if collection_image_url != blank %},
+    "image": {{ collection_image_url | json | replace: '\/', '/' }}{% endif %},
+    "inLanguage": {{ request.locale.iso_code | json }}{% if include_website_reference %},
+    "isPartOf": {
+      "@id": {{ website_id | json | replace: '\/', '/' }}
+    }{% endif %}{% if include_organization_reference %},
+    "publisher": {
+      "@id": {{ organization_id | json | replace: '\/', '/' }}
+    }{% endif %}{% if include_itemlist_reference %},
+    "mainEntity": {
+      "@id": {{ collection_item_list_schema_id | json | replace: '\/', '/' }}
+    }{% endif %}
+  }
+</script>
+{% endif %}
+
+{% if output_collection_itemlist_schema %}
+<script id="collection-item-list-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": {{ collection_item_list_schema_id | json | replace: '\/', '/' }},
+    "name": {{ collection.title | json }},
+    "numberOfItems": {{ collection_item_count | json }},
+    "itemListOrder": "https://schema.org/ItemListOrderAscending",
+    "itemListElement": [{{ collection_item_list_json }}]
+  }
+</script>
+{% endif %}

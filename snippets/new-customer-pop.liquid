@@ -1,0 +1,720 @@
+<link rel="stylesheet" href="{{ 'plugin-new-customer-pop.min.css' | asset_url }}">
+
+<div class="new-customer-plugin J-customer-plugin" style="display:none;" data-init-show="{{ initShow | default: false }}">
+  <div class="new-customer-icon J-newCustomer-button" style="z-index:{{ settings.laxin_z_index | default: 19999 }};">
+    <img class="icon-close" id="icon-close" style="z-index:{{ settings.laxin_z_index | append: 1 | default: 20000 }};" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+         src="https://cdn.shopify.com/s/files/1/0796/1123/2554/files/ic_close_filled-1.svg?v=1697445398" loading="lazy" alt="close">
+    <img class="icon-img" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" loading="lazy" alt="">
+  </div>
+
+  <div id="new-customer-pop" class="new-customer-wrap" style="z-index:{{ settings.laxin_z_index | default: 19999 }};">
+    <div class="new-customer-box">
+      <div class="close-btn J-newCustomer-close" customer-current-step="one">
+        <svg class="close-svg" xmlns="http://www.w3.org/2000/svg" fill="#888888" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </div>
+
+      {% comment %} 首弹窗 {% endcomment %}
+      <div class="customer-one-step J-newCustomer-one">
+        <div class="title-wrap">
+          <div
+            class="
+              title mx-auto font-semibold text-center
+              w-full text-44 leading-52 text-#222
+              lg:w-[90%] lg:j-text-32 lg:j-leading-40 lg:text-#333
+              xl:a-text-32 xl:a-leading-40
+            "
+          ></div>
+          <div
+            class="
+              subtitle mx-auto font-medium text-center text-#333
+              w-full text-28 leading-34 mt-8
+              lg:w-[90%] lg:j-text-16 lg:j-leading-20 lg:j-mt-6
+              xl:a-text-16 xl:a-leading-20 xl:a-mt-6
+            "
+          ></div>
+        </div>
+
+        <div class="gift-box">
+          <img src="" alt="">
+        </div>
+        <div class="form-wrap J-newCustomer-form">
+          <input type="email" id="newCustomerEmail" class="input-full J-newCustomer-email font-medium" name="newCustomerEmail" autocorrect="off" autocapitalize="off" placeholder="">
+          <div class="submit J-newCustomer-submit">{{ 'newCustomer.submit' | t }}</div>
+        </div>
+        <div class="error-tip J-newCustomer-tip" data-email-tip="{{ 'newCustomer.email_tip' | t }}" data-emailerror-tip="{{ 'newCustomer.email_error_tip' | t }}"></div>
+
+        <div
+          class="form-item declaration required J-newCustomer-checkbox"
+          data-field="check_box"
+          data-error=""
+          style="min-height: auto;"
+        >
+          <jky-checkbox class="jky-checkbox_ jky-checkbox">
+              <label class="jky-checkbox">
+                  <span class="jky-checkbox-input">
+                    <input type="checkbox" class="jky-checkbox-original" data-value="agree_recevie">
+                    <span class="jky-checkbox-inner"></span>
+                  </span>
+
+                  <span class="jky-checkbox-label">
+                    <span class="jky-agree">
+                      {{ 'newCustomer.declaration' | t }}
+                      <a href="/policies/terms-of-service">{{ 'newCustomer.terms_of_ues' | t }}</a> {{ 'newCustomer.and' | t }} <a href="/policies/privacy-policy">{{ 'newCustomer.privacy_policy' | t }}</a>
+                      {{ 'newCustomer.jackery_zu' | t }}
+                    </span>
+                  </span>
+              </label>
+          </jky-checkbox>
+          <p class="extra-description"></p>
+        </div>
+      </div>
+
+      {% comment %} 等待 {% endcomment %}
+      <div class="customer-two-step J-newCustomer-two display-none">
+        <div
+          class="
+            title mx-auto font-semibold text-center
+            w-full text-44 leading-52 text-#222
+            lg:w-[90%] lg:j-text-32 lg:j-leading-40 lg:text-#333
+            xl:a-text-32 xl:a-leading-40
+          "
+        ></div>
+        <div
+          class="
+            subtitle mx-auto font-medium text-center text-#333
+            w-full text-28 leading-34 mt-8
+            lg:w-[90%] lg:j-text-16 lg:j-leading-20 lg:j-mt-6
+            xl:a-text-16 xl:a-leading-20 xl:a-mt-6
+          "
+        ></div>
+        <div class="customer-gift J-newCustomer-gift">
+          <img src="" alt="">
+        </div>
+        <div class="text-loading">
+          {{ 'newCustomer.text_loading' | t }}
+          <div class="loading">
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
+      </div>
+
+      {% comment %} 结果 | 中转 {% endcomment %}
+      <div class="customer-three-step J-newCustomer-three display-none">
+        <div
+          class="
+            title mx-auto font-semibold text-center
+            w-full text-44 leading-52 text-#222
+            lg:w-[90%] lg:j-text-32 lg:j-leading-40 lg:text-#333
+            xl:a-text-32 xl:a-leading-40
+          "
+        ></div>
+        <div
+          class="
+            subtitle mx-auto font-medium text-center text-#333
+            w-full text-28 leading-34 mt-8
+            lg:w-[90%] lg:j-text-16 lg:j-leading-20 lg:j-mt-6
+            xl:a-text-16 xl:a-leading-20 xl:a-mt-6
+          "
+        ></div>
+        <div class="customer-prizes-img J-newCustomer-prizes-img" data-coupon-pkg="0">
+          <img src="" alt="">
+        </div>
+        <div class="code-tip J-code-tip display-none">
+          <div class="name display-none">Product namext name</div>
+          <div>
+            <span>{{ 'newCustomer.copy_code' | t }}</span>
+            <span class="customer-code">
+              <span class="J-newCustomer-code"></span>
+              <span class="copy-tip J-newCustomer-code-tip">{{ 'newCustomer.copy_success' | t }}</span>
+            </span>
+          </div>
+        </div>
+        <div class="coupon-text J-newCustomer-virtual-text display-none"></div>
+        <div class="option-button display-none">
+          <div class="J-newCustomer-left" data-register-left="{{ 'newCustomer.register_left' | t }}"></div>
+          <div class="J-newCustomer-right" data-register-right="{{ 'newCustomer.register_right' | t }}"></div>
+        </div>
+        <div class="virtual-explain J-newCustomer-virtual-explain display-none"></div>
+        <div class="coupon-text J-newCustomer-coupon-text display-none" data-more-text="{{ 'newCustomer.more' | t }}">
+          <div class="coupon display-none">
+            <div class="PC-show">
+              <div class="coupon-wrap">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span>
+                    {% if shop.id != 10015375438 %}
+                      {{ 'newCustomer.order_over' | t }} <span class="J-newCustomer-limit"></span>
+                    {% else %}
+                      <span class="J-newCustomer-limit"></span>{{ 'newCustomer.order_over' | t }}
+                    {% endif %}
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_minimum' | t }}</span>
+                </div>
+                <div class="coupon-item">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>
+                  <span class="J-newCustomer-couponTip" data-coupon-tip="{{ 'newCustomer.coupons_tip' | t }}" data-exclud-tip="{{ 'newCustomer.coupons_tip_exclud' | t }}"></span>
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div>
+                {% comment %} <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div> {% endcomment %}
+              </div>
+              <div class="toolTip">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span>
+                    {% if shop.id != 10015375438 %}
+                      {{ 'newCustomer.order_over' | t }} <span class="J-newCustomer-limit"></span>
+                    {% else %}
+                      <span class="J-newCustomer-limit"></span>{{ 'newCustomer.order_over' | t }}
+                    {% endif %}
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_minimum' | t }}</span>
+                </div>
+                <div class="coupon-item">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span><span class="J-newCustomer-couponTip" data-coupon-tip="{{ 'newCustomer.coupons_tip' | t }}" data-exclud-tip="{{ 'newCustomer.coupons_tip_exclud' | t }}"></span></div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div>
+              </div>
+            </div>
+            <div class="Mob-show">
+              <div class="coupon-item highlight">
+                <span class="over-wrap">
+                  <span class="item-icon"></span>
+                    {% if shop.id != 10015375438 %}
+                      {{ 'newCustomer.order_over' | t }} <span class="J-newCustomer-limit"></span>
+                    {% else %}
+                      <span class="J-newCustomer-limit"></span>{{ 'newCustomer.order_over' | t }}
+                    {% endif %}
+                </span>
+                <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_minimum' | t }}</span>
+              </div>
+              <div class="coupon-item">
+                <span class="over-wrap">
+                  <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                </span>
+                <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+              </div>
+              <div class="coupon-item"><span class="item-icon"></span><span class="J-newCustomer-couponTip" data-coupon-tip="{{ 'newCustomer.coupons_tip' | t }}" data-exclud-tip="{{ 'newCustomer.coupons_tip_exclud' | t }}"></span></div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div>
+            </div>
+          </div>
+          <div class="sku-coupon display-none">
+            <div class="PC-show">
+              <div class="coupon-wrap">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div>
+                {% comment %} <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div> {% endcomment %}
+              </div>
+
+              <div class="toolTip">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div>
+              </div>
+            </div>
+            <div class="Mob-show">
+              <div class="coupon-item highlight">
+                <span class="over-wrap">
+                  <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                </span>
+                <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+              </div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div>
+            </div>
+          </div>
+          <div class="card display-none">
+            <div class="PC-show">
+              <div class="coupon-wrap">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>{{ 'newCustomer.card_no_minimum' | t }}
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div>
+                {% comment %} <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_all_applies' | t }}</div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>{{ 'newCustomer.card_send_gift' | t }}
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div> {% endcomment %}
+              </div>
+              <div class="toolTip">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_no_minimum' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_all_applies' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_send_gift' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_check_email' | t }}</div>
+              </div>
+            </div>
+            <div class="Mob-show">
+              <div class="coupon-item highlight">
+                <span class="over-wrap">
+                  <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                </span>
+                <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+              </div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_no_minimum' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_all_applies' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_send_gift' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_check_email' | t }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="register-tip J-register-tip display-none">
+          <div>{{ 'newCustomer.register_tip' | t }}</div>
+          <div>{{ 'newCustomer.only_site' | t }}</div>
+        </div>
+        <div class="customer-phone display-none">
+          <div class="form-wrap J-newCustomer-phoneForm">
+            <input type="phone" id="newCustomerPhone" class="input-full J-newCustomer-phone font-medium" name="newCustomerPhone" autocorrect="off" autocapitalize="off" placeholder="{{ 'newCustomer.phone_placeholder' | t }}" title="{{ 'newCustomer.phone_placeholder' | t }}">
+            <div class="submit J-newCustomer-phoneSubmit">{{ 'newCustomer.phone_submit' | t }}</div>
+          </div>
+          <div class="error-tip J-newCustomer-phoneTip" data-phone-empty="{{ 'newCustomer.phone_empty' | t }}"></div>
+
+          <div
+            class="form-item declaration  required J-newCustomer-phoneCheckbox"
+            data-field="check_box"
+            data-error=""
+            style="min-height: auto;"
+          >
+            <jky-checkbox class="jky-checkbox_ jky-checkbox">
+                <label class="jky-checkbox">
+                    <span class="jky-checkbox-input">
+                      <input type="checkbox" class="jky-checkbox-original" data-value="agree_recevie">
+                      <span class="jky-checkbox-inner"></span>
+                    </span>
+
+                    <span class="jky-checkbox-label">
+                      <span class="jky-agree">
+                        {{ 'newCustomer.declaration' | t }}
+                        <a href="/policies/terms-of-service">{{ 'newCustomer.terms_of_ues' | t }}</a> {{ 'newCustomer.and' | t }} <a href="/policies/privacy-policy">{{ 'newCustomer.privacy_policy' | t }}</a>
+                        {{ 'newCustomer.jackery_zu' | t }}
+                      </span>
+                    </span>
+                </label>
+            </jky-checkbox>
+          </div>
+        </div>
+      </div>
+
+
+      {% comment %} 新增券码包页面 {% endcomment %}
+      <div class="coupon-pkg-wrap display-none" data-coupon-pkg-wrap>
+        <h2
+          class="
+            title mx-auto font-semibold text-center
+            w-full text-44 leading-52 text-#222
+            lg:w-[90%] lg:j-text-32 lg:j-leading-40 lg:text-#333
+            xl:a-text-32 xl:a-leading-40
+          "
+          data-coupon-pkg-title
+        ></h2>
+        <h3
+          class="
+            subtitle mx-auto font-medium text-center text-#333
+            w-full text-28 leading-34 mt-8
+            lg:w-[90%] lg:j-text-16 lg:j-leading-20 lg:j-mt-6
+            xl:a-text-16 xl:a-leading-20 xl:a-mt-6
+          "
+        ></h3>
+
+        <ul
+          class="
+              mx-auto flex content-start flex-wrap overflow-y-auto w-[120%] h-580 my-48
+              lg:j-w-400 lg:j-h-300 lg:j-my-15 lg:j-gap-y-8 lg:j-pl-0
+              xl:a-w-400 xl:a-h-300 xl:a-my-15 xl:a-gap-y-8 xl:a-pl-0
+          "
+          data-coupon-pkg-list-wrap
+          data-order-over="{{ 'newCustomer.order_over' | t }}"
+          data-no-minimum="{{ 'newCustomer.no_minimum' | t }}"
+          data-copy-success="{{ 'newCustomer.copy_success' | t }}"
+          data-has-expired="{{ 'newCustomer.has_expired' | t  }}"
+          data-not-valid="{{ 'newCustomer.not_valid' | t  }}"
+          data-no-valid-time="{{ 'newCustomer.no_valid_time' | t }}"
+        ></ul>
+
+        <div class="flex-center flex-wrap gap-24 lg:j-gap-16 xl:a-gap-16">
+          <button
+            class="
+              rounded-full border-solid border-primary bg-primary/10 font-semibold text-primary
+              px-52 min-w-260 max-w-670 h-80 text-30 border-2 hover:text-white hover:bg-primary transition-all duration-300
+              lg:j-px-24 lg:j-min-w-145 lg:j-h-36 lg:j-text-16 lg:j-border-2
+              xl:a-px-24 xl:a-min-w-145 xl:a-h-36 xl:a-text-16 xl:a-border-2
+            "
+            data-coupon-pkg-wallet-btn
+          >{{ 'newCustomer.my_wallet' | t }}</button>
+          <button
+            class="
+              rounded-full border-solid border-primary bg-white font-semibold text-primary
+              px-52 min-w-260 max-w-670 h-80 text-30 border-2 hover:text-white hover:bg-primary transition-all duration-300
+              lg:j-px-24 lg:j-min-w-145 lg:j-h-36  lg:j-text-16 lg:j-border-2
+              xl:a-px-24 xl:a-min-w-145 xl:a-h-36  xl:a-text-16 xl:a-border-2
+            "
+            data-coupon-pkg-explore-btn
+          ></button>
+        </div>
+
+        <div
+          class="
+            mx-auto font-medium text-#666
+            w-670 text-28 leading-36 mt-30
+            lg:j-w-660 lg:j-text-14 lg:j-leading-20 lg:j-mt-20
+            xl:a-w-660 xl:a-text-14 xl:a-leading-20 xl:a-mt-20
+          "
+        >
+          <p class="coupon-pkg-more-text">
+            <span data-coupon-pkg-more-text></span>
+            <span
+              class="text-primary"
+              data-more="{{ 'newCustomer.pkg_more' | t }}"
+              data-retract="{{ 'newCustomer.pkg_retract' | t }}"
+              data-coupon-pkg-more-btn
+            >
+            {{ 'newCustomer.pkg_more' | t }} <i data-more-arrow></i>
+            </span>
+          </p>
+        </div>
+
+        {% comment %} rules tip {% endcomment %}
+        <div class="coupon-pkg-rules-tip">
+          <h3
+            class="
+              font-bold border-solid border-#DDDDDD text-#666
+              text-40 leading-44 pb-16 border-b-1 border-t-0 border-l-0 border-r-0
+              lg:j-text-22 lg:j-leading-24 lg:j-pb-8 lg:j-border-b-1
+              xl:a-text-22 xl:a-leading-24 xl:a-pb-8 xl:a-border-b-1
+            "
+          >{{ 'newCustomer.rules' | t }}</h3>
+          <ol
+            class="
+              font-medium text-#444 mt-20 text-28 leading-40 max-h-375 overflow-y-auto
+              lg:j-mt-16 lg:j-text-16 lg:j-leading-24 lg:j-max-h-330
+              xl:a-mt-16 xl:a-text-16 xl:a-leading-24 xl:a-max-h-330
+            "
+          >
+            <li class="highlight">
+              <span class="item-icon"></span>
+              <span class="J-newCustomer-order-over">{{ 'newCustomer.order_over' | t }} <span class="J-newCustomer-limit"></span></span>
+              <span class="J-newCustomer-no-minimum">{{ 'newCustomer.no_minimum' | t }}</span>
+            </li>
+            <li>
+              <span class="item-icon"></span>
+              <span class="J-newCustomer-valid-time">{{ 'newCustomer.valid_time' | t }}: <span class="J-newCustomer-time"></span></span>
+              <span class="J-newCustomer-no-valid-time">{{ 'newCustomer.no_valid_time' | t }}</span>
+            </li>
+            <li>
+              <span class="item-icon"></span>
+              <span class="J-newCustomer-couponTip" data-coupon-tip="{{ 'newCustomer.coupons_tip' | t }}" data-exclud-tip="{{ 'newCustomer.coupons_tip_exclud' | t }}"></span>
+            </li>
+            <li>
+              <span class="item-icon"></span>
+              <span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</span>
+            </li>
+            <li>
+              <span class="item-icon"></span>
+              <span>{{ 'newCustomer.check_email' | t }}</span>
+            </li>
+            <li>
+              <span class="item-icon"></span>
+              <span>{{ 'newCustomer.checkout_tip' | t }}</span>
+            </li>
+          </ol>
+          <span class="angle"></span>
+        </div>
+
+        {% comment %} error-tip {% endcomment %}
+        <div
+          class="
+            display-none absolute left-1/2 top-1/2 -translate-1/2 bg-#FFF0EF border border-solid border-#FFABA6
+            w-600 min-h-104 rounded-10 p-32
+            lg:j-w-480 lg:j-min-h-58 lg:j-rounded-6 lg:j-px-24 lg:j-py-16
+            xl:a-w-480 xl:a-min-h-58 xl:a-rounded-6 xl:a-px-24 xl:a-py-16
+          "
+          data-coupon-pkg-error-tip
+        >
+          <div class="flex items-start gap-x-16 lg:j-gap-x-12 xl:a-gap-x-12">
+            <div
+              class="shrink-0 w-40 h-40 lg:j-w-18 lg:j-h-18 lg:j-mt-4 xl:a-w-18 xl:a-h-18 xl:a-mt-4"
+              style="background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAAAXNSR0IArs4c6QAAA1tJREFUWEfNWN9rHFUYPWdmQ0lNwb70oTtZg8YWX0qxoJj0hxU2cXd9UbAoGP+Bqi0UBBUqCloQC4bqP5AIioK+uLuxC6Yau6WCUnwpSSttdic++GIxtUE2M0fmzibkx9LN3G1hLwwMO/eePfece7/vu5dI2DST2YnbYQFiFlAG0G4A0RO1PwFGTw1UBX1OkYdqfyf5C261s8re8wjxOqhDElJbGUdiGeIMHJxjzv92S2PadVIpMwwFHwkYatf3bt8JVEH3TeZrF9v0a/1ZetFF+dJZSSc6IbJxLMlx5J46RX4dtMJtaZmmBx7EUuMrCdl7SWYFi0QFvT3HePTmrU2EN/5gyNxpVAU8dj/IrJICrmJ7z9BGUusUim2qlu+XMpvtQwW5odxa+9YTKnmf3Os1007laE0x759co1z8qnLmoMJgph1Ai1nOwsEpBC7B4GMJe5NjuAdXdt+qQiqmL9psbaacIxyt/2Qm9X3/YS2HPyYmBFRZWBiOxhlCUdBTqG+SAhmAVOphjs7fiHEGBhQ2zHvSRocvRMEzJlT0fhB0NCmIIeSmDvDZ+d8MztRDjytY/tUKB5xmwX+GJjctBn9tNR1sjhvuCAu1SjyxTFYIzlsRitLMDncXNZUeU4AJGxCjkOO8zFz9y9iy/pcUhl9YY7l4lSp6E4LGrEHgvMZC/bNYof7jQvipPRYnqZI3LelpaxDyXeb99w2hknda0nsdYF2gSulZCXs6AFkNbCp644LesMfCXERoUUKfNQj4OQu+sVxFb1LQK9ZYxG2qmP5HwA57EJaZ9/NNy0qSctZYwGLnloG/sOA/2VTosqAnrAnRWNbxov6DeX+wqdB1SY/YE+KFzrd9FNAcd78hEQZXbAOsiWl0JjoOjAYICI1CgGOrThxkOdZx6mgSutokZF1lmhNKlDqai9E+uRLvML/wYbyG0m9L+MBGJa4k1zgH2ZUfxir2bmf++n8xocFt0NIdG+vWlR+xSpYFWg/3cMS/ZjDOe4+qobmkCkVntnUFWjy7zLAU/JwYjPwdxFtmnHBG0r7kGC1K2GYc6Z4i3xDqtmOQIdVNB8UV77vqKL1KqpsuG9bukq65jtm4dbvmwmoTsejY9G/wHAJmQfS3vNIT6nBVwQPud0mv9P4HB3mzTnU74V4AAAAASUVORK5CYII=) center center /contain no-repeat"
+            ></div>
+            <div
+              class="error-tip-text font-medium text-#333 text-30 leading-40 lg:j-text-18 lg:j-leading-26 xl:a-text-18 xl:a-leading-26"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      {% comment %} joined {% endcomment %}
+      <div class="customer-has-join J-newCustomer-joined display-none">
+        <div
+          class="
+            title mx-auto font-semibold text-center
+            w-full text-44 leading-52 text-#222
+            lg:w-[90%] lg:j-text-32 lg:j-leading-40 lg:text-#333
+            xl:a-text-32 xl:a-leading-40
+          "
+        ></div>
+        <div
+          class="
+            subtitle mx-auto font-medium text-center text-#333
+            w-full text-28 leading-34 mt-8
+            lg:w-[90%] lg:j-text-16 lg:j-leading-20 lg:j-mt-6
+            xl:a-text-16 xl:a-leading-20 xl:a-mt-6
+          "
+        ></div>
+        <div class="awards-show">
+          <img class="J-customer-product-url" src="" alt="">
+        </div>
+        <div class="code-tip J-code-tip display-none">
+          <div class="name display-none">Product namext name</div>
+          <div>
+            <span>{{ 'newCustomer.copy_code' | t }}</span>
+            <span class="customer-code">
+              <span class="J-newCustomer-code"></span>
+              <span class="copy-tip J-newCustomer-code-tip">{{ 'newCustomer.copy_success' | t }}</span>
+            </span>
+          </div>
+        </div>
+        <div class="coupon-text J-newCustomer-joined-virtualText display-none"></div>
+        <div class="option-button display-none">
+          <div class="J-newCustomer-left"></div>
+          <div class="J-newCustomer-right"></div>
+        </div>
+        <div class="virtual-explain J-newCustomer-joined-virtualExplain display-none"></div>
+        <div class="coupon-text J-newCustomer-coupon-text display-none" data-more-text="{{ 'newCustomer.more' | t }}">
+          <div class="coupon display-none">
+            <div class="PC-show">
+              <div class="coupon-wrap">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span>
+                      {% if shop.id != 10015375438 %}
+                        {{ 'newCustomer.order_over' | t }} <span class="J-newCustomer-limit"></span>
+                      {% else %}
+                        <span class="J-newCustomer-limit"></span>{{ 'newCustomer.order_over' | t }}
+                      {% endif %}
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_minimum' | t }}</span>
+                </div>
+                <div class="coupon-item">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>
+                  <span class="J-newCustomer-couponTip" data-coupon-tip="{{ 'newCustomer.coupons_tip' | t }}" data-exclud-tip="{{ 'newCustomer.coupons_tip_exclud' | t }}"></span>
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div>
+                {% comment %} <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div> {% endcomment %}
+              </div>
+
+              <div class="toolTip">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span>
+                    {% if shop.id != 10015375438 %}
+                      {{ 'newCustomer.order_over' | t }} <span class="J-newCustomer-limit"></span>
+                    {% else %}
+                      <span class="J-newCustomer-limit"></span>{{ 'newCustomer.order_over' | t }}
+                    {% endif %}
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_minimum' | t }}</span>
+                </div>
+                <div class="coupon-item">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span><span class="J-newCustomer-couponTip" data-coupon-tip="{{ 'newCustomer.coupons_tip' | t }}" data-exclud-tip="{{ 'newCustomer.coupons_tip_exclud' | t }}"></span></div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div>
+              </div>
+            </div>
+            <div class="Mob-show">
+              <div class="coupon-item highlight">
+                <span class="over-wrap">
+                  <span class="item-icon"></span>
+                    {% if shop.id != 10015375438 %}
+                      {{ 'newCustomer.order_over' | t }} <span class="J-newCustomer-limit"></span>
+                    {% else %}
+                      <span class="J-newCustomer-limit"></span>{{ 'newCustomer.order_over' | t }}
+                    {% endif %}
+                </span>
+                <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_minimum' | t }}</span>
+              </div>
+              <div class="coupon-item">
+                <span class="over-wrap">
+                  <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                </span>
+                <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+              </div>
+              <div class="coupon-item"><span class="item-icon"></span><span class="J-newCustomer-couponTip" data-coupon-tip="{{ 'newCustomer.coupons_tip' | t }}" data-exclud-tip="{{ 'newCustomer.coupons_tip_exclud' | t }}"></span></div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div>
+            </div>
+          </div>
+          <div class="sku-coupon display-none">
+            <div class="PC-show">
+              <div class="coupon-wrap">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div>
+                {% comment %} <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div> {% endcomment %}
+              </div>
+
+              <div class="toolTip">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div>
+              </div>
+            </div>
+            <div class="Mob-show">
+              <div class="coupon-item highlight">
+                <span class="over-wrap">
+                  <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                </span>
+                <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+              </div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.check_email' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.checkout_tip' | t }}</div>
+            </div>
+          </div>
+          <div class="card display-none">
+            <div class="PC-show">
+              <div class="coupon-wrap">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>{{ 'newCustomer.card_no_minimum' | t }}
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div>
+                {% comment %} <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_all_applies' | t }}</div>
+                <div class="coupon-item">
+                  <span class="item-icon"></span>{{ 'newCustomer.card_send_gift' | t }}
+                  <span class="more">{{ 'newCustomer.more' | t }}</span>
+                </div> {% endcomment %}
+              </div>
+              <div class="toolTip">
+                <div class="coupon-item highlight">
+                  <span class="over-wrap">
+                    <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                  </span>
+                  <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+                </div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_no_minimum' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_all_applies' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_send_gift' | t }}</div>
+                <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_check_email' | t }}</div>
+              </div>
+            </div>
+            <div class="Mob-show">
+              <div class="coupon-item highlight">
+                <span class="over-wrap">
+                  <span class="item-icon"></span><span>{{ 'newCustomer.valid_time' | t }}: </span><span class="J-newCustomer-time"></span>
+                </span>
+                <span class="no-minimum-wrap display-none"><span class="item-icon"></span>{{ 'newCustomer.no_valid_time' | t }}</span>
+              </div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.only_usable' | t }} <span class="J-newCustomer-cr"></span> {{'newCustomer.usable_site' | t}}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_no_minimum' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_all_applies' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_send_gift' | t }}</div>
+              <div class="coupon-item"><span class="item-icon"></span>{{ 'newCustomer.card_check_email' | t }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="customer-recaptcha-box J-customer-recaptcha display-none">
+        <div
+          class="
+            title mx-auto font-semibold text-center
+            w-full text-44 leading-52 text-#222
+            lg:w-[90%] lg:j-text-32 lg:j-leading-40 lg:text-#333
+            xl:a-text-32 xl:a-leading-40
+          "
+        ></div>
+        <div id="new-customer-robot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ 'plugin-new-customer-pop.min.js' | asset_url }}" defer></script>

@@ -1,0 +1,933 @@
+<style>
+    jky-tabs .action-btn {
+        opacity: 0!important;
+    }
+</style>
+
+{%- if list.size > 0 -%}
+<style>
+    .product-detail-new .produc-detail--content .inner--container {height: auto;}
+    .page-container {
+        width: 1440px;
+        margin: 0 auto;
+        max-width: 100%;
+    }
+    .hide-wrapper {
+        transform: translateY(-110%);
+    }
+    .show-wrapper {
+        transform: translateY(0);
+        transition: transform .23s ease;
+    }
+    .activity-tabs-box {
+        display: none;
+        padding: 0 40px;
+        position: sticky;
+        top: -1px;
+        z-index: 98;
+        width: 100%;
+        border-bottom: 1px solid rgba(210, 248, 253, 0.3);
+        transition: all 0.2s ease-in-out;
+    }
+    .activity-tabs-box .activity-main-container{
+        width: 1360px;
+        margin: 0 auto;
+    }
+    .activity-tabs-box.inverted {
+        background: rgba(0, 0, 0, 0.6);
+        border-bottom: 1px solid rgba(210, 248, 253, 0.3);
+    }
+    .activity-tabs-box.inverted .subnav-list {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .activity-tabs-box .activity-tabs-container {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 64px;
+    }
+    .activity-tabs-box .activity-tabs-container jky-tabs {
+        display: none;
+    }
+    .activity-tabs-box .activity-tabs-container .subnav-list {
+        display: flex;
+        /*gap: 32px;*/
+        font-size: 16px;
+        font-weight: 600;
+        text-align: center;
+        height: 100%;
+        align-items: center;
+        transition: color 0.3s ease;
+        color: rgba(0, 0, 0, 0.5);
+    }
+    .activity-tabs-box .subnav-list .navli {
+        height: 44px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        position: relative;
+        padding: 10px 20px;
+        color: var(--text-color);
+        font-weight: 400;
+    }
+    .activity-tabs-box .subnav-list .navli::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: transparent;
+    }
+    .activity-tabs-box .subnav-list .navli.active {
+        color: var(--active-text);
+        border-radius: 24px;
+        background: var(--active-bg-color);
+        font-weight: 600;
+    }
+    @media screen and (max-width: 1440px) {
+        .page-container {
+            width: 100%;
+        }
+        .activity-tabs-box .activity-main-container{
+            width: 94.444444vw;
+        }
+        .activity-tabs-box .activity-tabs-container {
+            height: 4.4444vw;
+            padding: 0 2.777778vw;
+            gap: 4.4444vw;
+        }
+        .activity-tabs-box .subnav-list {
+            gap: 2.083333vw;
+            font-size: 1.11111vw;
+        }
+        .activity-tabs-box .subnav-list .navli {
+            height: 3.0555556vw;
+            padding: 0.69444444vw 1.38888889vw;
+        }
+    }
+    @media screen and (max-width: 1024px) {
+        .activity-tabs-box {
+            padding: 0;
+        }
+        .activity-tabs-box .activity-main-container{
+            width: 100%;
+        }
+        .activity-tabs-box .activity-tabs-container .subnav-list {
+            overflow-x: auto;
+            width: 100%;
+            display: flex;
+            gap: 4.266667vw;
+            font-size: 3.733333vw;
+            font-weight: 600;
+            text-align: center;
+            height: 12.8vw;
+            align-items: center;
+            transition: color 0.3s ease;
+            color: rgba(0, 0, 0, 0.5);
+            padding: 0 6.4vw;
+        }
+        .activity-tabs-box .activity-tabs-container {
+            height: 12.8vw;
+            padding: 0;
+            gap: 0;
+            border-bottom: transparent;
+            flex-direction: column;
+            align-items: start;
+        }
+        .five-title{
+            padding: 0 4.266667vw 0 6.4vw;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 13.33333vw;
+            border-bottom: solid 1px rgba(0,0,0,0.12);
+        }
+        .activity-tabs-box .activity-tabs-container .subnav-list {
+            display: none;
+        }
+        .activity-tabs-box .activity-tabs-container jky-tabs {
+            display: block;
+            width: 100%;
+        }
+        .activity-tabs-box .activity-tabs-container jky-tabs .jky-tabs-scroll .activity-tabs-item {
+            padding: 2.8vw 2.666666667vw;
+            font-size: 3.73333vw;
+            white-space: nowrap;
+        }
+        .activity-tabs-box .activity-tabs-container jky-tabs .jky-tabs-scroll .next-action {
+            width: 10.66667vw;
+            padding-right: 6px;
+            /*right: -6.4vw;*/
+        }
+        .activity-tabs-box .activity-tabs-container jky-tabs .jky-tabs-scroll .next-action svg {
+            width: 2.13333vw;
+            height: 2.13333vw;
+        }
+        .activity-tabs-box .activity-tabs-container jky-tabs .jky-tabs-scroll .prev-action {
+            width: 10.66667vw;
+
+        }
+        .activity-tabs-box .activity-tabs-container jky-tabs .jky-tabs-scroll .prev-action svg {
+            width: 2.13333vw;
+            height: 2.13333vw;
+        }
+    }
+    .activity-tabs-box jky-tabs {
+        height: 100%;
+        max-height: 12.8vw;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll {
+        position: relative;
+        height: 100%;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .jky-tabs-scroll-inner {
+        position: relative;
+        height: 12.8vw;
+        padding: 0 6.4vw;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap;
+        will-change: auto;
+        gap: 30px;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .activity-inner-w {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        will-change: auto;
+        position: relative;
+        height: 10.6666667vw;
+        gap: 16px;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .inner-w {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        will-change: auto;
+        position: relative;
+        height: 10.6666667vw;
+        gap: 16px;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .activity-tabs-item {
+        display: flex;
+        align-items: center;
+        font-size: 2.13333vw;
+        font-weight: 400;
+        color: var(--text-color);
+        transition: color 0.24s ease-in-out;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .activity-tabs-item.active {
+        color: var(--active-text);
+        font-weight: 600;
+        background: var(--active-bg-color);
+        border-radius: 5.3333333333vw;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .next-action {
+        position: absolute;
+        height: 100%;
+        top: 0;
+        right: 0;
+        width: 10.66667vw;
+        background: linear-gradient(267deg, #FFFFFF 61%, rgba(255, 255, 255, 0) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-right: 20px;
+        transition: opacity 0.24s ease;
+        z-index: 2;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .next-action svg {
+        width: 2.66667vw;
+        height: 2.66667vw;
+        cursor: pointer;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .next-action.unvisible {
+        opacity: 0;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .prev-action {
+        position: absolute;
+        height: 100%;
+        top: 0;
+        width: 10.66667vw;
+        background: linear-gradient(267deg, #FFFFFF 60%, rgba(255, 255, 255, 0) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: rotate(180deg);
+        transition: opacity 0.24s ease;
+        z-index: 2;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .prev-action svg {
+        width: 2.66667vw;
+        height: 2.66667vw;
+        cursor: pointer;
+    }
+    .activity-tabs-box jky-tabs .jky-tabs-scroll .prev-action.unvisible {
+        opacity: 0;
+    }
+    .activity-tabs-box.inverted jky-tabs .jky-tabs-scroll .activity-tabs-item:not(.active) {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .activity-tabs-box.inverted jky-tabs .jky-tabs-scroll .next-action {
+        background: linear-gradient(267deg, #000000 61%, rgba(0, 0, 0, 0) 100%);
+    }
+    .activity-tabs-box.inverted jky-tabs .jky-tabs-scroll .prev-action {
+        background: linear-gradient(267deg, #000000 61%, rgba(0, 0, 0, 0) 100%);
+    }
+    .activity-tabs-box.inverted jky-tabs .jky-tabs-scroll svg path {
+        fill: rgba(255, 255, 255, 0.5);
+    }
+</style>
+
+<div size="{{list.size}}" class="activity-tabs-box five-kwh-tab cal_scroll_target hide-wrapper" style="background: {{ tab_bg_color }}">
+    <div class="product-detail-variants activity-main-container">
+        <div class="activity-tabs-container">
+            <ul class="subnav-list relative J-tabs-point flex" style="--translate-filters-slider: 0%;--translate-filters-w: {{bar_tran_w}}%;">
+                {%- for item in list -%}
+                    {%- assign item_id = list_id[forloop.index0] -%}
+                    {%- assign show_type = show_type_list[forloop.index0] -%}
+                    {%- if show_type != 'mb' -%}
+                    <li
+                            data-ga-event="activity_page_user_clicks"
+                            data-ga-action="click"
+                            data-ga-params-current_page=""
+                            data-ga-params-module="Directory"
+                            data-ga-params-position="{{ item }}"
+                            class="navli {% if forloop.index0 == 0 %} active{% endif %}" data-cate="product_tab_{{forloop.index0}}"  data-id="{{item_id | url_decode | strip | replace: ' ', ''}}" style="--text-color: {{ text_color }};--active-text:{{ text_active_color }};--active-bg-color:{{ tab_active_color }}">{{ item }}</li>
+                    {% endif %}
+                {%- endfor -%}
+            </ul>
+            <jky-tabs data-type="activity-tab">
+                <div class="jky-tabs-scroll">
+                    <div class="jky-tabs-scroll-inner">
+                        <div class="activity-inner-w">
+                            {%- for item in list -%}
+                                {%- assign item_id = list_id[forloop.index0] -%}
+                                {%- assign show_type = show_type_list[forloop.index0] -%}
+                                {%- if show_type != 'pc' -%}
+                                <div class="activity-tabs-item {% if forloop.index0 == 0 %} active curr_tab{% endif %}"
+                                    data-ga-event="activity_page_user_clicks"
+                                    data-ga-action="click"
+                                    data-ga-params-current_page=""
+                                    data-ga-params-module="Directory"
+                                    data-ga-params-position="{{ item }}"
+                                    data-show-type="{{ show_type }}"
+                                    data-cate="product_tab_{{forloop.index0}}"  data-id="{{item_id | url_decode | strip | replace: ' ', ''}}" style="--text-color: {{ text_color }};--active-text:{{ text_active_color }};--active-bg-color:{{ tab_active_color }}">{{item}}</div>
+                                {% endif %}
+                            {%- endfor -%}
+                        </div>
+                    </div>
+                </div>
+            </jky-tabs>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        document.querySelectorAll(".five-kwh-tab .J-tabs-point li").forEach((el) => {
+            el.setAttribute("data-ga-params-current_page", window.location.href);
+        });
+        document.querySelectorAll(".five-kwh-tab .activity-tabs-item").forEach((el) => {
+            el.setAttribute("data-ga-params-current_page", window.location.href);
+        });
+        let scrolling = false
+        function throttle(fn, delay) {
+            let timer;
+            return function () {
+                if (!timer) {
+                    timer = setTimeout(() => {
+                        fn.apply(this, arguments);
+                        timer = null;
+                    }, delay);
+                }
+            }
+        }
+        const tabs_is_mobile = window.innerWidth < 1024;
+        const cssEscape = (value) => {
+            if (window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value);
+            return String(value).replace(/"/g, '\\"');
+        };
+
+        const animateScrollTop = (targetTop, duration, cb) => {
+            const startTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+            const diff = targetTop - startTop;
+
+            if (window.__activityTabScrollCancel) window.__activityTabScrollCancel();
+            let cancelled = false;
+            window.__activityTabScrollCancel = () => { cancelled = true; };
+
+            if (duration <= 0) {
+                window.scrollTo(0, targetTop);
+                cb && cb();
+                return;
+            }
+
+            const startTime = performance.now();
+            const step = (now) => {
+                if (cancelled) return;
+                const t = Math.min(1, (now - startTime) / duration);
+                const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                window.scrollTo(0, startTop + diff * eased);
+                if (t < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    cb && cb();
+                }
+            };
+            requestAnimationFrame(step);
+        };
+
+        if (!tabs_is_mobile) {
+            const tabBoxEl = document.querySelector('.activity-tabs-box');
+            const tabPointEl = document.querySelector('.five-kwh-tab .J-tabs-point');
+            const tabLis = Array.from(document.querySelectorAll('.five-kwh-tab .J-tabs-point li'));
+            const tabLiLength = tabLis.length || 1;
+
+            const setPcActive = (liEl) => {
+                const index = tabLis.indexOf(liEl);
+                tabLis.forEach((el) => el.classList.remove('active'));
+                liEl.classList.add('active');
+                if (tabPointEl) {
+                    tabPointEl.style.setProperty('--translate-filters-slider', `${index * 100 / tabLiLength}%`);
+                }
+            };
+
+            const getAnchorTop = (anchorId) => {
+                const anchorEl = document.querySelector(`[anchor="${cssEscape(anchorId)}"]`);
+                const tabHeight = tabBoxEl ? tabBoxEl.getBoundingClientRect().height : 0;
+                if (!anchorEl) return 0;
+                return anchorEl.getBoundingClientRect().top + (window.pageYOffset || 0) - tabHeight;
+            };
+
+            const onPcTabClick = (liEl, opts) => {
+                if (!liEl) return;
+                const urlHashJump = opts && opts.urlHashJump;
+                const d_id = liEl.getAttribute("data-id");
+
+                setPcActive(liEl);
+
+                if (urlHashJump) {
+                    scrolling = true;
+                    setTimeout(() => {
+                        const top = getAnchorTop(d_id);
+                        animateScrollTop(top, 0, () => {
+                            scrolling = false;
+                        });
+                    }, 1000);
+                    return;
+                }
+
+                scrolling = true;
+                const top = getAnchorTop(d_id);
+                animateScrollTop(top, 500, () => {
+                    scrolling = false;
+                });
+
+                const url = new URL(location.href);
+                url.searchParams.set('hash', d_id);
+                window.history.replaceState(null, '', url);
+            };
+
+            tabLis.forEach((liEl) => {
+                liEl.addEventListener('click', (e) => {
+                    e && e.preventDefault && e.preventDefault();
+                    onPcTabClick(liEl);
+                });
+            });
+
+            const hash = location.hash.replace("#", "") || new URLSearchParams(location.search).get('hash');
+            if (hash) {
+                setTimeout(() => {
+                    const targetLi = tabLis.find((liEl) => liEl.getAttribute('data-id') === hash);
+                    if (targetLi) onPcTabClick(targetLi, { urlHashJump: true });
+                }, 200)
+            }
+
+            const variantChangeEventListener = (e) => {
+                if (e.detail && e.detail.variant) {
+                    const sectionId = document.querySelector(".activity-main-container")?.getAttribute("section-id") || '';
+                    fetch(`${location.pathname}?variant=${e.detail.variant.id}&section_id=${sectionId}`)
+                        .then((response) => response.text())
+                        .then((responseText) => {
+                            const html = new DOMParser().parseFromString(responseText, 'text/html')
+
+                            document.querySelectorAll(".activity-main-container .product-detail__variant_block").forEach((block, index) => {
+                                const variant_block = html.querySelectorAll(".activity-main-container .product-detail__variant_block")
+
+                                variant_block[index] && (block.innerHTML = variant_block[index].innerHTML)
+                                if (variant_block[index]) {
+                                    block.innerHTML = variant_block[index].innerHTML
+                                    if (!variant_block[index].innerHTML) {
+                                        block.classList.add("product-detail__textpic_block_empty")
+                                    } else {
+                                        block.classList.remove("product-detail__textpic_block_empty")
+                                    }
+                                }
+                            })
+                        })
+                }
+            };
+            document.addEventListener('variantChangeEvent', variantChangeEventListener);
+
+            const allHeights = function () {
+                const allHeight = []
+                const uls = document.querySelectorAll(".activity-main-container [anchor]:not([anchor=''])");
+                Array.from(uls).forEach((v) => {
+                    const key = v.getAttribute("anchor")
+                    allHeight.push({
+                        collection: key,
+                        value: v.getBoundingClientRect().top + window.pageYOffset - 40
+                    })
+                });
+                return allHeight
+            }
+
+            window.addEventListener("scroll", throttle(() => {
+                const allHeightNew = allHeights()
+                if (scrolling) return
+
+                const yScroll = window.pageYOffset || document.documentElement.scrollTop;
+                const viewCollection = allHeightNew.find((item, index) => {
+                    if (index === allHeightNew.length - 1) {
+                        return yScroll >= item.value - (tabBoxEl ? tabBoxEl.getBoundingClientRect().height : 0)
+                    }
+                    const tabH = tabBoxEl ? tabBoxEl.getBoundingClientRect().height : 0;
+                    return yScroll >= item.value - tabH && yScroll <= allHeightNew[index + 1]["value"] - tabH - 40
+                })
+                if (viewCollection) {
+                    const targetLi = document.querySelector(`.five-kwh-tab .J-tabs-point li[data-id="${cssEscape(viewCollection.collection)}"]`);
+                    if (targetLi) setPcActive(targetLi);
+                }
+            }, 80))
+        }
+
+        const bindActivityTabMobileFallback = () => {
+            document.querySelectorAll('jky-tabs[data-type="activity-tab"]').forEach((tabsEl) => {
+                if (tabsEl.dataset.activityTabBound) return;
+                tabsEl.dataset.activityTabBound = 'true';
+
+                const scrollItemToCenter = (itemEl) => {
+                    if (!itemEl) return;
+                    const container = tabsEl.querySelector('.jky-tabs-scroll-inner');
+                    const inner = tabsEl.querySelector('.activity-inner-w');
+                    if (!container || !inner) return;
+                    if (inner.scrollWidth <= container.clientWidth) return;
+
+                    const tabRect = itemEl.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    let targetLeft = container.scrollLeft + (tabRect.left - containerRect.left) - (containerRect.width / 2 - tabRect.width / 2);
+                    const maxLeft = Math.max(0, container.scrollWidth - container.clientWidth);
+                    targetLeft = Math.max(0, Math.min(maxLeft, targetLeft));
+
+                    if (container.__activityTabScrollLeftCancel) container.__activityTabScrollLeftCancel();
+                    let cancelled = false;
+                    container.__activityTabScrollLeftCancel = () => { cancelled = true; };
+                    const startLeft = container.scrollLeft;
+                    const diff = targetLeft - startLeft;
+                    const startTime = performance.now();
+                    const duration = 260;
+                    const step = (now) => {
+                        if (cancelled) return;
+                        const t = Math.min(1, (now - startTime) / duration);
+                        const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                        container.scrollLeft = startLeft + diff * eased;
+                        if (t < 1) requestAnimationFrame(step);
+                    };
+                    requestAnimationFrame(step);
+                };
+
+                tabsEl.addEventListener('click', (e) => {
+                    const itemEl = e.target && e.target.closest ? e.target.closest('.activity-tabs-item') : null;
+                    if (!itemEl || !tabsEl.contains(itemEl)) return;
+
+                    if (window.__activityTabScrollCancel) window.__activityTabScrollCancel();
+                    tabsEl.querySelectorAll('.activity-tabs-item').forEach((el) => {
+                        el.classList.remove('curr_tab');
+                        el.classList.remove('active');
+                    });
+                    itemEl.classList.add('active', 'curr_tab');
+
+                    const items = Array.from(tabsEl.querySelectorAll('.activity-tabs-item'));
+                    const index = items.indexOf(itemEl);
+                    const length = items.length || 1;
+                    const innerW = tabsEl.querySelector('.activity-inner-w');
+                    innerW && innerW.style.setProperty('--translate-filters-slider', `${index * 100 / length}%`);
+
+                    const dataId = itemEl.getAttribute('data-id') || '';
+                    const anchorEl = document.querySelector(`[anchor="${cssEscape(dataId)}"]`);
+                    const tabHeight = tabsEl.closest('.five-kwh-tab')?.getBoundingClientRect().height || 0;
+                    const top = anchorEl ? anchorEl.getBoundingClientRect().top + (window.pageYOffset || 0) - tabHeight : 0;
+                    scrolling = true;
+                    animateScrollTop(top, 500, () => {
+                        scrolling = false;
+                    });
+
+                    scrollItemToCenter(itemEl);
+                }, true);
+            });
+        };
+
+        if (tabs_is_mobile && customElements.get('jky-tabs')) {
+            bindActivityTabMobileFallback();
+        }
+
+        if (!customElements.get('jky-tabs') && tabs_is_mobile) {
+            customElements.define('jky-tabs', class JkyTabs extends HTMLElement {
+                constructor() {
+                    super();
+                    this.selectors = {
+                        container: this.querySelector(".jky-tabs-scroll-inner")
+                    }
+                    this.isProdctTab = !this.getAttribute("data-type")
+                    this.dragging = false
+                    this.curYPos = 0
+                    this.curXPos = 0
+                    this.isMobile = window.innerWidth < 1024;
+                    this.onmousedown_event = this.isMobile ? 'ontouchstart' : 'onmousedown'
+                    this.onmouseup_event = this.isMobile ? 'touchend' : 'onmouseup'
+                    this.onmousemove_event = this.isMobile ? 'touchmove' : 'mousemove'
+                    this.init()
+                }
+
+                init() {
+                    this.move();
+                    this.listenerScroll();
+                    this.stopScroll();
+                    let this_ = this
+                    this.querySelectorAll(".activity-tabs-item").forEach(item => {
+                        let dataId = item.getAttribute("data-id")
+                        item.addEventListener("click", (e) => {
+                            // 区分拖拽和点击操作
+                            if (this.endtime - this.startime < 300 || !e.pointerType) {
+                                if (window.__activityTabScrollCancel) window.__activityTabScrollCancel();
+                                this.querySelectorAll(".activity-tabs-item").forEach((el) => {
+                                    el.classList.remove("curr_tab");
+                                    el.classList.remove("active");
+                                });
+                                item.classList.add("active", "curr_tab")
+
+                                const items = Array.from(this.querySelectorAll(".activity-tabs-item"));
+                                const index = items.indexOf(item);
+                                scrolling = true
+                                const anchorEl = document.querySelector(`[anchor="${dataId ? dataId.replace(/"/g, '\\"') : ''}"]`);
+                                const tabHeight = document.querySelector(".cal_scroll_target")?.getBoundingClientRect().height || 0;
+                                const _top = anchorEl ? anchorEl.getBoundingClientRect().top + (window.pageYOffset || 0) - tabHeight : 0;
+                                animateScrollTop(_top, 500, () => {
+                                    scrolling = false
+                                });
+                                this_.scrollItemToCenter(item)
+
+
+                                if (this_.isProdctTab) {
+                                    const innerContainer = document.querySelector(".produc-detail--content .inner--container");
+                                    innerContainer && innerContainer.style.setProperty('--translate-active', index);
+
+                                    const contentItems = Array.from(document.querySelectorAll(".produc-detail--contetn_item"));
+                                    contentItems.forEach((el, i) => {
+                                        el.style.height = i === index ? 'max-content' : '0px';
+                                    });
+
+                                    const firstItem = document.querySelector('.produc-detail--contetn_item');
+                                    const tabsHeight = document.querySelector(".activity-tabs-container")?.getBoundingClientRect().height || 0;
+                                    const top = firstItem ? firstItem.getBoundingClientRect().top + (window.pageYOffset || 0) - tabsHeight : 0;
+                                    animateScrollTop(top, 0);
+                                    const cate = item.getAttribute("data-cate")
+                                    history.pushState(null, null, `#${cate}`);
+                                }
+                            }
+                        })
+                    })
+                    if (this.isProdctTab) {
+                        setTimeout(() => {
+                            this.handleHash()
+                        }, 200)
+                    }
+                }
+
+                slideToVisiable(next_tab) {
+                    const scrollBox = this.querySelector(".jky-tabs-scroll")
+                    if (!scrollBox) return
+                    const dirConfig = this.isCloserToLeftOrRight(next_tab, scrollBox)
+                    const isIn = this.isElementInsideParent(next_tab, scrollBox)
+                    // 目标tab超出可视容器范围
+                    if (isIn) return
+                    const inner = this.querySelector(".jky-tabs-scroll-inner")
+                    inner && (inner.style.scrollBehavior = "smooth")
+                    setTimeout(() => {
+                        inner && (inner.style.scrollBehavior = "unset")
+                    }, 200);
+                    if (dirConfig.dir === 1) { // 右边界
+                        this.selectors.container.scrollLeft = this.selectors.container
+                            .scrollLeft - dirConfig.value
+                    } else {
+                        requestAnimationFrame(() => {
+                            this.selectors.container.scrollLeft = this.selectors
+                                .container.scrollLeft + dirConfig.value
+                        })
+                    }
+                }
+
+                scrollItemToCenter(itemEl) {
+                    if(!itemEl) return
+                    const container = this.querySelector('.jky-tabs-scroll-inner')
+                    const inner = this.querySelector('.activity-inner-w')
+                    if(!container || !inner) return
+                    if(inner.scrollWidth <= container.clientWidth) return
+                    const tabRect = itemEl.getBoundingClientRect()
+                    const containerRect = container.getBoundingClientRect()
+                    let targetLeft = container.scrollLeft + (tabRect.left - containerRect.left) - (containerRect.width / 2 - tabRect.width / 2)
+                    const maxLeft = Math.max(0, container.scrollWidth - container.clientWidth)
+                    targetLeft = Math.max(0, Math.min(maxLeft, targetLeft))
+                    if (container.__activityTabScrollLeftCancel) container.__activityTabScrollLeftCancel();
+                    let cancelled = false;
+                    container.__activityTabScrollLeftCancel = () => { cancelled = true; };
+                    const startLeft = container.scrollLeft;
+                    const diff = targetLeft - startLeft;
+                    const startTime = performance.now();
+                    const duration = 260;
+                    const step = (now) => {
+                        if (cancelled) return;
+                        const t = Math.min(1, (now - startTime) / duration);
+                        const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+                        container.scrollLeft = startLeft + diff * eased;
+                        if (t < 1) requestAnimationFrame(step);
+                    };
+                    requestAnimationFrame(step);
+                }
+
+                listenerScroll() {
+                    const this_ = this
+                    const allHeights = function () {
+                        const allHeight = [];
+                        const uls = document.querySelectorAll(".activity-main-container [anchor]:not([anchor=''])");
+                        Array.from(uls).forEach(function (el) {
+                            const key = el.getAttribute("anchor");
+                            allHeight.push({
+                                collection: key,
+                                element: el
+                            });
+                        });
+                        return allHeight;
+                    };
+
+                    window.addEventListener("scroll", throttle(() => {
+                        const allHeightMobile = allHeights()
+                        if (scrolling) return;
+                        const tabBox = this_.closest('.five-kwh-tab')
+                        const tabHeight = tabBox ? tabBox.getBoundingClientRect().height : 0
+
+                        const viewCollection = allHeightMobile.find((item) => {
+                            if (item.element) {
+                                const elementTop = item.element.getBoundingClientRect().top;
+                                const threshold = 200;
+                                return elementTop <= threshold && elementTop >= threshold - tabHeight;
+                            }
+                            return false;
+                        });
+                        if (viewCollection) {
+                            const currentTab = this_.querySelector(`.activity-inner-w .activity-tabs-item[data-id="${viewCollection.collection ? viewCollection.collection.replace(/"/g, '\\"') : ''}"]`);
+                            if (!currentTab) return;
+                            const items = Array.from(this_.querySelectorAll(".activity-tabs-item"));
+                            const index = items.indexOf(currentTab);
+                            const length = items.length || 1;
+
+                            const innerW = this_.querySelector('.activity-inner-w');
+                            innerW && innerW.style.setProperty('--translate-filters-slider', `${index * 100 / length}%`);
+                            this_.querySelectorAll(".activity-inner-w .activity-tabs-item").forEach((el) => el.classList.remove("active"));
+                            currentTab.classList.add("active");
+                            this_.scrollItemToCenter(currentTab);
+                        }
+                    }, 80));
+
+                }
+
+                isCloserToLeftOrRight(element, parentElement) { // 判断元素靠近左边界还是右边界
+                    let elementRect = element.getBoundingClientRect();
+                    let parentRect = parentElement.getBoundingClientRect();
+
+                    if (elementRect.x - parentRect.x < 0) {
+                        return {
+                            dir: -1,
+                            value: elementRect.x - parentRect.x
+                        }
+                    } else {
+                        return {
+                            dir: 1,
+                            value: parentRect.right - elementRect.right
+                        }
+                    }
+                }
+
+                isElementInsideParent(element, parentElement) { // 判断元素是否在内部
+                    let elementRect = element.getBoundingClientRect();
+                    let parentRect = parentElement.getBoundingClientRect();
+                    let isInside = (
+                        elementRect.left >= parentRect.left &&
+                        elementRect.top >= parentRect.top &&
+                        elementRect.right <= parentRect.right &&
+                        elementRect.bottom <= parentRect.bottom
+                    );
+                    return isInside;
+                }
+
+                move() {
+                    let doc = this;
+                    let html = this.selectors.container;
+                    let content = this.selectors.container;
+                    doc.startime = 0
+                    doc.endtime = 0
+                    // 禁止选中文字
+                    doc.onselectstart = function () {
+                        return false;
+                    };
+
+                    let startScroll = 0;
+                    let startX = 0;
+                    let previousX = 0; // 保存上一次的clientX坐标
+                    let currentX = 0; // 获取每次移动的位置
+                    let velocity = 0; // 控制速度
+                    let direction = 0; // 控制左右滑动
+                    let momentum = 0.875; // 控制滑动距离
+                    let momentumInterval = null;
+                    let velocityInterval = null;
+
+                    let isDragging = false;
+                    let scrollDisabled = false;
+
+                    function disablePageScroll() {
+                        document.body.style.overflow = 'hidden';
+                    }
+
+                    // 恢复页面滚动
+                    function enablePageScroll() {
+                        document.body.style.overflow = '';
+                    }
+
+                    /**
+                     * 鼠标移动事件
+                     **/
+                    function f(event) {
+                        // 获取每次移动的位置
+                        currentX = doc.isMobile ? event.touches[0].clientX : event.clientX;
+                        html.scrollLeft = startScroll + (startX - currentX);
+                    }
+
+                    /**
+                     * 鼠标离开.content
+                     **/
+                    content.onmouseleave = function () {
+                        /**
+                         * 移除.content的鼠标移动事件
+                         * @see f
+                         **/
+                        content.removeEventListener(doc.onmousemove_event, f);
+
+                    };
+
+                    /**
+                     * 鼠标点击事件
+                     **/
+                    content[doc.onmousedown_event] = function (event) {
+                        scrollDisabled = true;
+                        disablePageScroll(); // 禁用整个页面的上下滚动
+
+                        doc.startime = event.timeStamp
+
+                        startScroll = html.scrollLeft;
+                        startX = doc.isMobile ? event.touches[0].clientX : event.clientX;
+
+                        previousX = startX;
+                        currentX = startX;
+                        clearInterval(velocityInterval);
+                        velocityInterval = setInterval(function () {
+                            // previousX保存上一次移动鼠标的clientX值
+                            // 慢速移动时currentX与previousX数值相同或者差值较小（慢速移动鼠标一直在一个点上）
+                            // 快速滑动时鼠标左滑previousX大于currentX，右滑currentX大于previousX
+                            // 原理：当快速移动时，松开鼠标的时候已经不在当时点击的点位上，50毫秒后就出现了2个变量的数值差
+                            // 原因：鼠标移动时，不会存储所有的移动信息。尤其是在快速移动鼠标时
+                            velocity = Math.abs(currentX - previousX);
+
+                            // 正负数转换用于控制左右滑动
+                            // 左滑动为正数，右滑动为负数
+                            direction = currentX > previousX ? -1 : 1;
+
+                            previousX = currentX;
+                        }, 50);
+
+                        /**
+                         * .content添加鼠标移动事件
+                         * @see f
+                         **/
+                        this.addEventListener(doc.onmousemove_event, f);
+                        content.addEventListener('touchend', function (event) {
+                            scrollDisabled = false;
+                            enablePageScroll();  // 恢复整个页面的上下滚动
+                        });
+                    };
+
+                    /**
+                     * 松开鼠标事件
+                     **/
+                    content[doc.onmouseup_event] = function (event) {
+                        let num = 0;
+                        scrollDisabled = false;
+                        enablePageScroll();  // 恢复整个页面的上下滚动
+
+                        clearInterval(velocityInterval);
+                        clearInterval(momentumInterval);
+                        num = velocity;
+                        // 鼠标松开后开始执行滑动
+                        momentumInterval = setInterval(function () {
+                            // 滑动距离
+                            // 滑动距离依次减小
+                            html.scrollLeft = html.scrollLeft + num * direction;
+                            // 数值依次减小
+                            num *= momentum;
+
+                            // 小于1销毁定时器，滑动结束
+                            if (Math.abs(num) < 1) {
+                                clearInterval(momentumInterval);
+                            }
+                        }, 15);
+
+                        /**
+                         * 移除.content的鼠标移动事件
+                         * @see f
+                         **/
+                        content.removeEventListener(doc.onmousemove_event, f);
+                        doc.endtime = event.timeStamp
+                    };
+
+                }
+
+                handleHash() {
+                    if (!this.isProdctTab) return
+                    const hash = location.hash.replace("#", "");
+                    let target = ''
+                    if (!location.hash || hash.indexOf("product_tab_") === -1) {
+                        target = null
+                    } else {
+                        target = hash
+                    }
+                    if (!target) return;
+                    const el = this.querySelector(`.activity-tabs-item[data-cate="${target.replace(/"/g, '\\"')}"]`);
+                    el && el.click();
+                }
+
+                stopScroll(){
+                    const scrollTab = this.querySelector('.jky-tabs-scroll');
+                    if(!scrollTab) return
+                    scrollTab.addEventListener('wheel', function(event) {
+                        event.stopPropagation(); // 阻止事件冒泡到父元素
+                    });
+                }
+            })
+        }
+    })
+</script>
+{%- endif -%}

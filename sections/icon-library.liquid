@@ -1,0 +1,384 @@
+﻿{%- style -%}
+#IconLibrary-{{ section.id }} {
+  --icon-size: {{ section.settings.icon_size }}px;
+  --icon-color: {{ section.settings.icon_color }};
+  --tile-bg: {{ section.settings.tile_bg_color }};
+  --tile-border: {{ section.settings.tile_border_color }};
+}
+
+#IconLibrary-{{ section.id }} .section-{{ section.id }}-padding {
+  padding-top: calc({{ section.settings.padding_top }}px * 0.75);
+  padding-bottom: calc({{ section.settings.padding_bottom }}px * 0.75);
+}
+
+#IconLibrary-{{ section.id }} .icon-library__header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__heading {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__note {
+  margin: 6px 0 0;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__search {
+  width: min(420px, 100%);
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__grid {
+  display: grid;
+  grid-template-columns: repeat({{ section.settings.columns_mobile }}, minmax(0, 1fr));
+  gap: 16px;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__item {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--tile-border);
+  background: var(--tile-bg);
+  text-align: center;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__icon {
+  display: grid;
+  place-items: center;
+  color: var(--icon-color);
+}
+
+#IconLibrary-{{ section.id }} .icon-library__icon svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+#IconLibrary-{{ section.id }} .icon-library__name {
+  font-size: 13px;
+  word-break: break-word;
+  opacity: 0.8;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__copy {
+  justify-self: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#IconLibrary-{{ section.id }} .icon-library__empty {
+  margin-top: 20px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+@media screen and (min-width: 750px) {
+  #IconLibrary-{{ section.id }} .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+
+  #IconLibrary-{{ section.id }} .icon-library__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  #IconLibrary-{{ section.id }} .icon-library__grid {
+    grid-template-columns: repeat({{ section.settings.columns_desktop }}, minmax(0, 1fr));
+  }
+}
+{%- endstyle -%}
+
+<div id="IconLibrary-{{ section.id }}" class="icon-library color-{{ section.settings.color_scheme }} gradient">
+  <div class="section-{{ section.id }}-padding {{ section.settings.page_width }}">
+    <div class="icon-library__header">
+      <div class="icon-library__title">
+        <h2 class="icon-library__heading">{{ section.settings.heading }}</h2>
+        {% if section.settings.note != blank %}
+          <p class="icon-library__note">{{ section.settings.note }}</p>
+        {% endif %}
+      </div>
+      <div class="icon-library__controls">
+        <input
+          class="icon-library__search"
+          type="search"
+          placeholder="Search icons"
+          aria-label="Search icons"
+          data-icon-filter
+        >
+      </div>
+    </div>
+
+    {% assign icon_snippets = "icon-about,icon-arrow,icon-arrow-right,icon-arrow-up,icon-cart,icon-circle-plus,icon-close,icon-coupon-bg,icon-coupon-bg-mb,icon-discount-bg,icon-down-out-lined,icon-email-new,icon-expoint,icon-facebook-new,icon-global,icon-globalslaes,icon-hollow,icon-instagram-new,icon-line-new,icon-loading,icon-logo,icon-minus,icon-muted,icon-pause,icon-pinterest-new,icon-play,icon-plus,icon-plus-new,icon-reddit-new,icon-replay,icon-search,icon-solid,icon-telegram-new,icon-tiktok-new,icon-twitter-new,icon-unmuted,icon-user,icon-v5-arrow-left,icon-v5-arrow-right,icon-v5-cart,icon-v5-pause,icon-whatsapp-new,icon-youtube-new,jky-icon-circle-close-fill,jky-icon-circle-close-normal,jky-icon-circle-question-fill,jky-icon-circle-question-normal,jky-icon-next,jky-icon-prev,v5-icon-arrow-left,v5-icon-arrow-right,v5-icon-cart" | split: "," %}
+
+    <div class="icon-library__grid" data-icon-grid>
+      {% for icon in icon_snippets %}
+        <div class="icon-library__item" data-icon-item data-icon-name="{{ icon | escape }}">
+          <div class="icon-library__icon">
+            {% if icon contains 'jky-icon-' %}
+              {% include icon, diameter: section.settings.icon_size, color: section.settings.icon_color, bgColor: section.settings.jky_bg_color, class: 'icon-library__svg' %}
+            {% elsif icon contains 'v5-icon-' %}
+              {% include icon, class: 'icon-library__svg' %}
+            {% else %}
+              {% include icon, width: section.settings.icon_size, height: section.settings.icon_size, color: section.settings.icon_color, class: 'icon-library__svg' %}
+            {% endif %}
+          </div>
+          {% if section.settings.show_names %}
+            <div class="icon-library__name">{{ icon }}</div>
+          {% endif %}
+          {% if section.settings.show_copy_button %}
+            <button class="icon-library__copy" type="button" data-icon-copy data-icon-copy-value="{{ icon }}">Copy snippet</button>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="icon-library__empty" data-icon-empty style="display: none;">No icons match your search.</div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const root = document.getElementById('IconLibrary-{{ section.id }}');
+    if (!root) return;
+
+    const input = root.querySelector('[data-icon-filter]');
+    const items = Array.from(root.querySelectorAll('[data-icon-item]'));
+    const emptyState = root.querySelector('[data-icon-empty]');
+
+    const applyFilter = () => {
+      const query = input ? input.value.trim().toLowerCase() : '';
+      let visible = 0;
+
+      items.forEach((item) => {
+        const name = (item.dataset.iconName || '').toLowerCase();
+        const match = query === '' || name.indexOf(query) !== -1;
+        item.style.display = match ? '' : 'none';
+        if (match) visible += 1;
+      });
+
+      if (emptyState) {
+        emptyState.style.display = visible === 0 ? '' : 'none';
+      }
+    };
+
+    if (input) {
+      input.addEventListener('input', applyFilter);
+    }
+
+    root.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-icon-copy]');
+      if (!button) return;
+      const value = button.getAttribute('data-icon-copy-value');
+      if (!value) return;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value);
+      } else {
+        const temp = document.createElement('textarea');
+        temp.value = value;
+        temp.setAttribute('readonly', 'readonly');
+        temp.style.position = 'absolute';
+        temp.style.left = '-9999px';
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+      }
+
+      const original = button.textContent;
+      button.textContent = 'Copied';
+      setTimeout(() => {
+        button.textContent = original;
+      }, 1200);
+    });
+
+    applyFilter();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Jackery 图标库",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Icon library"
+    },
+    {
+      "type": "text",
+      "id": "note",
+      "label": "Note",
+      "default": "Search by snippet name to find the icon you need."
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "Centered / 1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "Large / 1312px"
+        },
+        {
+          "value": "w-full",
+          "label": "Full width"
+        }
+      ],
+      "default": "w-full",
+      "label": "Section width"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "min": 16,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "label": "Icon size",
+      "default": 40
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon color",
+      "default": "#111111"
+    },
+    {
+      "type": "text",
+      "id": "jky_bg_color",
+      "label": "JKY icon background",
+      "default": "rgba(0, 0, 0, 0.2)"
+    },
+    {
+      "type": "color",
+      "id": "tile_bg_color",
+      "label": "Tile background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "tile_border_color",
+      "label": "Tile border",
+      "default": "#e5e5e5"
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "label": "Columns (mobile)",
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 3,
+      "max": 8,
+      "step": 1,
+      "label": "Columns (desktop)",
+      "default": 6
+    },
+    {
+      "type": "checkbox",
+      "id": "show_names",
+      "label": "Show snippet names",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_copy_button",
+      "label": "Show copy button",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "options": [
+        {
+          "value": "accent-1",
+          "label": "Accent 1"
+        },
+        {
+          "value": "accent-2",
+          "label": "Accent 2"
+        },
+        {
+          "value": "background-1",
+          "label": "Background 1"
+        },
+        {
+          "value": "background-2",
+          "label": "Background 2"
+        },
+        {
+          "value": "inverse",
+          "label": "Inverse"
+        }
+      ],
+      "default": "background-1",
+      "label": "Color scheme"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 52
+    }
+  ],
+  "presets": [
+    {
+      "name": "Jackery 图标库"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,1025 @@
+<style>
+        @media screen and (min-width: 1024px) {
+            .v5-pdp-charging-tab .v-image-child-container {
+                display: flex;
+                justify-content: flex-end;
+                max-width: 75rem;
+            }
+
+            .v5-pdp-charging-tab .v-image-child-container .blocks-heading-content {
+                width: auto;
+                max-width: 37.5rem;
+            }
+            .v5-pdp-charging-tab .v-image-child-container > div:not(:last-child) {
+                border-right: 1px solid var(--border-color);
+                padding-right: 1.5rem;
+            }
+            .v5-pdp-charging-tab .v-image-child-container > div:not(:first-child) {
+                padding-left: 1.5rem;
+            }
+        }
+        @media screen and (max-width: 1023.98px) {
+            .v5-pdp-charging-tab .tabs-content-container {
+                overflow: visible;
+            }
+            .v5-pdp-charging-tab .v-image-child-container {
+                width: 100%;
+            }
+            .v5-pdp-charging-tab .v-image-child-container .blocks-text p {
+                color: #242f20 !important;
+            }
+            .v5-pdp-charging-tab .v-image-child-container > div {
+                padding-top: 1.5rem;
+                padding-bottom: 1.5rem;
+            }
+            .v5-pdp-charging-tab .v-image-child-container > div:not(:last-child) {
+                border-bottom: 1px solid #C6C7C8;
+            }
+        }
+</style>
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %}
+  class="blocks-tabs-blocks{% if section.settings.type == 'embed' %} embed-component{% endif %}"
+  style="background: {{section.settings.bg_color | default: 'transparent' }};"
+  {% if section.settings.type == 'embed' and section.settings.anchor != blank %}
+    data-anchor="{{section.settings.anchor}}" anchor="{{section.settings.anchor}}"
+  {% endif %}
+  {% if section.settings.type == 'embed' and section.settings.handle != blank %}
+    data-handle="{{ section.settings.handle }}"
+  {% endif %}
+>
+  <div class="section-padding {{section.settings.page_width}}" style="{{ style }}">
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+<script type="module">
+
+    function applyOne(item) {
+
+        const sub = item.querySelector('.blocks-content-subheading');
+        if (sub) {
+            item.style.setProperty('--border-color', getComputedStyle(sub).color);
+        }
+
+        const parent = item.parentElement;
+        if (!parent) return;
+
+        const updatePadding = () => {
+            if (Jackery.Utils.isLessThan1024Screen()) {
+                const h = item.getBoundingClientRect().height;
+                parent.style.paddingBottom = `${h}px`;
+            }
+        };
+
+        // run now (next paint) and also after fonts are ready
+        requestAnimationFrame(updatePadding);
+        if (document.fonts?.ready) document.fonts.ready.then(() => requestAnimationFrame(updatePadding));
+
+        // keep it correct if height changes later (lazy images / sliders / tab switches)
+        const ro = new ResizeObserver(() => updatePadding());
+        ro.observe(item);
+    }
+
+    function init() {
+        document.querySelectorAll(".v5-pdp-charging-tab .v-image-child-container").forEach(applyOne);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+</script>
+
+{% schema %}
+  {
+    "name": "V5-充电方式Tabs",
+    "class": "section-v-tabs-blocks v5-pdp-charging-tab",
+    "tag": "section",
+    "settings": [
+      {
+        "type": "select",
+        "id": "type",
+        "label": "类型",
+        "default": "independent",
+        "options": [
+            {
+            "value": "embed",
+            "label": "内嵌使用"
+            },
+            {
+            "value": "independent",
+            "label": "独立使用"
+            }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "handle",
+        "label": "Handle（当前页面唯一的handle）",
+        "default": "v5-pdp-charging-tab-01",
+        "visible_if": "{{ section.settings.type == 'embed' }}"
+      },
+      { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+      {
+        "type": "select",
+        "id": "page_width",
+        "options": [
+          {
+            "value": "section-container",
+            "label": "版心/1200px"
+          },
+          {
+            "value": "section-container-lg",
+            "label": "大版心/1320px"
+          },
+          {
+            "value": "w-full",
+            "label": "铺满/100%"
+          }
+        ],
+        "default": "w-full",
+        "label": "组件宽度",
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#FFFFFF" },
+
+      { "type": "header", "content": "PC边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+      {
+        "type": "range",
+        "id": "padding_top",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "上边距",
+        "default": 36,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "下边距",
+        "default": 36,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_left",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "左边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_right",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "右边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+
+      { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+      {
+        "type": "select",
+        "id": "mb_padding_type",
+        "options": [
+          {
+            "value": "default",
+            "label": "默认"
+          },
+          {
+            "value": "custom",
+            "label": "自定义"
+          }
+        ],
+        "default": "default",
+        "label": "MB边距",
+        "visible_if": "{{ settings.customize_vcomponents == true }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_top_mb",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "上边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom_mb",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "下边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_left_mb",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "左边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+      },
+      {
+        "type": "range",
+        "id": "padding_right_mb",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "右边距",
+        "default": 0,
+        "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+      }
+    ],
+    "blocks": [{ "type": "v-heading-content" }, { "type": "_tab-wrap" }],
+    "presets": [
+        {
+      "name": "V5-充电方式Tabs",
+      "category": "V5.0",
+      "settings": {
+        "anchor": "充电方式Tabs",
+        "page_width": "section-container-lg",
+        "bg_color": "#f5f5f3",
+        "padding_top": 96,
+        "padding_bottom": 96,
+        "padding_left": 0,
+        "padding_right": 0,
+        "mb_padding_type": "default",
+        "padding_top_mb": 0,
+        "padding_bottom_mb": 0,
+        "padding_left_mb": 0,
+        "padding_right_mb": 0
+      },
+      "blocks": [
+        {
+          "type": "v-heading-content",
+          "settings": {
+            "anchor": "",
+            "bg_color": "",
+            "page_width": "w-full",
+            "content_width": "content_full",
+            "custom_content_width": 500,
+            "content_alignment": "lg:justify-center",
+            "padding_top": 0,
+            "padding_bottom": 52,
+            "padding_left": 0,
+            "padding_right": 0,
+            "mb_padding_type": "custom",
+            "padding_top_mb": 0,
+            "padding_bottom_mb": 52,
+            "padding_left_mb": 0,
+            "padding_right_mb": 0,
+            "radius_1": 0,
+            "radius_2": 0,
+            "radius_3": 0,
+            "radius_4": 0
+          },
+          "blocks": [
+            {
+              "type": "_v-heading-content-subheading",
+              "settings": {
+                "heading": "<p>4 Ways To</p>",
+                "mb_heading": "<p>4 Ways To</p>",
+                "padding_top": 0,
+                "padding_bottom": 24,
+                "padding_left": 0,
+                "padding_right": 0,
+                "mb_padding_type": "default",
+                "padding_top_mb": 0,
+                "padding_bottom_mb": 0,
+                "padding_left_mb": 0,
+                "padding_right_mb": 0,
+                "alignment": "center",
+                "alignment_mb": "center",
+                "text_color": "#242f20",
+                "active_color": "#fd5000",
+                "font_family": "",
+                "heading_size": "heading_4",
+                "font_weight": "font-semibold",
+                "mb_content_type": "default",
+                "mb_heading_size": "heading_2",
+                "mb_font_weight": "jky-font-default"
+              },
+              "blocks": []
+            },
+            {
+              "type": "_v-heading-content-heading",
+              "settings": {
+                "heading": "<p>re-Charge 1000plus</p>",
+                "mb_heading": "<p>re-Charge 1000plus</p>",
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "padding_left": 0,
+                "padding_right": 0,
+                "mb_padding_type": "default",
+                "padding_top_mb": 0,
+                "padding_bottom_mb": 0,
+                "padding_left_mb": 0,
+                "padding_right_mb": 0,
+                "alignment": "center",
+                "alignment_mb": "center",
+                "text_color": "#242f20",
+                "active_color": "#fd5000",
+                "font_family": "v5-font-oxm",
+                "heading_size": "heading_0",
+                "font_weight": "font-extrabold",
+                "mb_content_type": "custom",
+                "mb_heading_size": "heading_1",
+                "mb_font_weight": "font-extrabold"
+              },
+              "blocks": []
+            }
+          ]
+        },
+        {
+          "type": "_tab-wrap",
+          "settings": {
+            "page_width": "section-container-lg",
+            "style_version": "v5",
+            "is_need_sticky_header": true,
+            "tab_bg_color": "#f5f5f3",
+            "alignment": "left",
+            "alignment_mb": "left",
+            "pc_name_size": 20,
+            "mb_name_size": 16,
+            "tab_color": "#8b8b8c",
+            "tab_active_color": "#242f20",
+            "tab_line_color": "#8b8b8c",
+            "pc_gap": 0,
+            "mb_gap": 0,
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "padding_left": 0,
+            "padding_right": 0,
+            "mb_padding_type": "default",
+            "padding_top_mb": 0,
+            "padding_bottom_mb": 0,
+            "padding_left_mb": 0,
+            "padding_right_mb": 0
+          },
+          "blocks": [
+            {
+              "type": "_tab-item",
+              "settings": {
+                "tab_name": "<p>Smart Transfer Switch</p>",
+                "highlight_color": "#fd5000"
+              },
+              "blocks": [
+                {
+                  "type": "v-image",
+                  "settings": {
+                    "page_width": "w-full",
+                    "bg_color": "",
+                    "link": "",
+                    "link_target": false,
+                    "poster_pc": "shopify://shop_images/banner_2_fdacb5fe-c8a4-476f-889e-d4bceae909e1.jpg",
+                    "pc_height": 536,
+                    "fixed_height": false,
+                    "poster_mb": "shopify://shop_images/BANNER_c8bce8a6-3f6e-4797-80fc-542729ef7564.jpg",
+                    "mb_height": 750,
+                    "padding_top": 24,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0,
+                    "mb_padding_type": "custom",
+                    "padding_top_mb": 48,
+                    "padding_bottom_mb": 0,
+                    "padding_left_mb": 0,
+                    "padding_right_mb": 0,
+                    "radius_1": 0,
+                    "radius_2": 0,
+                    "radius_3": 0,
+                    "radius_4": 0,
+                    "mb_radius_type": "default",
+                    "radius_mb_1": 0,
+                    "radius_mb_2": 0,
+                    "radius_mb_3": 0,
+                    "radius_mb_4": 0,
+                    "child_left": -1000,
+                    "child_top": -1000,
+                    "child_right": 60,
+                    "child_bottom": 60,
+                    "child_left_mb": 0,
+                    "child_top_mb": 800,
+                    "child_right_mb": -1000,
+                    "child_bottom_mb": -1000
+                  },
+                  "blocks": [
+                    {
+                      "type": "v-heading-content",
+                      "settings": {
+                        "anchor": "",
+                        "bg_color": "",
+                        "page_width": "w-full",
+                        "content_width": "content_full",
+                        "custom_content_width": 500,
+                        "content_alignment": "lg:justify-center",
+                        "padding_top": 0,
+                        "padding_bottom": 0,
+                        "padding_left": 0,
+                        "padding_right": 0,
+                        "mb_padding_type": "default",
+                        "padding_top_mb": 0,
+                        "padding_bottom_mb": 0,
+                        "padding_left_mb": 0,
+                        "padding_right_mb": 0,
+                        "radius_1": 0,
+                        "radius_2": 0,
+                        "radius_3": 0,
+                        "radius_4": 0
+                      },
+                      "blocks": [
+                        {
+                          "type": "_v-heading-content-subheading",
+                          "settings": {
+                            "heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "mb_heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "padding_top": 0,
+                            "padding_bottom": 16,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "custom",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 24,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "font_family": "",
+                            "heading_size": "heading_5",
+                            "font_weight": "font-semibold",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "heading_2",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        },
+                        {
+                          "type": "_v-heading-content-des",
+                          "settings": {
+                            "heading": "<p>when plug into your AC outlet</p>",
+                            "mb_heading": "<p>when plug into your AC outlet</p>",
+                            "show_italic": false,
+                            "padding_top": 0,
+                            "padding_bottom": 0,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "default",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 0,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "heading_size": "text_b2",
+                            "font_weight": "font-normal",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "jds-rte-b1",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "v-heading-content",
+                      "settings": {
+                        "anchor": "",
+                        "bg_color": "",
+                        "page_width": "w-full",
+                        "content_width": "content_full",
+                        "custom_content_width": 500,
+                        "content_alignment": "lg:justify-center",
+                        "padding_top": 0,
+                        "padding_bottom": 0,
+                        "padding_left": 0,
+                        "padding_right": 0,
+                        "mb_padding_type": "default",
+                        "padding_top_mb": 0,
+                        "padding_bottom_mb": 0,
+                        "padding_left_mb": 0,
+                        "padding_right_mb": 0,
+                        "radius_1": 0,
+                        "radius_2": 0,
+                        "radius_3": 0,
+                        "radius_4": 0
+                      },
+                      "blocks": [
+                        {
+                          "type": "_v-heading-content-subheading",
+                          "settings": {
+                            "heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "mb_heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "padding_top": 0,
+                            "padding_bottom": 16,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "custom",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 24,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "font_family": "",
+                            "heading_size": "heading_5",
+                            "font_weight": "font-semibold",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "heading_2",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        },
+                        {
+                          "type": "_v-heading-content-des",
+                          "settings": {
+                            "heading": "<p>when plug into your AC outlet</p>",
+                            "mb_heading": "<p>when plug into your AC outlet</p>",
+                            "show_italic": false,
+                            "padding_top": 0,
+                            "padding_bottom": 0,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "default",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 0,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "heading_size": "text_b2",
+                            "font_weight": "font-normal",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "jds-rte-b1",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "_tab-item",
+              "settings": {
+                "tab_name": "<p>Smart Transfer Switch</p>",
+                "highlight_color": "#fd5000"
+              },
+              "blocks": [
+                {
+                  "type": "v-image",
+                  "settings": {
+                    "page_width": "w-full",
+                    "bg_color": "",
+                    "link": "",
+                    "link_target": false,
+                    "poster_pc": "shopify://shop_images/banner_2_fdacb5fe-c8a4-476f-889e-d4bceae909e1.jpg",
+                    "pc_height": 536,
+                    "fixed_height": false,
+                    "poster_mb": "shopify://shop_images/BANNER_c8bce8a6-3f6e-4797-80fc-542729ef7564.jpg",
+                    "mb_height": 750,
+                    "padding_top": 24,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0,
+                    "mb_padding_type": "custom",
+                    "padding_top_mb": 48,
+                    "padding_bottom_mb": 0,
+                    "padding_left_mb": 0,
+                    "padding_right_mb": 0,
+                    "radius_1": 0,
+                    "radius_2": 0,
+                    "radius_3": 0,
+                    "radius_4": 0,
+                    "mb_radius_type": "default",
+                    "radius_mb_1": 0,
+                    "radius_mb_2": 0,
+                    "radius_mb_3": 0,
+                    "radius_mb_4": 0,
+                    "child_left": -1000,
+                    "child_top": -1000,
+                    "child_right": 60,
+                    "child_bottom": 60,
+                    "child_left_mb": 0,
+                    "child_top_mb": 800,
+                    "child_right_mb": -1000,
+                    "child_bottom_mb": -1000
+                  },
+                  "blocks": [
+                    {
+                      "type": "v-heading-content",
+                      "settings": {
+                        "anchor": "",
+                        "bg_color": "",
+                        "page_width": "w-full",
+                        "content_width": "content_full",
+                        "custom_content_width": 500,
+                        "content_alignment": "lg:justify-center",
+                        "padding_top": 0,
+                        "padding_bottom": 0,
+                        "padding_left": 0,
+                        "padding_right": 0,
+                        "mb_padding_type": "default",
+                        "padding_top_mb": 0,
+                        "padding_bottom_mb": 0,
+                        "padding_left_mb": 0,
+                        "padding_right_mb": 0,
+                        "radius_1": 0,
+                        "radius_2": 0,
+                        "radius_3": 0,
+                        "radius_4": 0
+                      },
+                      "blocks": [
+                        {
+                          "type": "_v-heading-content-subheading",
+                          "settings": {
+                            "heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "mb_heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "padding_top": 0,
+                            "padding_bottom": 16,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "custom",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 24,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "font_family": "",
+                            "heading_size": "heading_5",
+                            "font_weight": "font-semibold",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "heading_2",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        },
+                        {
+                          "type": "_v-heading-content-des",
+                          "settings": {
+                            "heading": "<p>when plug into your AC outlet</p>",
+                            "mb_heading": "<p>when plug into your AC outlet</p>",
+                            "show_italic": false,
+                            "padding_top": 0,
+                            "padding_bottom": 0,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "default",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 0,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "heading_size": "text_b2",
+                            "font_weight": "font-normal",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "jds-rte-b1",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "v-heading-content",
+                      "settings": {
+                        "anchor": "",
+                        "bg_color": "",
+                        "page_width": "w-full",
+                        "content_width": "content_full",
+                        "custom_content_width": 500,
+                        "content_alignment": "lg:justify-center",
+                        "padding_top": 0,
+                        "padding_bottom": 0,
+                        "padding_left": 0,
+                        "padding_right": 0,
+                        "mb_padding_type": "default",
+                        "padding_top_mb": 0,
+                        "padding_bottom_mb": 0,
+                        "padding_left_mb": 0,
+                        "padding_right_mb": 0,
+                        "radius_1": 0,
+                        "radius_2": 0,
+                        "radius_3": 0,
+                        "radius_4": 0
+                      },
+                      "blocks": [
+                        {
+                          "type": "_v-heading-content-subheading",
+                          "settings": {
+                            "heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "mb_heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "padding_top": 0,
+                            "padding_bottom": 16,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "custom",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 24,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "font_family": "",
+                            "heading_size": "heading_5",
+                            "font_weight": "font-semibold",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "heading_2",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        },
+                        {
+                          "type": "_v-heading-content-des",
+                          "settings": {
+                            "heading": "<p>when plug into your AC outlet</p>",
+                            "mb_heading": "<p>when plug into your AC outlet</p>",
+                            "show_italic": false,
+                            "padding_top": 0,
+                            "padding_bottom": 0,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "default",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 0,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "heading_size": "text_b2",
+                            "font_weight": "font-normal",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "jds-rte-b1",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "_tab-item",
+              "settings": {
+                "tab_name": "<p>Smart Transfer Switch</p>",
+                "highlight_color": "#fd5000"
+              },
+              "blocks": [
+                {
+                  "type": "v-image",
+                  "settings": {
+                    "page_width": "w-full",
+                    "bg_color": "",
+                    "link": "",
+                    "link_target": false,
+                    "poster_pc": "shopify://shop_images/banner_2_fdacb5fe-c8a4-476f-889e-d4bceae909e1.jpg",
+                    "pc_height": 536,
+                    "fixed_height": false,
+                    "poster_mb": "shopify://shop_images/BANNER_c8bce8a6-3f6e-4797-80fc-542729ef7564.jpg",
+                    "mb_height": 750,
+                    "padding_top": 24,
+                    "padding_bottom": 0,
+                    "padding_left": 0,
+                    "padding_right": 0,
+                    "mb_padding_type": "custom",
+                    "padding_top_mb": 48,
+                    "padding_bottom_mb": 0,
+                    "padding_left_mb": 0,
+                    "padding_right_mb": 0,
+                    "radius_1": 0,
+                    "radius_2": 0,
+                    "radius_3": 0,
+                    "radius_4": 0,
+                    "mb_radius_type": "default",
+                    "radius_mb_1": 0,
+                    "radius_mb_2": 0,
+                    "radius_mb_3": 0,
+                    "radius_mb_4": 0,
+                    "child_left": -1000,
+                    "child_top": -1000,
+                    "child_right": 60,
+                    "child_bottom": 60,
+                    "child_left_mb": 0,
+                    "child_top_mb": 800,
+                    "child_right_mb": -1000,
+                    "child_bottom_mb": -1000
+                  },
+                  "blocks": [
+                    {
+                      "type": "v-heading-content",
+                      "settings": {
+                        "anchor": "",
+                        "bg_color": "",
+                        "page_width": "w-full",
+                        "content_width": "content_full",
+                        "custom_content_width": 500,
+                        "content_alignment": "lg:justify-center",
+                        "padding_top": 0,
+                        "padding_bottom": 0,
+                        "padding_left": 0,
+                        "padding_right": 0,
+                        "mb_padding_type": "default",
+                        "padding_top_mb": 0,
+                        "padding_bottom_mb": 0,
+                        "padding_left_mb": 0,
+                        "padding_right_mb": 0,
+                        "radius_1": 0,
+                        "radius_2": 0,
+                        "radius_3": 0,
+                        "radius_4": 0
+                      },
+                      "blocks": [
+                        {
+                          "type": "_v-heading-content-subheading",
+                          "settings": {
+                            "heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "mb_heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "padding_top": 0,
+                            "padding_bottom": 16,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "custom",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 24,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "font_family": "",
+                            "heading_size": "heading_5",
+                            "font_weight": "font-semibold",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "heading_2",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        },
+                        {
+                          "type": "_v-heading-content-des",
+                          "settings": {
+                            "heading": "<p>when plug into your AC outlet</p>",
+                            "mb_heading": "<p>when plug into your AC outlet</p>",
+                            "show_italic": false,
+                            "padding_top": 0,
+                            "padding_bottom": 0,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "default",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 0,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "heading_size": "text_b2",
+                            "font_weight": "font-normal",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "jds-rte-b1",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        }
+                      ]
+                    },
+                    {
+                      "type": "v-heading-content",
+                      "settings": {
+                        "anchor": "",
+                        "bg_color": "",
+                        "page_width": "w-full",
+                        "content_width": "content_full",
+                        "custom_content_width": 500,
+                        "content_alignment": "lg:justify-center",
+                        "padding_top": 0,
+                        "padding_bottom": 0,
+                        "padding_left": 0,
+                        "padding_right": 0,
+                        "mb_padding_type": "default",
+                        "padding_top_mb": 0,
+                        "padding_bottom_mb": 0,
+                        "padding_left_mb": 0,
+                        "padding_right_mb": 0,
+                        "radius_1": 0,
+                        "radius_2": 0,
+                        "radius_3": 0,
+                        "radius_4": 0
+                      },
+                      "blocks": [
+                        {
+                          "type": "_v-heading-content-subheading",
+                          "settings": {
+                            "heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "mb_heading": "<p>Get 1800W in 3.5 Hours</p>",
+                            "padding_top": 0,
+                            "padding_bottom": 16,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "custom",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 24,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "font_family": "",
+                            "heading_size": "heading_5",
+                            "font_weight": "font-semibold",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "heading_2",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        },
+                        {
+                          "type": "_v-heading-content-des",
+                          "settings": {
+                            "heading": "<p>when plug into your AC outlet</p>",
+                            "mb_heading": "<p>when plug into your AC outlet</p>",
+                            "show_italic": false,
+                            "padding_top": 0,
+                            "padding_bottom": 0,
+                            "padding_left": 0,
+                            "padding_right": 0,
+                            "mb_padding_type": "default",
+                            "padding_top_mb": 0,
+                            "padding_bottom_mb": 0,
+                            "padding_left_mb": 0,
+                            "padding_right_mb": 0,
+                            "alignment": "left",
+                            "alignment_mb": "left",
+                            "text_color": "#ffffff",
+                            "active_color": "#fd5000",
+                            "heading_size": "text_b2",
+                            "font_weight": "font-normal",
+                            "mb_content_type": "default",
+                            "mb_heading_size": "jds-rte-b1",
+                            "mb_font_weight": "jky-font-default"
+                          },
+                          "blocks": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    ]
+  }
+{% endschema %}

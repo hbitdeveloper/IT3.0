@@ -1,0 +1,72 @@
+{% doc %} 
+   博客聚合页 -- 精选博客文章tab
+   @param {string} [h1_title] H1标题
+{% enddoc %}
+
+{% style %}
+    .blog-feature-tab-item.active{
+        color: #ffffff;
+        background-color: var(--jds-color-primary);
+        border-radius: 0.25rem 0.25rem 0 0; 
+    }
+    .blog-feature-tab-content {
+        display: none;
+    }
+    .blog-feature-tab-content.active {
+        display: block;
+    }
+{% endstyle %}
+
+{% liquid
+    assign latest_blogs_text = block.settings.latest_blogs_text | escape
+    assign popular_blogs_text = block.settings.popular_blogs_text | escape
+    assign articles_count = block.settings.articles_count | default: 6
+%}
+
+<div class="w-full mb-16" {{ block.shopify_attributes }} anchor-target="{{ block.settings.anchor | escape }}">
+    <jky-blog-v3-feature data-title="{{ h1_title }}">
+        {% if popular_blogs_text != blank %}
+            <div class="w-full bg-[#f5f5f5] mb-4 grid grid-cols-2 grap-0 border-solid border-0 border-b-[2px] border-[rgba(0,0,0,0.07)] blog-feature-tabs ">
+                 {%- assign class_list = 'text-ellipsis-1 px-[0.5rem] lg:px-[1rem] font-medium text-center cursor-pointer text-[0.875rem] lg:text-[1.25rem] py-[0.75rem] lg:py-[1rem] text-[#666666]' -%}
+                <div class="{{ class_list }} blog-feature-tab-item active" data-tab="latest">{{ latest_blogs_text }}</div>
+                <div class="{{ class_list }} blog-feature-tab-item" data-tab="popular">{{ popular_blogs_text }}</div>
+            </div>
+        {% else %}
+            <div class="blog-v3-h2 truncate w-full mb-4 pb-3 border-solid border-0 border-b-[2px] border-[#EDEDED]"> {{ latest_blogs_text }} </div>
+        {% endif %}
+
+        <div>
+            <div class="blog-feature-tab-content active" data-tab="latest">
+                {% assign title = latest_blogs_text | default: 'BlogArticles' %}
+                {% render 'latest-articles', limit: articles_count, title: title %}
+            </div>
+            {% if popular_blogs_text != blank %}
+                <div class="blog-feature-tab-content" data-tab="popular">
+                    {% assign title = popular_blogs_text | default: 'BlogArticles' %}
+                    {% content_for 'block', type: '_blog-v3-feature-item', id: 'blog-v3-feature-item', title: title %}
+                </div>
+            {% endif %}
+        </div>
+    </jky-blog-v3-feature>
+</div>
+<script src="{{ 'blocks-_blog-v3-feature.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "V3博客聚合页-精选文章",
+        "tag": null,
+        "blocks": [],
+        "settings": [
+            { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+            { "type": "text", "id": "latest_blogs_text", "label": "最新博客文章标题", "default": "Latest Blogs" },
+            { "type": "text", "id": "popular_blogs_text", "label": "受欢迎的博客文章标题", "default": "Most Popular Blogs", "info": "不配置标题则该版块不展示" },
+            { "type": "range", "id": "articles_count", "min": 1, "max": 50, "step": 1, "unit": "篇", "label": "文章显示数量","default": 6 }
+        ],
+        "presets": [
+            {
+                "name": "V3博客聚合页-精选文章",
+                "category": "Blog-V3"
+            }
+        ]
+    }
+{% endschema %}

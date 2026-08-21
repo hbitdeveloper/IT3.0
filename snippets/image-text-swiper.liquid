@@ -1,0 +1,283 @@
+<style>
+    body.overflow-hidden .jky-header, body.overflow-hidden header-v5{z-index: 8!important}
+    details-modal.video-swiper-modal, details-modal.video-swiper-modal details {position: relative;z-index: auto;}
+    details-modal.video-swiper-modal details[open="true"] {z-index: 10000;}
+    .section-page-news .image-text-swiper {z-index: auto;}
+    .image-text-swiper .video-play-btn {z-index: 8;}
+    details-modal.video-swiper-modal .jackery-icon-playCircle {
+        top: -500px;
+        left: 50%;
+        position: absolute;
+        z-index: 19999;
+        transform: translate(-50%, -50%);
+    }
+    details-modal.video-swiper-modal iframe {
+        width: 100%;
+        height: 100%;
+        min-height: 56vw;
+    }
+    details-modal.video-swiper-modal video {
+        width: 100%;
+        height: 100%;
+    }
+    details-modal.video-swiper-modal .video-modal .video-modal__content {
+        position: fixed;
+        z-index: 9;
+    }
+    details-modal.video-swiper-modal .modal__content {
+        position: fixed;
+    }
+    details-modal.video-swiper-modal .video-modal .jackery-icon-guanbi {
+        z-index: 99;
+    }
+
+    details-modal.video-swiper-modal iframe {
+        min-height: unset!important;
+    }
+
+    @media screen and (max-width: 768px) {
+        details-modal.video-swiper-modal .video-modal .jackery-icon-guanbi {
+            top: 62px;
+        }
+        details-modal.video-swiper-modal .jackery-icon-playCircle {
+            top: -300px;
+        }
+        details-modal.video-swiper-modal iframe {
+            min-height: 56vw!important;
+        }
+    }
+</style>
+
+<div class="image-text-swiper page-section-swiper relative swiper z-auto">
+        <h2 class="image-text-swiper-title page-section-title jky-text-2xl index-container font-bold">{{title | escape}}</h2>
+
+        <div class="image-text-container relative">
+            <div class="swiper-wrapper">
+                {% for block in blocks %}
+                    {% case block.type %}
+                        {% when 'recent_events' %}
+                        <div
+                            class="swiper-slide flex flex-col"
+                            block-id="{{block.id}}"
+                            block-src="{{block.settings.video_link}}"
+                            poster="{{block.settings.image}}"
+                        >
+                            <div class="image-text-imgblock relative">
+                                {% render 'responsive-image', image: block.settings.image, mimage: block.settings.m_image, image_class: '' %}
+                            </div>
+                            <div class="image-text-swiper-content relative">
+                                <div class="image-text-swiper-name jky-text-xl">
+                                    {% if block.settings.link != blank %}
+                                        <a class="text-black" href="{{block.settings.link}}">{{block.settings.title | escape}}</a>
+                                    {% else %}
+                                        {{block.settings.title | escape}}
+                                    {% endif %}
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div class="image-text-swiper-des jky-text-base text-overflow-2">{{block.settings.sub_text | escape}}</div>
+
+                                    {% if block.settings.link != blank %}
+                                    <a class="slide-link a-button-fill jky-text-base" href="{{block.settings.link}}" data-analytics-title="{{ block.settings.title | escape }}">
+                                        {{ 'general.action_text.view_more' | t }}
+                                        <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endcase %}
+                {% endfor %}
+            </div>
+
+            <div class="index-container absolute slideshow-navigation">
+                <div class="slideshow-navigation-button prev">
+                    {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+                </div>
+                <div class="slideshow-navigation-button next">
+                    {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+                </div>
+            </div>
+
+        <div class="slideshow-pagination"></div>
+
+        <details-modal class="video-swiper-modal">
+            <details>
+                <summary
+                    class="video-play-btn video-swiper-play absolute"
+                    aria-haspopup="dialog"
+                    aria-label="video-modal"
+                    role="button"
+                    >
+                    <jds-icon name="play-fill" class="jackery-icon-playCircle"></jds-icon>
+                </summary>
+                <div
+                class="video-modal modal__content"
+                role="dialog"
+                aria-modal="true"
+                aria-label="video"
+                >
+                <div class="modal-overlay"></div>
+                <div class="video-modal__content relative" tabindex="-1">
+
+                </div>
+                <button type="button" class="jackery-icon-guanbi absolute">
+                    <jds-icon name="close" class="icon-close text-2xl lg:text-3xl"></jds-icon>
+                </button>
+                </div>
+            </details>
+        </details-modal>
+</div>
+</div>
+
+<script type="module">
+    var banner_num = [
+        {% for block in blocks %}
+            {% case block.type %}
+                {% when 'recent_events' %}
+                    "1",
+            {% endcase %}
+        {% endfor %}
+    ]
+
+    class ImageTextSwiper {
+        constructor(el) {
+            this.DOM = {
+                el: el.el,
+                swiperContainer: el.swiperContainer
+            };
+            this.init();
+        }
+        init() {
+            if(banner_num.length == 1) {
+                document.querySelectorAll('.image-text-swiper .swiper-wrapper').forEach(el => el.classList.add('disabled'));
+                document.querySelectorAll('.image-text-swiper .slideshow-pagination').forEach(el => el.classList.add('disabled'));
+                document.querySelectorAll('.image-text-swiper .slideshow-navigation-button').forEach(el => el.style.display = 'none');
+            }
+
+            const self = this
+            this.swiper = new Swiper(this.DOM.swiperContainer, {
+                slidesPerView: 'auto',
+                allowSlideNext: banner_num.length == 1 ? false : true,
+                allowSlidePrev: banner_num.length == 1 ? false : true,
+                spaceBetween: 0,
+                centeredSlides: true,
+                loop: true,
+                loopAdditionalSlides: 4,
+                autoplay: false,
+                followFinger: false,
+                pagination: {
+                    el: `${this.DOM.el} .slideshow-pagination`,
+                    clickable: true,
+                    bulletClass: 'slideshow-pagination-item',
+                    bulletActiveClass: 'active pagination-active',
+                    clickableClass: 'slideshow-pagination-clickable',
+                    modifierClass: 'slideshow-pagination-',
+                    renderBullet: function (index, className) {
+                        var slideIndex = index,
+                            number = (index <= 8) ? '0' + (slideIndex + 1) : (slideIndex + 1);
+
+                        var paginationItem = '<span class="slideshow-pagination-item">';
+                        paginationItem = (index <= 8) ? paginationItem +
+                            '<span class="pagination-separator"><span class="pagination-separator-loader"></span></span>' :
+                            paginationItem;
+                        paginationItem += '</span>';
+                        return paginationItem;
+                    },
+                },
+                on: {
+                    init: function (swiper) {
+                        self.animate();
+                    },
+                    transitionEnd: function () {
+                        self.animate();
+                    },
+                    resize: function () {
+                        setTimeout(() => { // FIX SWIPER PC-MOBILE CSS BUG
+                            this.update()
+                        }, 600);
+                    }
+                },
+                navigation: {
+                    nextEl: `${this.DOM.el} .slideshow-navigation-button.next`,
+                    prevEl: `${this.DOM.el} .slideshow-navigation-button.prev`,
+                },
+            });
+        }
+        animate() { // video
+            const DOC = document.querySelector(this.DOM.el)
+            this.DOM.activeSlide = DOC.querySelector('.swiper-slide-active');
+            this.autoplayVideo(this.DOM.activeSlide)
+        }
+
+        pauseAllMedia(el = document) {
+            el.querySelectorAll('.js-youtube').forEach((video) => {
+                video.contentWindow.postMessage('{"event":"command","func":"' + 'stopVideo' + '","args":""}', '*');
+            });
+            el.querySelectorAll('video').forEach((video) => {
+                video.pause()
+                video.currentTime = 0
+            });
+        }
+
+        autoplayVideo(el = document) {
+            const DOC = document.querySelector(this.DOM.el)
+            const modalDOM = DOC.querySelector('.video-swiper-modal')
+            const video = el.querySelector('iframe[src*="www.youtube.com"], video');
+
+            const video_url = el.getAttribute('block-src')
+            const video_poster = el.getAttribute('poster')
+            if(!video_url) {
+                modalDOM.querySelector('.jackery-icon-playCircle').style.display = 'none'
+            } else {
+            modalDOM.querySelector('.jackery-icon-playCircle').style.display = 'block'
+            if(video_url.indexOf('youtube.com') !== -1) {
+                modalDOM.querySelector('.video-modal__content')
+
+                const target = modalDOM.querySelector('.video-modal__content');
+                if (target) {
+                    target.innerHTML = `<iframe class="js-youtube" src="${video_url}?autoplay=1&mute=1" title="Jackery" frameborder="0" allow="autoplay;encrypted-media;web-share" allowfullscreen></iframe>`;
+                }
+            } else {
+                const target = modalDOM.querySelector('.video-modal__content');
+                if (target) {
+                    target.innerHTML = `
+                        <video
+                            id="index-section-video"
+                            class="video-js video-modal-video vjs-modal"
+                            controls
+                            preload="auto"
+                            muted
+                            poster="${video_poster}"
+                            data-setup=""
+                        >
+                            <source
+                                src="${video_url}"
+                                type="video/mp4"
+                            />
+                            <p class="vjs-no-js">
+                                To view this video please enable JavaScript, and consider upgrading to a web browser that
+                                <a href="https://videojs.com/html5-video-support/" target="_blank" rel="noopener noreferrer">supports HTML5 video</a>
+                            </p>
+                        </video>
+                    `;
+                }
+            }
+        }
+
+            if (!video) return;
+            if (video.tagName.toLowerCase() === 'video') {
+                video.play();
+                return
+            }
+            video.contentWindow.postMessage('{"event":"command","func":"' + 'mute' + '","args":""}', '*');
+            video.contentWindow.postMessage('{"event":"command","func":"' + 'playVideo' + '","args":""}', '*');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        new ImageTextSwiper({
+            swiperContainer: '.image-text-container',
+            el: '.image-text-swiper'
+        });
+    })
+</script>

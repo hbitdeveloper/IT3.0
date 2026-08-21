@@ -1,0 +1,94 @@
+<div class="newcomer-scene newcomer-main-container {% if section.settings.types == 'embed' %}embed-component{% endif %}" data-handle="{{ section.settings.handle }}">
+    <div class="newcomer-tabs">
+        <div class="newcomer-container">
+            <div class="tab-contain">
+                {%- for item in section.blocks -%}
+                    <h3
+                            class="tab-item {% if forloop.first %}is-active{% endif %}"
+                            data-index="{{ forloop.index }}"
+                            data-name="{{item.settings.title | escape}}"
+                    >{{item.settings.title | escape}}</h3>
+                {%- endfor -%}
+            </div>
+        </div>
+    </div>
+    <div class="newcomer-container">
+        <div class="tabs-content">
+            {%- for item in section.blocks -%}
+                <div class="tab-pane tab-pane-{{ forloop.index }} {% if forloop.first %}tab-pane-active{% endif %}" data-name="{{item.settings.title | escape}}">
+                    <div class="scene-top">
+                        <div class="scene-contain">
+                            <div class="scene-description" > {{ item.settings.description | replace: '<em>', '<em style="color: var(--jds-color-primary);">' }} </div>
+                        </div>
+                        {%
+                                render 'responsive-image',
+                                image_class: 'jky-up scene-img',
+                                image: item.settings.pc_image,
+                                mimage: item.settings.mb_image
+                        %}
+                    </div>
+                    {% assign productList = item.settings.product1 | append: ',' | append: item.settings.product2 | append: ',' | append: item.settings.product3 | split: ',' %}
+
+                    {%- if productList.size > 0 -%}
+                        <div class="jky-up scene-products">
+                            {% render 'compare-content',
+                              type: 4, 
+                              new_window: true, 
+                              variantIds: productList,
+                              pageNum: item.settings.page_num
+                            %}
+                        </div>
+                    {%- endif -%}
+                </div>
+            {%- endfor -%}
+        </div>
+    </div>
+</div>
+{% schema %}
+{
+  "name": "新人教育应用场景",
+  "settings": [
+    {
+      "type": "select",
+      "id": "types",
+      "label": "类型",
+      "default": "independent",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle（当前页面唯一的handle）",
+      "default": "embed-component-01"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "block",
+      "name": "应用场景",
+      "settings": [
+        { "type": "text",  "id": "title", "label": "Tab 标题" },
+        { "type": "richtext",  "id": "description", "label": "场景描述" },
+        { "type": "image_picker", "id": "pc_image", "label": "PC场景图片(必填)", "info": "大小: 1280x400"},
+        { "type": "image_picker", "id": "mb_image", "label": "MB场景图片(必填)", "info": "大小: 654x480"},
+        { "type": "text", "id": "page_num", "label": "pageNum Id"},
+        { "type": "number", "id": "product1", "label": "推荐产品id_1" },
+        { "type": "number", "id": "product2", "label": "推荐产品id_2" },
+        { "type": "number", "id": "product3", "label": "推荐产品id_3" }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "newcomer scene"
+  }]
+}
+{% endschema %}

@@ -1,0 +1,343 @@
+{{ 'section-old-invite-new-rank.min.css' | asset_url | stylesheet_tag }}
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{% comment %} 版块 ID {% endcomment %}
+{% assign section_id = section.settings.section_id | escape %}
+<section id="{{ section_id }}" data-handle="{{ section_id }}" class="old-invite-new-rank-wrap section-padding {% if section.settings.type == 'embed' %}embed-component{% endif %}" style="background-color:{{section.settings.bg_color}};{{style}}">
+  {%- if section.settings.pc_title != blank or section.settings.pc_sub_title != blank -%}
+    <div class="hidden lg:flex lg:flex-col title-wrap">
+      {% comment %} PC {% endcomment %}
+      {%- if section.settings.pc_title != blank -%}
+        <h2 class="title hidden lg:block" style="color:{{ section.settings.pc_title_color }}">{{ section.settings.pc_title | newline_to_br }}</h2>
+      {%- endif -%}
+      {%- if section.settings.pc_sub_title != blank -%}
+        <div class="sub-title hidden lg:block" style="color:{{ section.settings.pc_sub_title_color }}">{{ section.settings.pc_sub_title | newline_to_br }}</div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if section.settings.mb_title != blank or section.settings.mb_sub_title != blank -%}
+    <div class="flex flex-col lg:hidden title-wrap">
+      {% comment %} Mobile {% endcomment %}
+      {%- if section.settings.mb_title != blank -%}
+        <h2 class="title block lg:hidden" style="color:{{ section.settings.mb_title_color }}">{{ section.settings.mb_title | newline_to_br }}</h2>
+      {%- endif -%}
+      {%- if section.settings.mb_sub_title != blank -%}
+        <div class="sub-title block lg:hidden" style="color:{{ section.settings.mb_sub_title_color }}">{{ section.settings.mb_sub_title | newline_to_br }}</div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <jky-old-invite-new-rank
+    data-email-empty-error-text="{{'newsletter.email_empty_info' | t}}"
+    data-email-format-error-text="{{'newsletter.email_error_info' | t}}"
+    data-email-message-sent="{{'oldInviteNew.email_message_sent' | t}}"
+    data-email-input-button-text="{{ section.settings.email_input_button_text | escape }}"
+    data-user-tag="{{ section.settings.user_tag | escape }}"
+    style="--live-bg: {{ section.settings.bg_color_content | default: 'linear-gradient( 52deg, #FFF8EC 0%, #F0CC96 100%)' }}"
+    class="{% if section.settings.show_rank == false %}!h-auto{% endif %}"
+  >
+    {% if section.settings.show_rank == false %}
+      {% assign size_classes = "lg:j-w-480 lg:j-h-394 xl:a-w-480 xl:a-h-394" %}
+    {% else %}
+      {% assign size_classes = "lg:j-w-600 lg:j-h-493 xl:a-w-600 xl:a-h-493" %}
+    {% endif %}
+    <div class="shrink-0 w-622 h-511 {{ size_classes }}">
+       {% if section.settings.show_rank == false %}
+                {% render 'responsive-image',
+        image: section.settings.pc_image,
+        mimage: section.settings.mb_image,
+        image_class: 'w-622 h-511 object-cover lg:j-w-480 lg:j-h-394 xl:a-w-480 xl:a-h-394'
+      %}
+         {% else %}
+                {% render 'responsive-image',
+        image: section.settings.pc_image,
+        mimage: section.settings.mb_image,
+        image_class: 'w-622 h-511 object-cover lg:j-w-600 lg:j-h-493 xl:a-w-600 xl:a-h-493'
+      %}
+          {% endif %}
+
+    </div>
+    <div class="flex flex-col w-full h-full overflow-hidden">
+      {% if section.settings.pc_get_your_link_text != blank %}
+        <h2
+          class="text-#1A1A1A font-medium hidden lg:line-clamp-2 lg:mt-0 lg:j-text-18 lg:j-leading-24 lg:j-mb-12 xl:a-text-18 xl:a-leading-24 xl:a-mb-12"
+          style="color:{{ section.settings.pc_get_your_link_text_color }}"
+          data-get-your-link-title
+        >{{ section.settings.pc_get_your_link_text | newline_to_br }}</h2>
+      {% endif %}
+      {% if section.settings.mb_get_your_link_text != blank %}
+        <h2
+          class="text-#1A1A1A font-medium text-32 leading-48 mt-32 mb-20 line-clamp-3 lg:hidden"
+          style="color:{{ section.settings.mb_get_your_link_text_color }}"
+        >{{ section.settings.mb_get_your_link_text | newline_to_br }}</h2>
+      {% endif %}
+
+      {% comment %} 未登录 | 已登录但是未生成分享链接 {% endcomment %}
+      <form class="!hidden w-full" data-old-invite-new-form>
+        <div class="w-full flex flex-col gap-y-24 lg:flex-row lg:gap-y-0 lg:bg-white lg:j-rounded-24 xl:a-rounded-24">
+          <input
+            class="appearance-none shg-fa w-full font-normal lg:w-auto lg:flex-1 bg-white h-80 rounded-40 leading-80 px-34 lg:j-h-48 lg:j-leading-48 lg:j-rounded-l-24 lg:rounded-r-0 lg:j-pl-16 lg:j-pr-8 xl:a-h-48 xl:a-leading-48 xl:a-rounded-l-24 xl:a-pl-16 xl:a-pr-8 line-clamp-1 break-all"
+            type="text"
+            maxlength="100"
+            placeholder="{{'newsletter.email_placeholder' | t}}"
+            data-old-invite-new-form-input
+          >
+          <button
+            class="old-invite-new-button old-invite-new-highlight-button w-full lg:w-fit bg-primary text-white font-semibold relative h-80 rounded-40 lg:j-h-48 lg:j-rounded-24 lg:j-px-24 xl:a-h-48 xl:a-rounded-24 xl:a-px-24 disabled:opacity-50"
+            style="color:{{ section.settings.email_input_button_text_color | default: "#FFFFFF" }};background: {{ section.settings.email_input_button_text_btn | default: "var(--jds-color-primary)"}}"
+            type="submit"
+            data-old-invite-new-form-button
+          >{{ section.settings.email_input_button_text | escape }}</button>
+        </div>
+        <p class="hidden text-#FE3B30 font-normal text-28 leading-32 mt-12 lg:j-mt-8 lg:j-text-14 lg:j-leading-24 xl:a-mt-8 xl:a-text-14 xl:a-leading-24" data-email-error-tip></p>
+
+        <label class="!hidden flex items-start mt-32 lg:j-mt-16 xl:a-mt-16" data-policy-error-text="{{'newsletter.policy_empty_info' | t}}">
+          <jds-checkbox id="old-invite-new-agree-checkbox" value="true">
+            <span
+              class="flex-1 font-normal cursor-pointer text-26 leading-40 lg:j-text-14 lg:j-leading-24 xl:a-text-14 xl:a-leading-24"
+              style="color:{{  section.settings.privacy_policy_color | default: "#666666" }}"
+              data-terms_service="{{ section.settings.terms_service | escape }}"
+              data-terms_service_url="{{ section.settings.terms_service_url }}"
+              data-privacy_policy="{{ section.settings.privacy_policy | escape }}"
+              data-privacy_policy_url="{{ section.settings.privacy_policy_url }}"
+            >{{ section.settings.service_privacy_text | escape }}</span>
+          </jds-checkbox>
+        </label>
+        <p class="hidden text-#FE3B30 font-normal text-28 leading-32 mt-12 lg:j-mt-8 lg:j-text-14 lg:j-leading-24 xl:a-mt-8 xl:a-text-14 xl:a-leading-24" data-policy-error-tip></p>
+      </form>
+
+      {% comment %} 已生成分享链接 {% endcomment %}
+      <div
+        class="!hidden w-full"
+        data-email-empty-error-text="{{'newsletter.email_empty_info' | t}}"
+        data-email-format-error-text="{{'newsletter.email_error_info' | t}}"
+        data-old-invite-new-share
+      >
+        <div class="w-full flex flex-col gap-y-24 lg:flex-row lg:gap-y-0 lg:bg-white lg:j-rounded-24 xl:a-rounded-24">
+          <div
+            class="shg-fa w-full font-normal lg:w-auto lg:flex-1 bg-white h-80 rounded-40 leading-80 px-34 lg:j-h-48 lg:j-leading-48 lg:j-rounded-l-24 lg:rounded-r-0 lg:j-pl-16 lg:j-pr-8 xl:a-h-48 xl:a-leading-48 xl:a-rounded-l-24 xl:a-pl-16 xl:a-pr-8 line-clamp-1 break-all"
+            data-old-invite-new-share-link
+          ></div>
+          <button
+            class="old-invite-new-button old-invite-new-highlight-button w-full lg:w-fit bg-primary text-white font-semibold relative h-80 rounded-40 lg:j-h-48 lg:j-rounded-24 lg:j-px-24 xl:a-h-48 xl:a-rounded-24 xl:a-px-24 disabled:opacity-50"
+            style="color:{{ section.settings.email_input_button_text_color | default: "#FFFFFF" }};background: {{ section.settings.email_input_button_text_btn | default: "var(--jds-color-primary)"}}"
+            data-old-invite-new-copy
+            data-copy-text="{{ 'oldInviteNew.copy' | t }}"
+            data-copied-text="{{ 'oldInviteNew.copied' | t }}"
+            data-copy-success-tip="{{ 'oldInviteNew.copy_success' | t }}"
+          >{{ 'oldInviteNew.copy' | t }}</button>
+        </div>
+
+        <div class="flex flex-col lg:flex-row items-center gap-y-16 mt-24 lg:gap-y-0 lg:j-gap-x-16 lg:j-mt-16 xl:a-gap-x-16 xl:a-mt-16">
+          <p class="w-fit flex-center font-normal leading-none text-24 lg:j-text-14 xl:a-text-14" data-old-invite-new-media-desc>OR Send invitation via</p>
+          <ul
+            class="flex-1 flex-center lg:justify-start flex-wrap gap-x-48 gap-y-40 lg:j-gap-20 xl:a-gap-20"
+            style="padding-left:0;"
+            data-old-invite-new-share-icons
+            data-instagram-copy-success-tip="{{ 'oldInviteNew.instagram_copy_success_tip' | t }}"
+            data-email-placeholder="{{ 'oldInviteNew.friend_email' | t }}"
+          >
+            <li data-type="facebook" title="facebook" class="!hidden flex-center cursor-pointer rounded-full w-64 h-64 lg:j-w-32 lg:j-h-32 xl:a-w-32 xl:a-h-32 !hover:bg-white" style="background: var(--facebook-color)">
+              {% render 'icon-facebook-new', class: 'iconfont icon-facebook-new max-w-full max-h-full', width: 32, height: 32, color: 'var(--facebook-icon-color)' %}
+            </li>
+            <li data-type="twitter" title="twitter" class="!hidden flex-center cursor-pointer rounded-full w-64 h-64 lg:j-w-32 lg:j-h-32 xl:a-w-32 xl:a-h-32 !hover:bg-white" style="background: var(--twitter-color)">
+              {% render 'icon-twitter-new', class: 'iconfont icon-twitter-new max-w-full max-h-full', width: 32, height: 32, color: 'var(--twitter-icon-color)' %}
+            </li>
+            <li data-type="instagram" title="instagram" class="!hidden flex-center cursor-pointer rounded-full w-64 h-64 lg:j-w-32 lg:j-h-32 xl:a-w-32 xl:a-h-32 !hover:bg-white" style="background: var(--instagram-color)">
+              {% render 'icon-instagram-new', class: 'iconfont icon-instagram-new max-w-full max-h-full', width: 32, height: 32, color: 'var(--instagram-icon-color)' %}
+            </li>
+            <li data-type="line" title="line" class="!hidden flex-center cursor-pointer rounded-full w-64 h-64 lg:j-w-32 lg:j-h-32 xl:a-w-32 xl:a-h-32 !hover:bg-white" style="background: var(--line-color)">
+              {% render 'icon-line-new', class: 'iconfont icon-line-new max-w-full max-h-full', width: 32, height: 32, color: 'var(--line-icon-color)' %}
+            </li>
+            <li data-type="whatsapp" title="whatsapp" class="!hidden flex-center cursor-pointer rounded-full w-64 h-64 lg:j-w-32 lg:j-h-32 xl:a-w-32 xl:a-h-32 !hover:bg-white" style="background: var(--whatsapp-color)">
+              {% render 'icon-whatsapp-new', class: 'iconfont icon-whatsapp-new max-w-full max-h-full', width: 32, height: 32, color: 'var(--whatsapp-icon-color)' %}
+            </li>
+            <li data-type="telegram" title="telegram" class="!hidden flex-center cursor-pointer rounded-full w-64 h-64 lg:j-w-32 lg:j-h-32 xl:a-w-32 xl:a-h-32 !hover:bg-white" style="background: var(--telegram-color)">
+              {% render 'icon-telegram-new', class: 'iconfont icon-telegram-new max-w-full max-h-full', width: 32, height: 32, color: 'var(--telegram-icon-color)' %}
+            </li>
+            <li data-type="email" title="email" class="!hidden flex-center cursor-pointer rounded-full w-64 h-64 lg:j-w-32 lg:j-h-32 xl:a-w-32 xl:a-h-32 !hover:bg-white" style="background: var(--email-color)">
+              {% render 'icon-email-new', class: 'iconfont icon-email-new max-w-full max-h-full', width: 32, height: 32, color: 'var(--email-icon-color)' %}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {% if section.settings.pc_check_your_performance_text != blank %}
+        <h2
+          class="text-#1A1A1A font-medium hidden lg:line-clamp-2 lg:j-text-18 lg:j-leading-24 lg:j-mt-16 xl:a-text-18 xl:a-leading-24 xl:a-mt-16"
+          style="color:{{ section.settings.pc_check_your_performance_text_color }}"
+        >{{ section.settings.pc_check_your_performance_text | newline_to_br }}</h2>
+      {% endif %}
+      {% if section.settings.pc_notes_text != blank %}
+        <div
+          class="text-#666 font-medium hidden lg:line-clamp-4 lg:text-#1A1A1A lg:j-mt-8 lg:j-text-14 lg:j-leading-22 xl:a-mt-8 xl:a-text-14 xl:a-leading-22"
+          style="color:{{ section.settings.pc_notes_text_color }}"
+        >{{ section.settings.pc_notes_text | newline_to_br }}</div>
+      {% endif %}
+
+      {% if section.settings.mb_check_your_performance_text != blank %}
+        <h2
+          class="text-#1A1A1A font-medium text-32 leading-48 mt-32 line-clamp-3 lg:hidden"
+          style="color:{{ section.settings.mb_check_your_performance_text_color }}"
+        >{{ section.settings.mb_check_your_performance_text | newline_to_br }}</h2>
+      {% endif %}
+      {% if section.settings.mb_notes_text != blank %}
+        <div
+          class="text-#666 font-medium text-24 leading-40 mt-16 line-clamp-6 lg:hidden"
+          style="color:{{ section.settings.mb_notes_text_color }}"
+        >{{ section.settings.mb_notes_text | newline_to_br }}</div>
+      {% endif %}
+
+      <div class="{% if section.settings.show_rank == false %}!hidden{% endif %} flex-1 overflow-hidden flex flex-col font-medium rounded-12 mt-32 border-solid border-#DAB563 border lg:j-rounded-8 lg:j-mt-16 lg:j-text-16 xl:a-rounded-8 xl:a-mt-16 xl:a-text-16"
+      style="background: {{ section.settings.rank_bg_color | default: "rgba(255, 255, 255, 0.8)" }}; color:{{ section.settings.rank_text_color | default: "#DAB563" }}"
+      >
+        <div
+          class="flex items-center border-0 border-solid border-#EEE min-h-80 px-16 py-24 text-24 leading-32 !border-b-[1px] lg:j-min-h-44 lg:j-px-24 lg:j-py-10 lg:j-text-16 lg:j-leading-24 xl:a-min-h-44 xl:a-px-24 xl:a-py-10 xl:a-text-16 xl:a-leading-24"
+          data-rank-header-params="{{ section.settings.rank_params_text | escape }}"
+          data-rank-header
+        ></div>
+        <div
+          class="!hidden flex items-center border-0 border-solid border-#EEE h-80 px-16 !border-b-[1px] lg:j-h-44 lg:j-px-24 xl:a-h-44 xl:a-px-24"
+          style="background:{{  section.settings.rank_top_color | default: "#FEF1D2" }}"
+          data-rank-self-data
+        ></div>
+        <ul
+          class="flex-1 rank-ul overflow-y-auto"
+          style="scrollbar-width:none;padding-left:0;"
+          data-rank-no-data-text="{{ section.settings.rank_no_data_text | escape }}"
+          data-rank-ul
+        ></ul>
+      </div>
+
+      {% comment %} 规则按钮 {% endcomment %}
+      {%- assign rules_button_text = section.settings.rules_text | escape -%}
+      {%- if rules_button_text != blank -%}
+        <button
+          class="appearance-none bg-transparent w-fit text-#1A1A1A font-medium line-clamp-1 mt-32 mx-auto lg:mx-none lg:j-mt-16 lg:j-text-16 lg:j-leading-22 xl:a-mt-16 xl:a-text-16 xl:a-leading-22"
+          data-rules-button
+        >{{ rules_button_text }}</button>
+      {%- endif -%}
+
+      {% comment %} 规则 DOM {% endcomment %}
+      {%- assign rules_dialog_title = section.settings.rules_title_text | newline_to_br -%}
+      <div class="!hidden" data-old-invite-new-rules>
+        {%- if rules_dialog_title != blank -%}
+          <h2 class="text-#1A1A1A font-medium text-40 leading-48 mb-48 -lg:j-mt-24 lg:j-mb-32 lg:j-text-32 lg:j-leading-40 -xl:a-mt-24 xl:a-mb-32 xl:a-text-32 xl:a-leading-40 rte" style="color:{{ section.settings.rules_title_text_color }}">{{ rules_dialog_title }}</h2>
+        {%- endif -%}
+        {% assign highlight_color = '<em style="color:' | append: section.settings.rules_content_text_highlight_color | append: '">' %}
+        <div class="text-#666 font-normal text-28 leading-44 lg:j-text-16 lg:j-leading-24 xl:a-text-16 xl:a-leading-24 rte" style="color:{{ section.settings.rules_content_text_color }}">
+          {{ section.settings.rules_content_text | newline_to_br | replace: '<em>', highlight_color }}
+        </div>
+      </div>
+    </div>
+  </jky-old-invite-new-rank>
+</section>
+
+<script src="{{ 'section-old-invite-new-rank.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+  {
+    "name": "Old Invite New Rank",
+    "class": "section-old-invite-new section-old-invite-new-rank",
+    "settings": [
+      {
+        "type": "select",
+        "id": "type",
+        "label": "类型",
+        "default": "independent",
+        "options": [
+          {
+            "value": "embed",
+            "label": "内嵌使用"
+          },
+          {
+            "value": "independent",
+            "label": "独立使用"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "section_id",
+        "label": "Section ID",
+        "info": "和关联的 Anchor ID 保持一致。不能包含空格。【如果是“内嵌使用”，则作为当前页面唯一的handle】"
+      },
+      { "type": "header", "content": "PC边距" },
+      { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 80},
+      { "type": "range", "id": "padding_bottom", "min": 0, "max":  100, "step": 1, "unit": "px", "label": "下边距", "default": 100},
+      { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0},
+      { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0},
+      { "type": "header", "content": "MB边距" },
+      { "type": "select", "id": "mb_padding_type","label": "MB边距", "options": [ { "value": "default", "label": "与PC一致" }, { "value": "custom", "label": "单独配置" } ], "default": "custom"},
+      { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 96, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+      { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 100, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+      { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+      { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+      { "type": "color", "id": "bg_color", "label": "Section Background Color", "default": "#F5F5F5" },
+      { "type": "color", "id": "bg_color_content", "label": "Content Background Color" },
+
+      { "type": "richtext", "id": "pc_title", "label": "Section Title（PC）", "default": "<p>Invite Challenge: Turn your friends into subscribers and win big prizes!</p>" },
+      { "type": "color", "id": "pc_title_color", "label": "Section Title（PC）颜色" },
+      { "type": "richtext", "id": "mb_title", "label": "Section Title（MB）", "default": "<p>Invite Challenge: Turn your friends into subscribers and win big prizes!</p>" },
+      { "type": "color", "id": "mb_title_color", "label": "Section Title（MB）颜色" },
+
+      { "type": "richtext", "id": "pc_sub_title", "label": "Section Sub Title（PC）", "default": "<p>he inverter and the costs of setting everything up add up to the final price.</p>" },
+      { "type": "color", "id": "pc_sub_title_color", "label": "Section Sub Title（PC）颜色" },
+      { "type": "richtext", "id": "mb_sub_title", "label": "Section Sub Title（MB）", "default": "<p>he inverter and the costs of setting everything up add up to the final price.</p>" },
+      { "type": "color", "id": "mb_sub_title_color", "label": "Section Sub Title（MB）颜色" },
+
+      { "type": "image_picker", "id": "pc_image", "label": "Section Image（PC）" },
+      { "type": "image_picker", "id": "mb_image", "label": "Section Image（MB）" },
+
+      { "type": "richtext", "id": "pc_get_your_link_text", "label": "Get Your Link Text（PC）", "default": "<p>Get your link and share your friends</p>", "info": "邮件上方的文案（PC）" },
+      { "type": "color", "id": "pc_get_your_link_text_color", "label": "Get Your Link Text（PC）颜色" },
+      { "type": "richtext", "id": "mb_get_your_link_text", "label": "Get Your Link Text（MB）", "default": "<p>Get your link and share your friends</p>", "info": "邮件上方的文案（MB）" },
+      { "type": "color", "id": "mb_get_your_link_text_color", "label": "Get Your Link Text（MB）颜色" },
+
+      { "type": "text", "id": "email_input_button_text", "label": "Email Input Button Text", "default": "Get My Link", "info": "输入邮箱时，按钮文案" },
+      { "type": "color", "id": "email_input_button_text_color", "label": "Email Input Button Text文案颜色", "default": "#FFFFFF"},
+      { "type": "color", "id": "email_input_button_text_btn", "label": "Email Input Button Text按钮颜色", "default": "#fd5000"},
+      { "type": "textarea", "id": "user_tag", "label": "用户标签", "info": "多个请用英文\",\"逗号隔开" },
+
+      { "type": "text", "id": "service_privacy_text", "label": "as: I agree to Jackery's {termsService} and {PrivacyPolicy}", "default": "I agree to Jackery's {termsService} and {PrivacyPolicy}" },
+      { "type": "text", "id": "terms_service", "label": "terms service text", "default": "Terms of Service" },
+      { "type": "url", "id": "terms_service_url", "label": "terms service url" },
+      { "type": "text", "id": "privacy_policy", "label": "privacy Policy text", "default": "Privacy Policy" },
+      { "type": "url", "id": "privacy_policy_url", "label": "privacy Policy url" },
+      { "type": "color", "id": "privacy_policy_color", "label": "privacy Policy text color", "default": "#666666"},
+
+      { "type": "richtext", "id": "pc_check_your_performance_text", "label": "Check Your Performance Text（PC）", "default": "<p>Check your performance and top referrers below.</p>", "info": "排行榜上方的标题（PC）" },
+      { "type": "color", "id": "pc_check_your_performance_text_color", "label": "Check Your Performance Text（PC）颜色" },
+      { "type": "richtext", "id": "mb_check_your_performance_text", "label": "Check Your Performance Text（MB）", "default": "<p>Check your performance and top referrers below.</p>", "info": "排行榜上方的标题（MB）" },
+      { "type": "color", "id": "mb_check_your_performance_text_color", "label": "Check Your Performance Text（MB）颜色" },
+
+      { "type": "richtext", "id": "pc_notes_text", "label": "Notes Text（PC）", "default": "<p>Dour business, equip your office, or provide thoughtful gifts for employees, partners, or guests—or even to contribute to public</p>", "info": "排行榜标题下方的注释文案（PC）" },
+      { "type": "color", "id": "pc_notes_text_color", "label": "Notes Text（PC）颜色" },
+      { "type": "richtext", "id": "mb_notes_text", "label": "Notes Text（MB）", "default": "<p>Dour business, equip your office, or provide thoughtful gifts for employees, partners, or guests—or even to contribute to public</p>", "info": "排行榜标题下方的注释文案（MB）" },
+      { "type": "color", "id": "mb_notes_text_color", "label": "Notes Text（MB）颜色" },
+
+      { "type": "textarea", "id": "rank_params_text", "label": "Rank Params text", "default": "Ranking,Name,Referrals", "info": "排行榜字段，仅支持3个。用英文\",\"逗号隔开" },
+      { "type": "textarea", "id": "rank_no_data_text", "label": "Rank No Data text", "default": "No data yet", "info": "排行榜，没有数据时的文案" },
+      { "type": "text", "id": "rules_text", "label": "Rules text", "default": "RULES >", "info": "规则文案" },
+      { "type": "richtext", "id": "rules_title_text", "label": "Rules Title text", "default": "<p>Rules</p>", "info": "规则标题文案" },
+      { "type": "color", "id": "rules_title_text_color", "label": "Rules Title text颜色" },
+      { "type": "richtext", "id": "rules_content_text", "label": "Rules Content text", "info": "规则内容文案【斜体=文案突出】" },
+      { "type": "color", "id": "rules_content_text_color", "label": "Rules Content text 颜色" },
+      { "type": "color", "id": "rules_content_text_highlight_color", "label": "斜体文案突出颜色" },
+      { "type": "color", "id": "rank_bg_color", "label": "排行榜背景色", "default": "rgba(255, 255, 255, 0.8)"},
+      { "type": "color", "id": "rank_text_color", "label": "排行榜文案颜色", "default": "#ab6e0b"},
+      { "type": "color", "id": "rank_top_color", "label": "排行榜置顶背景色", "default": "#FEF1D2"},
+      { "type": "checkbox", "id": "show_rank", "label": "是否展示排行榜", "default": true},
+
+
+    ],
+    "presets": [
+      {
+        "name": "Old Invite New Rank"
+      }
+    ]
+  }
+{% endschema %}

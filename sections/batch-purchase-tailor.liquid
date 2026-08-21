@@ -1,0 +1,84 @@
+{% comment %} Tailor Your Power {% endcomment %}
+<div id="batch-purchase--tailor" class="batch-purchase--tailor" data-no-product="{{section.settings.noProduct}}">
+  <div class="batch-purchase-container">
+    <div class="tailor-text">
+      <div class="title">{{ section.settings.title | escape }}</div>
+      <div class="sub-info">
+          {{ section.settings.sub_title | escape }}
+      </div>
+    </div>
+    <div class="tailor-content" data-number="{{ section.settings.number }}" data-require="{{ section.settings.require }}">
+      <template v-for="(item, index) in tailorList" :key="index">
+        <div class="tailor-block" data-index="{{ index }}">
+          <div class="tailor-item">
+              <div class="tailor-item-title">{{section.settings.product_type | escape}}</div>
+              <div class="tailor-item-select">
+                  <select v-model="item.type" @change="val => handleTailorTypeChange(val, item, index)">
+                    {%- if section.settings.pps != blank -%}
+                      <option value="pps">{{section.settings.pps | escape}}</option>
+                    {%- endif -%}
+                    {%- if section.settings.sp != blank -%}
+                     <option value="sp">{{section.settings.sp | escape}}</option>
+                    {%- endif -%}
+                    {%- if section.settings.acc != blank -%}
+                      <option value="acc">{{section.settings.acc | escape}}</option>
+                    {%- endif -%}
+                    {% if shop.id == 10015375438 or shop.id == 56124375224 %}
+                      {%- if section.settings.sg != blank -%}
+                        <option value="sg">{{section.settings.sg | escape}}</option>
+                      {%- endif -%} 
+                    {%- endif -%} 
+                  </select>
+              </div>
+
+          </div>
+          <div class="tailor-item">
+              <div class="tailor-item-title">{{section.settings.product_name | escape}}</div>
+              <div class="tailor-item-select">
+                  <select v-model="item.variantId" @change="e => handleTailorChange(e, item ,index)">
+                      <option v-for="item1 in item.list" :value="item1.variantId">${item1.title}</option>
+                  </select>
+          </div>
+          </div>
+
+          <div class="tailor-item">
+              <div class="tailor-item-title">{{section.settings.quantity | escape}}</div>
+              <div class="tailor-item-input">
+                  <button @click="handleTailorMinus(item)">{% render 'icon-minus' class: 'w-full h-full p-2 lg:w-10 lg:h-10 lg:p-3' %}</button>
+                  <input v-model="item.quantity" @input="e => handleTailorInput(e, item)" type="number" step="1" min="1" placeholder="">
+                  <button @click="handleTailorPlus(item)">{% render 'icon-plus' class: 'w-full h-full p-2 lg:w-10 lg:h-10 lg:p-3' %}</button>
+              </div>
+          </div>
+          
+        </div>
+      </template>
+      <div class="tail-buttons">
+        <button v-if="tailorList.length < 5" class="tail-add-product" @click="handleAddProduct">{{section.settings.add_product | escape}}</button>
+        <button class="view-all" :class="[quoteButtonLoading ? 'btn--loading' : '']" @click="handleViewQuote('{{ section.settings.title | escape }}')">{{section.settings.view_quote | escape}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Batch Purchase Tailor",
+    "tag": "div",
+    "settings": [
+      { "type": "text", "id": "title", "label": "Title", "default": "Tailor Your Power" },
+      { "type": "textarea", "id": "sub_title", "label": "SubTitle", "default": "Create the Perfect Setup for Your Needs! Choose the ideal combination of portable power stations and solar panels to match your requirements. Enjoy special discounts once you've met the minimum quantities." },
+      { "type": "text", "id": "pps", "label": "Portable Power Stations", "default": "Portable Power Stations" },
+      { "type": "text", "id": "sp", "label": "Solar Panels", "default": "Solar Panels" }, 
+      { "type": "text", "id": "acc", "label": "Accessories", "default": "Accessories" }, 
+      { "type": "text", "id": "sg", "label": "Solar Generator", "default": "Solar Generator","info": "仅日站生效" }, 
+      { "type": "text","id": "product_type", "label": "Product Type", "default": "Product Type"}, 
+      { "type": "text","id": "product_name", "label": "Product Name", "default": "Product Name"}, 
+      { "type": "text", "id": "quantity", "label": "Quantity", "default": "Quantity" },
+      { "type": "text", "id": "add_product", "label": "ADD Product", "default": "ADD PRODUCT" },
+      { "type": "text", "id": "view_quote", "label": "VIEW QUOTE", "default": "VIEW QUOTE" },
+      { "type": "text", "id": "noProduct", "label": "Not Select Product", "default": "Please Select One Product" },
+      { "type": "number", "id": "number", "label": "默认展示多少条产品的配置项", "default": 2 },
+      { "type": "text", "id": "require", "label": "必填项提示语", "info": "仅日站生效"}
+    ]
+  }
+{% endschema %}

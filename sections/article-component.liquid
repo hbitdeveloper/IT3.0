@@ -1,0 +1,386 @@
+{% comment %}
+  文章组件，两个UI样式：不折叠（默认）和折叠,自动高度
+{% endcomment %}
+{% schema %}
+{
+  "name": "Article Component",
+  "tag": "section",
+  "class": "article-component",
+  "settings": [
+    {
+      "type": "select",
+      "id": "componentStyle",
+      "label": "Component Style",
+      "default": "non-foldable",
+      "options": [
+        {
+          "value": "non-foldable",
+          "label": "Non Foldable"
+        },
+        {
+          "value": "foldable",
+          "label": "Foldable"
+        },
+        {
+          "value": "auto-high",
+          "label": "Auto High"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "sectionTitle",
+      "label": "Section Title",
+      "default": "Activity Rules"
+    },
+    {
+      "type": "html",
+      "id": "sectionContent",
+      "label": "Section Content",
+      "default": "<p>Here is a paragraph from the article</p><p>Here is a paragraph from the article</p>"
+    }
+  ]
+}
+{% endschema %}
+<div class="article-wrapper {{ section.settings.componentStyle }}">
+  <div class="layer-container section-container">
+    <div class="article-box">
+      <div class="title-box">
+        <h2 class="section-title">{{ section.settings.sectionTitle }}</h2>
+        {% comment %} <i class="iconfont jackery-icon-arrowdown"></i> {% endcomment %}
+        <jds-icon name="arrow-down" class="jackery-icon-arrowdown"></jds-icon>
+      </div>
+      <div class="content-box">
+        <div class="article-content">{{ section.settings.sectionContent }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% if section.settings.componentStyle == 'foldable' %}
+  <script>
+    (function() {
+      const initArticleComponent = () => {
+        const slideUp = (element, duration = 300) => {
+          element.style.height = `${element.offsetHeight}px`;
+          element.style.overflow = 'hidden';
+          element.style.transitionProperty = 'height, margin, padding';
+          element.style.transitionDuration = `${duration}ms`;
+          element.offsetHeight;
+          element.style.height = '0';
+          element.style.paddingTop = '0';
+          element.style.paddingBottom = '0';
+          element.style.marginTop = '0';
+          element.style.marginBottom = '0';
+
+          window.setTimeout(() => {
+            element.style.display = 'none';
+            element.style.removeProperty('height');
+            element.style.removeProperty('padding-top');
+            element.style.removeProperty('padding-bottom');
+            element.style.removeProperty('margin-top');
+            element.style.removeProperty('margin-bottom');
+            element.style.removeProperty('overflow');
+            element.style.removeProperty('transition-duration');
+            element.style.removeProperty('transition-property');
+          }, duration);
+        };
+
+        const slideDown = (element, duration = 300) => {
+          element.style.removeProperty('display');
+          let display = window.getComputedStyle(element).display;
+          if (display === 'none') display = 'block';
+          element.style.display = display;
+
+          const height = element.offsetHeight;
+          element.style.height = '0';
+          element.style.paddingTop = '0';
+          element.style.paddingBottom = '0';
+          element.style.marginTop = '0';
+          element.style.marginBottom = '0';
+          element.style.overflow = 'hidden';
+          element.offsetHeight;
+          element.style.transitionProperty = 'height, margin, padding';
+          element.style.transitionDuration = `${duration}ms`;
+          element.style.height = `${height}px`;
+          element.style.removeProperty('padding-top');
+          element.style.removeProperty('padding-bottom');
+          element.style.removeProperty('margin-top');
+          element.style.removeProperty('margin-bottom');
+
+          window.setTimeout(() => {
+            element.style.removeProperty('height');
+            element.style.removeProperty('overflow');
+            element.style.removeProperty('transition-duration');
+            element.style.removeProperty('transition-property');
+          }, duration);
+        };
+
+        const slideToggle = (element, duration = 300) => {
+          if (!element) return;
+          if (window.getComputedStyle(element).display === 'none') {
+            slideDown(element, duration);
+          } else {
+            slideUp(element, duration);
+          }
+        };
+
+        document.querySelectorAll('.article-component .title-box').forEach((titleBox) => {
+          titleBox.addEventListener('click', function () {
+            this.classList.toggle('active');
+            const siblings = Array.from(this.parentElement?.children || []).filter(
+              (node) => node !== this && node.classList.contains('content-box')
+            );
+            siblings.forEach((contentBox) => {
+              slideToggle(contentBox);
+            });
+          });
+        });
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initArticleComponent, { once: true });
+      } else {
+        initArticleComponent();
+      }
+    })();
+  </script>
+{% endif %}
+
+<style>
+  .article-component .article-wrapper.auto-high{
+    padding: 0;
+    background-color: rgba(186, 172, 160, 0.15);
+  }
+  .article-wrapper.auto-high .section-container{
+    width: 1040px;
+  }
+  .article-wrapper.auto-high .title-box{
+    display: none;
+  }
+  .article-wrapper.auto-high .content-box{
+    background: transparent;
+    padding: 65px 0;
+  }
+  .article-wrapper.auto-high .content-box .article-content{
+    padding: 0;
+  }
+  .article-wrapper.auto-high .article-content,
+   .article-wrapper.auto-high .article-content p {
+      height: 100%;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 22px;
+    }
+
+  .article-component .article-wrapper {
+    position: relative;
+    background-color: #f6f5f5;
+  }
+  .article-component .article-wrapper.foldable{
+    background-color: #fff;
+  }
+
+  .article-component .section-title {
+    text-align: center;
+  }
+
+  .article-wrapper.foldable .article-box{
+    padding: 2.0833vw 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+  }
+  .title-box{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .article-wrapper.foldable .title-box{
+    position: relative;
+    cursor: pointer;
+  }
+  .article-wrapper.foldable .title-box .section-title{
+    margin-bottom: 0;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .title-box .jackery-icon-arrowdown{
+    display: none;
+  }
+  .article-wrapper.foldable .title-box .jackery-icon-arrowdown{
+    display: block;
+    font-size: 24px;
+    transition: all .3s;
+  }
+  .article-wrapper.foldable .title-box.active .jackery-icon-arrowdown{
+    transform: rotate(180deg);
+  }
+
+  .article-component .content-box {
+    box-sizing: border-box;
+    background-color: #fff;
+  }
+  .article-wrapper.foldable .content-box{
+    display: none;
+    font-size: 18px;
+    font-weight: 400;
+    background-color: transparent;
+  }
+
+  .article-component .article-content {
+    overflow-y: auto;
+  }
+  .article-component .article-content,
+  .article-component .article-content p {
+    font-weight: 400;
+    word-break: break-word;
+    color: #333;
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px){
+    .article-wrapper.auto-high .section-container{
+      width: calc(1040vw / 1440 * 100); 
+    }
+    .article-wrapper.auto-high .content-box{
+      background: transparent;
+      padding: calc(65vw / 1440 * 100) 0;
+    }
+    .article-wrapper.auto-high .article-content,
+    .article-wrapper.auto-high .article-content p {
+        font-size: calc(14vw / 1440 * 100); 
+        line-height: calc(22vw / 1440 * 100); 
+      }
+  }
+  @media screen and (min-width: 1024px) {
+    .article-component .article-wrapper{
+      padding-top: 6.25vw;
+      padding-bottom: 3.125vw;
+    }
+    .article-component .article-wrapper.foldable{
+      padding: 5vw 0;
+    }
+    .article-component .section-title {
+      margin-bottom: 2.0833vw;
+      font-size: 2.2917vw;
+      font-weight: 600;
+      line-height: 1.27;
+    }
+    .article-wrapper.foldable .title-box .section-title{
+      margin-bottom: 0;
+      padding-right: 2.0833vw;
+      font-size: 1.4583vw;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .article-component .content-box {
+      padding: 2.7083vw 0 3.0208vw 5.2083vw;
+      border-top-left-radius: 3.9063vw;
+    }
+    .article-wrapper.foldable .section-container{
+      padding-left: 4.4271vw;
+      padding-right: 4.4271vw;
+    }
+    .article-component .article-content {
+      height: 28.6458vw;
+      padding-right: 5.2083vw;
+    }
+    .article-wrapper.foldable .article-content {
+      height: auto;
+      max-height: 28.6458vw;
+      padding-right: 2px;
+    }
+    .article-wrapper.foldable .content-box {
+      padding-top: 1.0417vw;
+    }
+    .article-content,
+    .article-content p {
+      font-size: 0.8333vw;
+      line-height: 1.5;
+    }
+    .article-wrapper.foldable .article-content,
+    .article-wrapper.foldable .article-content p {
+      font-size: 0.9375vw;
+    }
+    .article-content p {
+      margin-bottom: 1.5625vw;
+    }
+
+    .article-wrapper.foldable .article-content p {
+      margin-bottom: 0.9375vw;
+    }
+    .article-wrapper.foldable .article-content p:last-child{
+      margin-bottom: 0;
+    }
+
+  }
+  @media screen and (max-width: 1023px) {
+    .article-wrapper.auto-high .content-box{
+      padding: 8.6666vw 8vw;
+    }
+    .article-wrapper.auto-high .article-content,
+    .article-wrapper.auto-high .article-content p {
+      font-size: 3.2vw;
+      font-weight: 500;
+      line-height: 5.3333vw;
+    }
+    .article-component .article-wrapper{
+      padding: 13.3333vw 4vw 8vw;
+    }
+    .article-component .article-wrapper .section-container{
+      max-width: 100%;
+      width: 100%;
+    }
+    .article-component .article-wrapper.foldable {
+      padding: 0;
+      border:none;
+    }
+    .article-wrapper.foldable .article-box{
+      border:none;
+      padding: 8vw 4vw;
+    }
+
+    .article-component .section-title {
+      margin-bottom: 8vw;
+      font-size: 6vw;
+      font-weight: 500;
+      line-height: 1.47;
+    }
+    .article-wrapper.foldable .section-title {
+      margin-bottom: 0;
+      font-size: 4.5vw;
+      font-weight: 600;
+    }
+    .title-box .jackery-icon-arrowdown{
+      font-size: 4.5vw;
+      font-weight: 600;
+    }
+    .article-component .content-box {
+      padding: 6.6667vw 0 6.6667vw 4.6667vw;
+      border-top-left-radius: 10vw;
+    }
+
+    .article-component .article-content {
+      height: 120vw;
+      padding-right: 4.6667vw;
+    }
+    .article-wrapper.foldable .article-content {
+      height: auto;
+      max-height: 120vw;
+    }
+    .article-content,
+    .article-content p {
+      font-size: 3.7333vw;
+      line-height: 1.3;
+    }
+    .article-content p {
+      margin-bottom: 2.6667vw;
+    }
+    .article-content p:last-child{
+      margin-bottom: 0;
+    }
+  }
+  .article-wrapper.foldable .content-box{
+    padding-left: 0;
+    padding-bottom: 0;
+    border-radius: unset;
+  }
+</style>

@@ -1,0 +1,89 @@
+{% comment %}
+ 进度控制条--可横向拖拽进度
+	Accepts:
+	- pcBgColor: {String}		PC端背景色，默认#rgba(66,66,69,0.1)
+	- mbBgColor: {String}		移动端背景色，默认rgba(255,255,255,0.4)
+	Usage:
+	{% render 'jky-progress-bar', pcBgColor: 'rgba(0,0,0,0.4)', mbBgColor: 'rgba(0,0,0,0.4)' %}
+{% endcomment %}
+
+{% if pcBgColor == blank %}
+	{% assign pcBgColor = 'rgba(66,66,69,0.1)' %}
+{% endif %}
+
+{% if mbBgColor == blank %}
+	{% assign mbBgColor = 'rgba(255,255,255,0.4)' %}
+{% endif %}
+
+<div class="jky-progress-bar {{ section.id }}">
+	{% comment %} 刻度条 {% endcomment %}
+	<ul class="scale-lines show">
+		{%- for i in (1..24) -%}
+			<li></li>
+		{%- endfor -%}
+	</ul>
+
+	{% comment %} 范围设置 {% endcomment %}
+	<input class="progress-range" type="range" min="0" max="100" step="1" value="0"/>
+	<div class="range-box">
+		{% comment %} 进度标记条 {% endcomment %}
+		<div class="marking-line" data-curr="0"></div>
+	</div>
+</div>
+
+{% comment %} 自定义样式，其他样式详见：jky-progress-bar.less {% endcomment %}
+<style>
+	@media screen and (min-width: 1024px) {
+		.jky-progress-bar.{{ section.id }}{
+			background: {{ pcBgColor }};
+		}
+	}
+	@media screen and (max-width: 1023.98px) {
+		.jky-progress-bar.{{ section.id }} {
+			background: {{ mbBgColor }};
+		}
+	}
+</style>
+<script>
+  (function (){
+    document.addEventListener('DOMContentLoaded', function () {
+      let progressRange = document.querySelector(`.jky-progress-bar.{{ section.id }} .progress-range`);
+      let markingLine = document.querySelector(`.jky-progress-bar.{{ section.id }} .marking-line`);
+
+      function setVal(val){
+        markingLine.style.width = val + "%";
+        markingLine.setAttribute('data-curr', val);
+      }
+
+      progressRange.addEventListener('input', function () {
+        setVal(this.value);
+      })
+
+
+      let isScrollEnabled = true;  // 初始时页面滚动是启用的
+
+      // 合并触摸和鼠标的按下事件
+      progressRange.addEventListener('touchstart', handleClick);
+      progressRange.addEventListener('mousedown', handleClick);
+
+      // 合并鼠标移除、触摸结束和悬浮事件
+      progressRange.addEventListener('mouseup', handleRelease);
+      progressRange.addEventListener('touchend', handleRelease);
+      progressRange.addEventListener('mouseleave', handleRelease);
+
+      function handleClick() {
+        if (isScrollEnabled) {
+          document.body.style.overflow = 'hidden';  // 禁止滚动
+          isScrollEnabled = false;
+        }
+      }
+
+      function handleRelease() {
+        if (!isScrollEnabled) {
+          document.body.style.overflow = 'auto';  // 允许滚动
+          isScrollEnabled = true;
+        }
+      }
+    })
+  })();
+</script>

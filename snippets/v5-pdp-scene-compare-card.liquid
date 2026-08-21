@@ -1,0 +1,196 @@
+{% doc %}
+    @description V5 场景对比卡片
+    @param {object}  block 当前板块
+    @param {product} product 产品
+    @param { product } variant 变体
+    @param {string} title 当前产品标题（用于埋点）
+    @param {boolean} is_show_price 是否显示价格
+    @param {boolean} is_show_cart 是否显示添加到购物车按钮
+    @param {boolean} show_scene_head 是否显示场景标题和描述
+    @param {string} bg_color 背景颜色
+    @param {boolean} is_show_jump 是否点击能跳转产品详情
+    
+    @example {% render 'v5-pdp-scene-compare-card', block: block, variant: variant, product: curr_product %}
+{% enddoc %}
+
+{% style %}
+    .v5-pdp-variant-compare-card .includes * {
+        margin: 1rem 0;
+    }
+    .v5-pdp-variant-compare-card .includes ul{
+        padding-left: 1rem;
+    }
+    .v5-pdp-variant-compare-card .includes ul li{
+        list-style: inside;
+    }
+    .runtime-{{block.id}} {
+        height: var(--pc_height);
+        aspect-ratio: var(--pc_aspect_ratio);
+    }
+
+   @media screen and (max-width: 1024px) {
+    .v5-pdp-variant-compare-card .includes * {
+        margin: 0.75rem 0;
+    }
+    .v5-pdp-variant-compare-card .includes ul{
+        padding-left: 0.75rem;
+    }
+    .runtime-{{block.id}} {
+        height: var(--mb_height);
+        aspect-ratio: var(--aspect_ratio);
+    }
+   }
+{% endstyle %}
+{% liquid
+    # 是否显示场景标题和描述
+    if show_scene_head
+        # 场景标题
+        assign scene_title = block.settings.title | escape
+        # 场景描述
+        assign scene_desc = block.settings.desc | escape
+    endif
+
+    # 产品标签
+    assign tag = variant.metafields.custom.variant_tag
+    
+    # 产品标题
+    assign variant_title = variant.metafields.custom.shortname | default: variant.title  | escape | replace: 'Jackery', ''
+    if variant_title == 'Default Title'
+        assign variant_title = product.title | escape | replace: 'Jackery', ''
+    endif
+
+    # 产品图片
+    assign variant_image = variant.featured_image | default: product.featured_image
+
+    # 产品图片ALT
+    assign img_alt = variant_title | default: variant_image.alt | default: 'product image'
+
+    # 价格
+    if is_show_price
+        if settings.open_auto_discount_price
+            assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1
+            if auto_discount_price > 0
+                assign current_price = variant.price
+                if auto_discount_price < variant.price
+                    assign current_price = auto_discount_price
+                endif
+            else
+                assign current_price = variant.price
+            endif
+        else
+            assign current_price = variant.price
+        endif
+
+        #  产品划线价
+        if variant.compare_at_price > current_price
+        assign compare_at_price = variant.compare_at_price
+        else
+            if variant.price > current_price
+            assign compare_at_price = variant.price
+            else
+                assign compare_at_price = blank
+            endif
+        endif
+    endif               
+
+    # 充电时长图
+    assign pc_runtime = block.settings.pc_runtime
+    assign mb_runtime = block.settings.mb_runtime
+
+    # 包含信息
+    assign includes = block.settings.includes
+
+    
+    # 产品URL
+    if is_show_jump
+        assign product_url = product.url
+        assign product_variant = product_id         
+        assign jumo_class = "v5-pdp-scene-compare-card-jump cursor-pointer"
+    else
+        assign jumo_class = ""
+        assign product_url = ""
+        assign product_variant = ""
+    endif
+ %}
+
+<div {{ block.shopify_attributes }} 
+    class="w-full grid grid-rows-[auto_1fr] bg-[#fff] v5-pdp-variant-compare-card v5-pdp-scene-compare-card" 
+    data-url="{{ product_url }}" data-variant="{{ product_variant }}">
+    {% if show_scene_head %}
+        <div class="text-center" style="background-color: {{ bg_color }};">
+            <div class="text-[1rem] lg:text-[1.5rem] font-semibold mb-[0.75rem] leading-[1.2] lg:mb-[1.5rem] line-clamp-1 h-[1.2rem] lg:h-[1.875rem]">{{ scene_title }}</div>
+            <div class="text-[0.875rem] lg:text-[1rem] leading-[1.2] font-normal mb-[0.75rem] lg:mb-[1.5rem] line-clamp-2 h-[2.1rem] lg:line-clamp-3 lg:h-[3.6rem]">{{ scene_desc }}</div>
+        </div>
+    {% endif %}
+    <div class="pt-6 px-4 relative">
+        {%- if tag != blank -%}
+            <div class="absolute top-3 left-3 z-[1] bg-black px-2 py-2 h-7 flex items-center justify-center text-[#fff] font-normal text-[0.75rem] lg:text-[1rem] tracking-[-0.02rem] [transform:translateZ(0)] [backface-visibility:hidden] [will-change:transform,opacity] tag">{{ tag | escape }}</div> 
+        {%- endif -%}
+        <div class="w-full">
+            <div class="{{ jumo_class }} flex items-center justify-center mb-3 lg:mb-4">
+                {% render 'diff-end-img', pc_img: variant_image, pc_img_width: 800, mb_img: variant_image, mb_img_width: 744, class: 'w-full h-[11.625rem] lg:h-[19.875rem] aspect-square', alt: img_alt %}
+            </div>
+            <div class="{{ jumo_class }} font-semibold text-[#242F20] text-[0.875rem] mb-[0.75rem] line-clamp-2 leading-[1.2] h-[2.1rem] lg:mb-[1rem] lg:h-[3rem] lg:text-[1.25rem]">
+                {{ variant_title | escape }}
+            </div>
+            {% if is_show_price or is_show_cart %}
+                <div class="flex items-end justify-between mb-3 lg:mb-4">
+                    <div class="text-center text-[#242F20]">
+                        {% if is_show_price %}
+                            <span class="lg:text-[1.25rem] text-[1rem] font-semibold">{{ current_price | money }}</span>
+                            {% if compare_at_price != blank %}
+                                <span class="text-[0.75rem] lg:text-[0.875rem] font-normal line-through pl-1 ">{{ compare_at_price | money }}</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% if is_show_cart %}
+                        <div 
+                            class="w-7 h-7 lg:w-10 lg:h-10 bg-[var(--jds-color-primary)] {% if variant.available == true %} cursor-pointer jky-v5-button {% else %} cursor-not-allowed opacity-40 {% endif %}"
+                            data-id="{{ variant.id }}"
+                            data-title="{{ variant_title | escape }}"
+                            data-spu_title="{{ title | escape }}"
+                            {%- if variant.available == true -%}
+                                compare-add-to-cart
+                                data-nm-target="add_to_cart_btn"
+                            {%- endif -%}
+                        >
+                            {% render 'v5-icon-cart', class: 'w-full h-full text-[#fff]', stroke_width: 2  %}
+                        </div>
+                    {% else %}
+                        <span></span>
+                    {% endif %}
+                    
+                </div>
+            {% endif %}
+        </div>
+        <div class="w-full border-t-[1px] border-solid border-[#C6C7C8]">
+            {% liquid
+              assign card_pc_w = pc_runtime.width | default: 0
+              assign card_pc_h = pc_runtime.height | default: 0
+              assign card_mb_w = mb_runtime.width | default: 0
+              assign card_mb_h = mb_runtime.height | default: 0
+
+              if card_pc_w > 0 and card_pc_h > 0
+                assign card_pc_aspect_ratio = card_pc_w | times: 1.0 | divided_by: card_pc_h
+              else
+                assign card_pc_aspect_ratio = 4.9
+              endif
+
+              if card_mb_w > 0 and card_mb_h > 0
+                assign card_aspect_ratio = card_mb_w | times: 1.0 | divided_by: card_mb_h
+              else
+                assign card_aspect_ratio = 2.296
+              endif
+
+              assign card_pc_height = 24.75 | divided_by: card_pc_aspect_ratio | round: 2 | append: 'rem'
+              assign card_mb_height = 15.5 | divided_by: card_aspect_ratio | round: 2 | append: 'rem'
+            %}
+            <div class="py-3 lg:py-4">
+                <div class="w-[15.5rem] lg:w-[24.75rem] runtime-{{block.id}}" style="--pc_height:{{ card_pc_height }};--mb_height:{{ card_mb_height }}; --aspect_ratio:{{ card_aspect_ratio }}; --pc_aspect_ratio:{{ card_pc_aspect_ratio }};">
+                    {% render 'diff-end-img', pc_img: pc_runtime, pc_img_width: 396, mb_img: mb_runtime, mb_img_width: 258, class: 'object-cover focus-zoom w-full' %}
+                </div>    
+            </div>
+            <div class="font-normal text-[#242F20E5]/90 text-[0.875rem] lg:text-[1rem] leading-[1.2] border-t-[1px] border-solid border-[#C6C7C8] py-[0.75rem] lg:py-[1rem] includes"> {{ includes }} </div>
+        </div>
+    </div>
+</div>

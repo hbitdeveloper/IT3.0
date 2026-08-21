@@ -1,0 +1,114 @@
+{% comment %} Awards And Certifications组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Awards And Cert Component",
+  "tag": "section",
+  "class": "awards-and-cert-component tab-content tab-awards-and-certifications",
+  "settings": [
+    {
+      "type": "html",
+      "id": "promotionDescription",
+      "label": "Promotion description"
+    },
+    {
+      "type": "checkbox",
+      "id": "mbAutoPlay",
+      "label": "Auto Play (Mobile)",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "swiperInterval",
+      "label": "Swiper Interval (Unit: s)",
+      "default": 5,
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "s"
+    },
+    {
+      "type": "text",
+      "id": "learnMore",
+      "label": "Learn More"
+    },
+    {
+      "type": "text",
+      "id": "popupTitle",
+      "label": "Popup Title"
+    },
+    {
+      "type": "image_picker",
+      "id": "pcPopupImg",
+      "label": "Popup Image (PC)"
+    },
+    {
+      "type": "image_picker",
+      "id": "mbPopupImg",
+      "label": "Popup Image (Mobile)"
+    }
+  ],
+  "max_blocks": 4,
+  "blocks": [
+    {
+      "name": "Items",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "pcItemImg",
+          "label": "Item Image (PC)"
+        },
+        {
+          "type": "image_picker",
+          "id": "mbItemImg",
+          "label": "Item Image (Mobile)"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+{% assign total = section.blocks | size %}
+<div class="awards-and-cert-carousel section-container" data-total="{{ total }}"
+		 data-autoplay="{{ section.settings.mbAutoPlay }}" data-delay="{{ section.settings.swiperInterval }}">
+	{% if section.settings.promotionDescription != blank %}
+		<div class="tab-description">{{ section.settings.promotionDescription }}</div>
+	{% endif %}
+	<div class="swiper {% if total > 1 %} more-slide {% else %} single-slide{% endif %}">
+		<div class="swiper-wrapper">
+			{% for block in section.blocks %}
+				<div class="swiper-slide">
+					{% render 'responsive-image',
+							image: block.settings.pcItemImg,
+							mimage: block.settings.mbItemImg,
+							image_class: 'swiper-img'
+					%}
+				</div>
+			{% endfor %}
+		</div>
+		{% if total > 1 %}
+			<div class="swiper-pagination slideshow-pagination"></div>
+		{% endif %}
+	</div>
+
+	{% if section.settings.learnMore != blank %}
+		<div class="learn-more">{{ section.settings.learnMore }}</div>
+	{% endif %}
+	<div class="popup-box">
+		<div class="popup-overlay"></div>
+		<div class="box-content">
+      <jds-icon name="close" class="iconfont jackery-icon-guanbi icon-close text-xl lg:text-2xl"></jds-icon>
+			{% if section.settings.popupTitle != blank %}
+				<h3 class="popup-title">{{ section.settings.popupTitle }}</h3>
+			{% endif %}
+
+			<div class="popup-img-box">
+				{% render 'responsive-image',
+						image: section.settings.pcPopupImg,
+						mimage: section.settings.mbPopupImg,
+						image_class: 'popup-img'
+				%}
+			</div>
+		</div>
+	</div>
+</div>

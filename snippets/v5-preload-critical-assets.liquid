@@ -1,0 +1,88 @@
+{%- doc -%}
+	预加载关键资源，提升LCP性能
+	字体图标文件
+
+	@example
+	{% render 'v5-preload-critical-assets' %}
+{%- enddoc -%}
+
+{% if template == 'product' or template contains 'product.' %}
+	{% liquid
+		assign current_variant = product.selected_or_first_available_variant
+		assign image_media = product.media | where: 'media_type', 'image'
+		assign requested_variant_id = request.params.variant | default: 0 | plus: 0
+		if requested_variant_id > 0
+			assign requested_variant = product.variants | where: 'id', requested_variant_id | first
+			if requested_variant != blank
+				assign current_variant = requested_variant
+			endif
+		endif
+
+		assign selected_option_1 = current_variant.option1 | default: '' | strip | downcase
+
+		assign preload_product_media = blank
+		assign preload_product_image = blank
+		assign priority_product_media = blank
+
+		if current_variant.featured_media
+			assign priority_product_media = current_variant.featured_media
+		elsif product.featured_media
+			assign priority_product_media = product.featured_media
+		endif
+
+		if priority_product_media != blank
+			assign priority_media_alt = priority_product_media.preview_image.alt | strip
+			if priority_media_alt == blank
+				assign priority_media_alt = priority_product_media.alt | strip
+			endif
+			assign priority_media_alt_normalized = priority_media_alt | downcase
+
+			if priority_media_alt_normalized == blank or priority_media_alt_normalized == selected_option_1
+				assign preload_product_media = priority_product_media
+			endif
+		endif
+
+		if preload_product_media == blank
+			for media in image_media
+				assign show_media = true
+				assign media_alt = media.preview_image.alt | strip
+				if media_alt == blank
+					assign media_alt = media.alt | strip
+				endif
+				assign media_alt_normalized = media_alt | downcase
+
+				if media_alt_normalized != blank and media_alt_normalized != selected_option_1
+					assign show_media = false
+				endif
+
+				if show_media == true
+					assign preload_product_media = media
+					break
+				endif
+			endfor
+		endif
+
+		if preload_product_media == blank and priority_product_media != blank
+			assign preload_product_media = priority_product_media
+		endif
+
+		if preload_product_media == blank
+			assign first_product_image = image_media | first
+			if first_product_image
+				assign preload_product_media = first_product_image
+			endif
+		endif
+
+		if preload_product_media != blank
+			assign preload_product_image = preload_product_media.preview_image
+		endif
+	%}
+	{% if preload_product_image != blank %}
+		{%- capture product_lcp_imagesrcset -%}{{ preload_product_image | image_url: width: 390 }} 390w, {{ preload_product_image | image_url: width: 480 }} 480w, {{ preload_product_image | image_url: width: 648 }} 648w, {{ preload_product_image | image_url: width: 750 }} 750w, {{ preload_product_image | image_url: width: 960 }} 960w, {{ preload_product_image | image_url: width: 1296 }} 1296w{%- endcapture -%}
+		<link rel="preload" href="{{ preload_product_image | image_url: width: 648 }}" as="image" imagesrcset="{{ product_lcp_imagesrcset }}" imagesizes="(min-width: 1024px) 648px, 100vw" fetchpriority="high" />
+	{% endif %}
+{% endif %}
+
+{% unless settings.disable_iconfont | default: false %}
+	<link rel="preload" href="{{ 'iconfont.woff2' | asset_url }}" as="font" type="font/woff2" crossorigin>
+{% endunless %}

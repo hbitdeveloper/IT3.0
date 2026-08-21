@@ -1,0 +1,62 @@
+{% comment %} How It Work {% endcomment %}
+<div id="how-it-works" class="flex flex-col pt-60 lg:j-pt-120 bg-f5">
+    {% assign swiper_str = '' %}
+    {% for block in section.blocks %}
+        {% assign swiper_str = swiper_str | append: ',' | append: block.settings.title %}
+    {% endfor %}
+    {% assign swiper_str = swiper_str | remove_first: ',' %}
+    <h2 class="collection-title">{{section.settings.how_it_work_title | newline_to_br}}</h2>
+    <div class="w-full swiper swiper-collection-work lg:j-h-800 relative" data-work="{{swiper_str}}">
+        <div class="swiper-wrapper">
+            {% for block in section.blocks %}
+                {% assign index = forloop.index %}
+                <div class="swiper-slide w-full h-1070 lg:j-h-800 ">
+                    <video
+                        class="hidden lg:block w-full lg:j-h-800 object-cover slide-video video-{{index}}"
+                        src="{{block.settings.video_pc_url}}"
+                        name="media"
+                        muted="" playsinline
+                    ></video>
+                    <video
+                        class="block lg:hidden w-full h-1070 object-cover slide-video video-{{index}}"
+                        src="{{block.settings.video_mb_url}}"
+                        name="media"
+                        muted="" playsinline
+                    ></video>
+                    <div class="flex items-start lg:items-center justify-start flex-col px-120 absolute left-0 top-180 lg:j-px-0 lg:left-1/2 lg:-translate-x-1/2 lg:j-top-98 z-1">
+                        <h3 class="text-45 leading-66 lg:j-text-40 lg:j-leading-48 text-white font-semibold mb-16 lg:j-mb-40">{{block.settings.title | newline_to_br}}</h3>
+                        <p class="text-left lg:text-center text-28 leading-36 lg:j-text-24 lg:j-leading-36 text-white font-normal">{{block.settings.subtitle | newline_to_br}}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% comment %} Add Pagination {% endcomment %}
+        <div class="swiper-collection-work-pagination"></div>
+    </div>
+</div>
+
+
+{% schema %}
+{
+  "name": "Solar Panels Main",
+  "class": "section section-solar-panels-main section-sp-pps-sg-collection",
+  "settings": [
+    {"type": "textarea", "id": "how_it_work_title", "label": "Features Section title", "default": "How Do Solar Panels Work"}
+  ],
+  "blocks": [
+      {
+        "type": "how-it-work",
+        "name": "How It Works",
+        "settings": [
+            {"type": "textarea", "id": "title", "label": "Slide title"},
+            {"type": "textarea", "id": "subtitle", "label": "Slide description"},
+            {"type": "image_picker", "id": "banner_img", "label": "PC banner image"},
+            {"type": "image_picker", "id": "m_banner_img", "label": "Mobile banner image"},
+            {"type": "url", "id": "video_pc_url", "label": "PC Video Url"},
+            {"type": "url", "id": "video_mb_url", "label": "Mobile Video Url"}
+        ]
+      }
+    ]
+}
+{% endschema %}
+

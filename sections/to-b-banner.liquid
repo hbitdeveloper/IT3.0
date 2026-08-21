@@ -1,0 +1,572 @@
+
+{% comment %} t0-b各子版块 开始 {% endcomment %}
+<div anchor="{{ section.settings.anchor | escape }}">
+  {%- for block in section.blocks -%}
+    {%- case block.type -%}
+      {%- when 'to_b_banner' -%}
+        {% comment %} banner版块 {% endcomment %}
+        {% render 'five-kwh-banner', banner: block.settings, new_window: section.settings.new_window%}
+      {%- when 'to_b_subscribe' -%}
+        {% comment %} 订阅版块 {% endcomment %}
+        {% render 'five-kwh-subscribe', subscribe: block.settings, index: forloop.index %}
+      {%- when 'to_b_letter' -%}
+        {% comment %} 信任状 {% endcomment %}
+        {% render 'five-kwh-letter', letter: block.settings, index: forloop.index %}
+      {%- when 'media_highlight_space' -%}
+        <div class=" product-media_highlight--block product-block-section">
+          {%- render "diy-scroll-textpic", settings: block.settings -%}
+        </div>
+        {%- when 'to_b_text' -%}
+        {% comment %} 图文 {% endcomment %}
+        {% render 'indoor-img-text', imgtext: block.settings, index: forloop.index %}
+    {%- endcase -%}
+  {%- endfor -%}
+</div>
+{% schema %}
+{
+  "name": "To B Banner", "class": "to-b-banner", "tag": "div",
+  "disabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "二级标题定位锚点", "info": "搭配二级导航锚点定位未使用到定位则不配置" },
+    { "type": "checkbox", "id": "new_window", "label": "新开标签页", "default": false }
+  ],
+  "blocks":[
+    {
+      "type": "to_b_banner",
+      "name": "To B Banner",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "label": "Auto Play(控制图片轮播)",
+          "default": false
+        },
+        {
+          "type": "range",
+          "id": "swiperInterval",
+          "label": "Swiper Interval (Unit: s)",
+          "default": 5,
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "unit": "s"
+        },
+        { "type": "range", "id": "pc_height", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+
+        {"type": "header", "content": "视频配置"},
+        {"type": "image_picker", "id": "videoSrcPoster", "label": "Video Poster PC" },
+        {"type": "video", "id": "videoSrc", "label": "Video Src PC" },
+        {"type": "image_picker", "id": "videoSrcPosterMB", "label": "Video Poster MB" },
+        {"type": "video", "id": "videoSrcMB", "label": "Video Src MB" },
+        { "type": "richtext", "id": "bottom_text", "label": "视频底部文字(PC)" },
+        { "type": "richtext", "id": "bottom_text_mb", "label": "视频底部文字(MB)" },
+        { "type": "color", "id": "bottom_text_color", "label": "视频底部文字颜色" },
+        {
+          "type": "select",
+          "id": "pc_position_video",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_video",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_video", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_video", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_video", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_video", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_video", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_video", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_video", "label": "按钮link" },
+        { "type": "color", "id": "button_color_video", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_video", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_video", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_video", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+
+        {"type": "header", "content": "Part 1 配置"},
+        { "type": "image_picker", "id": "pc_image_1", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_1", "label": "MB图片(必填)" },
+        {
+          "type": "select",
+          "id": "pc_position_1",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_1",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_1", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_1", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_1", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_1", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_1", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_1", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_1", "label": "按钮link" },
+        { "type": "color", "id": "button_color_1", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_1", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_1", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_1", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+
+        {"type": "header", "content": "Part 2 配置"},
+        { "type": "image_picker", "id": "pc_image_2", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_2", "label": "MB图片(必填)" },
+        { "type": "range", "id": "pc_height_2", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height_2", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+        {
+          "type": "select",
+          "id": "pc_position_2",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_2",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_2", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_2", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_2", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_2", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_2", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_2", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_2", "label": "按钮link" },
+        { "type": "color", "id": "button_color_2", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_2", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_2", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_2", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+
+        {"type": "header", "content": "Part 3 配置"},
+        { "type": "image_picker", "id": "pc_image_3", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_3", "label": "MB图片(必填)" },
+        { "type": "range", "id": "pc_height_3", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height_3", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+        {
+          "type": "select",
+          "id": "pc_position_3",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_3",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_3", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_3", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_3", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_3", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_3", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_3", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_3", "label": "按钮link" },
+        { "type": "color", "id": "button_color_3", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_3", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_3", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_3", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+
+        {"type": "header", "content": "Part 4 配置"},
+        { "type": "image_picker", "id": "pc_image_4", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_4", "label": "MB图片(必填)" },
+        { "type": "range", "id": "pc_height_4", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height_4", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+        {
+          "type": "select",
+          "id": "pc_position_4",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_4",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_4", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_4", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_4", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_4", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_4", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_4", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_4", "label": "按钮link" },
+        { "type": "color", "id": "button_color_4", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_4", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_4", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_4", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+
+        {"type": "header", "content": "Part 5 配置"},
+        { "type": "image_picker", "id": "pc_image_5", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_5", "label": "MB图片(必填)" },
+        { "type": "range", "id": "pc_height_5", "label": "PC自定义高度", "default": 800,  "min": 320,"max": 1200,"step": 10, "unit": "px" },
+        { "type": "range", "id": "mb_height_5", "label": "MB自定义高度", "default": 1000,  "min": 640,"max": 1500,"step": 10, "unit": "px" },
+        {
+          "type": "select",
+          "id": "pc_position_5",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_5",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_5", "label": "PC主标题【斜线=文案突出】"},
+        { "type": "richtext", "id": "title_mb_5", "label": "MB主标题【斜线=文案突出】"},
+        { "type": "color", "id": "title_main_color_5", "label": "主标题突出文案颜色"},
+        { "type": "richtext", "id": "sub_title_5", "label": "副标题【斜线=文案突出】"},
+        { "type": "color", "id": "sub_title_main_color_5", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_5", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_5", "label": "按钮link" },
+        { "type": "color", "id": "button_color_5", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_5", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_5", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_5", "label": "第二个按钮颜色", "default": "#fd5000" }
+      ]
+    },
+    {
+      "type": "to_b_subscribe",
+      "name": "To B Subscribe",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "text", "id": "tags", "label": "订阅标签", "default": "5000plus" },
+        { "type": "color_background","id":"bgColor","label":"版块背景色"},
+        {"type":"richtext","id":"title","label":"标题"},
+        {"type":"color","id":"title_color","label":"标题颜色"},
+        {"type":"richtext","id":"subtitle","label":"副标题"},
+        {"type":"color","id":"subtitle_color","label":"副标题颜色"},
+        {"type":"select","id":"tooltip","label":"悬浮文案颜色",
+          "options": [
+              { "value": "dark", "label": "深色环境" },
+              { "value": "light", "label": "浅色环境" }
+            ],
+        "default": "dark"},
+
+        {"type": "header", "content": "Part 1 配置"},
+        { "type":"color_background","id":"bgColor_1","label":"背景色","default":"#26292C"},
+        { "type": "image_picker", "id": "icon_1", "label": "图标", "info": "图片85*85" },
+        { "type": "richtext", "id": "title_1", "label": "文字内容【斜线=文案突出】" },
+        { "type": "color", "id": "title_color_1", "label": "文字内容突出颜色","default":"#FFF" },
+        { "type": "textarea", "id": "sub_title_1", "label": "悬浮文案" },
+
+        {"type": "header", "content": "Part 2 配置"},
+        { "type":"color_background","id":"bgColor_2","label":"背景色","default":"#26292C"},
+        { "type": "image_picker", "id": "icon_2", "label": "图标", "info": "图片85*85" },
+        { "type": "richtext", "id": "title_2", "label": "文字内容【斜线=文案突出】" },
+        { "type": "color", "id": "title_color_2", "label": "文字内容突出颜色","default":"#FFF" },
+        { "type": "textarea", "id": "sub_title_2", "label": "悬浮文案" },
+
+        {"type": "header", "content": "Part 3 配置"},
+        { "type":"color_background","id":"bgColor_3","label":"背景色","default":"#26292C"},
+        { "type": "image_picker", "id": "icon_3", "label": "图标", "info": "图片85*85" },
+        { "type": "richtext", "id": "title_3", "label": "文字内容【斜线=文案突出】" },
+        { "type": "color", "id": "title_color_3", "label": "文字内容突出颜色","default":"#FFF" },
+        { "type": "textarea", "id": "sub_title_3", "label": "悬浮文案" },
+
+        {"type":"richtext","id":"subscribe_title","label":"订阅标题【斜线=文案突出】"},
+        {"type":"color","id":"subscribe_title_color","label":"订阅标题突出颜色"},
+        {"type":"color_background","id":"subscribe_bgd","label":"订阅区域背景色","default":"#26292C"},
+        {"type":"image_picker","id":"subscribe_bg_img","label":"订阅区域背景图(PC)"},
+        {"type":"image_picker","id":"subscribe_bg_imgmb","label":"订阅区域背景色(MB)"},
+        {"type":"text","id":"subscribe_btn","label":"订阅按钮文案"},
+        {"type":"text","id":"subscribe_loading_btn","label":"订阅按钮Loading文案"},
+        {"type":"richtext","id":"subscribe_privacy", "label":"订阅隐私协议"},
+        {"type":"color","id":"subscribe_privacy_color", "label":"订阅隐私协议颜色"}
+      ]
+    },
+    {
+      "type": "to_b_letter",
+      "name": "To B Letter",
+      "settings": [
+        { "type":"color_background","id":"bg-color","label":"Background"},
+        {
+          "type": "select",
+          "id": "letter-type",
+          "label": "Letter Type",
+          "default": "text",
+          "options": [
+            {
+              "value": "text",
+              "label": "text"
+            },
+            {
+              "value": "img",
+              "label": "image"
+            }
+          ]
+        },
+        {
+          "type": "richtext",
+          "id": "pc-title",
+          "label": "PC Title(必填)"
+        },
+        {
+          "type": "richtext",
+          "id": "mb-title",
+          "label": "MB Title(必填)"
+        },
+
+        {
+          "type": "text",
+          "id": "sec-title1",
+          "label": "Second Title1"
+        },
+        {
+          "type": "text",
+          "id": "sec-title2",
+          "label": "Second Title2"
+        },
+
+        {
+          "type": "color",
+          "id": "title-color",
+          "label": "Title Color",
+          "default": "#fd5000"
+        },
+
+        {
+          "type": "richtext",
+          "id": "sub-title",
+          "label": "SubTitle"
+        },
+
+        {
+          "type": "color",
+          "id": "sub-title-color",
+          "label": "SubTitle Color"
+        },
+
+        {
+          "type": "image_picker",
+          "id": "pc-letter-img",
+          "label": "PC Letter Image",
+          "info": "大小: 1440x68"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb-letter-img",
+          "label": "MB Letter Image",
+          "info": "大小: 675x144"
+        }
+      ]
+    },
+    {
+      "type": "media_highlight_space",
+      "name": "使用场景",
+      "limit": 1,
+      "settings": [
+        { "type": "textarea", "id": "title", "label": "Title"},
+        { "type": "number", "id": "title_font", "label": "Title MB 字体大小","default":80 },
+
+        {"type": "header", "content": "场景 1 配置"},
+        { "type": "text", "id": "heading_1", "label": "场景 1 Heading" },
+        { "type": "textarea", "id": "description_1", "label": "场景 1 Description" },
+        { "type": "image_picker", "id": "pc_img_1", "label": "场景 1 PC Image" },
+        { "type": "image_picker", "id": "mb_img_1", "label": "场景 1 Mobile Image"},
+
+        {"type": "header", "content": "场景 2 配置"},
+        { "type": "text", "id": "heading_2", "label": "场景 2 Heading" },
+        { "type": "textarea", "id": "description_2", "label": "场景 2 Description" },
+        { "type": "image_picker", "id": "pc_img_2", "label": "场景 2 PC Image" },
+        { "type": "image_picker", "id": "mb_img_2", "label": "场景 2 Mobile Image"},
+
+        {"type": "header", "content": "场景 3 配置"},
+        { "type": "text", "id": "heading_3", "label": "场景 3 Heading" },
+        { "type": "textarea", "id": "description_3", "label": "场景 3 Description" },
+        { "type": "image_picker", "id": "pc_img_3", "label": "场景 3 PC Image" },
+        { "type": "image_picker", "id": "mb_img_3", "label": "场景 3 Mobile Image"},
+
+        {"type": "header", "content": "场景 4 配置"},
+        { "type": "text", "id": "heading_4", "label": "场景 4 Heading" },
+        { "type": "textarea", "id": "description_4", "label": "场景 4 Description" },
+        { "type": "image_picker", "id": "pc_img_4", "label": "场景 4 PC Image" },
+        { "type": "image_picker", "id": "mb_img_4", "label": "场景 4 Mobile Image"},
+
+        {"type": "header", "content": "场景 5 配置"},
+        { "type": "text", "id": "heading_5", "label": "场景 5 Heading" },
+        { "type": "textarea", "id": "description_5", "label": "场景 5 Description" },
+        { "type": "image_picker", "id": "pc_img_5", "label": "场景 5 PC Image" },
+        { "type": "image_picker", "id": "mb_img_5", "label": "场景 5 Mobile Image"},
+
+        {"type": "header", "content": "场景 6 配置"},
+        { "type": "text", "id": "heading_6", "label": "场景 6 Heading" },
+        { "type": "textarea", "id": "description_6", "label": "场景 6 Description" },
+        { "type": "image_picker", "id": "pc_img_6", "label": "场景 6 PC Image" },
+        { "type": "image_picker", "id": "mb_img_6", "label": "场景 6 Mobile Image"}
+      ]
+    },
+    {
+      "type": "to_b_text",
+      "name": "图文",
+      "settings": [
+        { "type": "text", "id": "block_id", "label": "锚点文案(支持空格，禁止使用-符号)", "info": "锚点Tab使用，无锚点可不填写" },
+        { "type": "text",  "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {
+          "type": "richtext",
+          "id": "big-title",
+          "label": "大标题"
+        },
+        {
+          "type": "color",
+          "id": "big-title-color",
+          "label": "大标题颜色"
+        },
+        {
+          "type": "select",
+          "id": "position",
+          "label": "图文布局",
+          "default": "left",
+          "options": [
+            {
+              "value": "left",
+              "label": "左图右文"
+            },
+            {
+              "value": "right",
+              "label": "右图左文"
+            }
+          ]
+        },
+
+        {
+          "type": "image_picker",
+          "id": "pc-img",
+          "label": "PC Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb-img",
+          "label": "MB Image"
+        },
+
+        { "type": "color_background", "id": "bg-color", "label": "文案背景色" },
+        {
+          "type": "richtext",
+          "id": "title",
+          "label": "PC Title"
+        },
+        {
+          "type": "richtext",
+          "id": "title-mb",
+          "label": "MB Title"
+        },
+        {
+          "type": "color",
+          "id": "title-color",
+          "label": "Title Color"
+        },
+
+        {
+          "type": "richtext",
+          "id": "sub-title",
+          "label": "PC Sub Title"
+        },
+        {
+          "type": "richtext",
+          "id": "sub-title-mb",
+          "label": "MB Sub Title"
+        },
+
+        {
+          "type": "color",
+          "id": "sub-title-color",
+          "label": "Sub Title Color"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "To B Banner"
+    }
+  ]
+}
+{% endschema %}

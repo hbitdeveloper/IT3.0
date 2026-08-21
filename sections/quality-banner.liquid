@@ -1,0 +1,149 @@
+<style>
+  .quality-banner {
+      background-image: url({{ section.settings.pc_image | image_url }});
+  }
+  .quality-center{
+      height: 100%;
+      background-color: {{ section.settings.body_color }};
+      {% if section.settings.bg_img_1 and section.settings.bg_img_2 %}
+        background-image: url({{ section.settings.bg_img_1 | image_url }}), url({{ section.settings.bg_img_2 | image_url }});
+        background-position: center {{ section.settings.bg_top_1 }}px, center {{ section.settings.bg_top_2 }}px;
+      {% elsif section.settings.bg_img_1 %}
+        background-image: url({{ section.settings.bg_img_1 | image_url }});
+        background-position: center {{ section.settings.bg_top_1 }}px;
+      {% elsif section.settings.bg_img_2 %}
+        background-image: url({{ section.settings.bg_img_2 | image_url }});
+        background-position: center {{ section.settings.bg_top_2 }}px;
+      {% endif %}
+      background-repeat: no-repeat, no-repeat;
+      background-size: 100%;
+  }
+  @media screen and (max-width: 1024px) {
+      .quality-banner {
+          background-image: url({{ section.settings.mb_image | image_url }});
+      }
+  }
+
+  .quality-banner {
+      height: 640px;
+      width: 100%;
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      position: relative;
+      display: flex;
+      justify-content: center;
+  }
+
+  .quality-banner .quality-banner-container {
+      margin-top: 186px;
+      width: 1200px;
+      text-align: center;
+  }
+
+  .quality-banner .quality-banner-container .content .title {
+      font-weight: 600;
+      color: #FFFFFF;
+      font-size: 56px;
+      line-height: 72px;
+  }
+
+  .quality-banner {
+    margin-bottom: calc(var(--pc-margin-bottom) * 1px);
+  }
+
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+      .quality-banner {
+          height: 44.44444444vw;
+      }
+
+      .quality-banner .quality-banner-container {
+          margin-top: 12.91666667vw;
+          width: 83.33333333vw;
+      }
+
+      .quality-banner .quality-banner-container .content .title {
+          font-size: 3.88888889vw;
+          line-height: 5vw;
+      }
+
+      .quality-banner {
+        margin-bottom: calc(var(--pc-margin-bottom) * 100vw / 1440);
+      }
+  }
+
+  @media screen and (max-width: 1024px) {
+    .quality-center{
+      height: 100%;
+      background-color: {{ section.settings.body_color }};
+      background-image: unset;
+    }
+      .quality-banner {
+          height: 133.33333333vw;
+      }
+
+      .quality-banner .quality-banner-container {
+          margin-top: 30vw;
+          width: 87.2vw;
+      }
+
+      .quality-banner .quality-banner-container .content .title {
+          font-size: 8.53333333vw;
+          line-height: 10.66666667vw;
+      }
+
+      .quality-banner {
+        margin-bottom: calc(var(--mb-margin-bottom) * 100vw / 750);
+      }
+
+  }
+</style>
+
+<div class="quality-banner"
+style="
+background: {{ section.settings.bg_color }};
+--pc-margin-bottom:{{ section.settings.pc_margin_bottom }};--mb-margin-bottom:{{ section.settings.mb_margin_bottom }};
+"
+>
+  <div class="quality-banner-container">
+    <div class="content">
+      {% assign titleColor = '<em style="color: ' | append: section.settings.title_color | append: '">' %}
+      {% if section.settings.title != blank %}
+        <h1 class="title pc-block" style="color: {{ section.settings.title_main_color }}">
+          {{ section.settings.title | replace: '<em>', titleColor }}
+        </h1>
+      {% endif %}
+      {% if section.settings.title_mb != blank %}
+        <h1 class="title mobile-block" style="color: {{ section.settings.title_main_color }}">
+          {{ section.settings.title_mb | replace: '<em>', titleColor }}
+        </h1>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Quality Banner",
+  "settings": [
+    { "type": "number", "id": "pc_margin_bottom", "label": "下边距PC"},
+    { "type": "number", "id": "mb_margin_bottom", "label": "下边距MB"},
+    { "type": "image_picker", "id": "pc_image", "label": "PC背景图", "info": "1920*640" },
+    { "type": "image_picker", "id": "mb_image", "label": "MB背景图", "info": "750*1000" },
+    { "type": "richtext", "id": "title", "label": "PC标题" },
+    { "type": "richtext", "id": "title_mb", "label": "MB标题" },
+     { "type": "color", "id": "title_main_color", "label": "标题颜色" },
+    { "type": "color", "id": "title_color", "label": "突出文案颜色【斜体=文案突出】" },
+    { "type": "image_picker", "id": "bg_img_1", "label": "PC第一处底光图", "info": "尺寸:1920 x 1013,单位px" },
+    { "type": "number", "id": "bg_top_1", "label": "距离顶部位置", "default": 300 },
+    { "type": "image_picker", "id": "bg_img_2", "label": "PC第二处底光图", "info": "尺寸:1920 x 1013,单位px" },
+    { "type": "number", "id": "bg_top_2", "label": "距离顶部位置", "default": 600 },
+    { "type": "color", "id": "body_color", "label": "页面背景色", "default": "#172656" ,"info": "若配了组件背景色,则组件背景色优先级更高;默认蓝色(#172656)"}
+  ],
+  "presets": [
+    {
+      "name": "品质中心 - banner"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,252 @@
+{% comment %} 付费延保表单 {% endcomment %}
+
+{% comment %} 日期插件 {% endcomment %}
+<link rel="stylesheet" href="{{ 'flatpickr.min.css' | asset_url }}">
+<script src="{{ 'flatpickr.min.js' | asset_url }}" defer></script>
+
+{% comment %} 日站 JP 或 Demo JP 语言适配{% endcomment %}
+{% if shop.id == 10015375438 or shop.id == 56124375224 %}
+  <script src="{{ 'flatpickr-i18n-ja.js' | asset_url }}" defer></script>
+{% endif %}
+
+{% comment %} aws s3桶 {% endcomment %}
+<script src="{{ 'aws-sdk-2.1046.0.min.js' | asset_url }}" defer></script>
+
+<div
+  class="pew-form"
+  data-back-status="false"
+  data-required-tips="{{ form.required_tips }}"
+  data-order-sn-format-check-tips="{{ form.order_sn_format_check_tips }}"
+  data-min-files-count-tips="{{ form.min_files_count_tips }}"
+  data-img-format-check-tips="{{ form.img_format_check_tips }}"
+  data-img-uploading-tips="{{form.img_uploading_tips }}"
+  data-max-size-tips="{{ form.max_size_tips }}"
+  data-page-unload-tips="{{ form.page_unload_tips }}"
+>
+  <div class="form-container">
+    <div class="part-one">
+      <h2 class="title pc-show">{{ form.first_section_title_pc }}</h2>
+      <h2 class="title mb-show">{{ form.first_section_title_mb }}</h2>
+      <div class="subtitle">{{ form.first_section_subtitle }}</div>
+      <form id="pewFormOne">
+        {% comment %} 延保服务订单 ID {% endcomment %}
+        <div class="form-group">
+          <label>
+            <span class="label-text">{{ form.pew_id_label }}</span>
+            <sup class="required">*</sup>
+            {% if form.pew_id_tips != blank %}
+              {%- render 'pew-tooltip',
+                content: form.pew_id_tips,
+                icon_color: '#666',
+                icon_index: '1',
+                icon_width: '18',
+                icon_height: '18'
+              -%}
+            {% endif %}
+          </label>
+          <div class="relative">
+            {%- render 'pew-select', select_id: 'pew_id', select_placeholder: form.pew_id_placeholder -%}
+            <input type="hidden" id="pew_id">
+            <p class="error-tips" data-field="pew_id"></p>
+          </div>
+        </div>
+        {% comment %} 延保服务 {% endcomment %}
+        <div class="form-group">
+          <label>
+            <span class="label-text">{{ form.pew_service_label }}</span>
+            <sup class="required">*</sup>
+            {% if form.pew_service_tips != blank %}
+              {%- render 'pew-tooltip',
+                content: form.pew_service_tips,
+                icon_color: '#666',
+                icon_index: '2',
+                icon_width: '18',
+                icon_height: '18'
+              -%}
+            {% endif %}
+          </label>
+          <div class="relative">
+            {%- render 'pew-select',
+              select_id: 'pew_service',
+              select_placeholder: form.pew_service_placeholder,
+              disabled: 'disabled'
+            -%}
+            <input type="hidden" id="pew_service">
+            <p class="error-tips" data-field="pew_service"></p>
+          </div>
+        </div>
+        <button type="submit" class="btn-next z-button-middle" disabled="disabled">{{ form.btn_next }}</button>
+      </form>
+    </div>
+    <div class="part-two">
+      <h2 class="edit-mode-tips">版块二仅编辑模式下默认展示，方便配置查看</h2>
+      <h2 class="title pc-show">{{ form.second_section_title_pc }}</h2>
+      <h2 class="title mb-show">{{ form.second_section_title_mb }}</h2>
+      <div class="subtitle">{{ form.second_section_subtitle }}</div>
+
+      <form id="pewFormTwo">
+        {% comment %} 需要延保产品的购买渠道 {% endcomment %}
+        <div class="form-group">
+          <label data-text="{{ form.product_purchase_channel_label }}">
+            <span class="label-text"></span>
+            <sup class="required">*</sup>
+            {% if form.product_purchase_channel_tips != blank %}
+              {%- render 'pew-tooltip',
+                content: form.product_purchase_channel_tips,
+                icon_color: '#666',
+                icon_index: '3',
+                icon_width: '18',
+                icon_height: '18'
+              -%}
+            {% endif %}
+          </label>
+          <div class="relative">
+            {%- render 'pew-select',
+              select_id: 'product_purchase_channel',
+              select_placeholder: form.product_purchase_channel_ph
+            -%}
+            <input type="hidden" id="product_purchase_channel" name="channel">
+            <p class="error-tips" data-field="product_purchase_channel"></p>
+          </div>
+        </div>
+
+        {% comment %} 需要延保产品的购买订单号 {% endcomment %}
+        <div class="form-group">
+          <label data-text="{{ form.product_order_label }}">
+            <span class="label-text"></span>
+            <sup class="required">*</sup>
+            {% if form.product_order_tips != blank %}
+              {%- render 'pew-tooltip',
+                content: form.product_order_tips,
+                icon_color: '#666',
+                icon_index: '4',
+                icon_width: '18',
+                icon_height: '18'
+              -%}
+            {% endif %}
+          </label>
+          <input
+            id="product_order"
+            type="text"
+            class="input-field"
+            placeholder="{{form.product_order_inp_placeholder}}"
+            maxlength="30"
+          >
+          <p class="error-tips" data-field="product_order"></p>
+        </div>
+
+        {% comment %} 需要延保产品的SN号 {% endcomment %}
+        <div class="form-group">
+          <label data-text="{{ form.product_sn_label }}">
+            <span class="label-text"></span>
+            <sup class="required">*</sup>
+            {% if form.product_sn_tips != blank %}
+              {%- render 'pew-tooltip',
+                content: form.product_sn_tips,
+                icon_color: '#666',
+                icon_index: '5',
+                icon_width: '18',
+                icon_height: '18'
+              -%}
+            {% endif %}
+          </label>
+          <input
+            id="product_sn"
+            type="text"
+            class="input-field"
+            placeholder="{{form.product_sn_placeholder}}"
+            maxlength="30"
+          >
+          <p class="error-tips" data-field="product_sn"></p>
+        </div>
+
+        {% comment %} 需要延保产品的购买时间 {% endcomment %}
+        <div class="form-group offline-item">
+          <label data-text="{{ form.product_purchase_time_label }}">
+            <span class="label-text"></span>
+            <sup class="required">*</sup>
+            {% if form.product_purchase_time_tips != blank %}
+              {%- render 'pew-tooltip',
+                content: form.product_purchase_time_tips,
+                icon_color: '#666',
+                icon_index: '6',
+                icon_width: '18',
+                icon_height: '18'
+              -%}
+            {% endif %}
+          </label>
+          <div class="relative flatpickr">
+            <input
+              id="product_purchase_time"
+              type="text"
+              data-input
+              class="input-field"
+              placeholder="{{form.product_purchase_time_ph}}"
+            >
+            <svg
+              data-toggle
+              class="icon-date input-button"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+            >
+              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g transform="translate(-1320.000000, -1094.000000)">
+                      <g transform="translate(1320.000000, 1094.000000)">
+                          <rect x="0" y="0" width="24" height="24"></rect>
+                          <path d="M17.7894737,2.73684211 L19.8169474,2.73684211 C21.5757895,2.73684211 23,4.16221051 23,5.92365789 L23,19.8128947 C23,21.5731842 21.5752105,23 19.8169474,23 L4.18305262,23 C2.42421053,23 1,21.5746316 1,19.8131842 L1,5.92394737 C1,4.1636579 2.42478947,2.73684211 4.18305262,2.73684211 L6.21052632,2.73684211 L6.21052632,1.86842105 C6.21052632,1.38880535 6.59933167,1 7.07894737,1 C7.55856308,1 7.94736843,1.38880535 7.94736843,1.86842105 L7.94736843,2.73684211 L16.0526316,2.73684211 L16.0526316,1.86842105 C16.0526316,1.38880535 16.4414369,1 16.9210526,1 C17.4006683,1 17.7894737,1.38880535 17.7894737,1.86842105 L17.7894737,2.73684211 Z M17.7894737,4.47368421 L17.7894737,5.34210527 C17.7894737,5.82172097 17.4006683,6.21052632 16.9210526,6.21052632 C16.4414369,6.21052632 16.0526316,5.82172097 16.0526316,5.34210527 L16.0526316,4.47368421 L7.94736843,4.47368421 L7.94736843,5.34210527 C7.94736843,5.82172097 7.55856308,6.21052632 7.07894737,6.21052632 C6.59933167,6.21052632 6.21052632,5.82172097 6.21052632,5.34210527 L6.21052632,4.47368421 L4.18305262,4.47368421 C3.7989828,4.47414454 3.43083064,4.62717714 3.15960517,4.89910835 C2.88837971,5.17103957 2.73630435,5.53958817 2.7368372,5.92365789 L2.7368372,19.8128947 C2.73584248,20.1971318 2.88775998,20.5659783 3.15907714,20.8380558 C3.4303943,21.1101332 3.79881423,21.2631579 4.18305262,21.2631579 L19.8169474,21.2631579 C20.2010172,21.2626976 20.5691694,21.109665 20.8403948,20.8377338 C21.1116203,20.5658025 21.2636956,20.1972539 21.2631628,19.8131842 L21.2631628,5.92394737 C21.2641575,5.53971028 21.11224,5.17086379 20.8409229,4.89878633 C20.5696057,4.62670888 20.2011858,4.47368421 19.8169474,4.47368421 L17.7894737,4.47368421 Z M17.5,10.5526316 C17.9796157,10.5526316 18.3684211,10.9414369 18.3684211,11.4210526 C18.3684211,11.9006683 17.9796157,12.2894737 17.5,12.2894737 L6.49999999,12.2894737 C6.02038428,12.2894737 5.63157893,11.9006683 5.63157893,11.4210526 C5.63157893,10.9414369 6.02038428,10.5526316 6.49999999,10.5526316 L17.5,10.5526316 L17.5,10.5526316 Z M14.0263158,14.8947369 C14.5059315,14.8947369 14.8947369,15.2835422 14.8947369,15.7631579 C14.8947369,16.2427736 14.5059315,16.631579 14.0263158,16.631579 L6.49999999,16.631579 C6.02038428,16.631579 5.63157893,16.2427736 5.63157893,15.7631579 C5.63157893,15.2835422 6.02038428,14.8947369 6.49999999,14.8947369 L14.0263158,14.8947369 Z"  fill="#666666" fill-rule="nonzero"></path>
+                      </g>
+                  </g>
+              </g>
+            </svg>
+            <p class="error-tips" data-field="product_purchase_time"></p>
+          </div>
+        </div>
+
+        {% comment %} 需要延保产品的购买凭证 {% endcomment %}
+        <div class="form-group offline-item item-proof">
+          <label data-text="{{ form.upload_proof_label }}">
+            <span class="label-text"></span>
+            <sup class="required">*</sup>
+            {% if form.upload_proof_tips != blank %}
+              {%- render 'pew-tooltip',
+                content: form.upload_proof_tips,
+                icon_color: '#666',
+                icon_index: '7',
+                icon_width: '18',
+                icon_height: '18'
+              -%}
+            {% endif %}
+          </label>
+          <input
+            type="file"
+            name="file"
+            id="upload_proof"
+            accept="image/jpg, image/jpeg,image/png"
+            data-total="0"
+            data-uploading="false"
+            data-img-urls="[]"
+            data-s3keys="[]"
+          >
+          <div class="img-list">
+            <div class="list-item add-image">
+              <span>+</span>
+            </div>
+          </div>
+          <p class="error-tips" data-field="upload_proof"></p>
+        </div>
+
+        <div class="notes">{{ form.note_text }}</div>
+
+        <p class="prev-link">{{ form.prev_text }}</p>
+        <button type="submit" class="btn-submit z-button-middle">
+          <span class="btn-text">{{ form.btn_submit }}</span>
+          {%- render 'pew-spinner' -%}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

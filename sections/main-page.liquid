@@ -1,0 +1,102 @@
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .page-contact .rte .table-wrapper table {
+    border-bottom: none;
+    border-right: none;
+  }
+  .page-contact .rte .table-wrapper td {
+    border-left: none;
+    border-top: none;
+  }
+  .page-contact .rte td:nth-child(2) p:nth-child(odd){
+    margin-bottom: 0;
+  }
+  .page-contact .rte td:nth-child(2) p:nth-child(even){
+    margin-bottom: 25px;
+  }
+
+  section .image-banner-bg {
+    max-height: 450px;
+    margin-bottom: 30px;
+  }
+
+  @media screen and (max-width: 750px) {
+    .page-contact .rte .table-wrapper table tbody tr {
+      display: flex;
+      flex-direction: column;
+    }
+    .page-contact .rte .table-wrapper table tbody tr td {
+      width: 100%!important;margin-bottom:20px;
+    }
+  }
+{%- endstyle -%}
+
+<script defer>
+  var orderList = [
+  	{%- for item in cart.items -%}
+    {
+      goods_name: "{{ item.title }}",
+      variant_id: {{ item.variant_id }},
+      nums: {{ item.quantity }},
+      price: {{ item.original_price }},
+      discount_price: {{ item.final_price }},
+      discount: {{ item.line_level_total_discount }},
+      total: {{ item.final_line_price }},
+      sku: "{{ item.sku }}",
+      url: "{{ item.url }}",
+      key: "{{ item.key }}"
+    },
+    {%- endfor -%}
+  ];
+</script>
+
+<div class="page-width page-width--narrow section-{{ section.id }}-padding {{template | replace: '.', '-'}}">
+  <div class="rte">
+    {{ page.content }}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.main-page.name",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 36
+    }
+  ]
+}
+{% endschema %}

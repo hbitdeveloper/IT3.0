@@ -1,0 +1,278 @@
+<style>
+    #shopify-section-{{ section.id }} {
+        background: {{ section.settings.bg_color }};
+    }
+
+    /* Title switches font between MB and PC (single DOM element) */
+    #shopify-section-{{ section.id }} .v-title {
+        font-weight: 600;
+        font-size: 1.5rem; /* 24px */
+        line-height: normal;
+        color: #242f20;
+        text-transform: none;
+        width: 100%;
+        white-space: pre-wrap;
+    }
+    @media (min-width: 1024px) {
+        #shopify-section-{{ section.id }} .v-title {
+            font-family: Oxanium, sans-serif;
+            font-weight: 800;
+            font-size: 4.071875rem; /* 65.15px */
+            line-height: 1.1;
+            color: #ffffff;
+            text-transform: uppercase;
+            width: 41.114625rem; /* 657.834px */
+        }
+    }
+</style>
+
+{%- capture style -%}
+    {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign pcimage = section.settings.pcimage
+  assign mimage = section.settings.mimage
+-%}
+
+<div {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %} style="{{ style }}" class="section-padding">
+    <div class="section-container-lg overflow-hidden">
+        <div class="relative w-full flex flex-col gap-4 lg:h-[33.5rem] lg:gap-0">
+
+            <div class="relative w-[21.4375rem] h-[28.5625rem] overflow-hidden lg:absolute lg:inset-0 lg:w-full lg:h-full lg:py-px">
+                {%- if pcimage != blank or mimage != blank -%}
+                    {% assign img_alt = section.settings.title | strip_html | default: pcimage.alt | default: 'image alt' %}
+                    {% render 'diff-end-img', pc_img: pcimage, mb_img: mimage,
+                          pc_img_width: 1320,
+                          mb_img_width: 343,
+                          class: 'w-full h-full object-cover',
+                          alt: img_alt %}
+                {%- else -%}
+                  {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg placeholder w-full h-full object-cover' }}
+                {%- endif -%}
+            </div>
+
+            <div class="main-content relative w-full flex flex-col gap-4 lg:h-full lg:flex-row lg:items-start lg:justify-between lg:px-[3.39325rem] lg:py-[3.6194375rem]">
+                <p class="v-title">{{ section.settings.title }}</p>
+
+                <div class="w-full flex flex-col gap-4 lg:w-auto lg:gap-[2.5449375rem] lg:items-start">
+                    {%- assign shown = 0 -%}
+                    {%- for block in section.blocks -%}
+                        {%- if block.type == 'stat' -%}
+
+                            {%- if shown > 0 -%}
+                                <div class="w-full h-px bg-[#E8E8E5] lg:hidden"></div>
+                            {%- endif -%}
+
+                            <div class="w-full lg:backdrop-blur-[0.4560625rem] lg:bg-black/30 lg:overflow-hidden lg:px-[1.3573125rem] lg:py-[0.904875rem]" {{ block.shopify_attributes }}>
+                                <div class="w-full flex items-center lg:items-start gap-2 text-[#242f20] lg:flex-col lg:gap-0.5 lg:text-white">
+                                    <div class="flex lg:items-center lg:gap-[0.678625rem] lg:leading-[1.1]">
+                                        <div class=" flex items-end w-[8.5rem] lg:w-auto">
+                                            <p class="font-extrabold uppercase leading-[1.1] text-4xl lg:leading-[1.1] lg:text-7xl v5-font-oxm">
+                                                <span class="digit-value">{{ block.settings.value }}</span>
+                                                <span>{{ block.settings.magnitude }}</span>
+                                            </p>
+                                        </div>
+                                        <p class="font-semibold text-sm hidden lg:block lg:text-[1.75rem]">{{ block.settings.unit }}</p>
+                                    </div>
+                                    <p class="font-normal text-sm leading-normal lg:text-[1.1310625rem] lg:leading-none lg:h-[2.0925rem] lg:w-full">
+                                        <span class="lg:hidden">{{ block.settings.unit }}</span>
+                                        {{ block.settings.desc }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {%- assign shown = shown | plus: 1 -%}
+                        {%- endif -%}
+                    {%- endfor -%}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+document.addEventListener("DOMContentLoaded", () => {
+  const target = document.querySelector(".v5-about-us-digit-anim .main-content");
+  if (!target) return;
+
+  // Optional: fallback for older browsers
+  if (!("IntersectionObserver" in window)) {
+    runCountUp(target);
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+
+        runCountUp(entry.target);
+
+        // Stop observing after first trigger
+        obs.unobserve(entry.target);
+        obs.disconnect();
+        break;
+      }
+    },
+    { threshold: 0.1 } // tweak as needed
+  );
+
+  observer.observe(target);
+
+  function runCountUp(root) {
+    const elements = root.querySelectorAll(".digit-value");
+
+    for (const el of elements) {
+      // If already animated, skip
+      if (el.dataset.counted === "1") continue;
+
+      const raw = (el.textContent || "").trim();
+
+      // Parse number once
+      const value = Number(raw);
+      if (!Number.isFinite(value)) continue;
+
+      // Compute decimal places fast
+      const dot = raw.indexOf(".");
+      const decimalPlaces = dot === -1 ? 0 : raw.length - dot - 1;
+
+      // Cache to avoid re-parsing if needed later
+      el.dataset.counted = "1";
+
+      Jackery?.Utils?.countUp?.(el, value, { decimalPlaces, duration: 1.5 });
+    }
+  }
+});
+
+</script>
+
+{% schema %}
+{
+  "name": "V5品牌页-数值动效",
+  "tag": "section",
+  "class": "v5-about-us-digit-anim",
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "label": "PC上边距",
+      "default": 40
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "PC下边距",
+      "default": 40
+    },
+    {
+      "type": "text",
+      "id": "mb_padding_type",
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ false }}"
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "MB上边距",
+      "default": 32
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "MB下边距",
+      "default": 32
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色"
+    },
+
+    {
+      "type": "image_picker",
+      "id": "pcimage",
+      "label": "PC图片",
+      "info": "建议尺寸：1320x536"
+    },
+    {
+      "type": "image_picker",
+      "id": "mimage",
+      "label": "MB图片",
+      "info": "建议尺寸：686x914"
+    },
+
+    {
+      "type": "text",
+      "id": "title",
+      "label": "标题",
+      "default": "Deliver Sustainable Energy"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "数据项",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "text",
+          "id": "value",
+          "label": "数值",
+          "default": "1.07"
+        },
+        {
+          "type": "text",
+          "id": "magnitude",
+          "label": "数量级",
+          "default": "B"
+        },
+        {
+          "type": "text",
+          "id": "unit",
+          "label": "单位(仅PC展示,可为空)",
+          "default": "KWH"
+        },
+        {
+          "type": "text",
+          "id": "desc",
+          "label": "描述",
+          "default": "of carbon emissions reduced"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+        "name": "V5品牌页-数值动效",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "stat",
+          "settings": {
+            "value": "1.07",
+            "magnitude": "B",
+            "unit": "KWH",
+            "desc": "of carbon emissions reduced"
+          }
+        },
+        {
+          "type": "stat",
+          "settings": {
+            "value": "1.069",
+            "magnitude": "M",
+            "unit": "Tons",
+            "desc": "of carbon emissions reduced"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

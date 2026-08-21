@@ -1,0 +1,391 @@
+<style>
+	#shopify-section-{{ section.id }} {
+		{% if section.settings.background_type == 'color' %}
+      background: {{ section.settings.bg_color }};
+    {% else %}
+      background-image: url("{{ section.settings.bg_image | image_url }}");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    {% endif %}
+	}
+  #shopify-section-{{ section.id }} .v5-carousel-card-tit{
+    line-height: 1.3;
+  }
+  #shopify-section-{{ section.id }} .v5-carousel-cards-group{
+    gap: 1.5rem;
+    margin-right: -1rem;
+  }
+  #shopify-section-{{ section.id }} .v5-carousel-cards-group .swiper-slide{
+    width: 389px;
+    height: 503px;
+  }
+  .v5-carousel-card-small-img{
+    height: 240px;
+  }
+  #shopify-section-{{ section.id }} .mfj-navs{
+    gap: 2.5rem;
+    padding-top: 1.5rem;
+    padding-left: 3.75rem;
+    padding-right: 3.75em;
+  }
+  #shopify-section-{{ section.id }} .mfj-navs .mfj-navs-icon{
+    border-radius: 2.75rem;
+    witdh: 2.5rem;
+    height: 2.5rem;
+  }
+  @media (min-width: 1024px) and (max-width: 1440px) {
+    #shopify-section-{{ section.id }} .v5-carousel-cards-group .swiper-slide{
+      width: 31.6%;
+      aspect-ratio: 389 / 503;
+    }
+    .v5-carousel-card-small-img{
+      aspect-ratio: 389 / 240;
+    }
+  }
+  @media (max-width: 1023.99px){
+    #shopify-section-{{ section.id }} .v5-carousel-cards-group .swiper-slide{
+      width: 17.5rem;
+      height: 25.5rem    
+    }
+     .v5-carousel-card-small-img{
+      height: 12rem;
+    }
+  }
+  @media (max-width: 767.99px) {
+    #shopify-section-{{ section.id }} .v5-carousel-card-tit{
+      font-size: 1.75rem;
+    }
+  }
+</style>
+
+{% assign set = section.settings %}
+{% liquid
+  assign big_img = "swiper-slide overflow-hidden relative shrink-0"
+  assign small_img = "v5-carousel-card-small-img w-full mb-6 lg:mb-[1.5rem]"
+  assign small_img2 = "v5-carousel-card-small-img w-full "
+%}
+
+<div 
+	id="mfj-{{ section.id }}"
+	{% if set.anchor != blank %} anchor-target="{{set.anchor | escape}}"{% endif %}
+	class="section-container v5-general-carousel-cards"
+	style="padding-top: {{ set.padding_top }}px; padding-bottom: {{ set.padding_bottom }}px;"
+>
+	{%- if set.heading != blank -%}
+    <h2 class="v5-carousel-card-tit font-semibold lg:text-5xl md:text-4xl text-center lg:mb-16 mb-8 mx-auto break-words text-pretty " >
+      {{ set.before_heading | replace: '\n', '<br>' | strip }}
+			<span style="color: {{ set.heading_color }}">{{ set.heading | replace: '\n', '<br>' | strip }}</span>
+      {{ set.after_heading | replace: '\n', '<br>' | strip }}
+    </h2>
+  {%- endif -%}
+	<div class="v5-carousel-cards-group flex flex-col items-start justify-center pt-0 w-full lg:mr-0">
+        <div class="relative w-full">
+            <div class="swiper overflow-hidden w-full swiper--{{ section.id }}" data-mfj-swiper data-blocks-size="{{ section.blocks.size }}">
+                <div class="swiper-wrapper">
+                    {%- for block in section.blocks -%}
+                        {%- assign b = block.settings -%}
+                        <div class="{{ big_img }}" 
+                          {{ block.shopify_attributes }}>
+                            {%- if b.image_layout == 'single' -%}
+                                {%- if b.pcimage != blank or b.mimage != blank -%}
+                                    <a href="{{ b.jump_url | default: '#' }}" class="h-full w-full">
+                                      {% render 'diff-end-img',
+                                        class: 'w-full h-full max-w-none object-cover object-center',
+                                        pc_img: b.pcimage,
+                                        mb_img: b.mimage,
+                                        pc_img_width: 389,
+                                        mb_img_width: 560
+                                      %}    
+                                    </a>
+                                {%- else -%}
+                                    {{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full' }}
+                                {%- endif -%}
+                            {%- else -%}
+															<div class="flex flex-col h-full w-full">
+																{%- if b.pcimage != blank or b.mimage != blank -%}
+																		<div class="{{ small_img }}">
+																			<a href="{{ b.jump_url | default: '#' }}" class="h-full w-full">
+                                        {% render 'diff-end-img',
+                                          class: 'w-full h-full max-w-none object-cover object-center',
+                                          pc_img: b.pcimage,
+                                          mb_img: b.mimage,
+                                          pc_img_width: 389,
+                                          mb_img_width: 560
+                                        %} 
+																			</a>
+																		</div>
+																{%- else -%}
+																		<div class="{{ small_img }}">
+																				{{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full' }}
+																		</div>
+																{%- endif -%}
+																{%- if b.pcimage2 != blank or b.mimage2 != blank -%}
+																		<div class="{{ small_img2 }}">
+																			<a href="{{ b.jump_url_other | default: '#' }}" class="h-full w-full">
+                                        {% render 'diff-end-img',
+                                          class: 'w-full h-full max-w-none object-cover object-center',
+                                          pc_img: b.pcimage2,
+                                          mb_img: b.mimage2,
+                                          pc_img_width: 389,
+                                          mb_img_width: 560
+                                        %} 
+																			</a>
+																		</div>
+																{%- else -%}
+																		<div class="{{ small_img2 }}">
+																				{{ 'hero-apparel-1' | placeholder_svg_tag: 'w-full h-full' }}
+																		</div>
+																{%- endif -%}
+															</div>
+                            {%- endif -%}
+                        </div>
+                    {%- endfor -%}
+                </div>
+            </div>
+            {% comment %} PC 轮播按钮（移动端隐藏） {% endcomment %}
+            <div class="mfj-navs hidden items-center justify-center gap-[2.5rem] px-[3.75rem] w-full pt-[1.5rem]">
+                <div class="rounded-[2.75rem] w-[2.5rem] h-[2.5rem] cursor-pointer" role="button" tabindex="0" data-mfj-prev aria-label="上一张">
+                    {% render 'v5-icon-arrow-left' %}
+                </div>
+                <div class="mfj-navs-icon cursor-pointer" role="button" tabindex="0" data-mfj-next aria-label="下一张">
+                    {% render 'v5-icon-arrow-right' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+  // 初始化所有 v5-carousel-cards 类型的 Swiper
+  function initAllCarouselCards() {
+    document.querySelectorAll('.v5-general-carousel-cards .swiper:not(.swiper-initialized)').forEach(container => {
+      if (container.swiper)  container.swiper.destroy(true, true)
+
+      const sectionWrapper = container.closest('[id^="shopify-section-"]');
+      const sectionId = sectionWrapper ? sectionWrapper.id.replace('shopify-section-', '') : '';
+
+      // 从 data 属性读取 blocks 数量
+      const blocksSize = parseInt(container.dataset.blocksSize || '0');
+      const viewSize = 3; // PC 显示 3 个
+
+      let options = {
+        slidesPerView: 'auto',
+        spaceBetween: 16,
+        breakpoints: {
+          750: {
+            spaceBetween: 32,
+          },
+          1024: {
+            spaceBetween: 24,
+          }
+        },
+        loop: false,
+        lazy: {
+          loadPrevNext: true,
+          loadOnTransitionStart: true,
+          loadPrevNextAmount: 2
+        },
+        observer: true,
+        observeParents: true
+      };
+
+      // 如果 blocks > viewSize，启用 navigation + loop
+      if (blocksSize > viewSize) {
+        options.navigation = {
+          nextEl: `#mfj-${sectionId} [data-mfj-next]`,
+          prevEl: `#mfj-${sectionId} [data-mfj-prev]`,
+        };
+        options.loop = true;
+
+        // 显示导航按钮（只在 PC）
+        const navs = document.querySelector(`#mfj-${sectionId} .mfj-navs`);
+        if (navs) {
+          navs.classList.add('lg:flex');
+        }
+      }
+
+      // 初始化 Swiper
+      new Swiper(container, options);
+
+      // 标记已初始化，避免重复
+      container.classList.add('swiper-initialized');
+    });
+  }
+
+  // 页面首次加载
+  document.addEventListener('DOMContentLoaded', () => {
+    initAllCarouselCards();
+  });
+
+  // Shopify 编辑器动态加载/修改 section 时触发
+  document.addEventListener('shopify:section:load', (e) => {
+    if (e.target.querySelector('.v5-general-carousel-cards')) {
+      initAllCarouselCards();
+    }
+  });
+
+  // 块选择/修改时也重刷（更保险）
+  //document.addEventListener('shopify:block:select', initAllCarouselCards);
+  //document.addEventListener('shopify:section:select', initAllCarouselCards);
+
+</script>
+{% schema %}
+{
+	"name": "v5-活动页-轮播卡片",
+	"tag": "section",
+	"settings": [
+		{
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+		{
+      "type": "number",
+      "id": "padding_top",
+      "label": "PC上边距",
+      "default": 64
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "PC下边距",
+      "default": 64
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "MB上边距",
+      "default": 64
+    },
+		{
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "MB下边距",
+      "default": 64
+    },
+		{
+      "type": "text",
+      "id": "before_heading",
+      "label": "前标题文案",
+      "default": "Only at",
+    	"info": "需要换行，请使用 \\n" 
+    },
+		{
+      "type": "text",
+      "id": "heading",
+      "label": "特殊标题文案",
+      "default": "Jackery.",
+    	"info": "需要换行，请使用 \\n" 
+    },
+		 {
+      "type": "color",
+      "id": "heading_color",
+      "label": "特殊标题颜色",
+			"default": "#93161B"
+    },
+		{
+      "type": "text",
+      "id": "after_heading",
+      "label": "后标题文案",
+      "default": "All set for the season.",
+    	"info": "需要换行，请使用 \\n" 
+    },
+		// 添加背景类型选择
+		{
+      "type": "select",
+      "id": "background_type",
+      "label": "背景类型",
+      "options": [
+        { "value": "color", "label": "背景颜色" },
+        { "value": "image", "label": "背景图片" }
+      ],
+      "default": "color"
+    },
+    {
+      "type": "image_picker",
+      "id": "bg_image",
+      "label": "背景图片",
+      "visible_if": "{{ section.settings.background_type == 'image' }}"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色",
+			"default": "#fff",
+      "visible_if": "{{ section.settings.background_type == 'color' }}"
+    },
+	],
+	"blocks": [
+		{
+			"type": "v5-carousel-card-slide",
+			"name": "轮播卡片",
+			"settings": [
+				{
+          "type": "select",
+          "id": "image_layout",
+          "label": "图片布局",
+          "options": [
+            {
+              "value": "single",
+              "label": "单张图片"
+            },
+            {
+              "value": "double",
+              "label": "两张图片"
+            }
+          ],
+          "default": "single"
+        },
+        {
+          "type": "image_picker",
+          "id": "pcimage",
+          "info": "单张图片：389 x 503；两张图片：389 x 240",
+          "label": "PC图片"
+        },
+        {
+          "type": "image_picker",
+          "id": "mimage",
+          "info": "单张图片：280 x 408；两张图片：280 x 192",
+          "label": "MB图片"
+        },
+        {
+          "type": "image_picker",
+          "id": "pcimage2",
+          "info": "建议图片尺寸：389 x 240",
+          "label": "PC图片2",
+          "visible_if": "{{ block.settings.image_layout == 'double' }}"
+        },
+        {
+          "type": "image_picker",
+          "id": "mimage2",
+          "info": "建议图片尺寸：280 x 192",
+          "label": "MB图片2",
+          "visible_if": "{{ block.settings.image_layout == 'double' }}"
+        },
+				{
+          "type": "url",
+          "id": "jump_url",
+          "label": "图片跳转链接"
+        },
+				{
+          "type": "url",
+          "id": "jump_url_other",
+          "label": "图片2跳转链接",
+          "visible_if": "{{ block.settings.image_layout == 'double' }}"
+        }
+			]
+		},
+	],
+	"presets": [
+		{
+			"name": "v5-活动页-轮播卡片",
+			"blocks": [
+				{ "type": "v5-carousel-card-slide" },
+				{ "type": "v5-carousel-card-slide" },
+				{ "type": "v5-carousel-card-slide" }
+			]
+    }
+  ]
+}
+{% endschema %}

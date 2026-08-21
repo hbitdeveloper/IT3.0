@@ -1,0 +1,508 @@
+<div id="jackery-stories-detail">
+    <div class="jackery-stories-body pb-96 lg:j-pb-120 xl:a-pb-120">
+        {% comment %} 返回 {% endcomment %}
+        <a
+                href="{{ section.settings.back_url }}"
+                class="nav-link  {% if section.settings.section_position == true %}center-width{% else %}w-full lg:j-w-1376 xl:a-w-1376{% endif %}
+                block text-left font-normal cursor-pointer text-black/40 line-clamp-1 relative
+                hover:text-primary
+                pt-40 lg:j-pt-24 xl:a-pt-24 px-60 text-20 leading-24
+                lg:mx-auto lg:j-px-0 lg:j-text-16 lg:j-leading-24
+                xl:mx-auto xl:a-px-0 xl:a-text-16 xl:a-leading-24
+            "
+        >< Jackery Stories/{{ section.settings.article_title | newline_to_br }}</a>
+
+        {% comment %} 作者、标题 {% endcomment %}
+        <section class="story-message w-full mt-40 lg:j-mt-36 xl:a-mt-36 {% if section.settings.section_position == true %}center-header{% endif %}">
+            <h3
+                    class="
+                    font-medium text-black text-center line-clamp-2
+                    w-full text-32 leading-48 mb-16
+                    lg:j-w-840 lg:mx-auto lg:j-text-32 lg:j-leading-40 lg:j-mb-8
+                    xl:a-w-840 xl:mx-auto xl:a-text-32 xl:a-leading-40 xl:a-mb-8
+                "
+            >{{ section.settings.article_author | newline_to_br }}</h3>
+            <h2
+                    class="
+                    font-medium text-black text-center line-clamp-3
+                    w-full text-44 leading-72 mb-24
+                    lg:j-w-840 lg:mx-auto lg:j-text-44 lg:j-leading-56 lg:j-mb-24
+                    xl:a-w-840 xl:mx-auto xl:a-text-44 xl:a-leading-56 xl:a-mb-24
+                "
+                    data-stories-title="{{ section.settings.article_title | newline_to_br }}"
+            >{{ section.settings.article_title | newline_to_br }}</h2>
+            {% comment %} 社交分享 {% endcomment %}
+            {% assign ins_success_text = '' %}
+            {% assign copy_success_text = '' %}
+            {% for block in section.blocks %}
+                {% if block.type == 'article_social' %}
+                    {% assign ins_success_text = block.settings.insShareSuccessText %}
+                    {% assign copy_success_text = block.settings.copySuccessText %}
+                    {% break %}
+                {% endif %}
+            {% endfor %}
+            <div class="social-sharing"
+                data-ins-success-txt="{{ ins_success_text }}"
+                data-copy-success-txt="{{ copy_success_text }}">
+                {% for block in section.blocks %}
+                    {% case block.type %}
+                        {% when 'article_social' %}
+                            <div
+                              class="social-share-item"
+                              data-type="{{ block.settings.type }}"
+                              data-link="{{ block.settings.link }}"
+                            >
+                              <img
+                                src="{{ block.settings.icon | image_url: width: 160 }}"
+                                alt="{{ block.settings.type }}"
+                                class="social-sharing-image"
+                                width="40"
+                                height="40"
+                                loading="lazy"
+                              >
+                            </div>
+                    {% endcase %}
+                {% endfor %}
+            </div>
+        </section>
+        <div class="stories-detail-box {% if section.settings.section_position == true %}center-position{% endif %}">
+            <div class="stories-detail-left">
+                <div class="w-full {% if section.settings.main_banner_style == 'image_type' %} stories-banner-img {% endif %} relative stories-banner">
+                    {% if section.settings.main_banner_style == 'image_type' and section.settings.pc_main_img != blank %}
+                      <picture>
+                        <source media="(min-width:1024px)" srcset="{{ section.settings.pc_main_img | image_url: width: 972 }}">
+                        <img class="w-full lg:j-h-auto xl:a-h-auto h-auto object-cover" src="{{ section.settings.mb_main_img | image_url: width: 654 }}" alt="" fetchpriority="high" loading="eager">
+                      </picture>
+                    {% elsif section.settings.main_banner_style == 'video_type' %}
+                     {% if section.settings.pc_main_video != blank %}
+                        <div class="lg:j-h-546 xl:a-h-546 pc-block">
+                         {%
+                            render 'jky-video',
+                            video_url: section.settings.pc_main_video,
+                            poster: section.settings.pc_main_video_img,
+                            autoplay: false,
+                            controls: true,
+                            loop: false,
+                            class: 'banner-video'
+                         %}
+                       </div>
+                     {% endif %}
+                     {% if section.settings.mb_main_video != blank %}
+                        <div class="h-872 mb-block">
+                           {%
+                              render 'jky-video',
+                              video_url: section.settings.mb_main_video,
+                              poster: section.settings.mb_main_video_img,
+                              autoplay: false,
+                              controls: true,
+                              loop: false,
+                              class: 'banner-video'
+                           %}
+                       </div>
+                     {% endif %}
+                    {% elsif section.settings.main_banner_style == 'audio_type' %}
+                     {% if section.settings.pc_main_audio != blank %}
+                        <div class="pc-block">
+                            {{ section.settings.pc_main_audio | raw }}
+                        </div>
+                     {% endif %}
+                     {% if section.settings.mb_main_audio != blank %}
+                        <div class="mb-block">
+                            {{ section.settings.mb_main_audio | raw }}
+                        </div>
+                     {% endif %}
+                    {% endif %}
+                </div>
+                {% for block in section.blocks %}
+                    {% case block.type %}
+                        {% when 'article_text' %}
+                            {% comment %} 纯文案 {% endcomment %}
+                            <section class="w-full lg:j-w-972 xl:a-w-972 mx-auto stories-detail-content">
+                                <div
+                                        class="
+                                story-detail-text font-normal text-black
+                                w-full text-28 leading-44
+                                lg:j-text-18 lg:j-leading-26
+                                xl:a-text-18 xl:a-leading-26
+                                [&>p]:mb-[var(--jds-size-16)]
+                                [&_a]:text-[rgb(255,128,0)] [&_a]:underline
+                            ">
+                                    {{ block.settings.article_text_item | newline_to_br }}
+                                </div>
+                            </section>
+                        {% when 'article_images' %}
+                            {% comment %} 2张图片或3张图片 {% endcomment %}
+                            {% comment %} 检查是否有任何图片存在 {% endcomment %}
+                            {% assign has_images = false %}
+                            {%- for i in (1..4) -%}
+                                {% assign image_pc_index = 'pc_image_' | append: i %}
+                                {% assign image_mb_index = 'mb_image_' | append: i %}
+                                {% if block.settings[image_pc_index] != blank or block.settings[image_mb_index] != blank %}
+                                    {% assign has_images = true %}
+                                    {% break %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if has_images %}
+                                <section
+                                        class="stories-image-content
+                                w-full mx-auto px-40 my-64
+                                lg:j-w-972 lg:j-px-0 lg:j-my-40
+                                xl:a-w-972 xl:a-px-0 xl:a-my-40
+                            "
+                                >
+                                    {%- assign has_pc_image = false -%}
+                                    {%- for i in (1..4) -%}
+                                          {% assign image_pc_index = 'pc_image_' | append: i %}
+                                          {% if block.settings[image_pc_index] != blank %}
+                                            {% assign has_pc_image = true %}
+                                          {% endif %}
+                                        {%- endfor -%}
+
+                                    {% if has_pc_image %}
+                                        {% assign max_images = 4 %}
+                                        {% if block.settings.image_style == 'one' %}
+                                            {% assign max_images = 1 %}
+                                        {% elsif block.settings.image_style == 'two' %}
+                                            {% assign max_images = 2 %}
+                                        {% elsif block.settings.image_style == 'three' %}
+                                            {% assign max_images = 3 %}
+                                        {% endif %}
+                                        <ul class="image-pc-block block-items-image gap-64 lg:j-gap-24 xl:a-gap-24 stories-image-{{ block.settings.image_style }}">
+                                          {% assign displayed_count = 0 %}
+                                          {%- for i in (1..4) -%}
+                                            {% assign image_pc_index = 'pc_image_' | append: i %}
+                                            {% if block.settings[image_pc_index] != blank and displayed_count < max_images %}
+                                              <li class="flex-1 flex-center">
+                                                <picture>
+                                                  <source media="(min-width:1024px)" srcset="{{ block.settings[image_pc_index] | image_url: width: 972 }}">
+                                                  <img class="blocks-image-item object-cover" src="{{ block.settings[image_pc_index] | image_url: width: 654 }}" alt="" loading="lazy">
+                                                </picture>
+                                              </li>
+                                              {% assign displayed_count = displayed_count | plus: 1 %}
+                                            {% endif %}
+                                          {%- endfor -%}
+                                        </ul>
+                                        {% endif %}
+                                    {%- assign has_mb_image = false -%}
+                                    {%- for i in (1..4) -%}
+                                      {% assign image_mb_index = 'mb_image_' | append: i %}
+                                      {% if block.settings[image_mb_index] != blank %}
+                                        {% assign has_mb_image = true %}
+                                      {% endif %}
+                                    {%- endfor -%}
+
+                                    {% if has_mb_image %}
+                                        {% assign max_images_mb = 4 %}
+                                        {% if block.settings.image_style == 'one' %}
+                                            {% assign max_images_mb = 1 %}
+                                        {% elsif block.settings.image_style == 'two' %}
+                                            {% assign max_images_mb = 2 %}
+                                        {% elsif block.settings.image_style == 'three' %}
+                                            {% assign max_images_mb = 3 %}
+                                        {% endif %}
+                                    <ul class="image-mb-block block-items-image gap-64 lg:j-gap-24 xl:a-gap-24 stories-image-{{ block.settings.image_style }}">
+                                      {% assign displayed_count_mb = 0 %}
+                                      {%- for i in (1..4) -%}
+                                        {% assign image_mb_index = 'mb_image_' | append: i %}
+                                        {% if block.settings[image_mb_index] != blank and displayed_count_mb < max_images_mb %}
+                                          <li class="flex-1 flex-center">
+                                            <picture>
+                                              <source media="(min-width:1024px)" srcset="{{ block.settings[image_mb_index] | image_url: width: 972 }}">
+                                              <img class="blocks-image-item object-cover" src="{{ block.settings[image_mb_index] | image_url: width: 654 }}" alt="" loading="lazy">
+                                            </picture>
+                                          </li>
+                                          {% assign displayed_count_mb = displayed_count_mb | plus: 1 %}
+                                        {% endif %}
+                                      {%- endfor -%}
+                                    </ul>
+                                    {% endif %}
+                                </section>
+                            {% endif %}
+                        {% when 'article_products' %}
+                            <section class="stories-product-content">
+                                <div class="stories-product-title">{{ 'stories.article.shop_product' | t }}</div>
+                                <div class="stories-products swiper">
+                                    <div class="swiper-wrapper">
+                                        {% assign product_count = 0 %}
+                                        {% for i in (1..12) %}
+                                            {% assign product_key = 'product_' | append: i %}
+                                            {% assign product = block.settings[product_key] %}
+                                            {% if product != blank and product.available %}
+                                                {% assign product_count = product_count | plus: 1 %}
+                                                {%- assign first_variant = product.variants | first -%}
+                                                <div class="product-item swiper-slide">
+                                                    <a href="{{ first_variant.url }}" target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}">
+                                                        {% assign p_img = first_variant.featured_image | default: product.featured_image %}
+                                                        {% render 'responsive-image', image_class: 'product-img', image: p_img %}
+                                                        <div class="product-info">
+                                                            <p class="product-title">{{ product.title }}</p>
+                                                            <p class="product-price">
+                                                                <span class="current-price">{{ first_variant.price | money }}</span>
+                                                                {% if first_variant.compare_at_price > first_variant.price %}
+                                                                    <span class="original-price">{{ first_variant.compare_at_price | money }}</span>
+                                                                {% endif %}
+                                                            </p>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    {% if product_count >= 5 %}
+                                        <div class="product-swiper-navigation stories-prev"><jds-icon name="arrow-left" class="icon"></jds-icon></div>
+                                        <div class="product-swiper-navigation stories-next"><jds-icon name="arrow-right" class="icon"></jds-icon></div>
+                                        <div class="new-stories-pagination"></div>
+                                    {% endif %}
+                                </div>
+                            </section>
+                        {% when 'article_video' %}
+                            {% comment %} 视频 {% endcomment %}
+                            <section
+                                    class="stories-video
+                            w-full mx-auto px-40 my-64
+                            iframe-wrap lg:j-px-0 lg:j-my-40
+                            xl:a-px-0 xl:a-my-40
+                        "
+                            >
+                                {{ block.settings.youtube_video_code }}
+                            </section>
+                    {% endcase %}
+                {% endfor %}
+            </div>
+            {% if section.settings.section_position == false %}
+            <div class="stories-detail-right">
+                <div class="stories-more-see line-clamp-2">{{ 'stories.article.see_more_stories' | t }}</div>
+                {% for block in section.blocks %}
+                    {% case block.type %}
+                        {% when 'article_more' %}
+                            <section class="stories-more-content">
+                                <div class="stories-more-swiper swiper">
+                                    <div class="swiper-wrapper" style="flex: 1;">
+                                        {%- for i in (0..2) -%}
+                                            {% assign more_author_index = 'more_author_' | append: forloop.index %}
+                                            {% assign more_title_index = 'more_title_' | append: forloop.index %}
+                                            {% assign more_img_index = 'more_img_' | append: forloop.index %}
+                                            {% assign more_link_index = 'more_link_' | append: forloop.index %}
+                                            {% if block.settings[more_img_index] != blank %}
+                                            <div class="swiper-slide">
+                                              <a class="more-story-item" href="{{ block.settings[more_link_index] }}" target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}">
+                                                  <span class="more-story-left">
+                                                      <img
+                                                              src="{{ block.settings[more_img_index] | image_url: width: 480 }}"
+                                                              alt="{{ block.settings[more_title_index] }}"
+                                                              class="social-sharing-image"
+                                                              width="40"
+                                                              height="40"
+                                                              loading="lazy"
+                                                      >
+                                                  </span>
+                                                      <span class="more-story-right">
+                                                      <span class="more-story-title line-clamp-2">{{ block.settings[more_title_index] }}</span>
+                                                      <span class="more-story-author line-clamp-1">{{ block.settings[more_author_index] }}</span>
+                                                  </span>
+                                              </a>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <div class="more-stories-pagination"></div>
+                                </div>
+                            </section>
+                    {% endcase %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% schema %}
+{
+  "name": "Jackery Stories",
+  "class": "section-page-jackery-stories",
+  "settings": [
+    { "type": "text", "id": "back_url", "label": "面包屑返回链接", "default": "/pages/jackery-stories" },
+    { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+    { "type": "checkbox", "id": "section_position", "label": "版心是否居中", "default": true, "info": "开启则不会展示see more stories" },
+    {"type": "textarea", "id": "article_author", "label": "Article Author"},
+    {"type": "textarea", "id": "article_title", "label": "Article Title"},
+    {
+      "type": "select",
+      "id": "main_banner_style",
+      "options": [
+        {
+          "value": "image_type",
+          "label": "图片"
+        },
+        {
+          "value": "video_type",
+          "label": "视频"
+        },
+        {
+          "value": "audio_type",
+          "label": "音频"
+        }
+      ],
+      "default": "image_type",
+      "label": "Banner类型"
+    },
+    { "type": "image_picker", "id": "pc_main_img", "label": "PC Main Image", "visible_if": "{{ section.settings.main_banner_style == 'image_type' }}" },
+    { "type": "image_picker", "id": "mb_main_img", "label": "Mobile Main Image", "visible_if": "{{ section.settings.main_banner_style == 'image_type' }}" },
+    { "type": "url", "id": "pc_main_video", "label": "PC Main Video", "visible_if": "{{ section.settings.main_banner_style == 'video_type' }}" },
+    { "type": "url", "id": "mb_main_video", "label": "Mobile Main Video", "visible_if": "{{ section.settings.main_banner_style == 'video_type' }}" },
+    { "type": "image_picker", "id": "pc_main_video_img", "label": "PC Main Video Image", "visible_if": "{{ section.settings.main_banner_style == 'video_type' }}" },
+    { "type": "image_picker", "id": "mb_main_video_img", "label": "Mobile Main Video Image", "visible_if": "{{ section.settings.main_banner_style == 'video_type' }}" },
+    { "type": "textarea", "id": "pc_main_audio", "label": "PC Main Audio", "visible_if": "{{ section.settings.main_banner_style == 'audio_type' }}" },
+    { "type": "textarea", "id": "mb_main_audio", "label": "Mobile Main Audio", "visible_if": "{{ section.settings.main_banner_style == 'audio_type' }}" },
+  ],
+  "blocks": [
+    {
+      "type": "article_text", "name": "Article Text",
+      "settings": [
+        {"type": "richtext", "id": "article_text_item", "label": "Article Text"}
+      ]
+    },
+    {
+      "type": "article_social", "name": "Article Social",
+      "settings": [
+          {
+            "type": "text",
+            "id": "insShareSuccessText",
+            "label": "Ins分享成功提示语",
+            "default": "Copy successfully,open Instagram to post!"
+          },
+          {
+            "type": "text",
+            "id": "copySuccessText",
+            "label": "复制链接成功提示语",
+            "default": "Copy successfully!"
+          },
+            {
+              "type": "select",
+              "id": "type",
+              "label": "类型",
+              "default": "facebook",
+              "options": [
+                {
+                  "label": "Facebook",
+                  "value": "facebook"
+                },
+                {
+                  "label": "Twitter",
+                  "value": "twitter"
+                },
+                {
+                  "label": "Instagram",
+                  "value": "instagram"
+                },
+                {
+                  "label": "WhatsApp",
+                  "value": "whatsapp"
+                },
+                {
+                  "label": "Line",
+                  "value": "line"
+                },
+                {
+                  "label": "Copy Link",
+                  "value": "copy-link"
+                },
+                {
+                  "label": "Refer A Friend",
+                  "value": "refer-a-friend"
+                }
+              ]
+            },
+            {
+              "type": "image_picker",
+              "id": "icon",
+              "label": "Icon"
+            },
+            {
+              "type": "url",
+              "id": "link",
+              "label": "'Refer A Friend' 超链接"
+            }
+          ]
+    },
+    {
+      "type": "article_images", "name": "Article Images",
+      "settings": [
+        {
+          "type": "select",
+          "id": "image_style",
+          "options": [
+            {
+              "value": "one",
+              "label": "单张"
+            },
+            {
+              "value": "two",
+              "label": "两张"
+            },
+            {
+              "value": "three",
+              "label": "三张"
+            }
+          ],
+          "default": "one",
+          "label": "插入图片数量",
+          "info": "选择的数量会间接影响图片的高度"
+        },
+        {"type": "image_picker", "id": "pc_image_1", "label": "PC Image One"},
+        {"type": "image_picker", "id": "mb_image_1", "label": "Mobile Image One"},
+        {"type": "image_picker", "id": "pc_image_2", "label": "PC Image Two"},
+        {"type": "image_picker", "id": "mb_image_2", "label": "Mobile Image Two"},
+        {"type": "image_picker", "id": "pc_image_3", "label": "PC Image Three"},
+        {"type": "image_picker", "id": "mb_image_3", "label": "Mobile Image Three"}
+      ]
+    },
+    {
+      "type": "article_video", "name": "Article Video",
+      "settings": [
+        {"type": "textarea", "id": "youtube_video_code", "label": "YouTube 视频代码", "info": "在此处粘贴嵌入代码"}
+      ]
+    },
+    {
+      "type": "article_products", "name": "Article Products",
+      "limit": 1,
+      "settings": [
+        { "type": "product", "id": "product_1", "label": "选择产品 1" },
+        { "type": "product", "id": "product_2", "label": "选择产品 2" },
+        { "type": "product", "id": "product_3", "label": "选择产品 3" },
+        { "type": "product", "id": "product_4", "label": "选择产品 4" },
+        { "type": "product", "id": "product_5", "label": "选择产品 5" },
+        { "type": "product", "id": "product_6", "label": "选择产品 6" },
+        { "type": "product", "id": "product_7", "label": "选择产品 7" },
+        { "type": "product", "id": "product_8", "label": "选择产品 8" },
+        { "type": "product", "id": "product_9", "label": "选择产品 9" },
+        { "type": "product", "id": "product_10", "label": "选择产品 10" },
+        { "type": "product", "id": "product_11", "label": "选择产品 11" },
+        { "type": "product", "id": "product_12", "label": "选择产品 12" }
+      ]
+    },
+    {
+      "type": "article_more", "name": "Article More Stories",
+      "limit": 1,
+      "settings": [
+        {"type": "header", "content": "推荐故事1"},
+        {"type": "textarea", "id": "more_title_1", "label": "Part 1 Article Title"},
+        {"type": "textarea", "id": "more_author_1", "label": "Part 1 Article Author"},
+        {"type": "image_picker", "id": "more_img_1", "label": "Part 1 Image"},
+        { "type": "url","id": "more_link_1","label": "Part 1 Story Link"},
+        {"type": "header", "content": "推荐故事2"},
+        {"type": "textarea", "id": "more_title_2", "label": "Part 2 Article Title"},
+        {"type": "textarea", "id": "more_author_2", "label": "Part 2 Article Author"},
+        {"type": "image_picker", "id": "more_img_2", "label": "Part 2 Image"},
+        { "type": "url","id": "more_link_2","label": "Part 2 Story Link"},
+        {"type": "header", "content": "推荐故事3"},
+        {"type": "textarea", "id": "more_title_3", "label": "Part 3 Article Title"},
+        {"type": "textarea", "id": "more_author_3", "label": "Part 3 Article Author"},
+        {"type": "image_picker", "id": "more_img_3", "label": "Part 3 Image"},
+        { "type": "url","id": "more_link_3","label": "Part 3 Story Link"}
+      ]
+    }
+  ]
+}
+{% endschema %}

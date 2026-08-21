@@ -1,0 +1,124 @@
+{% doc %}
+  GTM 管理器
+
+  @param {string} shown_place - DOM中展示位置
+    - head: 头部
+    - body: 底部
+
+  @example
+  {% render 'ga-manger', shown_place: 'head' %}
+{% enddoc %}
+
+{%- liquid
+    assign shown_place = shown_place | default: 'head'
+    assign gtm_id = 'GTM-NBFX9JT'
+
+    if shop.id == 60738666677 or shop.id == 9709262 or shop.id == 56981160124 or shop.id == 57272172741 or shop.id == 75730714917
+        # 美洲  英、德
+        assign gtm_id = 'GTM-NBFX9JT'
+    elsif shop.id == 10015375438 or shop.id == 68984701213 or shop.id == 60455780502 or shop.id == 74688758050 or shop.id == 74914496810
+        # 亚太
+        assign gtm_id = 'GTM-5DJZ8GN'
+    elsif shop.id == 69013700929 or shop.id == 69511053598 or shop.id == 69224431898 or shop.id == 73356443969 or shop.id == 65060929623
+        # 欧洲
+        assign gtm_id = 'GTM-MGV5ZK2'
+    endif
+
+    # 店铺是否启用cookiebot手动管控配置
+    assign script_attr = ''
+    assign open_cookiebot_manual_control = settings.open_cookiebot_manual_control | default: false
+    if open_cookiebot_manual_control
+        assign script_attr = 'type="text/plain" data-cookieconsent="statistics,marketing"'
+    endif
+-%}
+
+{%- if shown_place == 'head' -%}
+{% comment %} Google Tag Manager {% endcomment %}
+
+<script {{script_attr}}>
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','{{gtm_id}}');
+</script>
+{%- endif -%}
+{% comment %} End Google Tag Manager {% endcomment %}
+
+{% comment %} 通过DOM设置 data-ga-*相关属性来配置GA埋码 {% endcomment %}
+{% javascript %}
+  window.addEventListener('DOMContentLoaded', (event) => {
+      setTimeout(() => {
+        (function () {
+            const gaElts = document.querySelectorAll("[data-ga-event]");
+            if (gaElts.length === 0) return;
+            [...gaElts].map((elt) => {
+                try {
+                    const evtType = elt.getAttribute("data-ga-action")
+                    if (!evtType) return
+                    const evtName = elt.getAttribute("data-ga-event")
+                    if (!evtName) return
+
+                    if(elt.getAttribute("ga-loaded")) return
+                    !elt.getAttribute("ga-loaded") && elt.addEventListener(evtType, function (evt) {
+                        if(!evt.isTrusted) return
+                        const target = this
+                        let url = '';
+                        if (target.getAttribute("data-href")) {
+                            // evt.preventDefault();
+                            url = target.getAttribute("data-href");
+                        }
+                        let params = {}
+                        const attributeNames = target.getAttributeNames();
+
+                        attributeNames.forEach(attribute => {
+                            if(attribute.indexOf("data-ga-params-") === 0) {
+                                const key = attribute.replace("data-ga-params-", "")
+                                params[key] = target.getAttribute(attribute) === 'null' ? null : target.getAttribute(attribute)
+                            }
+                        });
+
+                        window.dataLayer.push({ event_parameters: null });
+                        window.dataLayer.push({
+                            event: "ga4Event",
+                            event_name: evtName,
+                            event_parameters: {
+                                current_page: window.location.href,
+                                ...params
+                            }
+                        });
+
+                        elt.setAttribute("ga-loaded", true)
+
+                        setTimeout(function() {
+                            if (url) {
+                                if(target.getAttribute("target") === "_blank") {
+                                    window.open(url, "_blank");
+                                } else {
+                                    window.location.href = url
+                                }
+                            }
+                        }, 40)
+                    });
+                } catch (e) {
+                    console.log(
+                        "Something wrong happened when setting up event handling for ga4Events."
+                    );
+                }
+            });
+        })();
+      }, 20)
+  });
+{% endjavascript %}
+
+{%- if shown_place == 'body' -%}
+{% comment %} Google Tag Manager (noscript) {% endcomment %}
+<noscript>
+  <iframe
+    src="https://www.googletagmanager.com/ns.html?id={{gtm_id}}"
+    height="0"
+    width="0"
+    style="display:none;visibility:hidden"></iframe>
+</noscript>
+{% comment %} End Google Tag Manager (noscript) {% endcomment %}
+{%- endif -%}

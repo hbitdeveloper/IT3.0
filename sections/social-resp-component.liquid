@@ -1,0 +1,89 @@
+{% comment %} 11周年 Social Responsibility 组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Social Resp Component",
+  "tag": "section",
+  "class": "social-resp-component tab-content tab-social-responsibility",
+  "settings": [
+    {
+      "type": "html",
+      "id": "promotionDescription",
+      "label": "Promotion description"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Items",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title"
+        },
+        {
+          "type": "html",
+          "id": "desc",
+          "label": "Description"
+        },
+        {
+          "type": "image_picker",
+          "id": "bgImg",
+          "label": "Background Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+{% assign total = section.blocks | size %}
+<div class=" social-resp-carousel section-container" data-total="{{ total }}">
+	<div class="tab-description">{{ section.settings.promotionDescription }}</div>
+	<div class="swiper {% if total == 1 %}single-slide{% endif %} {% if total > 3 %}can-rotated{% else %}non-rotated{% endif %}">
+		<div class="swiper-wrapper">
+			{% for block in section.blocks %}
+				<div class="swiper-slide">
+					<div class="slide-box">
+						{% render 'responsive-image',
+								image: block.settings.bgImg,
+								image_class: 'swiper-img'
+						%}
+						<div class="content-box pos-full">
+							{% if block.settings.title != blank %}
+								<div class="item-title text-overflow">{{ block.settings.title }}</div>
+							{% endif %}
+							{% if block.settings.icon != blank %}
+								{% render 'responsive-image',
+										image: block.settings.icon,
+										image_class: 'icon-logo'
+								%}
+							{% endif %}
+							{% if block.settings.desc != blank %}
+								<div class="desc-box pos-full">
+									<div class="item-content text-overflow social-transition">
+										{{ block.settings.desc }}
+									</div>
+								</div>
+								<button class="btn-more">
+									<jds-icon name="close" class="iconfont jackery-icon-guanbi icon-close text-base lg:text-2xl"></jds-icon>
+								</button>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+	{% if total > 1 %}
+		{% if total > 3 %}
+			<div class="swiper-arrow swiper-button-next"></div>
+			<div class="swiper-arrow swiper-button-prev"></div>
+		{% endif %}
+		<div class="swiper-pagination slideshow-pagination"></div>
+	{% endif %}
+</div>

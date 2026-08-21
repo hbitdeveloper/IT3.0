@@ -1,0 +1,254 @@
+{% comment %}
+  产品详情页 - 文案促销机动版块
+
+  Accepts: product
+  Usage:
+  {% render 'app-text-promotion-fold' %}
+  详细说明见：https://alidocs.dingtalk.com/i/nodes/YMyQA2dXW79p1zdzhDnkaoRBJzlwrZgb
+{% endcomment %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% comment %} 依据 {% endcomment %}
+{%- assign block_config = block.settings -%}
+
+{% capture _tw_countdown_text_safelist %}
+  text-[10px] text-[22px] text-[26px] text-[28px]
+  lg:text-[22px] lg:text-[26px] lg:text-[28px]
+{% endcapture %}
+
+{% capture _tw_countdown_arrow_icon_safelist %}
+  w-[18px] h-[18px] w-[22px] h-[22px] w-[26px] h-[26px] w-[30px] h-[30px] w-[34px] h-[34px]
+  lg:w-[18px] lg:h-[18px] lg:w-[22px] lg:h-[22px] lg:w-[26px] lg:h-[26px] lg:w-[30px] lg:h-[30px] lg:w-[34px] lg:h-[34px]
+{% endcapture %}
+
+{%- liquid
+  assign countdown_text_class = block_config.countdown_text_size | default: 'jds-b3'
+  assign countdown_arrow_icon_class = 'w-3.5 h-3.5 lg:w-4 lg:h-4'
+  if countdown_text_class == 'custom'
+    assign pc_px = block_config.countdown_custom_text_size | default: 12 | plus: 0
+    case pc_px
+      when 12
+        assign countdown_text_class = 'text-[10px] lg:text-xs'
+        assign countdown_arrow_icon_class = 'w-3.5 h-3.5 lg:w-4 lg:h-4'
+      when 14
+        assign countdown_text_class = 'text-xs lg:text-sm'
+        assign countdown_arrow_icon_class = 'w-4 h-4 lg:w-[18px] lg:h-[18px]'
+      when 16
+        assign countdown_text_class = 'text-sm lg:text-base'
+        assign countdown_arrow_icon_class = 'w-[18px] h-[18px] lg:w-5 lg:h-5'
+      when 18
+        assign countdown_text_class = 'text-base lg:text-lg'
+        assign countdown_arrow_icon_class = 'w-5 h-5 lg:w-[22px] lg:h-[22px]'
+      when 20
+        assign countdown_text_class = 'text-lg lg:text-xl'
+        assign countdown_arrow_icon_class = 'w-[22px] h-[22px] lg:w-6 lg:h-6'
+      when 22
+        assign countdown_text_class = 'text-xl lg:text-[22px]'
+        assign countdown_arrow_icon_class = 'w-6 h-6 lg:w-[26px] lg:h-[26px]'
+      when 24
+        assign countdown_text_class = 'text-[22px] lg:text-2xl'
+        assign countdown_arrow_icon_class = 'w-[26px] h-[26px] lg:w-7 lg:h-7'
+      when 26
+        assign countdown_text_class = 'text-2xl lg:text-[26px]'
+        assign countdown_arrow_icon_class = 'w-7 h-7 lg:w-[30px] lg:h-[30px]'
+      when 28
+        assign countdown_text_class = 'text-[26px] lg:text-[28px]'
+        assign countdown_arrow_icon_class = 'w-[30px] h-[30px] lg:w-8 lg:h-8'
+      when 30
+        assign countdown_text_class = 'text-[28px] lg:text-3xl'
+        assign countdown_arrow_icon_class = 'w-8 h-8 lg:w-[34px] lg:h-[34px]'
+      else
+        assign countdown_text_class = 'text-sm lg:text-base'
+        assign countdown_arrow_icon_class = 'w-3.5 h-3.5 lg:w-4 lg:h-4'
+    endcase
+  endif
+-%}
+
+{% comment %} 本版块是否展示有【版块开关+版块有效期】共同决定 {% endcomment %}
+{%- liquid
+  assign show_block_text_promotion = false
+  assign block_enable = block_config.enable_block | default: true, allow_false: true
+
+  assign is_block_valid_time = false
+  assign time_now = 'now' | date: '%s'
+
+  assign block_begin_time = 0
+  if block_config.text_promotion_fold_block_start_time_str != blank
+    assign block_begin_time = block_config.text_promotion_fold_block_start_time_str | date: '%s'
+  endif
+
+  assign block_end_time = 0
+  if block_config.text_promotion_fold_block_end_time_str != blank
+    assign block_end_time = block_config.text_promotion_fold_block_end_time_str | date: '%s'
+  endif
+
+  if block_begin_time == 0 and block_end_time == 0
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time != 0 and block_end_time == 0 and block_begin_time < time_now
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time == 0 and block_end_time != 0 and block_end_time > time_now
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time != 0 and block_end_time != 0 and block_end_time > time_now and block_begin_time < time_now
+    assign is_block_valid_time = true
+  endif
+
+  if block_enable and is_block_valid_time
+    assign show_block_text_promotion = true
+  endif
+-%}
+
+{% comment %} 判断 背景图 与 内容区 是否存在 {% endcomment %}
+{%- liquid
+  assign has_bg_img = false
+  if block_config.text_promotion_fold_block_pc_bg_img or block_config.text_promotion_fold_block_mb_bg_img
+    assign has_bg_img = true
+  endif
+
+  assign has_content = false
+  assign has_countdown = false
+
+  assign is_countdown_valid_time = false
+  assign time_now = 'now' | date: '%s'
+
+  assign countdown_begin_time = 0
+  if block_config.text_promotion_fold_start_time_str != blank
+    assign countdown_begin_time = block_config.text_promotion_fold_start_time_str | date: '%s'
+  endif
+
+  assign countdown_end_time = 0
+  if block_config.text_promotion_fold_end_time_str != blank
+    assign countdown_end_time = block_config.text_promotion_fold_end_time_str | date: '%s'
+  endif
+
+  if countdown_begin_time == 0 and countdown_end_time == 0
+    assign is_countdown_valid_time = true
+  endif
+
+  if countdown_begin_time != 0 and countdown_end_time == 0 and countdown_begin_time < time_now
+    assign is_countdown_valid_time = true
+  endif
+
+  if countdown_begin_time == 0 and countdown_end_time != 0 and countdown_end_time > time_now
+    assign is_countdown_valid_time = true
+  endif
+
+  if countdown_begin_time != 0 and countdown_end_time != 0 and countdown_end_time > time_now and countdown_begin_time < time_now
+    assign is_countdown_valid_time = true
+  endif
+
+  if is_countdown_valid_time
+    assign has_countdown = true
+  endif
+
+  if block_config.text_promotion_fold_text != blank or has_countdown
+    assign has_content = true
+  endif
+
+  assign wrapper_class = ''
+  if has_bg_img and has_content
+    assign wrapper_class = 'has-all'
+  elsif has_bg_img and has_content == false
+    assign wrapper_class = 'only-bg-img'
+  elsif has_bg_img == false and has_content
+    assign wrapper_class = 'only-content'
+  else
+    assign wrapper_class = 'has-nothing'
+  endif
+
+  assign is_show_component = false
+  if has_content or has_bg_img
+    assign is_show_component = true
+  endif
+%}
+
+
+{%- if show_block_text_promotion and is_show_component -%}
+  {% capture text_promotion_fold_root_id %}app-text-promotion-fold-{{ section.id }}-{{ block.id }}{% endcapture %}
+  {% assign text_promotion_fold_root_selector = '#' | append: text_promotion_fold_root_id %}
+  <div id="{{ text_promotion_fold_root_id }}" {{ block.shopify_attributes }} class="product-info_block section-padding" style="{{ style }}">
+    <app-text-promotion-fold class="block w-full {{ wrapper_class }} overflow-hidden" style="--block-bg-color:{{ block_config.text_promotion_fold_block_bg_color | default: '#F7F9FA' }};">
+      {%- if has_bg_img -%}
+        {%- if block_config.text_promotion_fold_img_jump_link != blank -%}
+          <a class="flex w-full h-full" href="{{ block_config.text_promotion_fold_img_jump_link }}">
+            {% render 'diff-end-img',
+              class: 'text-promotion-bg-img',
+              pc_img: block_config.text_promotion_fold_block_pc_bg_img,
+              mb_img: block_config.text_promotion_fold_block_mb_bg_img,
+              pc_img_width: 624,
+              mb_img_width: 343,
+              placeholder_name: 'hero-apparel-1'
+            %}
+          </a>
+        {%- else -%}
+          {% render 'diff-end-img',
+            class: 'text-promotion-bg-img',
+            pc_img: block_config.text_promotion_fold_block_pc_bg_img,
+            mb_img: block_config.text_promotion_fold_block_mb_bg_img,
+            pc_img_width: 624,
+            mb_img_width: 343,
+            placeholder_name: 'hero-apparel-1'
+          %}
+        {%- endif -%}
+      {%- endif -%}
+
+      {%- if has_content -%}
+        <div
+          class="text-promotion-content px-4 lg:px-6 {% if block_config.text_promotion_fold_text != blank %}py-3 lg:py-5{% endif %}"
+          data-shopify-time-str="{{ 'now' | date: "%Y/%m/%d %H:%M:%S" }}"
+          data-ends-in-text="{{ block_config.text_promotion_fold_ends_in_text | escape }}"
+          data-countdown-start-str="{{ block_config.text_promotion_fold_start_time_str | escape }}"
+          data-countdown-end-str="{{ block_config.text_promotion_fold_end_time_str | escape }}"
+          data-countdown-text-color="{{ block_config.text_promotion_fold_countdown_text_color }}"
+          data-countdown-number-bg-color="{{ block_config.text_promotion_fold_countdown_number_bg_color }}"
+          data-countdown-number-color="{{ block_config.text_promotion_fold_countdown_number_color }}"
+          data-countdown-text-class="{{ countdown_text_class | escape }}"
+          data-countdown-arrow-icon-class="{{ countdown_arrow_icon_class | escape }}"
+          data-has-fold-text="{% if block_config.text_promotion_fold_text != blank %}true{% else %}false{% endif %}"
+          data-has-bg-img="{{ has_bg_img }}"
+          style="--text-promotion-fold-text-color: {{ block_config.text_promotion_fold_title_color }};"
+        >
+          {%- if block_config.text_promotion_fold_text != blank -%}
+            <div
+              class="text-[0.75rem] leading-[1.25rem] lg:text-[0.875rem] lg:leading-[1.375rem] jds-rte"
+              style="--highlight-fold-color: {{ block_config.text_promotion_fold_title_main_color | default: 'var(--jds-color-primary)' }};"
+            >
+              {{ block_config.text_promotion_fold_text }}
+            </div>
+          {%- endif -%}
+        </div>
+
+        {% comment %} 倒计时 {% endcomment %}
+        <div class="relative z-[2]" style="background:{{ block_config.text_promotion_fold_countdown_folded_bg_color }}">
+          <div
+            class="text-promotion-countdown"
+            {%- if block_config.text_promotion_fold_folded_text != blank -%}
+              data-show-arrow="true"
+            {%- endif -%}
+          ></div>
+          {%- if block_config.text_promotion_fold_folded_text != blank -%}
+            <div
+              class="text-promotion-fold-content h-0 transition-height duration-300 overflow-hidden"
+              style="--text-promotion-fold-folded-text-color: {{ block_config.text_promotion_fold_folded_title_color }}; --highlight-fold-folded-color:{{ block_config.text_promotion_fold_folded_title_main_color }};">
+              <div class="jds-rte font-normal text-[0.75rem] leading-[1.25rem] px-4 pb-3 lg:text-[0.875rem] lg:leading-[1.375rem] lg:px-6 lg:pb-5">{{ block_config.text_promotion_fold_folded_text }}</div>
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </app-text-promotion-fold>
+  </div>
+  {% render 'lazy-load-asset-group',
+    script: 'snippet-app-text-promotion-fold.min.js',
+    style: 'snippet-app-text-promotion-fold.min.css',
+    strategy: 'visible',
+    root_selector: text_promotion_fold_root_selector
+  %}
+{%- endif -%}

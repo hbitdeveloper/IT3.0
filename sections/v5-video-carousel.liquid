@@ -1,0 +1,426 @@
+{% style %}
+  .v5-video-carousel .swiper-unload .slide-1,
+  .v5-video-carousel .swiper-slide-active,
+  .v5-video-carousel .swiper-slide-duplicate-active,
+  .v5-video-carousel .swiper-loaded .swiper-bottom,
+  .v5-video-carousel .swiper-loaded .pc-arrow {
+    opacity: 1;
+  }
+{% endstyle %}
+
+{% liquid
+  assign slide_class = 'w-full h-full object-cover transition-all duration-500 ease-out'
+  assign swiper_arrow_class = 'swiper-arrow inline-block !w-[1.875rem] !h-[1.875rem] text-[#111111] lg:!w-[2.5rem] lg:!h-[2.5rem] lg:translate-y-[-50%]'
+  assign mb_left_arrow_class = 'mb-swiper-button-prev left-0 ' | append: swiper_arrow_class
+  assign mb_right_arrow_class = 'mb-swiper-button-next right-0 ' | append: swiper_arrow_class
+
+  assign pc_swiper_arrow_base_class = 'pc-arrow opacity-0 absolute top-[11.664375rem] z-10 '
+  assign pc_left_arrow_class = 'hidden lg:block pc-swiper-button-prev left-[10.4375rem] ' | append: pc_swiper_arrow_base_class | append: swiper_arrow_class
+  assign pc_right_arrow_class = 'hidden lg:block pc-swiper-button-next right-[10.4375rem] ' | append: pc_swiper_arrow_base_class | append: swiper_arrow_class
+
+  assign pause_all_dom = '#' | append: section.id
+
+  assign slide_blocks = section.blocks | where: 'type', 'slide'
+  assign total = slide_blocks.size
+%}
+
+<div
+  id="{{ section.id }}"
+  class="v5-video-carousel {% if total > 1 %} more-video {% else %} single-video [&_.swiper-wrapper]:justify-center{% endif %} relative w-full lg:py-[6rem]"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  data-total="{{ total }}"
+  data-autoplay="{{ section.settings.swiper_auto }}"
+  data-delay="{{ section.settings.swiper_delay }}"
+  style="background: {{section.settings.bg_color | default: '#F5F5F3' }};"
+>
+  <i class="line hidden lg:block absolute top-0 left-[50%] translate-x-[-50%] w-[0.125rem] h-[6rem] bg-[#C3C3BE]"></i>
+  <div class="container lg:w-[78rem] lg:mx-auto py-[4rem] lg:py-[6rem] bg-white lg:shadow-[0_0_10px_rgba(0,0,0,0.25)]">
+    <h2 class="mb-[2.5rem] lg:mb-[4rem] text-[1.5rem] lg:text-[3rem] color-[#242F20] font-semibold leading-[1.1] text-center">
+      {{ section.settings.title }}
+    </h2>
+    <div class="swiper swiper-unload h-full">
+      <div class="swiper-wrapper flex items-start h-auto relative {% if total > 1 %}mb-[1.5rem] lg:mb-[2.5rem]{% endif %}">
+        {% for block in section.blocks %}
+          <div
+            class="
+              swiper-slide w-[20rem] lg:w-[47.5rem] {% if total > 1 %}ml-[1rem]{% endif %} lg:mx-[0.75rem] flex items-start justify-center flex-col
+              lg:opacity-30 transition-all duration-600 ease-[cubic-bezier(0.8,0,0.2,1)] slide-{{ forloop.index }}
+            "
+          >
+            <div class="video-box w-full h-[11.25rem] lg:h-[26.75rem]">
+              {%- liquid
+                assign video = block.settings.video
+                assign preview_image = block.settings.poster
+                if block.settings.poster == blank and block.settings.video_source == 'uploaded'
+                  assign preview_image = block.settings.video.preview_image
+                endif
+
+                if block.settings.video_source == 'url'
+                  assign video = block.settings.video_url
+                endif
+              -%}
+              {%- if video != blank -%}
+                {%- if block.settings.video_source == 'url' -%}
+                  {%- render 'viewport-youtube',
+                    pauseAllDOM: pause_all_dom,
+                    video: video.id,
+                    url: video.url,
+                    observe: false,
+                    api: true,
+                    poster: preview_image,
+                    autoplay: false,
+                    loop: section.settings.loop,
+                    controls: true
+                  -%}
+                {%- else -%}
+                  {%- render 'viewport-video',
+                    pauseAllDOM: pause_all_dom,
+                    url: video,
+                    observe: false,
+                    poster: preview_image,
+                    autoplay: false,
+                    loop: section.settings.loop,
+                    controls: section.settings.controls,
+                    show_muted_button: true,
+                    show_pause_button: true
+                  -%}
+                {%- endif -%}
+              {%- else -%}
+                {%- if preview_image != blank -%}
+                  <img
+                    class="{{ slide_class }}"
+                    src="{{ block.settings.poster | image_url: width:720 }}"
+                    alt="{{ block.settings.poster.alt }}"
+                    loading="lazy"
+                    width="720"
+                    height="540"
+                  >
+                {%- else -%}
+                  {{ 'hero-apparel-1' | placeholder_svg_tag: slide_class }}
+                {%- endif -%}
+              {%- endif -%}
+            </div>
+            {%- if block.settings.title != blank -%}
+              <div class="info w-full mt-[1rem] lg:mt-[1.5rem] color-[#242F20] text-[0.875rem] lg:text-[1.75rem] font-semibold leading-[1.1] text-center line-clamp-2">
+                {{ block.settings.title }}
+              </div>
+            {%- endif -%}
+          </div>
+        {% endfor %}
+      </div>
+      {% if total > 1 %}
+        {%- render 'v5-icon-arrow-left', class: pc_left_arrow_class -%}
+        {%- render 'v5-icon-arrow-right', class: pc_right_arrow_class -%}
+
+        <div class="slideshow-pagination !relative !bottom-0"></div>
+
+        <div class="swiper-bottom flex justify-between lg:hidden opacity-0 mt-[1.5rem] w-[4.875rem] h-[2rem] mx-auto">
+          {%- render 'v5-icon-arrow-left', class: mb_left_arrow_class -%}
+          {%- render 'v5-icon-arrow-right', class: mb_right_arrow_class -%}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  <i
+    class="line hidden lg:block absolute bottom-0 left-[1rem] lg:left-[50%] lg:translate-x-[-50%] w-[0.125rem] h-[6rem] bg-[#C3C3BE]"
+  ></i>
+</div>
+
+<script type="module">
+  document.addEventListener('DOMContentLoaded', function () {
+    const currV5VideoCarousel = document.querySelector('#{{ section.id }}');
+
+    let v5VideoSwiper = null;
+    const total = Number(currV5VideoCarousel.getAttribute('data-total')) || 0;
+
+    let lastViewportState = null;
+
+    const singleVideoPlay = (item, isIn) => {
+      const video = item.querySelector('viewport-video') || item.querySelector('viewport-youtube');
+      if (!video) return;
+      if (isIn) {
+        video.togglePlayButton && video.togglePlayButton('hidden');
+        video.play && video.play();
+      } else {
+        video.togglePlayButton && video.togglePlayButton('show');
+        video.pause && video.pause();
+      }
+    };
+
+    if (total > 1) {
+      const autoplay = currV5VideoCarousel.getAttribute('data-autoplay') === 'true';
+      const delay = Number(currV5VideoCarousel.getAttribute('data-delay')) || 5;
+
+      const baseConfig = {
+        centeredSlides: true,
+        nextEl: `#{{section.id}} .pc-swiper-button-next`,
+        prevEl: `#{{section.id}} .pc-swiper-button-prev`,
+      };
+
+      if (window.innerWidth < 1024) {
+        baseConfig.centeredSlides = false;
+        baseConfig.nextEl = `#{{section.id}} .mb-swiper-button-next`;
+        baseConfig.prevEl = `#{{section.id}} .mb-swiper-button-prev`;
+      }
+
+      v5VideoSwiper = new Swiper(`#{{section.id}} .swiper`, {
+        slidesPerView: 'auto',
+        centeredSlides: baseConfig.centeredSlides,
+        spaceBetween: 0,
+        slideToClickedSlide: true,
+        loop: true,
+        speed: 600,
+        followFinger: true,
+        keyboard: true,
+        autoplay: autoplay
+          ? {
+              delay: delay * 1000,
+              disableOnInteraction: false,
+              reverseDirection: false,
+            }
+          : false,
+        navigation: {
+          nextEl: baseConfig.nextEl,
+          prevEl: baseConfig.prevEl,
+        },
+        pagination: {
+          el: `#{{section.id}} .slideshow-pagination`,
+          clickable: true,
+          bulletClass: 'slideshow-pagination-item',
+          bulletActiveClass: 'active pagination-active',
+          clickableClass: 'slideshow-pagination-clickable',
+          modifierClass: 'slideshow-pagination-',
+          renderBullet(index) {
+            let paginationItem = '<span class="slideshow-pagination-item">';
+            paginationItem =
+              index <= 8
+                ? `${paginationItem}<span class="pagination-separator"><span class="pagination-separator-loader"></span></span>`
+                : paginationItem;
+            paginationItem += '</span>';
+            return paginationItem;
+          },
+        },
+        on: {
+          init: function () {
+            this.el.classList.remove('swiper-unload');
+            this.el.classList.add('swiper-loaded');
+
+            // swiper属性pauseOnMouseEnter无效，手动实现鼠标悬浮暂停功能
+            if (autoplay) {
+              const swiperContainer = this.el;
+              swiperContainer.addEventListener('mouseenter', () => {
+                this.autoplay.stop();
+              });
+              swiperContainer.addEventListener('mouseleave', () => {
+                this.autoplay.start();
+              });
+            }
+          },
+          slideChangeTransitionEnd: function () {
+            if (lastViewportState === null) return;
+            Array.from(this.slides).filter((it) => {
+              const video = it.querySelector('viewport-video') || it.querySelector('viewport-youtube');
+              if (!video) return;
+              if (it.classList.contains('swiper-slide-active')) {
+                if (lastViewportState) {
+                  video.togglePlayButton && video.togglePlayButton('hidden');
+                  video.play && video.play();
+                } else {
+                  video.togglePlayButton && video.togglePlayButton('show');
+                  video.pause && video.pause();
+                }
+              } else {
+                video.togglePlayButton && video.togglePlayButton('show');
+                video.pause && video.pause();
+              }
+            });
+          },
+          paginationUpdate: function (swiper, paginationEl) {
+            window.Jackery.Utils.swiperAnimatePagination(paginationEl, autoplay, delay);
+          },
+        },
+      });
+    }
+
+    // 监听视口状态变化，实现视频播放暂停
+    const applyState = (isIn) => {
+      if (lastViewportState === isIn) return;
+      lastViewportState = isIn;
+
+      if (total <= 1) {
+        singleVideoPlay(currV5VideoCarousel, isIn);
+      } else if (v5VideoSwiper) {
+        v5VideoSwiper.slides.forEach((slide) => {
+          const video = slide.querySelector('viewport-video') || slide.querySelector('viewport-youtube');
+          if (!video) return;
+          if (!slide.classList.contains('swiper-slide-active')) {
+            video.togglePlayButton && video.togglePlayButton('show');
+            video.pause && video.pause();
+            return;
+          }
+          if (isIn) {
+            video.togglePlayButton && video.togglePlayButton('hidden');
+            video.play && video.play();
+          } else {
+            video.togglePlayButton && video.togglePlayButton('show');
+            video.pause && video.pause();
+          }
+        });
+      }
+    };
+
+    // 监听当前视频轮播元素是否进入视口
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.target !== currV5VideoCarousel) continue;
+          applyState(entry.isIntersecting);
+        }
+      },
+        {
+          root: null, // 使用视口作为根元素
+          rootMargin: '0px 0px 20% 0px', // 将根元素的底部扩大 20%，使元素在接近视口底部时预触发
+          threshold: 0, // 当目标与根元素产生任意交叉时触发（含扩展区域）
+        }
+    );
+    observer.observe(currV5VideoCarousel);
+  });
+</script>
+
+{% schema %}
+{
+  "name": "V5-视频轮播",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["product", "page"]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)",
+    },
+    {
+      "type": "header",
+      "content": "基础设置"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "版块背景色"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "版块标题",
+      "default": "How People Use it"
+    },
+    {
+      "type": "header",
+      "content": "轮播设置"
+    },
+    {
+      "type": "checkbox",
+      "id": "swiper_auto",
+      "label": "自动轮播",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "swiper_delay",
+      "label": "轮播间隔（单位：秒）",
+      "min": 6,
+      "max": 100,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "header",
+      "content": "视频设置"
+    },
+    {
+      "type": "paragraph",
+      "content": "视频轮播组件可见并且轮播到对应视频时自动播放"
+    },
+    { "type": "checkbox", "id": "loop", "label": "循环播放", "default": true },
+    {
+      "type": "checkbox",
+      "id": "controls",
+      "label": "显示播放控件",
+      "default": true,
+      "info": "仅对Shopify本地视频有效"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "视频",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "select",
+          "id": "video_source",
+          "label": "视频来源",
+          "options": [
+            {
+              "value": "uploaded",
+              "label": "本地"
+            },
+            {
+              "value": "url",
+              "label": "Youtube"
+            }
+          ],
+          "default": "uploaded"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "视频",
+          "info": "建议10M以内，支持 MP4、WEBM、MOV 格式",
+          "visible_if": "{{ block.settings.video_source == 'uploaded' }}"
+        },
+        {
+          "type": "video_url",
+          "id": "video_url",
+          "label": "YouTube视频地址",
+          "accept": ["youtube"],
+          "info": "请使用 YouTube视频。如果需要使用短视频，请在 https://www.youtube.com/watch?v= 后拼接视频id",
+          "visible_if": "{{ block.settings.video_source == 'url' }}"
+        },
+        {
+          "type": "image_picker",
+          "id": "poster",
+          "label": "视频封面图",
+          "info": "推荐尺寸: 760x428，本地视频不配置时默认取视频封面"
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "视频标题"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-视频轮播",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

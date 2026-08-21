@@ -1,0 +1,1293 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign product_form_id = 'product-form-' | append: sectionId
+
+  # 产品价格直降方式
+  assign price_class_name = 'price'
+  if show_product_direct_way
+    assign price_class_name = 'djp'
+  endif
+
+  # 建议零售价
+  assign msrp = 'products.product.price.msrp' | default: '' | t
+-%}
+
+{% comment %} 变体列表 {% endcomment %}
+{%- unless product.has_only_default_variant -%}
+  <div {{ block.shopify_attributes }} class="section-padding" style="{{ style }}">
+    {% style %}
+      .variant-select-color input[type=radio] {
+        width: 0;
+        height: 0;
+        position: absolute;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0)
+      }
+      .variant-select-color .swatch {
+        display: block;
+        width: 2.5rem;
+        height: 2.5rem;
+        aspect-ratio: 1 / 1;
+        background: var(--swatch--background);
+        background-position: var(--swatch-focal-point, initial);
+        background-size: cover;
+        background-origin: border-box;
+        border: 1px solid #C6C7C8;
+        border-radius: 50%;
+        position: relative;
+      }
+      .variant-select-color .swatch::after {
+        display: block;
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 1;
+        border: 1px solid transparent;
+        border-radius: 50%;
+        transform: scale(1.2935);
+      }
+      .variant-select-color .swatch.swatch--unavailable {
+        border-style: dashed;
+        border-color: #C6C7C8;
+        background: linear-gradient(45deg, #f3f3f3, #e5e5e5);
+      }
+      .variant-select-color input[type=radio]:checked+label .swatch::after {
+        border: 1px solid #242F20;
+      }
+      .variant-select-color label.disabled > * {
+        opacity: .4;
+      }
+      .variant-select-color label.disabled .swatch::before {
+        display: block;
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        z-index: 1;
+        background-color: #C6C7C8;
+        transform: translateX(-50%) rotate(45deg);
+      }
+
+      .variant-select input[type=radio] {
+        width: 0;
+        height: 0;
+        position: absolute;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0)
+      }
+      .variant-select input[type=radio]:checked+label {
+        background: #ffffff;
+      }
+      .variant-select input[type=radio]:checked+label::after {
+        border: solid 1px #242F20;
+        box-shadow: inset 0 0 0 0.5px #242F20;
+      }
+      .variant-select input[type=radio]:checked+label .variant-richtext-wrap {
+        grid-template-rows: 1fr;
+      }
+      .variant-select label.disabled > * {
+        opacity: .4;
+      }
+      .variant-select label.disabled span.visually-hidden {
+        display: initial;
+        text-wrap: nowrap;
+        word-break: keep-all
+      }
+      .variant-select label::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 1;
+        border: 1px solid #C6C7C8;
+      }
+      .variant-select label:hover::after {
+        border: solid 1px rgba(0, 0, 0, .4)
+      }
+
+      .variant-select .variant-richtext-wrap {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.4s;
+      }
+      .variant-select .variant-richtext {
+        overflow: hidden;
+      }
+      .variant-select .variant-richtext .metafield-rich_text_field {
+        min-height: 0;
+        overflow: hidden;
+      }
+      .variant-select .variant-richtext .metafield-rich_text_field {
+        padding-top: 1.25rem;
+      }
+      .variant-select .variant-richtext p {
+        font-size: 1rem;
+        line-height: 1.375rem;
+        color: rgba(0, 0, 0, .65);
+        margin-top: 1.5rem;
+      }
+      .variant-select .variant-richtext .metafield-rich_text_field p:first-of-type {
+        margin-top: 0;
+      }
+      .variant-select .variant-richtext ul,
+      .variant-select .variant-richtext ol {
+        padding-left: 1rem;
+      }
+      .variant-select .variant-richtext ul li,
+      .variant-select .variant-richtext ol li {
+        list-style-position: inside;
+        font-size: 1rem;
+        line-height: 1.375rem;
+        color: rgba(0, 0, 0, .65);
+      }
+      .variant-select .variant-richtext ul li {
+        list-style-type: disc;
+      }
+      .variant-select .variant-richtext ol li {
+        list-style-type: decimal;
+      }
+      .variant-select .variant-richtext ul li p {
+        display: inline;
+      }
+      .variant-select .variant-richtext em {
+        display: inline-block;
+        font-size: 1rem;
+        line-height: 1.375rem;
+        color: var(--primary-color);
+        background-color: #F5F5F3;
+        padding: .125rem .5rem;
+      }
+      .variant-select .variant-richtext li em {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      @media screen and (max-width: 1023.98px) {
+        .variant-select .variant-richtext .metafield-rich_text_field {
+          padding-top: 1rem;
+        }
+        .variant-select .variant-richtext p {
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+          color: rgba(0, 0, 0, .65);
+          margin-top: 0.75rem;
+        }
+        .variant-select .variant-richtext ul,
+        .variant-select .variant-richtext ol {
+          padding-left: 1rem;
+        }
+        .variant-select .variant-richtext ul li,
+        .variant-select .variant-richtext ol li {
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+        }
+        .variant-select .variant-richtext em {
+          display: inline-block;
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+          color: var(--primary-color);
+          background-color: #F5F5F3;
+          padding: .125rem .5rem;
+        }
+      }
+    {% endstyle %}
+
+    <variant-fields
+      id="variant-radios-{{ sectionId }}"
+      class="flex flex-col gap-y-8 lg:gap-y-12"
+      data-section="{{ sectionId }}"
+      data-url="{{ product.url }}"
+      data-class-name="{{ price_class_name }}"
+      {{ block.shopify_attributes }}
+    >
+      {%- for option in product.options_with_values -%}
+        {%- assign swatch_count = option.values | map: 'swatch' | compact | size -%}
+        {%- if swatch_count > 0 -%}
+          <div class="product-form__input flex flex-col gap-y-4 lg:gap-y-6">
+            <div class="w-full font-semibold text-[#242F20] text-xl lg:text-2xl">{{ option.name }}</div>
+            <div class="w-full flex flex-wrap gap-6 px-1">
+              {%- for value in option.values -%}
+                {%- liquid
+                  assign swatch_focal_point = null
+                  if value.swatch.image
+                    assign image_url = value.swatch.image | image_url: width: 50
+                    assign swatch_value = 'url(' | append: image_url | append: ')'
+                    assign swatch_focal_point = value.swatch.image.presentation.focal_point
+                  elsif value.swatch.color
+                    assign swatch_value = 'rgb(' | append: value.swatch.color.rgb | append: ')'
+                  else
+                    assign swatch_value = null
+                  endif
+                  
+                  assign option_disabled = true
+                  assign matched_variant = nil
+                  assign selected_opt1 = product.selected_or_first_available_variant.option1
+                  assign selected_opt2 = product.selected_or_first_available_variant.option2
+                  assign selected_opt3 = product.selected_or_first_available_variant.option3
+                  for v in product.variants
+                    case option.position
+                      when 1
+                        if v.option1 == value
+                          if product.options.size > 1
+                            if product.options.size == 2
+                              if v.option2 == selected_opt2
+                                assign matched_variant = v
+                                break
+                              endif
+                            elsif product.options.size >= 3
+                              if v.option2 == selected_opt2 and v.option3 == selected_opt3
+                                assign matched_variant = v
+                                break
+                              endif
+                            endif
+                          else
+                            assign matched_variant = v
+                            break
+                          endif
+                        endif
+                      when 2
+                        if v.option2 == value and v.option1 == selected_opt1
+                          if product.options.size >= 3
+                            if v.option3 == selected_opt3
+                              assign matched_variant = v
+                              break
+                            endif
+                          else
+                            assign matched_variant = v
+                            break
+                          endif
+                        endif
+                      when 3
+                        if v.option3 == value and v.option1 == selected_opt1 and v.option2 == selected_opt2
+                          assign matched_variant = v
+                          break
+                        endif
+                    endcase
+                  endfor
+                  if matched_variant
+                    if matched_variant.available
+                      assign option_disabled = false
+                    else
+                      assign option_disabled = true
+                    endif
+                  endif
+                -%}
+                <div 
+                  class="variant-select-color"
+                  ccc="{{ option.name }}---{{ option.position }}"
+                >
+                  <input
+                    type="radio"
+                    id="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                    data-id="{{ matched_variant.id }}"
+                    name="{{ option.name }}"
+                    value="{{ value | escape }}"
+                    form="{{ product_form_id }}"
+                    corner="{{ matched_variant.metafields.custom.variant_tag | escape }}"
+                    {% if option.selected_value == value %} checked {% endif %}
+                    {% if option_disabled %} class="disabled" {% endif %}
+                  >
+                  <label
+                    class="relative cursor-pointer flex flex-col items-center gap-2 lg:min-w-12 {% if option_disabled %} disabled unavailable {% endif %}"
+                    for="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                  >
+                    <span
+                      {% if swatch_value %}
+                        class="swatch"
+                        style="--swatch--background: {{ swatch_value }};{% if swatch_focal_point %} --swatch-focal-point: {{ swatch_focal_point }};{% endif %}"
+                      {% else %}
+                        class="swatch swatch--unavailable"
+                      {% endif %}
+                    ></span>
+                    <span class="font-semibold text-[#242F20] text-sm lg:text-xl">{{ value | escape }}</span>
+                  </label>
+                </div>
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- else -%}
+          <div class="product-form__input flex flex-col gap-y-4 lg:gap-y-6">
+            <div class="font-semibold text-[#242F20] text-xl lg:text-2xl">{{ option.name }}</div>
+            {%- for value in option.values -%}
+              {%- liquid
+                assign option_disabled = true
+                assign matched_variant = nil
+                assign selected_opt1 = product.selected_or_first_available_variant.option1
+                assign selected_opt2 = product.selected_or_first_available_variant.option2
+                assign selected_opt3 = product.selected_or_first_available_variant.option3
+                for v in product.variants
+                  case option.position
+                    when 1
+                      if v.option1 == value
+                        if product.options.size > 1
+                          if product.options.size == 2
+                            if v.option2 == selected_opt2
+                              assign matched_variant = v
+                              break
+                            endif
+                          elsif product.options.size >= 3
+                            if v.option2 == selected_opt2 and v.option3 == selected_opt3
+                              assign matched_variant = v
+                              break
+                            endif
+                          endif
+                        else
+                          assign matched_variant = v
+                          break
+                        endif
+                      endif
+                    when 2
+                      if v.option2 == value and v.option1 == selected_opt1
+                        if product.options.size >= 3
+                          if v.option3 == selected_opt3
+                            assign matched_variant = v
+                            break
+                          endif
+                        else
+                          assign matched_variant = v
+                          break
+                        endif
+                      endif
+                    when 3
+                      if v.option3 == value and v.option1 == selected_opt1 and v.option2 == selected_opt2
+                        assign matched_variant = v
+                        break
+                      endif
+                  endcase
+                endfor
+                if matched_variant
+                  if matched_variant.available
+                    assign option_disabled = false
+                  else
+                    assign option_disabled = true
+                  endif
+                endif
+              -%}
+              {%- if matched_variant -%}
+              <div class="variant-select">
+                <input
+                  type="radio"
+                  id="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                  data-id="{{ matched_variant.id }}"
+                  name="{{ option.name }}"
+                  value="{{ value | escape }}"
+                  form="{{ product_form_id }}"
+                  corner="{{ matched_variant.metafields.custom.variant_tag | escape }}"
+                  {% if option.selected_value == value %} checked {% endif %}
+                  {% if option_disabled %} class="disabled" {% endif %}
+                >
+                <label
+                  class="relative cursor-pointer flex flex-wrap p-4 min-h-[5.4375rem] lg:min-h-[6.125rem] {% if option_disabled %} disabled unavailable {% endif %}"
+                  for="{{ sectionId }}-{{ option.position }}-{{ forloop.index0 }}"
+                >
+                  {%- assign variant_tag = matched_variant.metafields.custom.variant_tag -%}
+                  {%- assign variant_tag_bg_color = matched_variant.metafields.custom.variant_tag_bg_color -%}
+                  <div class="w-full flex items-center {% if variant_tag != blank %} justify-between {% else %} justify-end {% endif %}">
+                    {%- if variant_tag != blank -%}
+                      <span class="text-white bg-[#242F20] font-semibold text-xs lg:text-base px-2 py-1 lg:px-3 lg:py-0.5" style="background-color: {{ variant_tag_bg_color | default: '#242F20' }};">{{ variant_tag | escape }}</span>
+                    {%- endif -%}
+                    <div class="option-{{ price_class_name }} flex gap-x-1 {% if msrp != blank %} flex-col items-end lg:flex-row lg:items-center {% else %} flex-row items-center {% endif %}" data-product-id="{{ product.id }}" data-variant-id="{{ matched_variant.id }}">
+                      {%- assign l_variant = matched_variant -%}
+                      {%- assign l_price = l_variant.price -%}
+                      {%- assign l_origin_price = l_variant.compare_at_price | default: l_price -%}
+
+                      {%- if show_product_direct_way and product_direct_way == 'way_one' -%}
+                        {%- assign dsf = last_variant.metafields.custom.dsf -%}
+                        {%- if dsf != blank -%}
+                          {%- assign l_price = dsf | times: 100 -%}
+                        {%- endif -%}
+                      {%- else -%}
+
+                        {%- if settings.open_auto_discount_price and settings.display_auto_discount_price_in_sku %}
+                            {%- assign l_auto_discount_price = last_variant.metafields.custom.auto_discount_price | times: 1 -%}
+                            {%- if l_auto_discount_price > 0 and l_auto_discount_price < last_variant.price -%}
+                                {%- assign l_price = l_auto_discount_price -%}
+                            {%- else -%}
+                                {%- assign l_price = last_variant.price -%}
+                            {%- endif -%}
+                        {%- endif -%}
+
+                        {%- if l_origin_price < last_variant.price -%}
+                            {%- assign l_origin_price = last_variant.price -%}
+                        {%- endif -%}
+                      {%- endif -%}
+
+                      <span class="{{ price_class_name }} text-base lg:text-xl text-[#1A1A1A] font-semibold">{{ l_price | money }}</span>
+                      <span class="price hidden">{{ l_origin_price | money }}</span>
+                      {%- if l_origin_price > l_price -%}
+                        <span class="origin-{{ price_class_name }} flex items-center gap-x-1 text-xs lg:text-sm text-black/65 line-through">
+                          {%- if msrp != blank -%}
+                            <span>{{ msrp | escape }}</span>
+                          {%- endif -%}
+                          <span>{{ l_origin_price | money }}</span>
+                        </span>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                  <div class="w-full flex items-start pt-4 lg:pt-5">
+                    <h2 class="flex-1 text-[#242F20] font-semibold text-base lg:text-xl">{{- value -}}</h2>
+                    <span class="font-semibold pl-5 text-sm leading-6 lg:text-base visually-hidden">{{ 'products.product.sold_out' | t }}</span>
+                  </div>
+                  {% if matched_variant.metafields.custom.variant_desc != blank %}
+                    <div class="variant-richtext-wrap">
+                      <div class="variant-richtext">
+                        {{ matched_variant.metafields.custom.variant_desc | metafield_tag }}
+                      </div>
+                    </div>
+                  {% endif %}
+                </label>
+              </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </variant-fields>
+
+    <script type="module">
+      // 变体选择
+      if (!customElements.get('variant-fields')) {
+        customElements.define('variant-fields', class VariantFields extends HTMLElement {
+          constructor() {
+            super();
+
+            // url链接，携带的【捆绑销售】标签
+            this.bundledTag = getUrlQueryParams('bundled_action_tag') || ''
+            // url链接，携带的【产品推荐】标签
+            this.recommendedTag = getUrlQueryParams('action_tag') || ''
+            this.variantUrlUpdateFrame = 0
+            this.renderRequestToken = 0
+            this.renderAbortController = null
+            this.domParser = new DOMParser()
+            this.variantIndex = {
+              byOptions: new Map(),
+              byId: new Map(),
+              tree: {}
+            }
+            this.nextOptionValuesByPrefix = null
+            this.memberPriceById = null
+            this.inputWrappers = []
+            this.radioInputsByWrapper = []
+            this.optionInputsByWrapper = []
+            this.inputLabelMap = new Map()
+            this.productInfoWrapper = document.querySelector('.v5-product-info-wrapper')
+            this.quantityInput = this.productInfoWrapper?.querySelector('quantity-input input')
+            this.quantityComponent = this.productInfoWrapper?.querySelector('quantity-input')
+            this.plusQuantityBtn = this.quantityComponent?.querySelector('.quantity__button[name="plus"]')
+            this.minusQuantityBtn = this.quantityComponent?.querySelector('.quantity__button[name="minus"]')
+            this.errorWrapper = this.productInfoWrapper?.querySelector('.add_cart_error_wrapper')
+            this.productTitleNode = document.querySelector('.product__title')
+            this.priceDestination = document.getElementById(`price-${this.dataset.section}`) || document.getElementById(`djp-${this.dataset.section}`)
+            this.shortageDom = document.querySelector('product-shortage')
+            this.stickyDom = document.querySelector('jky-v5-sticky-cart')
+            this.productGalleryEl = document.querySelector("v5-product-gallery")
+            this.mediaSlideIndexMap = new Map()
+            this.mediaSlideCount = 0
+
+            this.handleVariantFieldsTrack = this.handleVariantFieldsTrack.bind(this)
+            this.handleVariantFieldsChange = debounce(() => this.onVariantChange(), 50)
+            this.handleVariantFieldsClick = this.handleVariantFieldsClick.bind(this)
+            this.handleMemberPriceReady = this.handleMemberPriceReady.bind(this)
+
+            this.addEventListener('change', this.handleVariantFieldsTrack);
+            this.addEventListener('change', this.handleVariantFieldsChange);
+            this.addEventListener('click', this.handleVariantFieldsClick);
+            document.addEventListener('memberPriceReady', this.handleMemberPriceReady)
+            this.init()
+          }
+          disconnectedCallback() {
+            cancelAnimationFrame(this.variantUrlUpdateFrame)
+            this.renderAbortController?.abort()
+            this.removeEventListener('change', this.handleVariantFieldsTrack)
+            this.removeEventListener('change', this.handleVariantFieldsChange)
+            this.removeEventListener('click', this.handleVariantFieldsClick)
+            document.removeEventListener('memberPriceReady', this.handleMemberPriceReady)
+          }
+          handleMemberPriceReady() {
+            this.updateOptionPricesForCurrentSelection()
+            this.toggleAddButton(false)
+            this.syncStickyCartPrice()
+          }
+          init() { // 初始化更新主图
+            this.buildVariantLookupMaps();
+            this.refreshOptionCaches();
+            this.updateOptions();
+            this.updateMasterId();
+            this.updateMedia();
+            this.updateOptionPricesForCurrentSelection();
+            this.updateColorAvailability();
+          }
+          refreshOptionCaches() {
+            this.inputWrappers = [...this.querySelectorAll('.product-form__input')]
+            this.radioInputsByWrapper = this.inputWrappers.map((wrapper) => [...wrapper.querySelectorAll('input[type="radio"]')])
+            this.optionInputsByWrapper = this.inputWrappers.map((wrapper) => [...wrapper.querySelectorAll('input[type="radio"], option')])
+            this.inputLabelMap = new Map()
+
+            this.optionInputsByWrapper.forEach((inputs, wrapperIndex) => {
+              const wrapper = this.inputWrappers[wrapperIndex]
+              inputs.forEach((input) => {
+                if (!input?.id) return
+                this.inputLabelMap.set(input.id, wrapper.querySelector(`label[for="${input.id}"]`))
+              })
+            })
+          }
+          getGalleryMediaSlides() {
+            const imageGallery = this.productGalleryEl || document.querySelector("v5-product-gallery")
+            const mediaBox = imageGallery?.querySelector('.product-media__box')
+            if (!imageGallery || !mediaBox) return []
+
+            this.productGalleryEl = imageGallery
+            return [...mediaBox.querySelectorAll('.swiper-slide[data-media-id]')]
+          }
+          getSlideMediaId(slide) {
+            return String(slide?.getAttribute('data-media-id') || '')
+          }
+          rebuildMediaSlideIndexMap() {
+            const slides = this.getGalleryMediaSlides()
+            this.mediaSlideIndexMap = new Map()
+            this.mediaSlideCount = slides.length
+
+            slides.forEach((slide, index) => {
+              const mediaId = this.getSlideMediaId(slide)
+              if (!mediaId) return
+              this.mediaSlideIndexMap.set(mediaId, index)
+            })
+          }
+          getMediaSlideIndex(mediaId) {
+            const normalizedMediaId = String(mediaId || '')
+            const slides = this.getGalleryMediaSlides()
+
+            if (!slides.length) return -1
+
+            if (
+              !this.mediaSlideIndexMap.size ||
+              this.mediaSlideCount !== slides.length ||
+              !this.mediaSlideIndexMap.has(normalizedMediaId)
+            ) {
+              this.rebuildMediaSlideIndexMap()
+            }
+
+            return this.mediaSlideIndexMap.get(normalizedMediaId) ?? -1
+          }
+          getOptionKey(options = []) {
+            return options.map((value) => value || '').join('||')
+          }
+          buildVariantLookupMaps() {
+            const variantData = this.getVariantData()
+            const byOptions = new Map()
+            const byId = new Map()
+            const tree = {}
+            this.nextOptionValuesByPrefix = new Map()
+
+            variantData.forEach((variant) => {
+              const variantOptions = Array.isArray(variant.options) ? variant.options : []
+              byId.set(variant.id, variant)
+              byOptions.set(this.getOptionKey(variantOptions), variant)
+
+              let currentNode = tree
+              variantOptions.forEach((optionValue, index) => {
+                const nodeKey = optionValue || ''
+                currentNode[nodeKey] = currentNode[nodeKey] || {}
+                currentNode = currentNode[nodeKey]
+
+                if (index === variantOptions.length - 1) {
+                  currentNode.variant = variant
+                }
+              })
+
+              variantOptions.forEach((optionValue, index) => {
+                const prefixKey = `${index}|${this.getOptionKey(variantOptions.slice(0, index))}`
+                if (!this.nextOptionValuesByPrefix.has(prefixKey)) {
+                  this.nextOptionValuesByPrefix.set(prefixKey, new Set())
+                }
+
+                this.nextOptionValuesByPrefix.get(prefixKey).add(optionValue)
+              })
+            })
+
+            this.variantIndex = { byOptions, byId, tree }
+          }
+          getVariantByOptions(options = []) {
+            return this.variantIndex?.byOptions?.get(this.getOptionKey(options)) || null
+          }
+          syncVariantFieldMarkup(sourceHost) {
+            if (!sourceHost) return
+
+            const sourceInputs = [...sourceHost.querySelectorAll('.product-form__input')]
+            const currentInputs = [...this.querySelectorAll('.product-form__input')]
+
+            if (!sourceInputs.length || sourceInputs.length !== currentInputs.length) {
+              this.innerHTML = sourceHost.innerHTML
+              return
+            }
+
+            currentInputs.forEach((currentInput, index) => {
+              const sourceInput = sourceInputs[index]
+              if (!sourceInput) return
+
+              const currentChildren = [...currentInput.children]
+              const sourceChildren = [...sourceInput.children]
+              const preservedHeader = currentChildren[0] || null
+
+              if (!preservedHeader || !sourceChildren.length) {
+                currentInput.innerHTML = sourceInput.innerHTML
+                return
+              }
+
+              currentInput.replaceChildren(
+                preservedHeader,
+                ...sourceChildren.slice(1).map((child) => child.cloneNode(true))
+              )
+            })
+          }
+          getValidOptionValues(index, prefix = []) {
+            return this.nextOptionValuesByPrefix?.get(`${index}|${this.getOptionKey(prefix)}`) || new Set()
+          }
+          getMemberPriceMap() {
+            // Membership prices can change after a coupon is claimed, so always
+            // rebuild from the latest global source before repainting variant UI.
+            const memberPriceById = new Map()
+            ;(window.productMemberPriceInfo || []).forEach((item) => {
+              memberPriceById.set(String(item.id), item)
+            })
+
+            this.memberPriceById = memberPriceById
+            return memberPriceById
+          }
+          handleVariantFieldsClick(e) {
+            const richtextLink = e.target.closest('.variant-richtext a')
+            if (richtextLink && this.contains(richtextLink)) {
+              e.stopPropagation()
+            }
+          }
+          handleVariantFieldsTrack() {
+            this.updateOptions()
+            const trackedVariant = this.getVariantByOptions(this.options)
+
+            if (!trackedVariant) return
+
+            gaPushDataLayer('5.0_products_details_page_user_clicks', {
+              product_spu_name: this.productTitleNode?.textContent?.trim() || '',
+              module: "Product Selection",
+              position: trackedVariant.title,
+              button_name: 'Select',
+              corner: trackedVariant.variant_tag || '',
+            })
+          }
+          // 处理库存限制
+          handleQuantityLimit() {
+            if(!this.currentVariant) return
+            if(!this.quantityInput) return
+            const quantityField = this.quantityInput
+            const plusBtn = this.plusQuantityBtn
+            const minusBtn = this.minusQuantityBtn
+            if(!this.currentVariant?.inventory_quantity) {
+              quantityField.setAttribute("data-max", 1)
+              quantityField.setAttribute("max", 1)
+              plusBtn && plusBtn.setAttribute('disabled','disabled')
+              const minVal = parseInt(quantityField.getAttribute('data-min')) || 1
+              const curVal = parseInt(quantityField.value || minVal)
+              if (curVal <= minVal) {
+                minusBtn && minusBtn.setAttribute('disabled','disabled')
+              } else {
+                minusBtn && minusBtn.removeAttribute('disabled')
+              }
+              return
+            }
+            quantityField.setAttribute("data-max", this.currentVariant?.inventory_quantity)
+            quantityField.setAttribute("max", this.currentVariant?.inventory_quantity)
+            if (this.currentVariant?.inventory_quantity <= 1) {
+              plusBtn && plusBtn.setAttribute('disabled','disabled')
+            } else {
+              plusBtn && plusBtn.removeAttribute('disabled')
+            }
+            const minVal = parseInt(quantityField.getAttribute('data-min')) || 1
+            const curVal = parseInt(quantityField.value || minVal)
+            if (curVal <= minVal) {
+              minusBtn && minusBtn.setAttribute('disabled','disabled')
+            } else {
+              minusBtn && minusBtn.removeAttribute('disabled')
+            }
+          }
+          // 更新主图
+          onVariantChange(id) {
+            this.updateOptions();
+            this.updateMasterId(id);
+            this.toggleAddButton(true);
+            this.updateVariantStatuses()
+
+            if (!this.currentVariant) {
+              this.setUnavailable();
+            } else {
+              this.updateMedia();
+              this.updateVariantInput();
+              // 同步更新吸底购物车（无需等待 fetch）
+              this.syncStickyCartPrice()
+              this.renderProductInfo();
+              this.handleQuantityLimit();
+              cancelAnimationFrame(this.variantUrlUpdateFrame)
+              this.variantUrlUpdateFrame = requestAnimationFrame(() => {
+                this.updateURL();
+              });
+            }
+          }
+          // 更新选项
+          updateOptions() {
+            const opts = new Array(this.inputWrappers.length)
+
+            for (let i = 0; i < this.radioInputsByWrapper.length; i++) {
+              const radios = this.radioInputsByWrapper[i]
+              opts[i] = ''
+
+              for (const radio of radios) {
+                if (radio.checked) {
+                  opts[i] = radio.value
+                  break
+                }
+              }
+            }
+
+            this.options = opts
+          }
+          // 更新变体id。如果传入了确定的变体id， 直接执行切换
+          updateMasterId(id) {
+            if (id && typeof (id) === 'number') {
+              this.currentVariant = this.variantIndex?.byId?.get(id) || null
+            } else {
+              this.currentVariant = this.getVariantByOptions(this.options)
+            }
+          }
+          // 更新 Url
+          updateURL() {
+            if (!this.currentVariant) return;
+
+            // change url variant
+            const url = new URL(window.location);
+            url.searchParams.set("variant", this.currentVariant.id);
+
+            // 携带 捆绑销售 标签
+            if (this.bundledTag) {
+              url.searchParams.set("bundled_action_tag", this.bundledTag);
+            } 
+            // 携带 产品推荐 标签
+            else if (this.recommendedTag) {
+              url.searchParams.set("action_tag", this.recommendedTag);
+            }
+            window.history.replaceState({}, "", url);
+
+            const event_variant_change = new CustomEvent('variantChangeEvent', {
+              detail: {
+                variant: this.currentVariant,
+              }
+            })
+            document.dispatchEvent(event_variant_change)
+          }
+          // 更新价格 & 购买按钮状态 & 到货提醒
+          renderProductInfo() {
+            const sectionId = this.dataset.originalSection ? this.dataset.originalSection : this.dataset.section
+            this.renderAbortController?.abort()
+            const requestToken = ++this.renderRequestToken
+            this.renderAbortController = new AbortController()
+
+            fetch(`${this.dataset.url}?variant=${this.currentVariant.id}&section_id=${sectionId}`, {
+              signal: this.renderAbortController.signal
+            })
+              .then((response) => response.text())
+              .then((responseText) => {
+                if (requestToken !== this.renderRequestToken) return
+                const html = this.domParser.parseFromString(responseText, 'text/html');
+
+                const event_variant_change = new CustomEvent('diyVariantChangeEvent', {
+                  detail: {
+                    variant: this.currentVariant,
+                    html: html
+                  }
+                })
+                document.dispatchEvent(event_variant_change)
+
+                // 更新价格
+                const destination = this.priceDestination // 开启了“价格直降”，名称变了
+                const source = html.getElementById(`price-${sectionId}`) || html.getElementById(`djp-${sectionId}`) // 开启了“价格直降”，名称变了;
+                if (source && destination) destination.innerHTML = source.innerHTML;
+
+                // 变体信息
+                const variants_source = html.getElementById(`variant-radios-${sectionId}`) || html.querySelector('variant-fields');
+                const variants_dom = this;
+                if (variants_source) {
+                  const source_clone = variants_source.cloneNode(true)
+                  // 【已登录】，更新
+                  if (window.pageInfo?.customerInfo?.id && window.productMemberPriceInfo?.length > 0) {
+                    window.productMemberPriceInfo.forEach(item => {
+                      // 更新选中变体的价格
+                      if (source_clone.querySelector(`input[data-id="${item.id}"]`)?.parentElement?.querySelector('.option-{{ price_class_name }} span.{{ price_class_name }}')) {
+                        source_clone.querySelector(`input[data-id="${item.id}"]`).parentElement.querySelector('.option-{{ price_class_name }} span.{{ price_class_name }}').textContent = formatMoney(item.membership_price)
+                      }
+
+                      // 添加 选中变体的划线价
+                      if (
+                        !source_clone.querySelector(`input[data-id="${item.id}"]`)?.parentElement?.querySelector('.option-{{ price_class_name }} span.origin-{{ price_class_name }}')
+                        && item.compare_at_price > item.membership_price
+                      ) {
+                        source_clone.querySelector(`input[data-id="${item.id}"]`).parentElement.querySelector('.option-price')?.insertAdjacentHTML(
+                          'beforeend',
+                          `<span class="origin-{{ price_class_name }} flex items-center gap-x-1 text-xs lg:text-sm text-black/65 line-through">
+                            ${window.pageInfo?.strings?.product?.msrp
+                              ? `<span>${window.pageInfo?.strings?.product?.msrp || ''}</span>`
+                              : ''
+                            }
+                            <span>${formatMoney(item.compare_at_price)}</span>
+                          </span>`
+                        )
+                      }
+                    })
+                  }
+                  variants_dom.syncVariantFieldMarkup(source_clone);
+                  this.refreshOptionCaches();
+                }
+
+                // 同步选中项到当前变体，并刷新可售状态
+                if (this.currentVariant) {
+                  const opts = this.currentVariant.options || [];
+                  const sets = Array.from(document.getElementById(`variant-radios-${this.dataset.section}`).querySelectorAll('.product-form__input'));
+                  sets.forEach((set, idx) => {
+                    const val = opts[idx];
+                    const radio = Array.from(set.querySelectorAll('input[type="radio"]')).find(r => r.value === val);
+                    if (radio) radio.checked = true;
+                  });
+                  this.options = [...opts];
+                  this.updateVariantStatuses();
+                  this.pruneOptions();
+                  this.updateOptionPricesForCurrentSelection();
+                  this.updateColorAvailability();
+                }
+
+                // 更新购买按钮内的价格
+                const productForm_dom = document.querySelector(`v5-product-form`);
+                const productForm_source = html.querySelector(`v5-product-form`);
+                if (productForm_dom && productForm_source) {
+                  // 更新会员价信息
+                  const variant = window.productMemberPriceInfo?.find(item => item.id.toString() == this.currentVariant.id.toString())
+                  const showAutoDiscount = productForm_dom.dataset.displayAutoDiscountPriceInStickyCart === 'true'
+                  
+                  // 【已登录】
+                  if (window.pageInfo?.customerInfo?.id && variant) {
+                    const compared = showAutoDiscount ? variant.membership_price < variant.price : variant.membership_price < variant.shopify_price
+                    if (compared) {
+                      const productForm_clone = productForm_source
+                      const currentPrice = formatMoney(variant?.membership_price || (showAutoDiscount ? variant?.price : variant?.shopify_price))
+
+                      if (productForm_dom.querySelector('[name="add"]')?.querySelector('span')) {
+                        if (!productForm_dom.querySelector('[name="add"]') || !productForm_dom.querySelector('[name="add"]')?.querySelector('span')) return
+                        
+                        // diy 或者 hide price
+                        if(productForm_dom.querySelector('[name="add"]').getAttribute('is-diy') !== "true") {
+                          if(productForm_dom.querySelector('[name="add"]').getAttribute('hide-price') !== "true") {
+                            productForm_dom.querySelector('[name="add"]').querySelector('span').textContent = `${currentPrice}`
+                          } else {
+                            productForm_dom.querySelector('[name="add"]').querySelector('span').textContent = `${window.pageInfo?.strings?.product?.addToCart || ''}`
+                          }
+                        } else {
+                          productForm_dom.querySelector('[name="add"]').querySelector('span').textContent = `${window.pageInfo?.strings?.product?.addToCart || ''}`
+                        }
+                      }
+                    }
+                  }
+                }
+
+                // 到货提醒
+                const shortage_dom = this.shortageDom;
+                const shortage_source = html.querySelector(`product-shortage`);
+                if (shortage_dom && shortage_source) shortage_dom.innerHTML = shortage_source.innerHTML
+
+                this.syncQuantityInputFromVariantHtml(html)
+
+                const price = document.getElementById(`price-${this.dataset.section}`);
+                if (price) price.classList.remove('visibility-hidden');
+
+                this.toggleAddButton(!this.currentVariant.available);
+
+                if (this.quantityComponent) {
+                  const quantityInput = this.quantityComponent;
+                  
+                  // 设置 数量选择器，ga埋码参数
+                  const minusQuantityBtn = quantityInput.querySelector('.quantity__button[name="minus"]')
+                  minusQuantityBtn.setAttribute("data-ga-params-options", this?.currentVariant?.title)
+                  minusQuantityBtn.setAttribute("data-ga-params-corner", this.querySelector(':checked')?.getAttribute('corner'))
+                  minusQuantityBtn.setAttribute("data-ga-params-options_price", formatMoney(this.currentVariant.price, window?.pageInfo?.currency?.money_format))
+
+                  const plusQuantityBtn = quantityInput.querySelector('.quantity__button[name="plus"]')
+                  plusQuantityBtn.setAttribute("data-ga-params-options", this?.currentVariant?.title)
+                  plusQuantityBtn.setAttribute("data-ga-params-corner", this.querySelector(':checked')?.getAttribute('corner'))
+                  plusQuantityBtn.setAttribute("data-ga-params-options_price", formatMoney(this.currentVariant.price, window?.pageInfo?.currency?.money_format))
+                  const qtyField = document.querySelector('.v5-product-info-wrapper').querySelector('quantity-input input');
+                  const minVal = parseInt(qtyField.getAttribute('min') || qtyField.getAttribute('data-min')) || 1;
+                  qtyField.value = minVal;
+                  if (parseInt(qtyField.value) <= minVal) {
+                    minusQuantityBtn && minusQuantityBtn.setAttribute('disabled','disabled');
+                  } else {
+                    minusQuantityBtn && minusQuantityBtn.removeAttribute('disabled');
+                  }
+                  this.errorWrapper && (this.errorWrapper.textContent = '')
+                  if(this?.currentVariant?.inventory_quantity > 1) {
+                    plusQuantityBtn && plusQuantityBtn.removeAttribute("disabled")
+                  }
+                }
+              })
+              .catch((error) => {
+                if (error?.name === 'AbortError') return
+                console.error(error)
+              });
+          }
+          // 更新variant id input
+          updateVariantInput() {
+            const productForms = document.querySelectorAll(`#product-form-${this.dataset.section}`);
+            productForms.forEach((productForm) => {
+              const input = productForm.querySelector('input[name="id"]');
+              input.value = this.currentVariant.id;
+              input.setAttribute("data-sku", this.currentVariant.sku)
+              input.setAttribute("data-sku-title", this.currentVariant.title)
+              input.setAttribute("data-product-warranty-info", this.currentVariant.sku_warranty_info || '')
+              input.setAttribute("data-tax-free-popup", this.currentVariant.open_tax_free_popup_before_buy)
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+          }
+          // 更新 variant 状态（不依赖选项顺序）
+          updateVariantStatuses() {
+            this.inputWrappers.forEach((wrapper, index) => {
+              const optionInputs = this.optionInputsByWrapper[index] || [];
+              optionInputs.forEach((input) => {
+                const value = input.getAttribute('value');
+                const target = [...this.options];
+                target[index] = value;
+                const variant = this.getVariantByOptions(target);
+                const label = this.inputLabelMap.get(input.id);
+                if (!label) return;
+                if (variant?.available) {
+                  label.classList.remove('disabled', 'unavailable');
+                } else {
+                  label.classList.add('disabled');
+                  label.classList.add('unavailable');
+                }
+              });
+            });
+          }
+          // 设置 option 状态
+          setInputAvailability(listOfOptions, listOfAvailableOptions, allOptionsValue) {
+            listOfOptions.forEach((input) => {
+              // const input_id = input.getAttribute("id")
+              // const label_dom = document.querySelector(`label[for=${input_id}]`)
+
+              if (listOfAvailableOptions.includes(input.getAttribute('value'))) { // 正常可售
+                // label_dom.querySelector("span.visually-hidden").innerHTML = ""
+              } else {
+                if (allOptionsValue.includes(input.getAttribute('value'))) { // soldout
+                  // label_dom.querySelector("span.visually-hidden").innerHTML = "Soldout"
+                } else { // unavailable
+                  // label_dom.querySelector("span.visually-hidden").innerHTML = "Unavilable"
+                }
+              }
+            });
+          }
+          // 根据已选前缀裁剪选项
+          pruneOptions() {
+            this.inputWrappers.forEach((option, index) => {
+              const prefix = this.options.slice(0, index);
+              const validValues = this.getValidOptionValues(index, prefix);
+              (this.radioInputsByWrapper[index] || []).forEach(r => {
+                const label = this.inputLabelMap.get(r.id);
+                const available = validValues.has(r.value);
+                if (label) label.style.display = available ? '' : 'none';
+              });
+            });
+          }
+          updateOptionPricesForCurrentSelection() {
+            const moneyFormat = window?.pageInfo?.currency?.money_format;
+            const memberPriceMap = this.getMemberPriceMap();
+
+            this.inputWrappers.forEach((option, index) => {
+              const radios = this.radioInputsByWrapper[index] || [];
+              radios.forEach(radio => {
+                const target = [...this.options];
+                target[index] = radio.value;
+                const v = this.getVariantByOptions(target);
+                const wrap = radio.parentElement.querySelector('.option-{{ price_class_name }}');
+                if (!wrap || !v) return;
+                const member = memberPriceMap.get(String(v.id));
+                const curPrice = member ? member.membership_price : (v.price || 0);
+                const comparePrice = member ? member.compare_at_price : (v.compare_at_price || 0);
+                const priceEl = wrap.querySelector('.{{ price_class_name }}');
+                const originEl = wrap.querySelector('.origin-{{ price_class_name }}');
+                if (priceEl) priceEl.textContent = formatMoney(curPrice, moneyFormat);
+                if (comparePrice > curPrice) {
+                  if (originEl) {
+                    originEl.innerHTML = `${window.pageInfo?.strings?.product?.msrp ? '<span>{{ msrp | escape }}</span>' : ''}<span>${formatMoney(comparePrice, moneyFormat)}</span>`;
+                  } else {
+                    wrap.insertAdjacentHTML(
+                      'beforeend',
+                      `<span class="origin-{{ price_class_name }} flex items-center gap-x-1 text-xs lg:text-sm text-black/65 line-through">
+                        ${window.pageInfo?.strings?.product?.msrp
+                          ? `<span>${window.pageInfo?.strings?.product?.msrp || ''}</span>`
+                          : ''
+                        }
+                        <span>${formatMoney(comparePrice, moneyFormat)}</span>
+                      </span>`
+                    );
+                  }
+                } else if (originEl) {
+                  originEl.remove();
+                }
+                wrap.setAttribute('data-variant-id', v.id);
+              });
+            });
+          }
+
+          // 根据当前选择组合更新颜色可售状态（置灰不可售颜色）- 不依赖顺序
+          updateColorAvailability() {
+            const colorIndex = this.inputWrappers.findIndex(w => !!w.querySelector('.variant-select-color'));
+            if (colorIndex < 0) return;
+            const radios = this.radioInputsByWrapper[colorIndex] || [];
+            radios.forEach(radio => {
+              const label = this.inputLabelMap.get(radio.id);
+              const target = [...this.options];
+              target[colorIndex] = radio.value;
+              const variant = this.getVariantByOptions(target);
+              const available = !!(variant && variant.available);
+              if (label) {
+                if (available) {
+                  label.classList.remove('disabled', 'unavailable');
+                } else {
+                  label.classList.add('disabled', 'unavailable');
+                }
+              }
+            });
+          }
+          syncQuantityInputFromVariantHtml(html) {
+            const quantityInput = document.querySelector('.v5-product-info-wrapper quantity-input[data-v5-app-pdp-quantity]')
+            const sourceQuantityInput = html.querySelector('quantity-input[data-v5-app-pdp-quantity]')
+            const targetInput = quantityInput?.querySelector('input')
+            const sourceInput = sourceQuantityInput?.querySelector('input')
+            if (!targetInput || !sourceInput) return
+
+            ['data-min', 'min', 'data-max', 'max', 'step'].forEach((attributeName) => {
+              const value = sourceInput.getAttribute(attributeName)
+              if (value != null) {
+                targetInput.setAttribute(attributeName, value)
+              } else {
+                targetInput.removeAttribute(attributeName)
+              }
+            })
+
+            targetInput.value = sourceInput.value || sourceInput.getAttribute('min') || 1
+
+            const targetMinusBtn = quantityInput.querySelector('.quantity__button[name="minus"]')
+            const targetPlusBtn = quantityInput.querySelector('.quantity__button[name="plus"]')
+            const sourceMinusBtn = sourceQuantityInput.querySelector('.quantity__button[name="minus"]')
+            const sourcePlusBtn = sourceQuantityInput.querySelector('.quantity__button[name="plus"]')
+
+            if (sourceMinusBtn?.hasAttribute('disabled')) {
+              targetMinusBtn?.setAttribute('disabled', 'disabled')
+            } else {
+              targetMinusBtn?.removeAttribute('disabled')
+            }
+
+            if (sourcePlusBtn?.hasAttribute('disabled')) {
+              targetPlusBtn?.setAttribute('disabled', 'disabled')
+            } else {
+              targetPlusBtn?.removeAttribute('disabled')
+            }
+
+            targetInput.dispatchEvent(new Event('change', { bubbles: true }))
+          }
+          /**
+          * 设置加购按钮状态
+          * @param {boolean} disable - 状态（是否禁用）
+          * @param {string} text - 加购按钮显示文案替换
+          */
+          toggleAddButton(disable = true) {
+            const productForm = document.getElementById(`product-form-${this.dataset.section}`);
+            if (!productForm) return;
+            const addButton = productForm.querySelector('[name="add"]');
+            if (!addButton) return;
+
+            const buyItNowButton = productForm.querySelector('[name="buy-it-now"]')
+
+            if (disable) {
+              addButton.setAttribute('disabled', 'disabled');
+              buyItNowButton?.setAttribute('disabled', 'disabled');
+            } else {
+              addButton.removeAttribute('disabled');
+              buyItNowButton?.removeAttribute('disabled');
+            }
+
+            if (!this.currentVariant) return;
+            
+            // 查询 全局的会员价优惠券信息
+            const variant = window.productMemberPriceInfo?.find(item => item.id.toString() == this.currentVariant.id.toString())
+            // 【已登录】
+            if (window.pageInfo?.customerInfo?.id && variant) {
+              // 走会员价逻辑了
+            } else {
+              // diy 或者 hide price，不用更新
+              if(addButton.getAttribute('is-diy') !== "true") {
+                if (addButton.getAttribute('hide-price') !== "true") {
+                  // 是否显示自动优惠价格
+                  const showAutoDiscount = productForm.parentElement.dataset.displayAutoDiscountPriceInStickyCart === 'true'
+                  const currentPrice = formatMoney(showAutoDiscount ? this.currentVariant.price : this.currentVariant.shopify_price, window.pageInfo?.currency?.money_format)
+                  // 更新 .djp-wrap 内的价格 span，保留 cart icon 和 in_cart 文案
+                  const priceSpan = addButton.querySelector('.djp-wrap span:first-child')
+                  if (priceSpan) {
+                    priceSpan.textContent = `${currentPrice}`
+                  } else {
+                    const addButtonText = addButton.querySelector(':scope > span') || addButton
+                    addButtonText.textContent = `${currentPrice}`
+                  }
+                } else {
+                  const addButtonText = addButton.querySelector(':scope > span') || addButton
+                  addButtonText.textContent = `${window.pageInfo?.strings?.product?.addToCart || ''}`
+                }
+              } else {
+                const addButtonText = addButton.querySelector(':scope > span') || addButton
+                addButtonText.textContent = `${window.pageInfo?.strings?.product?.addToCart || ''}`
+              }
+            }
+          }
+          // 设置不可售
+          setUnavailable() {
+            const button = document.getElementById(`product-form-${this.dataset.section}`);
+            const addButton = button.querySelector('[name="add"]');
+            const price = document.getElementById(`price-${this.dataset.section}`);
+            if (!addButton) return;
+            const addButtonText = addButton.querySelector(':scope > span') || addButton;
+            addButtonText.textContent = "Unavailable";
+            if (price) price.classList.add('visibility-hidden');
+          }
+          // 更新图片
+          updateMedia() {
+            if (!this.currentVariant) return;
+            if (!this.currentVariant.featured_media) return;
+            const imageGallery = this.productGalleryEl || document.querySelector("v5-product-gallery")
+            if (!imageGallery) return
+            this.productGalleryEl = imageGallery
+            if (!imageGallery.product_gallery) return
+            try {
+              const targetIndex = this.getMediaSlideIndex(this.currentVariant.featured_media.id)
+              if (targetIndex !== -1) {
+                imageGallery.product_gallery.slideTo(targetIndex, 1000, false);
+              }
+            } catch (e) {
+              console.error(e)
+            }
+          }
+          // 获取 variant 数据
+          getVariantData() {
+            this.variantData = this.variantData || JSON.parse(document.querySelector(`[id="selected-variant"][type="application/json"]`)?.textContent || '[]');
+            return this.variantData;
+          }
+          // 同步更新吸底购物车价格（立即执行，不等待 fetch）
+          syncStickyCartPrice() {
+            const sticky = this.stickyDom
+            if (!sticky || !this.currentVariant) return
+
+            const member = window.productMemberPriceInfo?.find(item => item.id.toString() === this.currentVariant.id.toString())
+            const showAutoDiscount = sticky.dataset.displayAutoDiscountPriceInStickyCart === 'true'
+            const isDiy = sticky.hasAttribute('is-diy')
+            const hasPriceInfo = sticky.hasAttribute('show-price-info')
+            const compared = member ? (showAutoDiscount ? member.membership_price < member.price : member.membership_price < member.shopify_price) : false
+            const finalPrice = compared ? member.membership_price : (showAutoDiscount ? this.currentVariant.price : this.currentVariant.shopify_price)
+            const compareAt = compared ? member.compare_at_price : this.currentVariant.compare_at_price
+
+            // 按钮文案
+            const btn = sticky.querySelector('#sticky_addToCart')
+            if (btn?.querySelector('span')) {
+              const p = formatMoney(finalPrice)
+              btn.querySelector('span').textContent = !isDiy && !hasPriceInfo
+                ? p + ' ' + (window.pageInfo?.strings?.product?.inCart || '')
+                : window.pageInfo?.strings?.product?.addToCart || ''
+            }
+
+            // 更新 .sticky_cart_p
+            const cartP = sticky.querySelector('.sticky_cart_p')
+            if (cartP) cartP.textContent = formatMoney(finalPrice)
+
+            // 划线价 — 仅更新已有元素的内容和显隐
+            const productOp = sticky.querySelector('.v5-product-op')
+            if (productOp) {
+              if (compareAt > finalPrice) {
+                productOp.textContent = formatMoney(compareAt)
+                productOp.classList.remove('hidden')
+              } else {
+                productOp.classList.add('hidden')
+              }
+            }
+
+            // 折扣 — 仅更新已有元素的内容和显隐
+            const discountEl = sticky.querySelector('.v5-product-discount_amount')
+            if (discountEl) {
+              if (compareAt > finalPrice) {
+                const dis = Math.floor((compareAt - finalPrice) / 100) * 100
+                const discountPrice = formatMoney(dis, formatNoDecimalsMoney())
+                const fmt = sticky.dataset.discountFormat || discountEl.dataset.format || 'Save $()'
+                discountEl.textContent = fmt.replace(/\(\)/g, discountPrice)
+                discountEl.classList.remove('hidden')
+              } else {
+                discountEl.classList.add('hidden')
+              }
+            }
+
+            // 变体标题
+            const vt = sticky.querySelector('.variant-title')
+            if (vt) {
+              const tag = this.currentVariant.variant_tag
+                ? '<span class="hidden lg:flex items-center justify-center bg-white text-[#242F20] font-semibold lg:text-base leading-[1.75rem] px-2 lg:px-3">' + this.currentVariant.variant_tag + '</span>'
+                : ''
+              vt.innerHTML = tag + '<span class="flex-1 text-white font-semibold text-overflow-1">' + this.currentVariant.title + '</span>'
+            }
+
+            // 下拉 active
+            sticky.querySelectorAll('.disclosure-list-menu li').forEach(function(li) {
+              li.classList.toggle('active', Number(li.dataset.id) === this.currentVariant.id)
+            }.bind(this))
+
+            // 同步属性 + 内部变体引用
+            sticky.setAttribute('init-variant-id', this.currentVariant.id)
+            sticky.setAttribute('pd', this.currentVariant.id)
+            sticky.select_id = this.currentVariant.id
+            sticky.currentVariant = this.currentVariant
+
+            // 库存状态 → 按钮显隐
+            const isSoldOut = !this.currentVariant.available
+            const enableShortage = sticky.getAttribute('enable_shortage_reminds') === 'true'
+            const addBtnDom = sticky.querySelector('.sticky_cart_addToCart')
+            const shortageDom = sticky.querySelector('.shortage-btn')
+            if (isSoldOut) {
+              if (enableShortage && shortageDom) {
+                if (addBtnDom) addBtnDom.classList.add('!hidden')
+                shortageDom.classList.remove('!hidden')
+              } else {
+                const addBtn = sticky.querySelector('#sticky_addToCart')
+                if (addBtn) {
+                  addBtn.setAttribute('disabled', 'disabled')
+                  addBtn.querySelector('span').textContent = window.pageInfo?.strings?.product?.soldOut || ''
+                }
+              }
+            } else {
+              if (addBtnDom) addBtnDom.classList.remove('!hidden')
+              if (shortageDom) shortageDom.classList.add('!hidden')
+              const addBtn = sticky.querySelector('#sticky_addToCart')
+              if (addBtn) addBtn.removeAttribute('disabled')
+            }
+          }
+        })
+      }
+    </script>
+  </div>
+{%- endunless -%}

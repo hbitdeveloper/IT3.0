@@ -1,0 +1,246 @@
+
+{% assign membershipItem = section.blocks | where: 'type', 'membership_item' %}
+{% assign benefitItems = section.blocks | where: 'type', 'benefit_item' %}
+{% assign benefitSize = benefitItems.size %}
+
+{% comment %} Benefit {% endcomment %}
+<section id="{{ section.settings.section_id | escape }}" class="w-full flex-center flex-col py-60 lg:j-py-64 xl:a-py-64 bg-#F5ECE2 relative z-1" style="background-color: {{ section.settings.section_background_color }}">
+  <div class="w-full flex-center flex-col px-40 lg:px-0">
+    {% if section.settings.section_title != blank %}
+      <h2
+        class="
+          font-semibold text-#1A1A1A text-center w-full text-44 leading-56
+          lg:j-w-710 lg:j-text-40 lg:j-leading-56 xl:a-w-710 xl:a-text-40 xl:a-leading-56
+        "
+        style="color: {{ section.settings.section_title_color }}"
+        data-animation-dom
+      >{{ section.settings.section_title | newline_to_br }}</h2>
+    {% endif %}
+    {% if section.settings.section_sub_title != blank %}
+      <p
+        class="
+          font-normal text-#666 text-center w-full mt-10 text-28 leading-36
+          lg:j-w-880 lg:j-mt-20 lg:j-text-18 lg:j-leading-26 xl:a-w-880 xl:a-mt-20 xl:a-text-18 xl:a-leading-26
+        "
+        data-animation-dom
+      >{{ section.settings.section_sub_title | newline_to_br }}</p>
+    {% endif %}
+    {% for block in membershipItem %}
+      <div
+        class="
+          w-full h-896 rounded-16 mt-50 lg:j-w-1200 lg:j-h-320 lg:j-rounded-8 lg:j-mt-40
+          xl:a-w-1200 xl:a-h-320 xl:a-rounded-8 xl:a-mt-40 flex-between flex-col lg:flex-row overflow-hidden bg-white
+            {{ section.settings.page_width }}
+          "
+        data-animation-dom
+      >
+        {% comment %} image {% endcomment %}
+        {% render 'responsive-image',
+          image: block.settings.membership_pc_img,
+          mimage: block.settings.membership_mb_img,
+          image_class: 'w-full h-415 lg:j-w-600 lg:h-full xl:a-w-600 h-full object-cover'
+        %}
+        <div class="flex-1 h-full flex items-start justify-between flex-col px-40 py-48 lg:j-pl-72 lg:j-pr-42 lg:j-pt-53 lg:j-pb-35 xl:a-pl-72 xl:a-pr-42 xl:a-pt-53 xl:a-pb-35">
+          <div>
+            <h3 class="text-40 leading-56 lg:j-text-32 lg:j-leading-42 xl:a-text-32 xl:a-leading-42 text-#333 font-semibold line-clamp-2">{{ block.settings.membership_title | newline_to_br }}</h3>
+            <div class="mt-16 text-28 leading-42 lg:j-mt-18 lg:j-text-16 lg:j-leading-24 xl:a-mt-18 xl:a-text-16 xl:a-leading-24 text-#666 font-normal line-clamp-2">{{ block.settings.membership_sub_title | newline_to_br }}</div>
+          </div>
+          <div class="w-full flex-between">
+            {% if customer.id != blank %}
+              <div>
+                <span class="text-56 lg:j-text-40 xl:a-text-40 leading-none text-#EC7037 font-semibold" data-membership-benefit-points>--</span>
+                <p class="text-24 leading-36 lg:j-text-16 lg:j-leading-24 xl:a-text-16 xl:a-leading-24 text-#666 font-normal">{{ block.settings.membership_points_balance | escape }}</p>
+              </div>
+            {% endif %}
+
+            {% assign membership_url = '' %}
+            {% if settings.shop_env == 'demo' %}
+              {% assign membership_url = 'https://demo-membership.jackery.com/index' %}
+            {% elsif settings.shop_env == 'uat' %}
+              {% assign membership_url = 'https://membership-uat.jackery.com/index' %}
+            {% else %}
+              {% assign membership_url = 'https://membership.jackery.com/index' %}
+            {% endif %}
+
+            {% assign iso_code = settings.shop_cr | default: localization.country.iso_code | default: 'US' %}
+
+            <button
+              class="membership-price-button membership-price-highlight-button"
+              data-link="{{ block.settings.membership_button_link }}"
+              data-membership-benefit-button
+              data-ga-event="membership_price_user_clicks"
+              data-ga-action="click"
+              data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Benefits{% endif %}"
+              data-ga-params-position="{{ block.settings.membership_title | escape }}"
+              data-ga-params-link="{{ membership_url | append: '?cr=' | append: iso_code }}"
+              data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+            >
+              <span class="line-clamp-1">{{ block.settings.membership_button_text | escape }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+
+  <div class="w-full mt-40 pb-60 lg:j-w-1200 lg:j-mt-24 lg:j-pb-40 xl:a-w-1200 xl:a-mt-24 xl:a-pb-40 relative {{ section.settings.page_width }}">
+    <div class="swiper membership-price-benefits-swiper lg:j-rounded-8 xl:a-rounded-8">
+      <div class="swiper-wrapper {% if benefitSize == 1 %} single-swiper-wrapper {% endif %} {% if benefitSize < 3 %} lg:flex-center {% endif %}">
+        {% for block in benefitItems %}
+          <span
+            data-href="{{ block.settings.item_url }}"
+            class="swiper-slide flex items-start justify-between flex-col w-610 h-500 rounded-16 px-40 pt-44 pb-50 lg:j-w-388 lg:j-h-320 lg:j-rounded-8 lg:j-px-32 lg:j-pt-32 lg:j-pb-23 xl:a-w-388 xl:a-h-320 xl:a-rounded-8 xl:a-px-32 xl:a-pt-32 xl:a-pb-23 bg-white cursor-pointer"
+            data-ga-event="membership_price_user_clicks"
+            data-ga-action="click"
+            data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Benefits{% endif %}"
+            data-ga-params-position="{{ block.settings.item_title | escape }}"
+            data-ga-params-link="{{ block.settings.item_url }}"
+            data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+            data-animation-dom
+          >
+            <img class="w-144 h-144 lg:j-w-100 lg:j-h-100 xl:a-w-100 xl:a-h-100 object-contain" src="{{ block.settings.item_icon | image_url: width: 200 }}" />
+            <div>
+              <h3 class="text-48 leading-64 lg:j-text-24 lg:j-leading-32 xl:a-text-24 xl:a-leading-32 text-black/80 font-semibold line-clamp-2">{{ block.settings.item_title | newline_to_br }}</h3>
+              <div class="text-24 leading-40 mt-16 h-80 text-#666 lg:j-text-16 lg:j-leading-24 lg:j-mt-12 lg:j-h-52 xl:a-text-16 xl:a-leading-24 xl:a-mt-12 xl:a-h-52 font-normal line-clamp-2">{{ block.settings.item_sub_title | newline_to_br }}</div>
+            </div>
+          </span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="swiper-scrollbar {% if benefitSize <= 3 %} lg:hidden {% endif %}"></div>
+
+    {% if benefitSize > 3 %}
+      <div class="hidden lg:flex swiper-button-next swiper-membership-pc-button-next"></div>
+      <div class="hidden lg:flex swiper-button-prev swiper-membership-pc-button-prev"></div>
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+  {
+    "name": "Membership Price Benefits",
+    "class": "section-membership-price section-membership-price-benefits",
+    "settings": [
+        {
+        "type": "select",
+        "id": "page_width",
+        "options": [
+          {
+            "value": "section_container",
+            "label": "版心/1200px"
+          },
+          {
+            "value": "section_container_lg",
+            "label": "大版心/1312px"
+          }
+        ],
+        "default": "section_container",
+        "label": "组件宽度"
+      },
+      {
+        "type": "color_background",
+        "id": "section_background_color",
+        "label": "Section Background Color",
+        "default": "#F5ECE2"
+      },
+      {
+        "type": "text",
+        "id": "section_id",
+        "label": "Section ID",
+        "info": "和关联的 Anchor ID 保持一致"
+      },
+      {
+        "type": "textarea",
+        "id": "section_title",
+        "label": "Section Title",
+        "default": "More Exclusive Benefits"
+      }, {
+        "type": "color",
+        "id": "section_title_color",
+        "label": "Section Title Color",
+        "default": "#F3702E"
+      }, {
+        "type": "textarea",
+        "id": "section_sub_title",
+        "label": "Section Sub Title",
+        "default": "Power Applications Between 2000W - 6000W"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "membership_item",
+        "name": "Membership item",
+        "limit": 1,
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "membership_pc_img",
+            "label": "Membership PC Item Image"
+          },
+          {
+            "type": "image_picker",
+            "id": "membership_mb_img",
+            "label": "Membership Mobile Item Image"
+          },
+          {
+            "type": "textarea",
+            "id": "membership_title",
+            "label": "Membership Title",
+            "default": "Jackery Membership"
+          },
+          {
+            "type": "textarea",
+            "id": "membership_sub_title",
+            "label": "Membership Sub Title",
+            "default": "Earn Jackery points, Redeem exclusive benefits."
+          },
+          {
+            "type": "text",
+            "id": "membership_points_balance",
+            "label": "Points Balance Text（“积分余额”多语言配置）",
+            "default": "Points Balance"
+          },
+          {
+            "type": "text",
+            "id": "membership_button_text",
+            "label": "Membership Button Text",
+            "default": "My Membership"
+          },
+          {
+            "type": "url",
+            "id": "membership_button_link",
+            "label": "Membership Button Link"
+          }
+        ]
+      },
+      {
+        "type": "benefit_item",
+        "name": "Benefit Item",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "item_icon",
+            "label": "Icon Image"
+          },
+          {
+            "type": "textarea",
+            "id": "item_title",
+            "label": "Item Title"
+          },
+          {
+            "type": "textarea",
+            "id": "item_sub_title",
+            "label": "Item Sub Title"
+          },
+          {
+            "type": "url",
+            "id": "item_url",
+            "label": "Item Url"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

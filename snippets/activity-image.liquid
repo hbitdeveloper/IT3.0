@@ -1,0 +1,118 @@
+{% comment %} 活动页-图片组件 {% endcomment %}
+{% style %}
+    .activity-block--pic-{{ index }} {padding-top: {{schema_settings.padding_top}}px;padding-bottom:{{schema_settings.padding_bottom}}px;}
+    .activity-block--pic-{{ index }} .activity-block--pic-main img {width: 100%;}
+
+    {%- if schema_settings.full_width != true -%}
+    .activity-block--pic-{{ index }} .activity-block--pic-main img {border-radius: {{schema_settings.pic_radius}}px;}
+    {%- endif -%}
+
+    .activity-block--pic-{{ index }} .activity-block--pic-heading {line-height: 48px;font-size: 40px;padding-left: 40px;padding-right: 40px;text-align: center;font-weight: 600;padding-bottom: {{schema_settings.padding_content}}px;}
+    .activity-block--pic-{{ index }} .activity-block--pic-subtitle {padding-bottom: {{ schema_settings.padding_subtitle }}px; text-align: center; font-size: 24px; font-weight: 500; line-height: 26px;}
+
+    @media screen and (max-width: 1024px) {
+        .activity-block--pic-{{ index }} {padding-top: calc( {{ schema_settings.padding_top }}  * 100vw / 750 );padding-bottom:calc( {{ schema_settings.padding_bottom }}  * 100vw / 750 );}
+        .activity-block--pic-{{ index }} .activity-block--pic-heading {line-height: 8vw;font-size: 6.4vw;padding-left: 5.3333vw;padding-right: 5.3333vw;padding-bottom: calc( {{ schema_settings.padding_content }}  * 100vw / 750 );}
+        .activity-block--pic-{{ index }} .activity-block--pic-subtitle {line-height: 8vw;font-size: 4vw;padding-bottom: calc( {{ schema_settings.padding_subtitle }}  * 100vw / 750 );}
+
+    {%- if schema_settings.full_width != true -%}
+        .activity-block--pic-{{ index }} .activity-block--pic-main img {border-radius: calc( {{ schema_settings.pic_radius }}  * 100vw / 750 );}
+    {%- endif -%}
+    }
+{%  endstyle %} 
+
+<div {%if schema_settings.anchor_id != blank%}anchor={{schema_settings.anchor_id | escape}}{% endif %} class="activity-block--pic activity-block--pic-{{ index }} {%if schema_settings.img_link != blank%} activity-block--pic-link{% endif %} color-{{ schema_settings.color_scheme }}" style="background:var(--color-background);">
+    <div class="activity-block--pic-main {%unless schema_settings.full_width == true%}activity-container{% endunless %}">
+        {%- if schema_settings.title != blank -%}
+            <div class="activity-block--pic-heading" style="color:var(--color-text);">{{schema_settings.title | newline_to_br}}</div>
+        {%- endif -%}
+        {%- if schema_settings.sub_title != blank -%}
+            <div class="activity-block--pic-subtitle" style="color:var(--color-text);">{{schema_settings.sub_title | newline_to_br}}</div>
+        {%- endif -%}
+
+        <div class="activity-block--pic-box relative" {% if schema_settings.img_link != blank %}style="cursor: pointer;"{% endif %}>
+            {%- if schema_settings.img_link != blank or schema_settings.btn_to_login -%}
+                <a style="position: absolute;inset: 0;z-index: 1;" href="{{schema_settings.img_link}}" target="{% if schema_settings.new_window %}_blank{% else %}_self{% endif %}"
+                   data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Single Banner" data-ga-params-link="{{schema_settings.img_link}}" data-ga-params-url="{{schema_settings.pc_img}}"
+                   data-btn-to-login="{{ schema_settings.btn_to_login | default: false }}"
+                   data-register-tag="{{ schema_settings.register_tag }}"
+                   data-logged-in-msg="{{ schema_settings.logged_in_msg }}"></a>
+            {%- endif -%}
+
+            {%- if schema_settings.pc_img -%}
+                {%-liquid
+                    assign is_lcp = false
+                    if index < 2
+                        assign is_lcp = true
+                    endif
+
+                    assign pc_w = 1312
+                    assign mb_w = 600
+                    if schema_settings.full_width == true
+                        assign pc_w = 1920
+                        assign mb_w = 750
+                    endif
+                -%}
+                {% render 'diff-end-img',
+                    picture_class:'',
+                    class: 'w-full object-cover',
+                    style: '',
+                    anchor: '',
+                    pc_img: schema_settings.pc_img,
+                    mb_img: schema_settings.mb_img,
+                    pc_img_width: pc_w,
+                    mb_img_width: mb_w,
+                    placeholder_name: 'hero-apparel-1',
+                    alt: schema_settings.title | default: 'activity image',
+                    load_scene: schema_settings.load_scene | default: 'default',
+                %}
+            {%- endif -%}
+        </div>
+    </div>
+</div>
+
+{% javascript %}
+class ActivityImage {
+    constructor() {
+        if (document.querySelector('.activity-block--pic a[data-btn-to-login="true"]')) {
+            this.bindClickEvent();
+        }
+    }
+    bindClickEvent() {
+        document.addEventListener('click', function (e) {
+            var target = e.target && e.target.closest('.activity-block--pic a[data-btn-to-login="true"]');
+            if (!target) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (pageInfo.customerInfo?.id) {
+                pushSuccessMessage(target.getAttribute('data-logged-in-msg') || 'You are already logged in.');
+                return;
+            }
+
+            var wrapper = target.closest('.activity-block--pic');
+            var hash = wrapper ? wrapper.getAttribute('anchor') : '';
+
+            if (window.jackeryLoginApp && typeof window.jackeryLoginApp.modalLogin === 'function') {
+                window.jackeryLoginApp.modalLogin({
+                    return_url: window.location.origin + window.location.pathname + "?hash=" + hash,
+                    "register_act": (target.getAttribute('data-register-tag') || '').trim()
+                });
+            }
+        });
+    }
+}
+(function () {
+    function onReady(fn) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', fn, { once: true });
+            return;
+        }
+        fn();
+    }
+    onReady(function () {
+        new ActivityImage();
+    });
+})();
+{% endjavascript %}

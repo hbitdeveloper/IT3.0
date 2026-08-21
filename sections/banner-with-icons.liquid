@@ -1,0 +1,331 @@
+<style>
+  .section-banner-with-icons {
+    color: var(--text-color);
+  }
+  .banner-with-icons__text-color {
+    color: var(--text-color);
+  }
+  .scroll-text__wrap {
+    height: 5rem;
+    margin-top: 6.25rem;
+  }
+
+  .scroll-text__item {
+    width: 11.25rem;
+    height: 5rem;
+    background: #fff;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 1024px) {
+    .scroll-text__wrap {
+      height: 3.125rem;
+      margin-top: 12rem;
+    }
+
+    .scroll-text__item {
+      width: 5.625rem;
+      height: 3.125rem;
+    }
+  }
+
+  .scroll-text__animation {
+    display: inline-flex;
+    animation: scroll-right linear infinite;
+    animation-duration: var(--duration);
+    will-change: transform;
+  }
+
+  .scroll-text__wrap:hover .scroll-text__animation {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll-right {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .banner-with-icons--card {
+    background: rgba(16, 16, 16, 0.3);
+  }
+</style>
+
+{% assign icons = section.blocks | where: 'type', 'icon' %}
+{% assign cards = section.blocks | where: 'type', 'banner_card' %}
+
+<div class="relative overflow-hidden" style="background: {{section.settings.bg_color | default: 'transparent' }};--text-color: {{section.settings.text_color | default: '#ffffff'}};">
+  <div class="banner-with-icons-inner lg:py-16 py-10 relative z-[1] {{section.settings.page_width}}">
+    {%- if section.settings.subheading != blank -%}
+      <div class="lg:text-base text-xs lg:mb-3 mb-2 font-normal banner-with-icons__text-color">{{ section.settings.subheading }}</div>
+    {%- endif -%}
+
+    {%- if section.settings.heading != blank -%}
+      <h2 class="font-semibold lg:text-5xl text-2xl lg:mb-6 mb-3 banner-with-icons__text-color">
+        {{ section.settings.heading | replace: '\n', '<br>' | strip }}
+      </h2>
+    {%- endif -%}
+
+    {%- if section.settings.description != blank -%}
+      <p class="font-normal lg:text-base text-xs banner-with-icons__text-color">
+        {{ section.settings.description | replace: '\n', '<br>' | strip }}
+      </p>
+    {%- endif -%}
+
+    <div class="flex flex-wrap lg:gap-6 gap-3 lg:mt-10 mt-6">
+      {%- for block in cards -%}
+        <div class="banner-with-icons--card flex flex-col text-center lg:p-3 p-2 gap-y-2">
+          <div class="lg:text-2xl text-base font-semibold banner-with-icons__text-color">{{ block.settings.heading }}</div>
+          <div class="lg:text-base text-xs font-normal banner-with-icons__text-color break-keep whitespace-nowrap">{{ block.settings.subheading }}</div>
+        </div>
+      {%- endfor -%}
+    </div>
+
+    {%- if icons.size > 6 -%}
+      <div class="scroll-text__wrap w-full overflow-hidden relative">
+        <div class="scroll-text__animation absolute left-0 top-0 lg:gap-x-10 gap-x-6" style="--duration: 20s;">
+          {%- for i in (1..2) -%}
+            <div class="scroll-text__group inline-flex lg:gap-x-10 gap-x-6">
+              {%- for block in icons -%}
+                {%- assign placeholder_image_index = forloop.index0 | modulo: 4 | plus: 1 -%}
+                {%- assign placeholder_image = 'collection-apparel-' | append: placeholder_image_index -%}
+                <div class="scroll-text__item">
+                  {%- if block.settings.image != blank -%}
+                    {{
+                      block.settings.image
+                      | image_url: width: 1000
+                      | image_tag:
+                        widths: '180, 270, 360, 500, 750, 1000',
+                        sizes: '180px',
+                        class: 'w-full h-full object-cover'
+                    }}
+                  {%- else -%}
+                    {{ placeholder_image | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+                  {%- endif -%}
+                </div>
+              {%- endfor -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- elsif icons.size > 3 -%}
+      <div class="scroll-text__wrap w-full overflow-hidden relative lg:hidden block">
+        <div class="scroll-text__animation absolute left-0 top-0 lg:gap-x-10 gap-x-6" style="--duration: 20s;">
+          {%- for i in (1..2) -%}
+            <div class="scroll-text__group inline-flex lg:gap-x-10 gap-x-6">
+              {%- for block in icons -%}
+                {%- assign placeholder_image_index = forloop.index0 | modulo: 4 | plus: 1 -%}
+                {%- assign placeholder_image = 'collection-apparel-' | append: placeholder_image_index -%}
+                <div class="scroll-text__item">
+                  {%- if block.settings.image != blank -%}
+                    {{
+                      block.settings.image
+                      | image_url: width: 1000
+                      | image_tag:
+                        widths: '180, 270, 360, 500, 750, 1000',
+                        sizes: '180px',
+                        class: 'w-full h-full object-cover'
+                    }}
+                  {%- else -%}
+                    {{ placeholder_image | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+                  {%- endif -%}
+                </div>
+              {%- endfor -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+      <div class="scroll-text__wrap gap-x-10 hidden lg:flex">
+        {%- for block in icons -%}
+          {%- assign placeholder_image_index = forloop.index0 | modulo: 4 | plus: 1 -%}
+          {%- assign placeholder_image = 'collection-apparel-' | append: placeholder_image_index -%}
+          <div class="scroll-text__item">
+            {%- if block.settings.image != blank -%}
+              {{
+                block.settings.image
+                | image_url: width: 1000
+                | image_tag:
+                  widths: '180, 270, 360, 500, 750, 1000',
+                  sizes: '180px',
+                  class: 'w-full h-full object-cover'
+              }}
+            {%- else -%}
+              {{ placeholder_image | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <div class="scroll-text__wrap flex gap-x-10">
+        {%- for block in icons -%}
+          {%- assign placeholder_image_index = forloop.index0 | modulo: 4 | plus: 1 -%}
+          {%- assign placeholder_image = 'collection-apparel-' | append: placeholder_image_index -%}
+          <div class="scroll-text__item">
+            {%- if block.settings.image != blank -%}
+              {{
+                block.settings.image
+                | image_url: width: 1000
+                | image_tag:
+                  widths: '180, 270, 360, 500, 750, 1000',
+                  sizes: '180px',
+                  class: 'w-full h-full object-cover'
+              }}
+            {%- else -%}
+              {{ placeholder_image | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover' }}
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  <div class="absolute inset-0" vvvv="{{ section.settings.bg_color }}">
+    {%- if section.settings.pc_img != blank -%}
+      {{
+        section.settings.pc_img
+        | image_url: width: 3840
+        | image_tag:
+          widths: '450, 660, 900, 1320, 1800, 2136, 2400, 3600, 7680',
+          sizes: '100vw',
+          class: 'w-full h-full object-cover hidden lg:block'
+      }}
+    {%- elsif section.settings.bg_color == blank -%}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover hidden lg:block' }}
+    {%- endif -%}
+
+    {%- if section.settings.mb_img != blank -%}
+      {{
+        section.settings.mb_img
+        | image_url: width: 3840
+        | image_tag:
+          widths: '450, 660, 900, 1320, 1800, 2136, 2400, 3600, 7680',
+          sizes: '100vw',
+          class: 'w-full h-full object-cover block lg:hidden'
+      }}
+    {%- elsif section.settings.bg_color == blank -%}
+      {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover block lg:hidden' }}
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Banner with icons",
+  "class": "section section-banner-with-icons",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "PC的组件宽度",
+      "info": "MB端组件宽度固定和设计稿一致，不可修改"
+    },
+    { "type": "text", "id": "subheading", "label": "小标题", "default": "Redefining Sustainable Roof Design" },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "大标题",
+      "default": "The World’s First XBC Curved Solar Roof Tile",
+      "info": "需要换行，请使用 \\n "
+    },
+    {
+      "type": "inline_richtext",
+      "id": "description",
+      "label": "描述",
+      "default": "Selected for TIME Best Inventions\nWinner of the Global Industrial Design Award - Gold Priz",
+      "info": "需要换行，请使用 \\n "
+    },
+
+    { "type": "color", "id": "text_color", "label": "字颜色", "default": "#ffffff"},
+    { "type": "color_background", "id": "bg_color", "label": "背景颜色" },
+    { "type": "image_picker", "id": "pc_img", "label": "背景图" },
+    { "type": "image_picker", "id": "mb_img", "label": "MB背景图" }
+  ],
+  "blocks": [
+    {
+      "type": "icon",
+      "name": "图标",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "图片"
+        }
+      ]
+    },
+    {
+      "type": "banner_card",
+      "name": "banner 卡片",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "标题",
+          "default": "$15"
+        },
+        {
+          "type": "text",
+          "id": "subheading",
+          "label": "描述",
+          "default": "Micro-Curve"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Banner with icons",
+      "blocks": [
+        {
+          "type": "banner_card"
+        },
+        {
+          "type": "banner_card"
+        },
+        {
+          "type": "icon"
+        },
+        {
+          "type": "icon"
+        },
+        {
+          "type": "icon"
+        },
+        {
+          "type": "icon"
+        },
+        {
+          "type": "icon"
+        },
+        {
+          "type": "icon"
+        },
+        {
+          "type": "icon"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

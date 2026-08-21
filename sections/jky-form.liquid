@@ -1,0 +1,679 @@
+
+{% style %}
+    .newbee-form_{{section.id}}.newbee-form {
+        --error: {{section.settings.error_color}};
+        --label-col-distance: {{section.settings.label_distance_y}}px;
+        --input-border-color: {{section.settings.input_border_color}};
+    }
+
+    @media screen and (max-width: 1024px) {
+        .newbee-form_{{section.id}}.newbee-form {
+            --label-col-distance: {{section.settings.label_distance_y | divided_by: 2}}px;
+        }
+    }
+{% endstyle %}
+
+<jky-form onsubmitcall="{{section.settings.submit_cb}}" jky-form-id="{{section.settings.form_id | handleize}}">
+    <form data-action="{{section.settings.action_url}}" data-extras="{{section.settings.extra_params}}">
+        <div class="form-container newbee-form section-container newbee-form_{{section.id}}" style="max-width: {{section.settings.form_container_max}}px;padding: {{section.settings.form_container_padding}}px;">
+            {% if section.settings.form_title != blank %}
+            <h3 class="newbee-form-title">{{section.settings.form_title | escape}}</h3>
+            {% endif %}
+
+            {% for block in section.blocks %}
+                {% case block.type %}
+                    {% comment %} 输入框 {% endcomment %}
+                    {% when 'input' %}
+                    <div class="form-row flex {% if block.settings.full_line %} full{% else %} half-full{% endif %}">
+                        <div
+                            class="form-item {% if block.settings.required %} required{% endif %}"
+                            data-field="input"
+                        >
+                            <label for="{{block.settings.value | handleize}}">{{block.settings.key}}</label>
+                            <input
+                                type="{{block.settings.input_type}}"
+                                id="{{block.settings.value | handleize}}"
+                                name="{{block.settings.value | handleize}}"
+                                placeholder="{% if block.settings.placeholder != blank %}{{block.settings.placeholder}}{% else %}{{block.settings.key}}{% endif %}"
+                                data-error="{{block.settings.error | escape}}"
+                                data-value="{{block.settings.value | escape}}"
+                                data-reg="{{block.settings.reg_rule}}"
+                                data-regError="{{block.settings.reg_error | escape}}"
+                            />
+                        </div>
+                    </div>
+
+                    {% comment %} 手机号码输入（带区号和国旗） {% endcomment %}
+                    {% when 'phone_input' %}
+                    <div class="form-row flex {% if block.settings.full_line %} full{% else %} half-full{% endif %}">
+                        <div
+                            class="form-item {% if block.settings.required %} required{% endif %}"
+                            data-field="phone_input"
+                        >
+                            {% render "jky-formField-phoneSelect", id: section.id, required: block.settings.required, error_text: block.settings.error, value: block.settings.value, key: block.settings.key %}
+                        </div>
+                    </div>
+
+                    {% comment %} 多选（数量） {% endcomment %}
+                    {% when 'open_drop' %}
+                    <div class="form-row flex {% if block.settings.full_line %} full{% else %} half-full{% endif %}">
+                        <div
+                            class="form-item {% if block.settings.required %} required{% endif %}"
+                            data-field="open_drop"
+                        >
+                            {% render "jky-formField-select_open", id: section.id, required: block.settings.required, error_text: block.settings.error, value: block.settings.value, key: block.settings.key, options: block.settings.options, extra_type: block.settings.extra_type, max_height: block.settings.max_height, placeholder:block.settings.placeholder %}
+                        </div>
+                    </div>
+
+                    {% comment %} 下拉 {% endcomment %}
+                    {% when 'dropmenu' %}
+                    <div class="form-row flex {% if block.settings.full_line %} full{% else %} half-full{% endif %}">
+                        <div
+                            class="form-item {% if block.settings.required %} required{% endif %}"
+                            data-field="dropmenu"
+                        >
+                            {% render "jky-formField-menu_drop", id: section.id, required: block.settings.required, error_text: block.settings.error, value: block.settings.value, key: block.settings.key, options: block.settings.options, placeholder: block.settings.placeholder %}
+                        </div>
+                    </div>
+
+                    {% comment %} 勾选框 {% endcomment %}
+                    {% when 'check_box' %}
+                    <div style="margin-top: {{block.settings.field_top}}px;" class="form-row form-row_check_box flex {% if block.settings.full_line %} full{% else %} half-full{% endif %}">
+                        <div
+                            class="form-item {% if block.settings.required %} required{% endif %}"
+                            data-field="check_box"
+                            data-error="{{block.settings.error}}"
+                        >
+                            {% render "jky-formField-checkbox", key: block.settings.key, value: block.settings.value %}
+                        </div>
+                    </div>
+
+                    {% comment %} radio单选 {% endcomment %}
+                    {% when 'radio' %}
+                    <div class="form-row form-row_radio flex {% if block.settings.full_line %} full{% else %} half-full{% endif %}">
+                        <div
+                            class="form-item {% if block.settings.required %} required{% endif %}"
+                            data-error="{{block.settings.error}}"
+                            data-field="radio"
+                            data-value="{{block.settings.value}}"
+                        >
+                            <label for="{{block.settings.value}}">{{block.settings.key | escape}}</label>
+
+                            <div class="radio-list">
+                                {% assign optionList = block.settings.options | split: '&&' %}
+                                {% for option in optionList %}
+                                    {% assign option_item = option | split: ':' %}
+                                    <li class="jky-option-item flex">
+                                        <label class="radio-label flex items-center">
+                                        <input
+                                          type="radio"
+                                          name="{{block.settings.value | handleize}}"
+                                          {% if forloop.index == 1 -%} checked{% endif %}
+                                          value="{{option_item[0]}}">
+                                            {{option_item[1]}}
+                                        </label>
+                                    </li>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endcase %}
+            {% endfor %}
+
+
+            <div class="newbee-form_submit flex" style="justify-content: {{section.settings.submit_placement}};">
+                {% if section.settings.show_reset == true %}
+                <button class="form_reset {{section.settings.reset_button_type}}">{{section.settings.reset_text | escape}}</button>
+                {% endif %}
+                <button class="form_sub_btn {{section.settings.button_type}}">{{section.settings.submit_text | escape}}</button>
+            </div>
+        </div>
+    </form>
+</jky-form>
+
+{% schema %}
+{
+  "name": "form builder", "class": "form-builder", "tag": "div",
+  "disabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {"type": "header", "content": "表单基本信息配置"},
+    {
+      "type": "text",
+      "id": "action_url",
+      "label": "Form Action Url"
+    },
+    {
+      "type": "text",
+      "id": "extra_params",
+      "label": "Extra Params",
+      "info": "key1:value1&&key2:value2"
+    },
+    {
+      "type": "text",
+      "id": "form_title",
+      "label": "Form Title"
+    },
+    {
+      "type": "text",
+      "id": "form_id",
+      "label": "Form ID",
+      "info": "每个表单独特ID标识"
+    },
+    {"type": "header", "content": "表单操作按钮相关配置"},
+    {
+      "type": "text",
+      "id": "submit_text",
+      "label": "Submit Button Text",
+      "info": "表单提交按钮文案",
+      "default": "Submit"
+    },
+    {
+      "type": "text",
+      "id": "submit_cb",
+      "label": "Submit Callback",
+      "info": "表单提交成功后回调-根据业务由IT补充",
+      "default": "null"
+    },
+    {
+        "type": "select",
+        "id": "button_type",
+        "options": [
+            {
+                "value": "z-button-fill-middle",
+                "label": "Fill Button"
+            },
+            {
+                "value": "z-button-middle",
+                "label": "Solid Button"
+            }
+        ],
+        "default": "z-button-middle",
+        "label": "提交按钮样式类型"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_reset",
+      "default": true,
+      "label": "是否显示表单重置按钮"
+    },
+    {
+      "type": "text",
+      "id": "reset_text",
+      "label": "Reset Button Text",
+      "info": "表单重置按钮文案",
+      "default": "Reset"
+    },
+    {
+        "type": "select",
+        "id": "reset_button_type",
+        "options": [
+            {
+                "value": "z-button-fill-middle",
+                "label": "Fill Button"
+            },
+            {
+                "value": "z-button-middle",
+                "label": "Solid Button"
+            }
+        ],
+        "default": "z-button-fill-middle",
+        "label": "重置按钮样式类型"
+    },
+    {"type": "header", "content": "表单样式相关配置"},
+    {
+      "type": "range",
+      "id": "form_container_max",
+      "min": 500,
+      "max": 1200,
+      "step": 100,
+      "unit": "px",
+      "label": "表单最大宽度",
+      "default": 1200
+    },
+    {
+      "type": "range",
+      "id": "form_container_padding",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "px",
+      "label": "表单上下左右边距",
+      "default": 0
+    },
+    {
+        "type": "select",
+        "id": "submit_placement",
+        "options": [
+            {
+                "value": "flex-start",
+                "label": "左对齐"
+            },
+            {
+                "value": "flex-end",
+                "label": "右对齐"
+            },
+            {
+                "value": "center",
+                "label": "居中"
+            }
+        ],
+        "default": "center",
+        "label": "表单底部按钮对齐方式"
+    },
+    {
+      "type": "range",
+      "id": "label_distance_y",
+      "min": 2,
+      "max": 16,
+      "step": 2,
+      "unit": "px",
+      "label": "Label 垂直间隔",
+      "default": 12
+    },
+    {
+      "type": "color",
+      "id": "error_color",
+      "label": "错误状态颜色",
+      "default": "#F72626"
+    },
+    {
+      "type": "color",
+      "id": "input_border_color",
+      "label": "Input 边框颜色",
+      "default": "#F5F5F5"
+    }
+  ],
+  "blocks": [
+      {
+        "type": "input",
+        "name": "Form Field - 输入框",
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "required",
+            "default": true,
+            "label": "是否必填字段?"
+          },
+          {
+            "type": "text",
+            "id": "error",
+            "label": "Error Text",
+            "info": "必填为空时回显文案(非必填可不设置)",
+            "default": "No Email"
+          },
+          {
+            "type": "text",
+            "id": "key",
+            "label": "label显示文案",
+            "info": "用户看到的文案",
+            "default": "Email"
+          },
+          {
+            "type": "text",
+            "id": "value",
+            "label": "表单保存的key",
+            "info": "用于后端保存的key名称(大小写字母数字下划线组成)",
+            "default": "first_name"
+          },
+          {
+            "type": "text",
+            "id": "placeholder",
+            "label": "placeholder",
+            "info": "提示文案",
+            "default": "Please Enter Your Email Address"
+          },
+          {
+            "type": "select",
+            "id": "reg_rule",
+            "options": [
+                {
+                    "value": "default",
+                    "label": "无"
+                },
+                {
+                    "value": "email",
+                    "label": "邮箱"
+                },
+                {
+                    "value": "number",
+                    "label": "数字"
+                },
+                {
+                    "value": "phone",
+                    "label": "电话/手机"
+                }
+            ],
+            "default": "default",
+            "label": "校验规则类型",
+            "info": "目前就这几种，后续有可以补充"
+          },
+          {
+            "type": "text",
+            "id": "reg_error",
+            "label": "校验错误回显文案",
+            "info": "校验错误时回显文案(无特殊校验不设置)",
+            "default": "Invalid Email Address"
+          },
+          {
+            "type": "checkbox",
+            "id": "full_line",
+            "default": false,
+            "label": "是否占据全行?",
+            "info": "是否占据全行(全行/一半)?"
+          },
+          {
+            "type": "select",
+            "id": "input_type",
+            "options": [
+                {
+                    "value": "text",
+                    "label": "Text"
+                },
+                {
+                    "value": "password",
+                    "label": "Password"
+                },
+                {
+                    "value": "email",
+                    "label": "Email"
+                },
+                {
+                    "value": "number",
+                    "label": "Number"
+                }
+            ],
+            "default": "text",
+            "label": "input 表单域类型",
+            "info": "可以默认text类型"
+          }
+        ]
+      },
+      {
+        "type": "phone_input",
+        "name": "Form Field - 电话输入框",
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "required",
+            "default": true,
+            "label": "是否必填字段?"
+          },
+          {
+            "type": "text",
+            "id": "key",
+            "label": "label显示文案",
+            "info": "用户看到的文案",
+            "default": "Email"
+          },
+          {
+            "type": "text",
+            "id": "value",
+            "label": "表单保存的key",
+            "info": "用于后端保存的key名称(大小写字母数字下划线组成)",
+            "default": "first_name"
+          },
+          {
+            "type": "text",
+            "id": "placeholder",
+            "label": "placeholder",
+            "info": "提示文案",
+            "default": "Please Enter Your Email Address"
+          },
+          {
+            "type": "text",
+            "id": "error",
+            "label": "Error Text",
+            "info": "校验错误时回显文案(非必填可不设置)",
+            "default": "Invalid Email Address"
+          },
+          {
+            "type": "checkbox",
+            "id": "full_line",
+            "default": false,
+            "label": "是否占据全行?",
+            "info": "是否占据全行(全行/一半)?"
+          }
+        ]
+      },
+      {
+        "type": "open_drop",
+        "name": "Form Field - 多选",
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "required",
+            "default": true,
+            "label": "是否必填字段?"
+          },
+          {
+            "type": "text",
+            "id": "key",
+            "label": "label显示文案",
+            "info": "用户看到的文案",
+            "default": "Email"
+          },
+          {
+            "type": "text",
+            "id": "value",
+            "label": "表单保存的key",
+            "info": "用于后端保存的key名称(大小写字母数字下划线组成)",
+            "default": "first_name"
+          },
+          {
+            "type": "text",
+            "id": "error",
+            "label": "Error Text",
+            "info": "校验错误时回显文案(非必填可不设置)",
+            "default": "Invalid Email Address"
+          },
+           {
+            "type": "text",
+            "id": "placeholder",
+            "label": "placeholder",
+            "info": "提示文案"
+          },
+          {
+            "type": "textarea",
+            "id": "options",
+            "label": "下拉选项信息",
+            "info": "由于Shopify配置不能配置自定义数组类型,所以采用字符串形式：保证 value_key_1:label_1&&value_key_2:label_2 形式，如 value_key_1:label_1&&value_key_2:label_2 具体咨询IT即可",
+            "default": "value_key_1:Jackery 2023&&value_key_2:Shopify 2023"
+          },
+          {
+            "type": "checkbox",
+            "id": "full_line",
+            "default": false,
+            "label": "是否占据全行?",
+            "info": "是否占据全行(全行/一半)?"
+          },
+          {
+            "type": "select",
+            "id": "extra_type",
+            "options": [
+                {
+                    "value": "null",
+                    "label": "默认（不带额外输入）"
+                },
+                {
+                    "value": "qty",
+                    "label": "数量选择"
+                },
+                {
+                    "value": "input",
+                    "label": "输入框"
+                }
+            ],
+            "default": "null",
+            "label": "option带额外Field输入【目前只支持数量以及文本输入框】"
+          },
+          {
+            "type": "range",
+            "id": "max_height",
+            "min": 150,
+            "max": 500,
+            "step": 50,
+            "unit": "px",
+            "label": "列表最大高度（超出部分滚动）",
+            "default": 150
+        }
+        ]
+      },
+      {
+        "type": "dropmenu",
+        "name": "Form Field - 下拉选择",
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "required",
+            "default": true,
+            "label": "是否必填字段?"
+          },
+          {
+            "type": "text",
+            "id": "key",
+            "label": "label显示文案",
+            "info": "用户看到的文案",
+            "default": "Email"
+          },
+          {
+            "type": "text",
+            "id": "value",
+            "label": "表单保存的key",
+            "info": "用于后端保存的key名称(大小写字母数字下划线组成)",
+            "default": "first_name"
+          },
+          {
+            "type": "text",
+            "id": "placeholder",
+            "label": "placeholder",
+            "info": "提示文案",
+            "default": "Please Enter Your Email Address"
+          },
+          {
+            "type": "text",
+            "id": "error",
+            "label": "Error Text",
+            "info": "校验错误时回显文案(非必填可不设置)",
+            "default": "Invalid Email Address"
+          },
+          {
+            "type": "textarea",
+            "id": "options",
+            "label": "下拉选项信息",
+            "info": "由于Shopify配置不能配置自定义数组类型,所以采用字符串形式：保证 value_key_1:label_1&&value_key_2:label_2 形式，如 value_key_1:label_1&&value_key_2:label_2 具体咨询IT即可",
+            "default": "value_key_1:Jackery 2023&&value_key_2:Shopify 2023"
+          },
+          {
+            "type": "checkbox",
+            "id": "full_line",
+            "default": false,
+            "label": "是否占据全行?",
+            "info": "是否占据全行(全行/一半)?"
+          }
+        ]
+      },
+      {
+        "type": "check_box",
+        "name": "Form Field - 勾选框",
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "required",
+            "default": true,
+            "label": "是否必填字段?"
+          },
+          {
+            "type": "richtext",
+            "id": "key",
+            "label": "label显示文案",
+            "info": "用户看到的文案",
+            "default": "<p>I agree to receive Jackery's latest news, promotion and product information through email and SMS.</p>"
+          },
+          {
+            "type": "text",
+            "id": "value",
+            "label": "表单保存的key",
+            "info": "用于后端保存的key名称(大小写字母数字下划线组成)",
+            "default": "agree_receive"
+          },
+          {
+            "type": "text",
+            "id": "error",
+            "label": "Error Text",
+            "info": "校验错误时回显文案(非必填可不设置)",
+            "default": "请勾选xxxxxxx"
+          },
+          {
+            "type": "checkbox",
+            "id": "full_line",
+            "default": true,
+            "label": "是否占据全行?",
+            "info": "是否占据全行(全行/一半)?"
+          },
+          {
+            "type": "range",
+            "id": "field_top",
+            "min": 0,
+            "max": 20,
+            "step": 5,
+            "unit": "px",
+            "label": "上部间隔",
+            "default": 0
+          }
+        ]
+      },
+      {
+        "type": "radio",
+        "name": "Form Radio - 单选radio",
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "required",
+            "default": true,
+            "label": "是否必填字段?"
+          },
+          {
+            "type": "text",
+            "id": "key",
+            "label": "label显示文案",
+            "info": "用户看到的文案",
+            "default": "Partnership Type"
+          },
+          {
+            "type": "text",
+            "id": "value",
+            "label": "表单保存的key",
+            "info": "用于后端保存的key名称(大小写字母数字下划线组成)",
+            "default": "radio_field"
+          },
+          {
+            "type": "text",
+            "id": "error",
+            "label": "Error Text",
+            "info": "校验错误时回显文案(非必填可不设置)",
+            "default": "请选择xxxxxxx"
+          },
+          {
+            "type": "textarea",
+            "id": "options",
+            "label": "下拉选项信息",
+            "info": "由于Shopify配置不能配置自定义数组类型,所以采用字符串形式：保证 value_key_1:label_1&&value_key_2:label_2 形式，如 value_key_1:label_1&&value_key_2:label_2 具体咨询IT即可",
+            "default": "value_key_1:Jackery 2023&&value_key_2:Shopify 2023"
+          },
+          {
+            "type": "checkbox",
+            "id": "full_line",
+            "default": true,
+            "label": "是否占据全行?",
+            "info": "是否占据全行(全行/一半)?"
+          }
+        ]
+      }
+  ],
+  "presets": [{
+    "name": "form builder"
+  }]
+}
+{% endschema %}

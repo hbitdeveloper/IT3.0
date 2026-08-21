@@ -1,0 +1,104 @@
+{% schema %}
+{
+  "name": "Time Line Component",
+  "tag": "section",
+  "class": "time-line-component",
+  "settings": [
+    {
+      "type": "text",
+      "id": "sectionTitle",
+      "label": "Section Title"
+    },
+    {
+      "type": "image_picker",
+      "id": "pcBgImg",
+      "label": "PC Background Image (1920*720)"
+    },
+    {
+      "type": "image_picker",
+      "id": "mbBgImg",
+      "label": "Mobile Background Image (750*1343)"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoPlay",
+      "label": "Auto Play",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "swiperInterval",
+      "label": "Swiper Interval (Unit: s)",
+      "default": 5,
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "unit": "s"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "Items",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "number",
+          "id": "year",
+          "label": "Year"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>content</p>"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+<div class="time-line-bg">
+	{% render 'responsive-image',
+			image: section.settings.pcBgImg,
+			mimage: section.settings.mbBgImg,
+			image_class: 'bg-img'
+	%}
+</div>
+<div class="section-container">
+	<h3 class="time-line-title">{{ section.settings.sectionTitle }}</h3>
+
+	<div class="time-line-box">
+		{% comment %} 年份轴线 {% endcomment %}
+		<div class="year-line swiper">
+			<i class="line"></i>
+			<ul class="year-list swiper-wrapper">
+				{% for block in section.blocks %}
+					<li class="swiper-slide" data-index="{{ forloop.index }}">
+						<span class="icon-circle"></span>
+						<span>{{ block.settings.year }}</span>
+					</li>
+				{% endfor %}
+			</ul>
+		</div>
+
+		{% comment %} 年份对应描述 {% endcomment %}
+		{% assign total = section.blocks | size %}
+		<div class="time-line-carousel swiper {% if total > 1 %}more-slide{% else %}single-slide{% endif %}"
+				 data-total="{{ total }}"
+				 data-autoplay="{{ section.settings.autoPlay }}"
+				 data-delay="{{ section.settings.swiperInterval }}">
+			<div class="swiper-wrapper">
+				{% for block in section.blocks %}
+					<div class="swiper-slide">
+						<div class="item-desc">{{ block.settings.description }}</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+		{% if total > 1 %}
+			<div class="custom-arrow swiper-button-prev"></div>
+			<div class="custom-arrow swiper-button-next"></div>
+		{% endif %}
+	</div>
+</div>

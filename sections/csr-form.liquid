@@ -1,0 +1,464 @@
+{% comment %} csr表单  {% endcomment %}
+{% comment %} aws s3桶 {% endcomment %}
+<script src="{{ 'aws-sdk-2.1046.0.min.js' | asset_url }}" defer></script>
+{{ 'snippet-csr-form.min.css' | asset_url | stylesheet_tag }}
+
+<div class="csr-form">
+  <jky-form
+    data-scroll="true"
+    data-is-in-dialog="true"
+    data-no-reset-after-submit="true"
+    data-reset-radio="true"
+    data-upload_exceed_error="{{ section.settings.upload_exceed_error | escape }}"
+    data-upload_format_error="{{ section.settings.upload_format_error | escape }}"
+    data-upload_more_error="{{ section.settings.upload_more_error | escape }}"
+    jky-form-id="csr-form"
+    class="csr-form-box"
+    onsubmitcall="(e)=>toCsr(e)"
+  >
+    <div class="csr-form-top"></div>
+    <form data-action="/osconsumerapi/cusumer/csr/join" data-msg="{{ section.settings.msg }}">
+      {%- if section.settings.modal_des -%}
+        <div class="form-item form-desc jds-b1 text-center pc-block">
+          {{ section.settings.modal_des }}
+        </div>
+      {%- endif -%}
+
+      <div class="hidden">
+        {% comment %} 文件列表 {% endcomment %}
+        <div class="form-item form-item_const" data-field="input">
+          <input type="hidden" name="attachments" class="file-value" data-value="attachments" value="">
+        </div>
+      </div>
+
+      <section class="top-border">
+        <div class="form-row flex">
+          {% comment %} 团体组织名称（必填）{% endcomment %}
+          <div class="form-item flex-col w-half required" data-field="input">
+            <label class="form-label">
+              {{ section.settings.group_name }}
+              <span class="red">*</span>
+            </label>
+            <input
+              type="text"
+              id="organizationName"
+              name="organizationName"
+              placeholder="{{ section.settings.modal_input }}"
+              data-error="{{ section.settings.require }}"
+              data-value="organizationName"
+              maxlength="200"
+            >
+          </div>
+
+          {% comment %} 团体类型（必填） {% endcomment %}
+          <div class="form-item flex-col w-half required" data-field="input">
+            <label class="form-label">
+              {{ section.settings.group_type }}
+              <span class="red">*</span>
+            </label>
+            <div class="hidden">
+              <input
+                type="hidden"
+                id="organizationType"
+                name="organizationType"
+                placeholder=""
+                data-error="{{ section.settings.require }}"
+                data-value="organizationType"
+                value=""
+              >
+            </div>
+
+            <div class="dropdown" id="companyDropdown">
+              <div class="dropdown-selected">
+                <span>{{ section.settings.select }}</span>
+                <span class="dropdown-arrow">
+                  <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="none" fill-rule="evenodd"><path opacity=".3" d="M16 16H0V0h16z"/><path d="M7.997 12.385a.619.619 0 01-.463-.219L2.187 6.178A.692.692 0 012 5.695c0-.131.028-.25.083-.355a.642.642 0 01.224-.25.612.612 0 01.77.106L8.37 11.11h-.74l5.292-5.913a.597.597 0 01.45-.196c.12 0 .226.03.32.09.095.061.17.144.225.25a.754.754 0 01.083.355.705.705 0 01-.187.49l-5.347 5.98a.632.632 0 01-.47.22z" fill="#333" fill-rule="nonzero"/></g>
+                  </svg>
+                </span>
+              </div>
+
+              <div class="dropdown-list">
+                <div id="dropdownItems">
+                  {% for block in section.blocks %}
+                    {% if block.type == 'organization_type' %}
+                      {% for i in (1..10) %}
+                        {% assign key = 'group_type_' | append: i %}
+                        {% assign value = block.settings[key] %}
+                        {% if value != blank %}
+                          <div class="dropdown-item">{{ value }}</div>
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                  {% endfor %}
+
+                  {% for block in section.blocks %}
+                    {%- if block.settings.group_type != blank -%}
+                      <div class="dropdown-item">{{ block.settings.group_type }}</div>
+                    {%- endif -%}
+                  {% endfor %}
+                </div>
+                {% comment %} 这里通过接口填充 {% endcomment %}
+              </div>
+            </div>
+          </div>
+
+          {% comment %} 团体注册号（非必填）{% endcomment %}
+          <div class="form-item flex-col w-half" data-field="input">
+            <label class="form-label">
+              {{ section.settings.group_number }}
+            </label>
+            <input
+              pattern="[A-Za-z0-9]*"
+              oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '')"
+              type="text"
+              id="registrationNumber"
+              name="registrationNumber"
+              placeholder="{{ section.settings.modal_input }}"
+              data-error="{{ section.settings.require }}"
+              data-value="registrationNumber"
+              maxlength="20"
+            >
+          </div>
+
+          {% comment %} 团体规模/覆盖范围（必填） {% endcomment %}
+          <div class="form-item flex-col w-half required" data-field="input">
+            <label class="form-label">
+              {{ section.settings.group_size }}
+              <span class="red">*</span>
+            </label>
+            <div class="hidden">
+              <input
+                type="hidden"
+                id="scaleOrCoverage"
+                name="scaleOrCoverage"
+                placeholder=""
+                data-error="{{ section.settings.require }}"
+                data-value="scaleOrCoverage"
+                value=""
+              >
+            </div>
+
+            <div class="dropdown" id="companyDropdown">
+              <div class="dropdown-selected">
+                <span>{{ section.settings.select }}</span>
+                <span class="dropdown-arrow">
+                  <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="none" fill-rule="evenodd"><path opacity=".3" d="M16 16H0V0h16z"/><path d="M7.997 12.385a.619.619 0 01-.463-.219L2.187 6.178A.692.692 0 012 5.695c0-.131.028-.25.083-.355a.642.642 0 01.224-.25.612.612 0 01.77.106L8.37 11.11h-.74l5.292-5.913a.597.597 0 01.45-.196c.12 0 .226.03.32.09.095.061.17.144.225.25a.754.754 0 01.083.355.705.705 0 01-.187.49l-5.347 5.98a.632.632 0 01-.47.22z" fill="#333" fill-rule="nonzero"/></g>
+                  </svg>
+                </span>
+              </div>
+
+              <div class="dropdown-list">
+                <div id="dropdownItems">
+                  {% for block in section.blocks %}
+                    {% if block.type == 'organization_size' %}
+                      {% for i in (1..10) %}
+                        {% assign key = 'group_size_' | append: i %}
+                        {% assign value = block.settings[key] %}
+                        {% if value != blank %}
+                          <div class="dropdown-item">{{ value }}</div>
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                {% comment %} 这里通过接口填充  {% endcomment %}
+              </div>
+            </div>
+          </div>
+
+          {% comment %} 申请人姓名（必填） {% endcomment %}
+          <div class="form-item flex-col w-half required" data-field="input">
+            <label class="form-label">
+              {{- section.settings.applicant_name }}
+              <span class="red">*</span>
+            </label>
+            <input
+              type="text"
+              id="applicantName"
+              name="applicantName"
+              placeholder="{{ section.settings.modal_input }}"
+              data-error="{{ section.settings.require }}"
+              data-value="applicantName"
+              maxlength="200"
+            >
+          </div>
+          {% comment %} 申请人职位（必填） {% endcomment %}
+          <div class="form-item flex-col w-half required" data-field="input">
+            <label class="form-label">
+              {{ section.settings.applicant_position }}
+              <span class="red">*</span>
+            </label>
+            <input
+              type="text"
+              id="applicantPosition"
+              name="applicantPosition"
+              placeholder="{{ section.settings.modal_input }}"
+              data-error="{{ section.settings.require }}"
+              data-value="applicantPosition"
+              maxlength="200"
+            >
+          </div>
+
+          {% comment %} 官网链接（非必填）  {% endcomment %}
+          <div class="form-item flex-col w-half" data-field="input">
+            <label class="form-label"> {{ section.settings.website }} </label>
+            <input
+              type="text"
+              id="officialWebsite"
+              name="officialWebsite"
+              placeholder="{{ section.settings.modal_input }}"
+              data-value="officialWebsite"
+              maxlength="500"
+            >
+          </div>
+          {% comment %}联络邮箱（必填）  {% endcomment %}
+          <div class="form-item flex-col w-half required" data-field="input">
+            <label class="form-label">
+              {{ section.settings.email }}
+              <span class="red">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="{{ section.settings.modal_input_email }}"
+              data-error="{{ section.settings.require }}"
+              data-value="email"
+              data-reg="email"
+              data-regerror="{{ section.settings.email_error }}"
+              maxlength="200"
+            >
+          </div>
+          {% comment %} 电话结果做了特殊处理 {% endcomment %}
+          <div class="form-container newbee-form newbee-form_{{section.id}}">
+            <div class="form-row flex  full">
+              {% comment %}电话  {% endcomment %}
+              <div class="form-item flex-col w-half required csr-phone-input" data-field="phone_input">
+                <label class="form-label">
+                  {{ section.settings.phone }}
+                  <span class="red">*</span>
+                </label>
+                {% render "jky-formField-phoneSelect", id: section.id, required: true, error_text:  section.settings.require, value: 'phoneNumber', placeholder_enable: false %}
+              </div>
+
+              {% comment %}主要公益领域（必填）   {% endcomment %}
+              <div class="form-item flex-col w-half required" data-field="input">
+                <label class="form-label">
+                  {{ section.settings.welfare_sector }}
+                  <span class="red">*</span>
+                </label>
+                <div class="hidden">
+                  <input
+                    type="hidden"
+                    id="mainPublicWelfareFields"
+                    name="mainPublicWelfareFields"
+                    placeholder=""
+                    data-error="{{ section.settings.require }}"
+                    data-value="mainPublicWelfareFields"
+                    value=""
+                    maxlength="200"
+                  >
+                </div>
+
+                <div class="dropdown" id="companyDropdown">
+                  <div class="dropdown-selected">
+                    <span>{{ section.settings.select }}</span>
+                    <span class="dropdown-arrow">
+                      <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+                        <g fill="none" fill-rule="evenodd"><path opacity=".3" d="M16 16H0V0h16z"/><path d="M7.997 12.385a.619.619 0 01-.463-.219L2.187 6.178A.692.692 0 012 5.695c0-.131.028-.25.083-.355a.642.642 0 01.224-.25.612.612 0 01.77.106L8.37 11.11h-.74l5.292-5.913a.597.597 0 01.45-.196c.12 0 .226.03.32.09.095.061.17.144.225.25a.754.754 0 01.083.355.705.705 0 01-.187.49l-5.347 5.98a.632.632 0 01-.47.22z" fill="#333" fill-rule="nonzero"/></g>
+                      </svg>
+                    </span>
+                  </div>
+
+                  <div class="dropdown-list">
+                    <div id="dropdownItems">
+                      {% for block in section.blocks %}
+                        {% if block.type == 'main_area' %}
+                          {% for i in (1..10) %}
+                            {% assign key = 'main_area_' | append: i %}
+                            {% assign value = block.settings[key] %}
+                            {% if value != blank %}
+                              <div class="dropdown-item">{{ value }}</div>
+                            {% endif %}
+                          {% endfor %}
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {% comment %}详细申请信息  {% endcomment %}
+          <div class="form-item flex-col w-full required" data-field="input">
+            <label class="form-label">
+              {{- section.settings.detail }}
+              <span class="red">*</span></label
+            >
+            <div class="hidden">
+              <input
+                type="hidden"
+                id="textareaBox"
+                name="detailedApplicationInfo"
+                placeholder=""
+                data-error="{{ section.settings.require }}"
+                data-value="detailedApplicationInfo"
+                value=""
+              >
+            </div>
+
+            <textarea
+              name="detailedApplicationInfo"
+              id="detailedApplicationInfo"
+              maxlength="2000"
+              placeholder="{{ section.settings.detail_text }}"
+              data-error="{{ section.settings.require }}"
+              data-value="detailedApplicationInfo"
+            ></textarea>
+          </div>
+        </div>
+      </section>
+
+      {% comment %} 说明文案 {% endcomment %}
+      <div class="settings-desc jds-b1 bottom-20">
+        {{ section.settings.upload_des }}
+      </div>
+      <div class="form-item flex-col required file-box">
+        <div class="upload-container">
+          {% comment %} 选择文件按钮 {% endcomment %}
+          <div class="file-list" id="fileList">
+            <label for="fileInput" class="choose-btn" id="chooseLabel">
+              <svg width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21.624 7.892H5.43a.78.78 0 00-.77.788v22.495l5.55-4.933 4.53 3.475 9.693-10.032 10.098 9.39v-9.921h2.157v14.353c0 1.653-1.31 2.993-2.926 2.994H5.426C3.81 36.5 2.5 35.16 2.5 33.507V8.68c0-1.653 1.31-2.993 2.926-2.993h16.198v2.205zm-8.541 5.29c1.425 0 2.581 1.182 2.581 2.64 0 1.459-1.155 2.641-2.581 2.641s-2.581-1.182-2.581-2.64c0-.7.27-1.372.755-1.867a2.553 2.553 0 011.826-.774zM31.676 1c.595 0 1.078.494 1.078 1.103v4.63h4.527c.385.001.741.212.934.553.192.34.192.761 0 1.102-.193.341-.549.55-.934.551h-4.527v4.624c0 .293-.113.574-.316.781a1.063 1.063 0 01-1.525 0 1.115 1.115 0 01-.315-.781V8.939h-4.52A1.09 1.09 0 0125 7.836a1.09 1.09 0 011.077-1.102h4.52V2.103c0-.609.484-1.103 1.079-1.103z" fill="#CCC"/>
+              </svg>
+              <span class="loading-spinner"></span>
+            </label>
+            <input
+              type="file"
+              multiple
+              id="fileInput"
+              accept=".png,.jpg,.jpeg,.webp,.pdf,.svg"
+              data-error="{{ section.settings.require }}"
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row form-row_check_box form-check-box flex w-full">
+        <div
+          class="form-item required none-upload"
+          data-field="check_box"
+          data-value="agree_privacy_policy"
+          data-error="{{ section.settings.check_error }}"
+        >
+          {% render 'jky-formField-checkbox', key: section.settings.privacy_policy, value: 'agree_recevie' %}
+        </div>
+      </div>
+
+      <div class="flex justify-center w-full relative">
+        <jds-button class="form_sub_btn csr-form-submit" data-success="{{ section.settings.success }}" disabled>
+          {{- section.settings.submit }}
+        </jds-button>
+      </div>
+    </form>
+
+    <div class="csr-form-bottom"></div>
+  </jky-form>
+</div>
+
+<script src="{{ 'snippet-csr-form.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "CSR表单",
+  "class": "csr-form-section",
+  "settings": [
+    { "type": "text", "id": "group_name", "label": "团体组织名称文案" },
+    { "type": "text", "id": "group_type", "label": "团体类型文案" },
+    { "type": "text", "id": "group_number", "label": "团体注册号文案" },
+    { "type": "text", "id": "group_size", "label": "团体规模/覆盖范围文案" },
+    { "type": "text", "id": "applicant_name", "label": "申请人姓名文案" },
+    { "type": "text", "id": "applicant_position", "label": "申请人职位文案" },
+    { "type": "text", "id": "website", "label": "官网链接文案" },
+    { "type": "text", "id": "email", "label": "联络邮箱文案" },
+    { "type": "text", "id": "phone", "label": "联系电话文案" },
+    { "type": "text", "id": "welfare_sector", "label": "主要公益领域文案" },
+    { "type": "text", "id": "detail", "label": "详细申请信息文案" },
+    { "type": "text", "id": "detail_text", "label": "详细申请信息框内提示语文案" },
+    { "type": "richtext", "id": "upload_des", "label": "上传申请人身份证明文案" },
+    { "type": "richtext", "id": "privacy_policy", "label": "隐私条款勾选框" },
+    { "type": "text", "id": "require", "label": "必填项未填写下方红字报错文案" },
+    { "type": "text", "id": "submit", "label": "提交按钮文案" },
+    { "type": "text", "id": "success", "label": "成功提交表单toast提醒文案" },
+    { "type": "text", "id": "select", "label": "单选题框内提示语" },
+    { "type": "text", "id": "upload_exceed_error", "label": "文件超出10M限制提示语" },
+    { "type": "text", "id": "upload_format_error", "label": "文件格式错误提示语" },
+    { "type": "text", "id": "upload_more_error", "label": "文件数量限制提示语(不能超过5个)" },
+    { "type": "text", "id": "email_error", "label": "邮箱错误提示语" },
+    { "type": "text", "id": "check_error", "label": "复选框未勾选的提示语" },
+    { "type": "text", "id": "msg", "label": "toast提示语" }
+  ],
+  "blocks": [
+    {
+      "type": "organization_type",
+      "name": "Organization Type",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "group_type_1", "label": "团体类型下拉框文案1" },
+        { "type": "text", "id": "group_type_2", "label": "团体类型下拉框文案2" },
+        { "type": "text", "id": "group_type_3", "label": "团体类型下拉框文案3" },
+        { "type": "text", "id": "group_type_4", "label": "团体类型下拉框文案4" },
+        { "type": "text", "id": "group_type_5", "label": "团体类型下拉框文案5" },
+        { "type": "text", "id": "group_type_6", "label": "团体类型下拉框文案6" },
+        { "type": "text", "id": "group_type_7", "label": "团体类型下拉框文案7" },
+        { "type": "text", "id": "group_type_8", "label": "团体类型下拉框文案8" },
+        { "type": "text", "id": "group_type_9", "label": "团体类型下拉框文案9" },
+        { "type": "text", "id": "group_type_10", "label": "团体类型下拉框文案10" }
+      ]
+    },
+    {
+      "type": "organization_size",
+      "name": "Organization Size",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "group_size_1", "label": "团体规模/覆盖范围下拉框文案1" },
+        { "type": "text", "id": "group_size_2", "label": "团体规模/覆盖范围下拉框文案2" },
+        { "type": "text", "id": "group_size_3", "label": "团体规模/覆盖范围下拉框文案3" },
+        { "type": "text", "id": "group_size_4", "label": "团体规模/覆盖范围下拉框文案4" },
+        { "type": "text", "id": "group_size_5", "label": "团体规模/覆盖范围下拉框文案5" },
+        { "type": "text", "id": "group_size_6", "label": "团体规模/覆盖范围下拉框文案6" },
+        { "type": "text", "id": "group_size_7", "label": "团体规模/覆盖范围下拉框文案7" },
+        { "type": "text", "id": "group_size_8", "label": "团体规模/覆盖范围下拉框文案8" },
+        { "type": "text", "id": "group_size_9", "label": "团体规模/覆盖范围下拉框文案9" },
+        { "type": "text", "id": "group_size_10", "label": "团体规模/覆盖范围下拉框文案10" }
+      ]
+    },
+    {
+      "type": "main_area",
+      "name": "Main Area",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "main_area_1", "label": "团体规模/覆盖范围下拉框文案1" },
+        { "type": "text", "id": "main_area_2", "label": "团体规模/覆盖范围下拉框文案2" },
+        { "type": "text", "id": "main_area_3", "label": "团体规模/覆盖范围下拉框文案3" },
+        { "type": "text", "id": "main_area_4", "label": "团体规模/覆盖范围下拉框文案4" },
+        { "type": "text", "id": "main_area_5", "label": "团体规模/覆盖范围下拉框文案5" },
+        { "type": "text", "id": "main_area_6", "label": "团体规模/覆盖范围下拉框文案6" },
+        { "type": "text", "id": "main_area_7", "label": "团体规模/覆盖范围下拉框文案7" },
+        { "type": "text", "id": "main_area_8", "label": "团体规模/覆盖范围下拉框文案8" },
+        { "type": "text", "id": "main_area_9", "label": "团体规模/覆盖范围下拉框文案9" },
+        { "type": "text", "id": "main_area_10", "label": "团体规模/覆盖范围下拉框文案10" }
+      ]
+    }
+  ],
+
+  "presets": [
+    {
+      "name": "CSR表单"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,108 @@
+{% comment %}
+  PC端 顶部安全距离计算说明：
+  1. 通知栏 高 50px
+  2. IP定位 高 60px
+  3. Header导航 高 60px
+  4. After Sales 高 34px
+  5. V-导航栏 高 52px
+  6. 安全间距 10px
+  博客集合页 - 常规顶部显示： l3+l4+l5+l6 = 156px
+  博客分类详情页 - 常规顶部显示：l3+l4+l6 = 104px
+{% endcomment %}
+
+{% style %}
+  @media screen and (min-width: 1024px) {
+    .blog-v3-frame-right.is-sticky {
+      position: sticky;
+      top: max(calc(var(--jky-header-h) + 52px + 10px), 156px);
+      margin-left: 3rem;
+      padding-bottom: 4rem;
+      height: max-content;
+    }
+    .blog-v3-category-right.is-sticky {
+      top: max(calc(var(--jky-header-h) + 10px), 104px);
+    }
+    .blog-v3-index-right {
+      transition: transform 0.6s ease, opacity 0.3s ease;
+      will-change: transform;
+    }
+    .blog-v3-index-right.is-fixed {
+      position: fixed;
+      bottom: 4rem;
+      top: auto;
+      right: var(--right-distance);
+      transform: translateY(0);
+    }
+    .blog-v3-index-right.is-bottom {
+      position: absolute;
+      top: auto;
+      bottom: 4rem;
+      right: 0;
+      transform: translateY(0);
+    }
+    .blog-v3-index-right.transitioning {
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+{% endstyle %}
+
+{%- liquid
+  assign is_blog_v3_index = false
+  assign block_class = ''
+  if template == 'page.blog-v3-index'
+    assign is_blog_v3_index = true
+    assign block_class = 'blog-v3-index-right'
+  elsif template == 'blog.blog-v3-category-detail'
+    assign block_class= 'blog-v3-category-right is-sticky'
+  else
+    assign block_class = 'is-sticky'
+  endif
+%}
+
+<div
+  class="blog-v3-frame-right {{ block_class }} relative lg:absolute lg:top-0 lg:right-0 z-10 lg:w-80"
+  {{ block.shopify_attributes }}
+>
+  {% if is_blog_v3_index %}
+    {% content_for 'block', type: '_blog-v3-tags', id: 'blogV3Tags' %}
+  {% endif %}
+
+  {% content_for 'block', type: '_blog-v3-ad', id: 'blogV3Ad' %}
+
+  {% if is_blog_v3_index %}
+    {% content_for 'block', type: '_blog-v3-subscribe', id: 'blogV3Subscribe' %}
+  {% endif %}
+</div>
+<script src="{{ 'blocks-_blog-v3-frame-right.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V3博客内容区 - 右区",
+  "tag": null,
+  "blocks": [],
+  "settings": [],
+  "presets": [
+    {
+      "name": "V3博客内容区 - 右区",
+      "category": "Blog-V3",
+      "blocks": [
+        {
+          "id": "blogV3Tags",
+          "type": "_blog-v3-tags",
+          "static": true
+        },
+        {
+          "id": "blogV3Ad",
+          "type": "_blog-v3-ad",
+          "static": true
+        },
+        {
+          "id": "blogV3Subscribe",
+          "type": "_blog-v3-subscribe",
+          "static": true
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

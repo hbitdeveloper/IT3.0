@@ -1,0 +1,101 @@
+{% doc %}
+
+博客分类导航组件 (Blog V3)
+
+功能说明:
+- 展示博客分类和标签的导航列表
+- 最多支持4个分类/标签组合
+- 每组包含:
+  * 分类名称设置
+  * 对应标签设置
+- 交互效果:
+  * 点击跳转至对应分类/标签页面
+  * 鼠标悬停时边框变为橙色(var(--jds-color-primary))
+{% enddoc %}
+
+{% for i in (1..4) %}
+  {% assign category_setting = 'blog_category_' | append: i %}
+  {% assign tag_setting = 'blog_tag_' | append: i %}
+  {% assign blog = block.settings[category_setting] %}
+
+  {% if blog != blank %}
+    <li class="blog-v3-other-category-item border-solid border border-[#E6E6E6] rounded-[4px] hover:border-[var(--jds-color-primary)] hover:bg-[#FFF8F6]">
+      {% assign tag = block.settings[tag_setting] | escape_once %}
+      {% assign link_class = "block px-3 py-[0.6875rem] lg:px-3 lg:py-2 text-[0.875rem] font-normal text-[#737373] leading-[1.142857] hover:text-[var(--jds-color-primary)]" %}
+      <a href="{{ blog.url }}{% if tag != blank %}/tagged/{{ tag | handle }}{% endif %}"
+         {% if settings.article_new_blank %}target="_blank"{% endif %}
+         class="{{ link_class }}">{{ tag | default: blog.title | escape_once }}</a>
+    </li>
+  {% endif %}
+{% endfor %}
+
+{% schema %}
+{
+  "name": "分类组（4个分类一组，建议最多配置5个block）",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "分组一"
+    },
+    {
+      "type": "blog",
+      "id": "blog_category_1",
+      "label": "分类名称"
+    },
+    {
+      "type": "text",
+      "id": "blog_tag_1",
+      "label": "标签名称"
+    },
+    {
+      "type": "header",
+      "content": "分组二"
+    },
+    {
+      "type": "blog",
+      "id": "blog_category_2",
+      "label": "分类名称"
+    },
+    {
+      "type": "text",
+      "id": "blog_tag_2",
+      "label": "标签名称"
+    },
+    {
+      "type": "header",
+      "content": "分组三"
+    },
+    {
+      "type": "blog",
+      "id": "blog_category_3",
+      "label": "分类名称"
+    },
+    {
+      "type": "text",
+      "id": "blog_tag_3",
+      "label": "标签名称"
+    },
+    {
+      "type": "header",
+      "content": "分组四"
+    },
+    {
+      "type": "blog",
+      "id": "blog_category_4",
+      "label": "分类名称"
+    },
+    {
+      "type": "text",
+      "id": "blog_tag_4",
+      "label": "标签名称"
+    }
+  ],
+  "presets": [
+    {
+      "name": "分类组（4个分类一组，建议最多配置5个block）",
+      "category": "Blog-V3"
+    }
+  ]
+}
+{% endschema %}

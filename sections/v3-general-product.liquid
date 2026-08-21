@@ -1,0 +1,757 @@
+{%- capture style -%}
+  {%- render 'spacing-padding', settings: section.settings -%}
+{%- endcapture -%}
+
+<style>
+  jky-general-product .buttons-wrap {
+    width: calc(50% - 0.5rem);
+  }
+  jky-general-product jds-button.function-btn::part(button) {
+    height: var(--jds-size-40);
+    font-weight: 600;
+  }
+  jky-general-product jds-button.function-btn::part(label) {
+    line-height: normal;
+  }
+  jky-general-product .bundle-quantity {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  jky-general-product .quantity-btn svg {
+    width: 10px;
+    height: 10px;
+  }
+  jky-general-product .quantity-btn:hover {
+    background: #e9ecef;
+  }
+
+  @media screen and (max-width: 1023.98px) {
+    jky-general-product [data-mb-slides="2"] .buttons-wrap,
+    jky-general-product .grid-cols-2 .buttons-wrap {
+      width: 100%;
+    }
+    jky-general-product .quantity-btn svg {
+      width: 2.6666667vw;
+      height: 2.6666667vw;
+    }
+    jky-general-product jds-button.function-btn::part(button) {
+      height: var(--jds-size-72);
+      font-weight: 600;
+    }
+  }
+
+  jky-general-product .quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  jky-general-product .quantity-selector .quantity-btn {
+    background: #f8f8f8;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  jky-general-product .quantity-selector .quantity-btn:hover {
+    background: #e8e8e8;
+  }
+  jky-general-product .quantity-selector .quantity-btn:disabled {
+    background: #f0f0f0;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  jky-general-product .quantity-selector .quantity-input {
+    border: none;
+    outline: none;
+    background: white;
+  }
+  /* 轮播相关样式 */
+  jky-general-product .swiper {
+    width: 100%;
+    height: 100%;
+  }
+  jky-general-product .swiper-slide {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  /* 初始宽度占位，仅未初始化时生效，避免首帧拉满 */
+  jky-general-product .general-product-grid.swiper:not(.swiper-initialized) .swiper-wrapper { column-gap: 20px }
+  jky-general-product .general-product-grid.swiper:not(.swiper-initialized)[data-pc-slides="2"] .swiper-slide { width: calc(50% - 10px); }
+  jky-general-product .general-product-grid.swiper:not(.swiper-initialized)[data-pc-slides="3"] .swiper-slide { width: calc(33.3333% - 13.3333333333333px); }
+  jky-general-product .general-product-grid.swiper:not(.swiper-initialized)[data-pc-slides="4"] .swiper-slide { width: calc(25% - 15px); }
+  jky-general-product .general-product-grid.swiper:not(.swiper-initialized)[data-mb-slides="1"] .swiper-slide { width: 100%; }
+  @media screen and (max-width: 1023.98px) {
+    jky-general-product .general-product-grid.swiper:not(.swiper-initialized) .swiper-wrapper { column-gap: 16px }
+    jky-general-product .general-product-grid.swiper:not(.swiper-initialized)[data-mb-slides="2"] .swiper-slide { width: 17.6979375rem; }
+  }
+  jky-general-product .general-product-pagination { overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+</style>
+
+<jky-general-product
+  section-id="{{ section.id }}"
+  {% if section.settings.nav_anchor != blank %}anchor-target="{{section.settings.nav_anchor | escape}}"{% endif %}
+  {% if section.settings.belongs_to != blank %}belongs-to-target="{{section.settings.belongs_to | escape}}"{% endif %}
+  {% if section.settings.anchor != blank %}data-anchor="{{ section.settings.anchor | escape }}"{% endif %}
+  data-copied-text="{{ section.settings.copied_text | default: 'Copied' }}"
+  data-copy-success="{{ section.settings.copy_success | default: 'Copy Success' }}"
+  data-copy-checkout="{{ section.settings.copy_checkout | default: false }}"
+  class="block section-padding"
+  style="background: {{ section.settings.bg_color | default: 'transparent' }};{{ style }};--recommend-product-bg: {{ section.settings.bg_color | default: 'transparent' }};"
+>
+  <div class="v-general-product relative {{ section.settings.page_width }}
+    {%- if section.settings.display_device == 'pc-only' %} max-lg:hidden
+    {%- elsif section.settings.display_device == 'mb-only' %} lg:hidden
+    {%- endif %}"
+  >
+    {%- liquid
+      assign mb_grid = 'grid-cols-1'
+      if section.settings.mb_products_number == 'mb-arrange-style-two'
+        assign mb_grid = 'grid-cols-2'
+      endif
+
+      assign pc_grid = 'lg:grid-cols-2'
+      if section.settings.pc_products_number == 'arrange-style-three'
+        assign pc_grid = 'lg:grid-cols-3'
+      elsif section.settings.pc_products_number == 'arrange-style-four'
+        assign pc_grid = 'lg:grid-cols-4'
+      endif
+
+      assign pc_slides_per_view = 2
+      if section.settings.pc_products_number == 'arrange-style-three'
+        assign pc_slides_per_view = 3
+      elsif section.settings.pc_products_number == 'arrange-style-four'
+        assign pc_slides_per_view = 4
+      endif
+
+      assign mb_slides_per_view = 1
+      if section.settings.mb_products_number == 'mb-arrange-style-two'
+        assign mb_slides_per_view = 2
+      endif
+
+      # 计算blocks数量
+      assign blocks_count = section.blocks | size
+
+      # 轮播配置逻辑
+      assign pc_is_swiper = false
+      assign mb_is_swiper = false
+
+      if section.settings.pc_products_number == 'arrange-style-three' or section.settings.pc_products_number == 'arrange-style-four'
+        if section.settings.pc_products_style == 'pc-swiper-style' and blocks_count > pc_slides_per_view
+          assign pc_is_swiper = true
+        endif
+      endif
+
+      if section.settings.mb_products_number == 'mb-arrange-style-two'
+        if section.settings.mb_products_style == 'mb-swiper-style'
+          assign mb_is_swiper = true
+        endif
+      endif
+
+      # 判断是否显示导航按钮
+      assign show_navigation = false
+      if pc_is_swiper and blocks_count > pc_slides_per_view
+        assign show_navigation = true
+      endif
+    -%}
+
+    {%- comment -%} PC 独立容器（仅 PC 可见） {%- endcomment -%}
+    {%- render 'general-product-pc',
+      pc_is_swiper: pc_is_swiper,
+      pc_slides_per_view: pc_slides_per_view,
+      pc_grid: pc_grid,
+      section: section,
+      blocks_count: blocks_count
+    -%}
+
+    {%- comment -%} MB 独立容器（仅 MB 可见） {%- endcomment -%}
+    {%- render 'general-product-mb',
+      mb_is_swiper: mb_is_swiper,
+      mb_slides_per_view: mb_slides_per_view,
+      mb_grid: mb_grid,
+      section: section,
+      blocks_count: blocks_count
+    -%}
+
+    {% comment %} 左右箭头 {% endcomment %}
+    {%- if show_navigation == true -%}
+      <div class="max-lg:hidden general-product-prev swiper-button-prev after:content-['prev'] after:pr-0.5 lg:left-[-5rem]
+          h-12 w-12 transition-transform ease-linear origin-center
+          after:text-white after:text-lg after:font-bold after:transition-transform after:ease-linear after:z-10
+          before:absolute before:w-full before:h-full before:border-2 before:border-[rgba(255,255,255,0.4)] before:rounded-full before:bg-[rgba(102,102,102,0.2)] before:border-solid before:transition-all hover:before:bg-[rgba(102,102,102,0.4)] hover:before:scale-110"></div>
+      <div class="max-lg:hidden general-product-next swiper-button-next after:content-['next'] after:pl-0.5 lg:right-[-5rem]
+          h-12 w-12 transition-transform ease-linear origin-center
+          after:text-white after:text-lg after:font-bold after:transition-transform after:ease-linear after:z-10
+          before:absolute before:w-full before:h-full before:border-2 before:border-[rgba(255,255,255,0.4)] before:rounded-full before:bg-[rgba(102,102,102,0.2)] before:border-solid before:transition-all hover:before:bg-[rgba(102,102,102,0.4)] hover:before:scale-110"></div>
+    {%- endif -%}
+
+    {% comment %} 分页指示 {% endcomment %}
+    <div class="{% if show_navigation and mb_is_swiper and blocks_count >= mb_slides_per_view %}flex{% elsif show_navigation %}hidden lg:flex{% elsif mb_is_swiper and blocks_count >= mb_slides_per_view %}flex lg:hidden{% else %}hidden{% endif %} w-full general-product-pagination mx-auto mt-6 swiper-pagination justify-center overflow-x-auto"></div>
+  </div>
+
+  <script id="general-product-config" type="application/json">
+    {
+      "remind_title": "{{ section.settings.remind_title | escape }}",
+      "remind_des": "{{ section.settings.remind_des | escape }}",
+      "remind_email_place": "{{ section.settings.remind_email_place | escape }}",
+      "remind_email_error": "{{ section.settings.remind_email_error | escape }}",
+      "remind_email_empty": "{{ section.settings.remind_email_empty | escape }}",
+      "remind_policy": "{{ section.settings.remind_policy | replace: '"', "'" }}",
+      "remind_policy_error": "{{ section.settings.remind_policy_error | escape }}",
+      "remind_submit": "{{ section.settings.remind_submit | escape }}",
+      "remind_tag": "{{ section.settings.remind_tag | escape }}",
+      "remind_success_tip": "{{ section.settings.remind_success_tip | escape }}",
+      "remind_error_tip": "{{ section.settings.remind_error_tip | escape }}"
+    }
+  </script>
+</jky-general-product>
+
+<script defer src="{{ 'jky-general-product.js' | asset_url }}"></script>
+
+{% # theme-check-disable %}
+{% schema %}
+{
+  "name": "V-通用产品组件",
+  "class": "v-general-product",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "header",
+      "content": "与V-Tab组件绑定配置"
+    },
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示"
+    },
+    {
+      "type": "header",
+      "content": "与二级导航绑定配置"
+    },
+    {
+      "type": "text",
+      "id": "nav_anchor",
+      "label": "二级导航配置ID",
+      "info": "与二级导航绑定配置"
+    },
+    {
+      "type": "select",
+      "id": "display_device",
+      "options": [
+        {
+          "value": "both",
+          "label": "pc和mb都展示"
+        },
+        {
+          "value": "pc-only",
+          "label": "只在pc展示"
+        },
+        {
+          "value": "mb-only",
+          "label": "只在mb展示"
+        }
+      ],
+      "default": "both",
+      "label": "组件显示"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色"
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1312px"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度"
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 76
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 76
+    },
+    {
+      "type": "header",
+      "content": "卡片通用信息配置"
+    },
+    {
+      "type": "select",
+      "id": "discount_style",
+      "options": [
+        {
+          "value": "us-discount",
+          "label": "US(优惠金额+文案)"
+        },
+        {
+          "value": "jp-discount",
+          "label": "JP(奖项图标+折扣百分比)"
+        },
+        {
+          "value": "eu-discount",
+          "label": "EU(折扣百分比+文案)"
+        }
+      ],
+      "default": "us-discount",
+      "label": "角标样式"
+    },
+    {
+      "type": "text",
+      "id": "discount_txt_style",
+      "label": "角标展示形式",
+      "default": "()% OFF",
+      "info": "案例：-$()、-()%、()% OFF"
+    },
+    {
+      "type": "select",
+      "id": "pc_products_number",
+      "options": [
+        {
+          "value": "arrange-style-two",
+          "label": "一行两个"
+        },
+        {
+          "value": "arrange-style-three",
+          "label": "一行三个"
+        },
+        {
+          "value": "arrange-style-four",
+          "label": "一行四个"
+        }
+      ],
+      "default": "arrange-style-two",
+      "label": "PC一行显示个数"
+    },
+    {
+      "type": "select",
+      "id": "pc_products_style",
+      "options": [
+        {
+          "value": "pc-arrange-style",
+          "label": "平铺"
+        },
+        {
+          "value": "pc-swiper-style",
+          "label": "轮播"
+        }
+      ],
+      "visible_if": "{{ section.settings.pc_products_number == 'arrange-style-three' or section.settings.pc_products_number == 'arrange-style-four' }}",
+      "default": "pc-arrange-style",
+      "label": "PC样式"
+    },
+    {
+      "type": "select",
+      "id": "two_products_style",
+      "options": [
+        {
+          "value": "around-arrange-style",
+          "label": "左右布局"
+        },
+        {
+          "value": "up-down-swiper-style",
+          "label": "上下布局"
+        }
+      ],
+      "visible_if": "{{ section.settings.pc_products_number == 'arrange-style-two' }}",
+      "default": "around-arrange-style",
+      "label": "PC一行两个样式"
+    },
+    {
+      "type": "select",
+      "id": "mb_products_number",
+      "options": [
+        {
+          "value": "mb-arrange-style-one",
+          "label": "一行一个"
+        },
+        {
+          "value": "mb-arrange-style-two",
+          "label": "一行两个"
+        }
+      ],
+      "default": "mb-arrange-style-one",
+      "label": "MB一行显示个数"
+    },
+    {
+      "type": "select",
+      "id": "mb_products_style",
+      "options": [
+        {
+          "value": "mb-arrange-style",
+          "label": "平铺"
+        },
+        {
+          "value": "mb-swiper-style",
+          "label": "轮播"
+        }
+      ],
+      "default": "mb-arrange-style",
+      "label": "MB样式",
+      "visible_if": "{{ section.settings.mb_products_number == 'mb-arrange-style-two' }}"
+    },
+    {
+      "type": "color",
+      "id": "card_border_color",
+      "label": "卡片边框颜色"
+    },
+    {
+      "type": "checkbox",
+      "id": "discount_price_style",
+      "label": "是否展示优惠金额",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_calculate",
+      "label": "是否开启自动计算折扣",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "通用文案配置"
+    },
+    {
+      "type": "text",
+      "id": "code_text",
+      "label": "Code文案",
+      "default": "Code"
+    },
+    {
+      "type": "text",
+      "id": "copy_text",
+      "label": "copy文案",
+      "default": "Copy >"
+    },
+    {
+      "type": "text",
+      "id": "copied_text",
+      "label": "copy成功后显示文案",
+      "default": "Copied"
+    },
+    {
+      "type": "text",
+      "id": "copy_success",
+      "label": "copy成功提示文案",
+      "default": "Copy Success"
+    },
+    {
+      "type": "checkbox",
+      "id": "copy_checkout",
+      "label": "是否跳转到checkout页",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "new_link_page",
+      "label": "开启新开页签跳转",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "installment",
+      "label": "分期付款文案",
+      "default": "Starting at {Installment_per}/mo or 0% APR with",
+      "info": "{Installment_per}为分期金额变量"
+    },
+    {
+      "type": "image_picker",
+      "id": "installment_img",
+      "label": "分期付款图片",
+      "info": "建议上传77px*31px的图片"
+    },
+  
+    { "type": "header", "content": "开售提醒弹窗配置" },
+    { "type": "text", "id": "remind_title", "label": "开售提醒弹窗-标题" },
+    { "type": "text", "id": "remind_des", "label": "开售提醒弹窗-描述" },
+    { "type": "text", "id": "remind_email_place", "label": "开售提醒弹窗-邮件输入框label" },
+    { "type": "text", "id": "remind_email_error", "label": "开售提醒弹窗-邮件输入框格式错误" },
+    { "type": "text", "id": "remind_email_empty", "label": "开售提醒弹窗-邮件输入框未填错误" },
+    { "type": "richtext", "id": "remind_policy", "label": "开售提醒弹窗-隐私政策" },
+    { "type": "text", "id": "remind_policy_error", "label": "开售提醒弹窗-隐私政策勾选错误" },
+    { "type": "text", "id": "remind_submit", "label": "开售提醒弹窗-提交按钮文案" },
+    { "type": "text", "id": "remind_tag", "label": "开售提醒弹窗-订阅来源" },
+    { "type": "text", "id": "remind_success_tip", "label": "开售提醒弹窗-订阅成功后提醒文案", "default": "SUCCESS" },
+    { "type": "text", "id": "remind_error_tip", "label": "开售提醒弹窗-订阅失败后提醒文案", "default": "FAILED" }
+  ],
+  "blocks": [
+    {
+      "type": "general_product_card",
+      "name": "通用产品卡片",
+      "settings": [
+        {
+          "type": "color_background",
+          "id": "card_bg_color",
+          "default": "#FFFFFF",
+          "label": "背景颜色"
+        },
+        {
+          "type": "header",
+          "content": "产品配置"
+        },
+        {
+          "type": "product",
+          "id": "product",
+          "label": "Product"
+        },
+        {
+          "type": "text",
+          "id": "variant_id",
+          "label": "商品变体ID",
+          "info": "单变体产品无法自动拉取，必需手动填写",
+          "visible_if": "{{ block.settings.product != blank }}"
+        },
+        {
+          "type": "image_picker",
+          "id": "product_img",
+          "label": "商品图片"
+        },
+        {
+          "type": "image_picker",
+          "id": "product_img_mb",
+          "label": "商品图片（移动端）"
+        },
+
+        {
+          "type": "text",
+          "id": "product_title",
+          "label": "商品标题",
+          "default": "Navi 2000 Balkonkra twerkNavi 2000 Balkonkraftwerk"
+        },
+        {
+          "type": "text",
+          "id": "selling_points",
+          "label": "商品卖点",
+          "default": "1264Wh Capacity | LiFePO4 Battery 1264Wh"
+        },
+        {
+          "type": "text",
+          "id": "code",
+          "label": "Code码",
+          "info": "xxxxxx",
+          "default": "xxxxxxxx"
+        },
+        {
+          "type": "text",
+          "id": "product_discount_price",
+          "label": "产品折扣价",
+          "default": "100"
+        },
+        {
+          "type": "text",
+          "id": "begin_time",
+          "label": "开始时间",
+          "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/06/06 00:00:00"
+        },
+        {
+          "type": "text",
+          "id": "end_time",
+          "label": "结束时间",
+          "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/06/06 00:00:00"
+        },
+        {
+          "type": "image_picker",
+          "id": "discount_img",
+          "label": "折扣背景图片",
+          "info": "建议上传120*40px的图片（EU站点建议上传100*80px的图片）",
+          "visible_if": "{{ section.settings.discount_style != 'jp-discount' }}"
+        },
+        { "type": "header", "content": "JP折扣角标高度手动补全" },
+        { "type": "checkbox", "id": "pc_discount_prefix_height", "label": "开启PC端折扣角标高度补全", "default": false, "visible_if": "{{ section.settings.discount_style == 'jp-discount' }}" },
+        { "type": "checkbox", "id": "mb_discount_prefix_height", "label": "开启Mobile端折扣角标高度补全", "default": false, "visible_if": "{{ section.settings.discount_style == 'jp-discount' }}" },
+        {
+          "type": "text",
+          "id": "save_txt_up",
+          "label": "EU折扣角标文案",
+          "visible_if": "{{ section.settings.discount_style == 'eu-discount' }}",
+          "default": "Save"
+        },
+        {
+          "type": "text",
+          "id": "discount_tag",
+          "label": "角标标签",
+          "default": "new"
+        },
+        {
+          "type": "header",
+          "content": "按钮 1 配置"
+        },
+        {
+          "type": "select",
+          "id": "function_type_1",
+          "options": [
+            {
+              "value": "",
+              "label": "空按钮（不会显示）"
+            },
+            {
+              "value": "add_to_cart",
+              "label": "加入购物车按钮"
+            },
+            {
+              "value": "shop_now",
+              "label": "商品详情按钮"
+            },
+            {
+              "value": "buy_now",
+              "label": "立即购买按钮"
+            },
+            {
+              "value": "pre_sale",
+              "label": "预售按钮"
+            }
+          ],
+          "default": "add_to_cart",
+          "label": "按钮功能类型"
+        },
+        {
+          "type": "text",
+          "id": "button_text_1",
+          "default": "Add to Cart",
+          "label": "按钮文本",
+          "visible_if": "{{ block.settings.function_type_1 != '' }}"
+        },
+        {
+          "type": "select",
+          "id": "button_variant_1",
+          "label": "按钮样式",
+          "default": "secondary",
+          "options": [
+            {
+              "value": "primary",
+              "label": "实心按钮"
+            },
+            {
+              "value": "secondary",
+              "label": "空心按钮"
+            },
+            {
+              "value": "text",
+              "label": "文本按钮"
+            }
+          ],
+          "visible_if": "{{ block.settings.function_type_1 != '' }}"
+        },
+        {
+          "type": "url",
+          "id": "custom_link_1",
+          "label": "自定义链接",
+          "info": "设置商品详情按钮的自定义链接，留空则使用产品默认链接",
+          "visible_if": "{{ block.settings.function_type_1 == 'shop_now' }}"
+        },
+        {
+          "type": "header",
+          "content": "按钮 2 配置"
+        },
+        {
+          "type": "select",
+          "id": "function_type_2",
+          "options": [
+            {
+              "value": "",
+              "label": "空按钮（不会显示）"
+            },
+            {
+              "value": "add_to_cart",
+              "label": "加入购物车按钮"
+            },
+            {
+              "value": "shop_now",
+              "label": "商品详情按钮"
+            },
+            {
+              "value": "buy_now",
+              "label": "立即购买按钮"
+            },
+            {
+              "value": "pre_sale",
+              "label": "预售按钮"
+            }
+          ],
+          "default": "buy_now",
+          "label": "按钮功能类型"
+        },
+        {
+          "type": "text",
+          "id": "button_text_2",
+          "default": "Buy Now",
+          "label": "按钮文本",
+          "visible_if": "{{ block.settings.function_type_2 != '' }}"
+        },
+        {
+          "type": "select",
+          "id": "button_variant_2",
+          "label": "按钮样式",
+          "default": "primary",
+          "options": [
+            {
+              "value": "primary",
+              "label": "实心按钮"
+            },
+            {
+              "value": "secondary",
+              "label": "空心按钮"
+            },
+            {
+              "value": "text",
+              "label": "文本按钮"
+            }
+          ],
+          "visible_if": "{{ block.settings.function_type_2 != '' }}"
+        },
+        {
+          "type": "url",
+          "id": "custom_link_2",
+          "label": "自定义链接",
+          "info": "设置商品详情按钮的自定义链接，留空则使用产品默认链接",
+          "visible_if": "{{ block.settings.function_type_2 == 'shop_now' }}"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-通用产品组件",
+      "category": "功能业务"
+    }
+  ]
+}
+{% endschema %}
+{% # theme-check-enable %}

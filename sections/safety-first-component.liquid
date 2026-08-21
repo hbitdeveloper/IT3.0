@@ -1,0 +1,147 @@
+{% schema %}
+{
+  "name": "Safety First Component",
+  "tag": "section",
+  "class": "safety-first-component",
+  "settings": [],
+  "max_blocks": 3,
+    "blocks": [
+      {
+        "name": "Items",
+        "type": "slide",
+        "settings": [
+		  {
+            "type": "text",
+            "id": "title",
+            "label": "Title"
+          },
+          {
+            "type": "image_picker",
+            "id": "pcSafetyItemImg",
+            "label": "Item Image (PC)"
+          },
+          {
+            "type": "image_picker",
+            "id": "mbSafetyItemImg",
+            "label": "Item Image (Mobile)"
+          },
+          { "type": "header",  "content": "产品一" },
+          { "type": "image_picker", "id": "item_icon_1", "label": "奖项图片1" },
+          { "type": "url", "id": "icon_link_1", "label": "奖项链接1" },
+          { "type": "header",  "content": "产品二" },
+          { "type": "image_picker", "id": "item_icon_2", "label": "奖项图片2" },
+          { "type": "url", "id": "icon_link_2", "label": "奖项链接2" },
+          { "type": "header",  "content": "产品三" },
+          { "type": "image_picker", "id": "item_icon_3", "label": "奖项图片3" },
+          { "type": "url", "id": "icon_link_3", "label": "奖项链接3" },
+          { "type": "header",  "content": "产品四" },
+          { "type": "image_picker", "id": "item_icon_4", "label": "奖项图片4" },
+          { "type": "url", "id": "icon_link_4", "label": "奖项链接4" },
+          { "type": "header",  "content": "产品五" },
+          { "type": "image_picker", "id": "item_icon_5", "label": "奖项图片5" },
+          { "type": "url", "id": "icon_link_5", "label": "奖项链接5" },
+          { "type": "header",  "content": "产品六" },
+          { "type": "image_picker", "id": "item_icon_6", "label": "奖项图片6" },
+          { "type": "url", "id": "icon_link_6", "label": "奖项链接6" },
+          { "type": "header",  "content": "产品七" },
+          { "type": "image_picker", "id": "item_icon_7", "label": "奖项图片7" },
+          { "type": "url", "id": "icon_link_7", "label": "奖项链接7" },
+          { "type": "header",  "content": "产品八" },
+          { "type": "image_picker", "id": "item_icon_8", "label": "奖项图片8" },
+          { "type": "url", "id": "icon_link_8", "label": "奖项链接8" },
+          { "type": "header",  "content": "产品九" },
+          { "type": "image_picker", "id": "item_icon_9", "label": "奖项图片9" },
+          { "type": "url", "id": "icon_link_9", "label": "奖项链接9" },
+          { "type": "header",  "content": "产品十" },
+          { "type": "image_picker", "id": "item_icon_10", "label": "奖项图片0" },
+          { "type": "url", "id": "icon_link_10", "label": "奖项链接10" },
+          { "type": "header",  "content": "产品十一" },
+          { "type": "image_picker", "id": "item_icon_11", "label": "奖项图片11" },
+          { "type": "url", "id": "icon_link_11", "label": "奖项链接11" },
+          { "type": "header",  "content": "产品十二" },
+          { "type": "image_picker", "id": "item_icon_12", "label": "奖项图片12" },
+          { "type": "url", "id": "icon_link_12", "label": "奖项链接12" }
+        ]
+      }
+    ]
+}
+{% endschema %}
+<div class="safety-first-box">
+	<ul class="tab-list">
+		{% for block in section.blocks %}
+			<li {% if forloop.index == 1 %}
+				class="active" {% endif %} data-index="{{ forloop.index }}">
+				{{ block.settings.title }}
+			</li>
+		{% endfor %}
+	</ul>
+	<div class="tab-content">
+		{% for block in section.blocks %}
+			<div  class="not-show img-box
+			{% if forloop.index == 1 %}
+			show
+		 	{% endif %}">
+			   {% render 'responsive-image',
+				  image: block.settings.pcSafetyItemImg,
+				  mimage: block.settings.mbSafetyItemImg,
+				  image_class: 'brand-concept-img'
+			  %}
+              <div class="icon-box">
+                {%- for i in (0..11) -%}
+                  {% assign icon_index = 'item_icon_' | append: forloop.index %}
+                  {% assign icon_url_index = 'icon_link_' | append: forloop.index %}
+                  {%- if block.settings[icon_index] != blank -%}
+						<a class="icon-link" href="{{ block.settings[icon_url_index] }}">
+							{% render 'responsive-image',
+                                    image: block.settings[icon_index],
+									image_class: 'icon-img'
+							%}
+						</a>
+                  {%- endif -%}
+                {% endfor %}
+              </div>
+			</div>
+		  {% endfor %}
+	</div>
+</div>
+
+<script defer>
+    (function () {
+        function onReady(fn) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fn, { once: true });
+                return;
+            }
+            fn();
+        }
+
+        onReady(function () {
+            var root = document.querySelector('.safety-first-box');
+            if (!root) return;
+
+            var tabLis = Array.from(root.querySelectorAll('.tab-list li'));
+            var imgBoxes = Array.from(root.querySelectorAll('.tab-content .img-box'));
+            if (tabLis.length === 0 || imgBoxes.length === 0) return;
+
+            function setActive(index) {
+                tabLis.forEach(function (li, i) {
+                    li.classList.toggle('active', i === index);
+                });
+                imgBoxes.forEach(function (box, i) {
+                    box.classList.toggle('show', i === index);
+                    box.classList.toggle('not-show', i !== index);
+                });
+            }
+
+            tabLis.forEach(function (li) {
+                li.addEventListener('click', function () {
+                    var dataIndex = parseInt(li.getAttribute('data-index') || '1', 10);
+                    var idx = Math.max(0, dataIndex - 1);
+                    setActive(idx);
+                });
+            });
+        });
+    })();
+</script>
+
+

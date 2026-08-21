@@ -1,0 +1,745 @@
+{% comment %} 通用Banner - 图片 {% endcomment %}
+{%- liquid
+  assign time_now = 'now' | date: '%s'
+  assign is_show = false
+  assign begin_time = 0
+  if block.settings.begin_time != blank
+    assign begin_time = block.settings.begin_time | date: '%s'
+  endif
+
+  assign end_time = 0
+  if block.settings.end_time != blank
+    assign end_time = block.settings.end_time | date: '%s'
+  endif
+
+  if begin_time == 0 and end_time == 0
+    assign is_show = true
+  endif
+
+  if begin_time != 0 and end_time == 0 and begin_time < time_now
+    assign is_show = true
+  endif
+
+  if begin_time == 0 and end_time != 0 and end_time > time_now
+    assign is_show = true
+  endif
+
+  if begin_time != 0 and end_time != 0 and end_time > time_now and begin_time < time_now
+    assign is_show = true
+  endif
+
+  # 判断是否为内部链接，若为外部链接需要添加noopener noreferrer
+  assign is_internal_link = false
+  assign href_downcase = block.settings.page_link | downcase
+  assign first_char = href_downcase | slice: 0, 1
+
+  if href_downcase contains 'jackery.com' or href_downcase contains 'jackery.jp' or href_downcase contains request.host or first_char == '/' or first_char == '#' or href contains 'mailto:' or href contains 'tel:'
+    assign is_internal_link = true
+  endif
+
+  assign is_a_design = false
+  if request.design_mode == false and block.settings.page_link != blank
+    assign is_a_design = true
+  endif
+-%}
+
+{% comment %} 信任状样式 {% endcomment %}
+{% if block.settings.letter %}
+  <style>
+    .v5-letter-block .letter-line-mini {
+      width: 1px;
+      height: 18px;
+      background-color: #ffffff;
+    }
+
+    .v5-letter-block .info-icon {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      margin-left: 12px;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      font-weight: bold;
+      border-radius: 50%;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      position: relative;
+    }
+    .v5-letter-block .tooltip-letter {
+      font-weight: 400;
+      display: none;
+      position: absolute;
+      bottom: 28px;
+      right: -28px;
+      width: 378px;
+      padding: 16px;
+      background: #f5f5f3;
+      color: rgba(0, 0, 0, 0.65);
+      font-size: 14px;
+      line-height: 1;
+      z-index: 20;
+    }
+    .v5-letter-block .tooltip-letter::before {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      right: 30px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid #f5f5f3;
+    }
+    .v5-letter-block .info-icon:hover .tooltip-letter {
+      display: block;
+    }
+    .v5-letter-block .mobile-box {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+      .v5-letter-block .letter-line-mini {
+        height: 1.25vw;
+      }
+
+      .v5-letter-block .info-icon {
+        margin-left: 0.83333333vw;
+        width: 1.388888vw;
+        height: 1.388888vw;
+        font-size: 0.83333333vw;
+      }
+      .v5-letter-block .tooltip-letter {
+        bottom: 1.94444444vw;
+        right: -1.94444444vw;
+        width: 26.25vw;
+        padding: 1.11111111vw;
+        font-size: 0.97222222vw;
+      }
+      .v5-letter-block .tooltip-letter::before {
+        bottom: -0.41666667vw;
+        right: 2.08333333vw;
+        border-left: 0.41666667vw solid transparent;
+        border-right: 0.41666667vw solid transparent;
+        border-top: 0.41666667vw solid #f5f5f3;
+      }
+      .v5-letter-block .mobile-box {
+        gap: 1.5rem;
+      }
+    }
+
+    @media screen and (min-width: 1024px) {
+      .v5-letter-block {
+        width: 100vw;
+      }
+    }
+
+    @media screen and (max-width: 1023.98px) {
+      .v5-letter-block .mobile-block {
+        display: none;
+      }
+      .v5-letter-block .letter-inner {
+        max-width: 100vw;
+        gap: 1.25rem;
+        padding: 0;
+      }
+      .v5-letter-block .letter-left {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        flex-shrink: 0;
+      }
+      .v5-letter-block .logo {
+        width: 39.2vw;
+        height: 10.66666667vw;
+      }
+
+      .v5-letter-block .mobile-box {
+        display: flex;
+        gap: 1.25rem;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .v5-letter-block .letter-center {
+        width: 100vw;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1rem;
+        line-height: 1;
+      }
+      .v5-letter-block .letter-right {
+        width: 100vw;
+        text-align: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+        line-height: 1;
+        position: relative;
+        display: flex;
+        align-items: end;
+        gap: 0.1rem;
+      }
+      .v5-letter-block .letter-right p {
+        position: relative;
+      }
+      .v5-letter-block .info-icon {
+        margin-left: 0;
+        width: 4vw;
+        height: 4vw;
+        border: 2px solid #fff;
+        font-weight: bold;
+        border-radius: 50%;
+        font-size: 2.2vw;
+        line-height: 1;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .v5-letter-block .tooltip-letter {
+        font-weight: 400;
+        bottom: 6.4vw;
+        right: -1vw;
+        width: 52.26666667vw;
+        padding: 2.66666667vw;
+        font-size: 3.2vw;
+        z-index: 20;
+      }
+      .v5-letter-block .tooltip-letter::before {
+        content: '';
+        position: absolute;
+        bottom: -1.33333333vw;
+        right: 1.26666667vw;
+        width: 0;
+        height: 0;
+        border-left: 1.6vw solid transparent;
+        border-right: 1.6vw solid transparent;
+        border-top: 1.6vw solid #f5f5f3;
+      }
+    }
+  </style>
+{% endif %}
+
+{% comment %} 订阅样式 {% endcomment %}
+{% if block.settings.subscribe %}
+  {%- style -%}
+    .block-common-banner .subscribe-blocks .blocks-subscribe-banner-form{
+      width: 100%;
+      border-radius:0;
+    }
+
+     .block-common-banner .subscribe-blocks .jky-checkbox-inner{
+      border-radius:0;
+     }
+
+    .block-common-banner .subscribe-blocks .subscribe-blocks-box input{
+      border-radius: 0;
+      border-color: rgba(255, 255, 255, 0.8);
+      color: #242F20;
+      background: #FFFFFF;
+    }
+
+    .block-common-banner .subscribe-blocks .field_error-tips{
+      font-size: 0.75rem;
+      color: #F72626;
+      line-height: 1.3;
+      font-weight:500;
+    }
+    .block-common-banner .subscribe-blocks jky-form form .group.form-item-group button{
+      border-radius: 0;
+    }
+    .block-common-banner .subscribe-blocks .blocks-subscribe-banner-form{
+      padding: 0;
+    }
+
+    .block-common-banner .subscribe-blocks .subscribe-blocks-box{
+      height: unset;
+    }
+
+    .block-common-banner .form-item-group{
+      margin-bottom: 0.75rem;
+    }
+
+     .block-common-banner .subscribe-blocks .agree_provicy{
+        padding-right: 0;
+     }
+
+      .block-common-banner .subscribe-blocks .jky-checkbox-label{
+        padding-right: 0;
+      }
+
+      
+      .block-common-banner .blocks-subscribe-banner-form_inner{
+        padding-right: 0;
+        width: 100%;
+      }
+
+
+    .block-common-banner .subscribe-blocks .form-row_check_box{
+      margin-bottom: 0;
+    }
+
+    .block-common-banner .subs_mode_color--show {
+      display: block;
+      top: -0.2rem;
+      right: -0.6rem;
+    }
+
+    @media screen and (min-width: 1024px) {
+
+      .block-common-banner .common-banner-wrapper .banner-info.vertical-top{
+          top: 3.9rem;
+      }
+      .block-common-banner .common-banner-wrapper .banner-info.vertical-center{
+          top: 50%;
+      }
+      .block-common-banner .common-banner-wrapper .banner-info.vertical-bottom{
+          top: unset;
+          bottom: 3.9rem; 
+          transform: translateX(-50%);
+      }
+
+
+      .block-common-banner .subscribe-blocks .subscribe-blocks-box{
+        height: unset;
+        width: 25rem;
+      }
+      .block-common-banner .subscribe-blocks .subscribe-blocks-box::after{
+        height: 3rem;
+      }
+      .block-common-banner .subscribe-blocks .subscribe-blocks-box input{
+        /* width: 16.875rem; */
+        height: 3rem;
+      }
+      .block-common-banner .subscribe-blocks .subscribe-blocks-box .field_error-tips::after{
+      height: 3rem;
+      }
+
+      .block-common-banner .subscribe-blocks jky-form form .group.form-item-group{
+        width: 23.75rem;
+      }
+
+        .block-common-banner .subscribe-blocks jky-form form .group.form-item-group button{
+        height: 3rem;
+        }
+
+        .block-common-banner .subscribe-blocks{
+          width: 100%;
+        }
+        .block-common-banner .subscribe-blocks .blocks-subscribe-banner-form{
+          width: 26.25rem;
+          padding: 1rem 1.25rem;
+        }
+    }
+
+    @media screen and (max-width: 1023.98px) {
+      .block-common-banner .common-banner-wrapper .banner-info.vertical-top-mb{
+          top: 2.5rem;
+      }
+      .block-common-banner .common-banner-wrapper .banner-info.vertical-center-mb{
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .block-common-banner .common-banner-wrapper .banner-info.vertical-bottom-mb{
+          top: unset;
+          bottom: 2rem;
+          transform: translateX(-50%);
+      }
+
+      {% if block.settings.mb_subscribe_fixed_bottom %}
+        .block-common-banner .common-banner-wrapper .swiper-slide[data-mb-subscribe-fixed-bottom="true"] .banner-info{
+          top: 0;
+          bottom: 0;
+          transform: translateX(-50%);
+          display: flex;
+          flex-direction: column;
+          padding-top: 2.5rem;
+          padding-bottom: 10rem;
+        }
+        .block-common-banner .common-banner-wrapper .swiper-slide[data-mb-subscribe-fixed-bottom="true"] .banner-info.vertical-top-mb{
+          justify-content: flex-start;
+        }
+        .block-common-banner .common-banner-wrapper .swiper-slide[data-mb-subscribe-fixed-bottom="true"] .banner-info.vertical-center-mb{
+          justify-content: center;
+        }
+        .block-common-banner .common-banner-wrapper .swiper-slide[data-mb-subscribe-fixed-bottom="true"] .banner-info.vertical-bottom-mb{
+          justify-content: flex-end;
+        }
+        .block-common-banner .common-banner-wrapper .swiper-slide[data-mb-subscribe-fixed-bottom="true"] .banner-info .subscribe-blocks{
+          position: absolute;
+          left: 50%;
+          bottom: 2rem;
+          transform: translateX(-50%);
+          width: 100%;
+        }
+      {% endif %}
+
+      .block-common-banner .subscribe-blocks .subscribe-blocks-box input{
+        height: 2.5rem;
+      }
+      .block-common-banner .subscribe-blocks .subscribe-blocks-box::after{ 
+          height: 2.5rem;
+      }
+      .block-common-banner .subscribe-blocks .subscribe-blocks-box .field_error-tips::after{
+      height: 2.5rem;
+      }
+
+
+      .block-common-banner .subscribe-blocks jky-form form .group.form-item-group button{
+        height: 2.5rem;
+      }
+
+      .block-common-banner .subscribe-blocks .field_error-tips{
+      font-size: 0.75rem;
+      }
+
+      .block-common-banner .swiper-button-prev,
+      .block-common-banner .swiper-button-next {
+        display: none;
+      }
+
+      .block-common-banner .subscribe-blocks .blocks-subscribe-banner-form{
+        padding: 0.75rem;
+      }
+
+      .block-common-banner .blocks-subscribe-banner-form_inner{
+        position: static;
+      }
+
+      .block-common-banner .subs_mode_color--show {
+        top:0.3rem;
+        right:0.6rem;
+      }
+
+    }
+  {%- endstyle -%}
+{% endif %}
+
+{% if is_show %}
+  <div class="swiper-slide slide-img" data-mb-subscribe-fixed-bottom="{{ block.settings.mb_subscribe_fixed_bottom }}">
+    <div class="w-full h-full flex">
+      {% comment %} 非编辑模式 超链接可跳转 {% endcomment %}
+      {% if is_a_design %}
+        <a
+          class="w-full h-full block"
+          href="{{ block.settings.page_link }}"
+          {% if block.settings.link_target %}
+            target="_blank"
+            {% unless is_internal_link %}
+              rel="noopener noreferrer"
+            {% endunless %}
+          {% endif %}
+        >
+      {% endif %}
+
+      {% render 'diff-end-img',
+        class: 'banner-img w-full object-cover',
+        pc_img: block.settings.pc_img,
+        mb_img: block.settings.mb_img,
+        placeholder_name: 'hero-apparel-1',
+        alt: block.settings.pc_img.alt,
+        load_scene: block.settings.load_scene
+      %}
+
+      <div class="banner-info section-container-lg flex flex-col {{ block.settings.vertical_position }} {{ block.settings.vertical_position_mb }}">
+        {% content_for 'blocks' %}
+      </div>
+
+      {% if is_a_design %}
+        </a>
+      {% endif %}
+    </div>
+
+    {% if block.settings.letter %}
+      <div class="absolute lg:bottom-4 bottom-6 left-1/2 -translate-x-1/2 z-10">
+        <div class="v5-letter-block relative z-50">
+          <div class="top-letter text-white">
+            <div class="letter-inner h-full max-w-[90rem] mx-auto flex items-center justify-center lg:gap-10 gap-[4.26666667vw]">
+              <div class="mobile-box flex lg:flex-row flex-col lg:items-center items-start lg:gap-10 gap-[5.33333333vw]">
+                {%- assign textColor = '<em style="color: ' | append: block.settings.text_one_color | append: '">' -%}
+                <div class="letter-center font-semibold lg:text-[1.5rem] text-[1rem] lg:leading-[1.1] leading-[1]">
+                  {{ block.settings.text_one | replace: '<em>', textColor }}
+                </div>
+
+                <div class="letter-line-mini pc-block hidden lg:block h-[1.25vw] w-px bg-white"></div>
+
+                {%- assign textColorTwo = '<em style="color: '
+                  | append: block.settings.text_two_color
+                  | append: '">'
+                -%}
+                <div class="letter-right font-semibold lg:text-[1.5rem] text-[1rem] lg:leading-[1.1] leading-[1] relative flex lg:items-center items-end">
+                  {{ block.settings.text_two | replace: '<em>', textColorTwo }}
+
+                  <span class="info-icon inline-flex justify-center items-center lg:ml-3 ml-0 lg:w-5 lg:h-5 w-[4vw] h-[4vw] border-2 border-white font-bold rounded-full lg:text-[12px] text-[2.2vw] leading-none cursor-pointer lg:relative absolute shrink-0"
+                    >i
+                    <div class="tooltip-letter hidden absolute lg:-right-[28px] -right-[1.6vw] lg:w-[26.25vw] w-[52.26666667vw] lg:p-[1.11111111vw] p-[2.66666667vw] bg-[#f5f5f3] text-[rgba(0,0,0,0.65)] lg:text-[0.97222222vw] text-[3.2vw] z-[100] rounded shadow">
+                      {{ block.settings.text_icon }}
+                    </div>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "通用Banner - 图片",
+  "tag": null,
+  "blocks": [{ "type": "v-heading-content" }, { "type": "_button-group" }, { "type": "_subscribe-banner-form" }, { "type": "_v5-count-down" }],
+  "settings": [
+    {
+      "type": "header",
+      "content": "图片"
+    },
+    {
+      "type": "image_picker",
+      "id": "pc_img",
+      "label": "PC图片",
+      "info": "推荐尺寸: 1920x800 或 1920x640 或 1920x600"
+    },
+    {
+      "type": "image_picker",
+      "id": "mb_img",
+      "label": "MB图片",
+      "info": "推荐尺寸: 750x1000 或 750x1200 或 750x960"
+    },
+    {
+      "type": "header",
+      "content": "图片加载场景配置"
+    },
+    {
+      "type": "select",
+      "id": "load_scene",
+      "label": "图片加载场景",
+      "options": [
+        { "value": "lcp", "label": "首屏关键图（LCP）" },
+        { "value": "default", "label": "普通图（默认）" },
+        { "value": "defer", "label": "次要/延后图" }
+      ],
+      "default": "default",
+    },
+    {
+      "type": "paragraph",
+      "content": "1. 首屏关键图（LCP）:用于首页主 KV、首屏主图"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 普通图（默认）：用于绝大多数图片（列表、内容图）"
+    },
+    {
+      "type": "paragraph",
+      "content": "3. 次要/延后图（低优先级）：用于轮播非首张、备用图、装饰图"
+    },
+    {
+      "type": "header",
+      "content": "超链接"
+    },
+    {
+      "type": "url",
+      "id": "page_link",
+      "label": "页面链接",
+      "info": "提醒：为方便组件子元素编辑，在编辑模式下，超链接配置后点击不跳转，仅在预览或发布模式下正常跳转"
+    },
+    {
+      "type": "checkbox",
+      "id": "link_target",
+      "label": "是否新标签页打开",
+      "default": false,
+      "visible_if": "{{ block.settings.page_link != blank }}"
+    },
+    {
+      "type": "header",
+      "content": "内容区垂直方向位置"
+    },
+    {
+      "type": "select",
+      "id": "vertical_position",
+      "label": "PC文案及按钮位置",
+      "info": "移动端垂直方向位置固定在顶部(用在V5首页-常规Banner时mb三个选项都能生效)",
+      "default": "vertical-top",
+      "options": [
+        {
+          "value": "vertical-top",
+          "label": "顶部"
+        },
+        {
+          "value": "vertical-center",
+          "label": "中间"
+        },
+        {
+          "value": "vertical-bottom",
+          "label": "底部"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "vertical_position_mb",
+      "label": "MB文案及按钮位置",
+      "info": "仅用在V5首页-常规Banner生效",
+      "default": "vertical-top-mb",
+      "options": [
+        {
+          "value": "vertical-top-mb",
+          "label": "顶部"
+        },
+        {
+          "value": "vertical-center-mb",
+          "label": "中间"
+        },
+        {
+          "value": "vertical-bottom-mb",
+          "label": "底部"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "mb_subscribe_fixed_bottom",
+      "label": "MB订阅板块固定置底32px（不受垂直位置影响）",
+      "default": false,
+      "visible_if": "{{ block.settings.subscribe == true }}"
+    },
+    {
+      "type": "header",
+      "content": "组件有效期",
+      "info": "开始时间和结束时间都不配置则永久生效"
+    },
+    {
+      "type": "text",
+      "id": "begin_time",
+      "label": "开始时间",
+      "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/06/06 00:00:00"
+    },
+    {
+      "type": "text",
+      "id": "end_time",
+      "label": "结束时间",
+      "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2025/06/06 00:00:00"
+    },
+    {
+      "type": "header",
+      "content": "信任状"
+    },
+    {
+      "type": "checkbox",
+      "id": "letter",
+      "label": "是否显示信任状"
+    },
+    {
+      "type": "richtext",
+      "id": "text_one",
+      "label": "信任状文本一",
+      "info": "提示：选中文本设置斜体可标记品牌色。"
+    },
+    {
+      "type": "color",
+      "id": "text_one_color",
+      "label": "信任状文本一文案突出颜色",
+      "default": "#fd5000"
+    },
+    {
+      "type": "richtext",
+      "id": "text_two",
+      "label": "信任状文本二",
+      "info": "提示：选中文本设置斜体可标记品牌色。"
+    },
+    {
+      "type": "color",
+      "id": "text_two_color",
+      "label": "信任状文本二文案突出颜色",
+      "default": "#fd5000"
+    },
+    {
+      "type": "text",
+      "id": "text_icon",
+      "label": "icon文本"
+    },
+    {
+      "type": "checkbox",
+      "id": "subscribe",
+      "label": "是否显示5.0订阅样式",
+      "default": true
+    },
+  ],
+  "presets": [
+    {
+      "name": "通用Banner - 图片",
+      "blocks": [
+        {
+          "type": "v-heading-content",
+          "settings": {
+            "padding_top": 0,
+            "padding_bottom": 32,
+            "padding_left": 0,
+            "padding_right": 0,
+            "radius_3": 0,
+            "radius_4": 0
+          },
+          "blocks": [
+            {
+              "type": "_v-heading-content-des",
+              "settings": {
+                "heading": "<p><em>Living and Blackouts</em></p>",
+                "mb_heading": "<p><em>Living and Blackouts</em></p>",
+                "padding_top": 0,
+                "padding_bottom": 16,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#ffffff"
+              }
+            },
+            {
+              "type": "_v-heading-content-heading",
+              "settings": {
+                "heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                "mb_heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                "padding_top": 0,
+                "padding_bottom": 16,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#ffffff"
+              }
+            },
+            {
+              "type": "_v-heading-content-subheading",
+              "settings": {
+                "heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                "mb_heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "alignment": "left",
+                "alignment_mb": "left",
+                "text_color": "#ffffff"
+              }
+            }
+          ]
+        },
+        {
+          "type": "_button-group",
+          "settings": {
+            "padding_top": 0,
+            "padding_bottom": 0,
+            "pc_content_align": "left",
+            "mb_content_align": "left"
+          },
+          "blocks": [
+            {
+              "type": "_button-group-btn",
+              "settings": {
+                "content": "VIEW MORE",
+                "animated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

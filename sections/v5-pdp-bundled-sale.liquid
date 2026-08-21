@@ -1,0 +1,58 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  {{ section.shopify_attributes }}
+  class="section-padding section-v5-pdp-bundled-sale"
+  {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %} 
+  style="background: {{section.settings.bg_color}};{{style}}"
+>
+  {% style %}
+    v5-pdp-bundled-sale .v5-pdp-bundled-sale-swiper-button-prev.swiper-button-disabled,
+    v5-pdp-bundled-sale .v5-pdp-bundled-sale-swiper-button-next.swiper-button-disabled {
+      opacity: 0.4;
+    }
+  {% endstyle %}  
+  <v5-pdp-bundled-sale
+    class="flex flex-col w-full lg:w-[82.5rem] mx-auto"
+    data-product-title="{{ product.title | escape }}"
+    data-section-title="{{ section.settings.title | escape }}"
+    data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+  ></v5-pdp-bundled-sale>
+
+  <script src="{{ 'section-v5-pdp-bundled-sale.min.js' | asset_url }}" defer></script>
+</div>
+
+{% schema %}
+  {
+    "name": "V5-捆绑销售",
+    "tag": "section",
+    "enabled_on": {
+      "templates": ["product"]
+    },
+    "settings": [
+      { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+      { "type": "text", "id": "title", "label": "Section 标题", "default": "Complete Your Package" },
+      { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#F5F5F3" },
+
+      { "type": "header", "content": "PC边距" },
+      { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 96},
+      { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 96},
+      { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0},
+      { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0},
+      { "type": "header", "content": "MB边距" },
+      { "type": "select", "id": "mb_padding_type","label": "MB边距", "options": [ { "value": "default", "label": "默认" }, { "value": "custom", "label": "自定义" } ], "default": "custom"},
+      { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "上边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+      { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "下边距", "default": 64, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"},
+      { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "左边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" },
+      { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "右边距", "default": 0, "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}" }
+    ],
+    "presets": [
+      {
+        "name": "V5-捆绑销售",
+        "category": "V5.0"
+      }
+    ]
+  }
+{% endschema %}

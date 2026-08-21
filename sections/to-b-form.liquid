@@ -1,0 +1,277 @@
+<style>
+    .tob-form-wrapper {
+        padding: 3.75rem 0;
+        gap: 7.5rem;
+    }
+    .tob-form-wrapper .newbee-form {
+        --field-col-distance: 1rem;
+    }
+    .tob-form-input {
+        border-radius: 0!important;
+        padding-left: 2.75rem!important;
+    }
+    .section-tob-form textarea::placeholder {
+        color: var(--placeholder-color);
+    }
+
+    .tob-form-wrapper .form-row .form-item textarea {
+        border: var(--input-border) solid transparent!important;
+    }
+
+    .tob-form-wrapper .form-row .form-item.error textarea {
+        border: var(--input-border) solid var(--error)!important;
+    }
+
+    .tob-form-wrapper .jky-agree, .tob-form-wrapper .jky-agree a {
+        color: #fff!important;
+    }
+    .tob-form-wrapper .jky-checkbox-input {
+        padding-top: 4px;
+    }
+    .tob-form-wrapper .newbee-form .form-row .field_error-tips {
+        line-height: 1.3!important;
+    }
+    .tob-form-wrapper .form_sub_btn {
+        width: 100%;
+        height: 3rem;
+    }
+    @media (max-width: 1024px) {
+        .tob-form-wrapper .jky-checkbox-input {
+            padding-top: 1px;
+        }
+        .tob-form-wrapper {
+            padding: 2.5rem 0;
+            gap: 1.5rem;
+            flex-direction: column;
+        }
+        .tob-form-wrapper .newbee-form {
+            --field-col-distance: 0.75rem;
+        }
+
+        .tob-form-input, .tob-form-wrapper textarea {
+            padding-left: 2.375rem!important;
+        }
+
+        .tob-form-wrapper .required-box {
+            width: 2.375rem;
+        }
+    }
+</style>
+
+<div style="background: {{section.settings.bg_color | default: 'transparent' }};">
+    <div class="tob-form-wrapper {{ section.settings.page_width }} flex">
+        <div class="flex-1 flex flex-col justify-center">
+            <h2 class="v5-font-oxm font-extrabold lg:text-5xl text-4xl lg:mb-6 mb-3 text-white">
+                {{ section.settings.heading | replace: '\n', '<br>' | strip }}
+            </h2>
+
+            <p class="font-normal text-base text-white">
+                {{ section.settings.description | replace: '\n', '<br>' | strip }}
+            </p>
+        </div>
+        <div class="flex-1">
+            <tob-form class="subscribe-main block">
+                <jky-form
+                    jky-form-id="tob-contentS"
+                    class="subscribe-email footer-subscribe-box"
+                    data-success-msg="{{ section.settings.success_tips }}"
+                >
+                    <form data-action="/osconsumerapi/v1/comment/twelve/add">
+                        <div class="form-container newbee-form newbee-form_{{section.id}}">
+                            {% comment %} 邮箱 {% endcomment %}
+                            <div class="form-row flex full">
+                                <div class="form-item required relative" data-field="input">
+                                    <input
+                                        type="email"
+                                        id="tob-email"
+                                        name="email"
+                                        placeholder="{{'newsletter.email_placeholder' | t}}"
+                                        data-error="{{'newsletter.email_empty_info' | t}}"
+                                        data-value="email"
+                                        data-reg="email"
+                                        data-regerror="{{'newsletter.email_error_info' | t}}"
+                                        style="background: #fff;"
+                                        class="tob-form-input"
+                                    >
+                                    <div class="required-box absolute left-0 top-0 bottom-0 lg:w-11 flex items-center justify-center">
+                                        <div style="line-height: 1;" class="required-star text-2xl text-primary h-4">*</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% comment %} 留言 {% endcomment %}
+                            <div class="form-row flex full">
+                                <div class="form-item required relative" data-field="input">
+                                    <div class="hidden">
+                                        <input
+                                            type="hidden"
+                                            id="textareaBox-tob"
+                                            name="tob-content"
+                                            placeholder="{{section.settings.content_label}}"
+                                            data-error="{{ section.settings.content_error }}"
+                                            data-value="comment"
+                                            value=""
+                                        >
+                                    </div>
+                                    
+                                    <textarea
+                                        class="lg:pl-11 pt-3 pb-3 pr-3 w-full"
+                                        id="tob-content"
+                                        name="tob-content"
+                                        maxlength="2000"
+                                        rows="6"
+                                        placeholder="{{section.settings.content_label}}"
+                                        data-error="{{ section.settings.content_error }}"
+                                        data-value="comment"
+                                        style="background: #fff;"
+                                    ></textarea>
+                                    <div class="required-box absolute left-0 top-0 bottom-12 h-12 lg:w-11 flex items-center justify-center">
+                                        <div style="line-height: 1;" class="required-star text-2xl text-primary h-4">*</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% comment %} 电话 {% endcomment %}
+                            <div class="form-row flex full">
+                                <div
+                                    class="form-item bg-white"
+                                    data-field="phone_input"
+                                >
+                                    {% render "jky-formField-phoneSelect", id: section.id, required: true, error_text: {{'newsletter.phone_error_info' | t}}, value: 'phone' %}
+                                </div>
+                            </div>
+                            {% comment %} 隐私协议 {% endcomment %}
+                            <div class="form-row privacy form-row_check_box flex full text-white">
+                                <div
+                                    class="form-item required"
+                                    data-field="check_box"
+                                    data-error="{{'newsletter.policy_empty_info' | t}}"
+                                >
+                                    {% render 'jky-formField-checkbox',
+                                    key: section.settings.privacy_policy,
+                                    value: 'agree_recevie'
+                                    %}
+                                </div>
+                            </div>
+
+                            <div style="display: none;" class="form-row flex w-full">
+                                <div class="form-item form-item_const" data-field="input">
+                                    <input
+                                        type="text"
+                                        id="activeNum"
+                                        name="activeNum"
+                                        data-error=""
+                                        data-value="activeNum"
+                                        data-reg=""
+                                        value="{{ section.settings.activeNum }}"
+                                        data-regerror=""
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="newbee-form_submit flex w-full" data-loading="{{section.settings.loading_btn}}">
+                            <button class="form_sub_btn z-button-middle footer-new-submit w-full h-12 flex items-center justify-center" data-success="{{'newsletter.success' | t}}">
+                                <span class="line-clamp-1">{{ section.settings.subcribe_btn }}</span>
+                            </button>
+                            </div>
+                        </div>
+                    </form>
+                </jky-form>
+            </tob-form>
+        </div>
+    </div>
+</div>
+
+<script>
+    if (!customElements.get('tob-form')) {
+        class TobForm extends HTMLElement {
+          constructor() {
+            super();
+          }
+          connectedCallback() {
+            this.init();
+          }
+          init() {
+            const that = this
+            this.form = this.querySelector("jky-form");
+            this.content_field = this.querySelector("#tob-content");
+            this.content_input = this.querySelector("#textareaBox-tob");
+
+            this.content_field.addEventListener('blur', function () {
+                that.content_input.value = that.content_field.value.trim();
+                that.form.formValidate()
+            });
+
+            this.form.afterFb = () => {
+                this.querySelector("#tob-content").value = ''
+            }
+          }
+        }
+        customElements.define('tob-form', TobForm);
+      }
+</script>
+
+{% schema %}
+{
+    "name": "V5-场景页-用户问题收集",
+    "class": "section section-tob-form",
+    "tag": "section",
+    "disabled_on": {
+        "groups": ["header", "footer"]
+    },
+    "settings": [
+        {
+            "type": "select",
+            "id": "page_width",
+            "options": [
+                {
+                "value": "section-container",
+                "label": "版心/1200px"
+                },
+                {
+                "value": "section-container-lg",
+                "label": "大版心/1312px"
+                },
+                {
+                "value": "w-full",
+                "label": "铺满/100%"
+                }
+            ],
+            "default": "section-container-lg",
+            "label": "PC的组件宽度",
+            "info": "MB端组件宽度固定和设计稿一致，不可修改"
+        },
+        { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#242F20" },
+
+        {
+            "type": "inline_richtext",
+            "id": "heading",
+            "label": "大标题",
+            "default": "Get a Custom \nSolution",
+            "info": "需要换行，请使用 \\n "
+        },
+        {
+            "type": "inline_richtext",
+            "id": "description",
+            "label": "描述",
+            "default": "Get a Custom Solution Get a Custom SolutionGet a Custom SolutionGet \na Custom Solution",
+            "info": "需要换行，请使用 \\n "
+        },
+
+        {"type": "header", "content": "表单相关配置"},
+        { "type": "text", "id": "activeNum", "label": "活动ID" },
+
+        { "type": "text", "id": "content_label", "label": "留言Label", "default": "Write the questions or problem you have here and we will contact you shortly" },
+        { "type": "text", "id": "content_error", "label": "留言错误提示", "default": "Write the questions or problem" },
+        { "type": "richtext", "id": "privacy_policy", "label": "隐私条款勾选框", "default": "<p>xx xx xxx xxxx</p>"},
+        { "type": "text", "id": "subcribe_btn", "label": "表单按钮Label", "default": "Contact Sales" },
+        { "type": "text", "id": "success_tips", "label": "成功提示", "default": "Success" }
+
+    ],
+    "presets": [
+        {
+            "name": "V5-场景页-用户问题收集"
+        }
+    ]
+}
+{% endschema %}

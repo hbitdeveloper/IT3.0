@@ -1,0 +1,95 @@
+<style>
+    .index-blogslist-section{width:1360px;margin:5vw auto}.index-blogslist-section .bloglist__title{margin-bottom:16px}.index-blogslist-section .text-right{display:flex;justify-content:end;margin-bottom:40px}.index-blogslist-section .text-right a{color:var(--primary-color)}.index-blogslist-section .swiper-scrollbar{left:50%;width:28%;height:5px!important;top:unset!important;bottom:0!important;transform:translateX(-50%)}.index-blogslist-section .swiper-scrollbar .swiper-scrollbar-drag{background:#222}.index-blogslist-section .swiper-wrapper{padding-bottom:40px}.index-blogslist-section .swiper-button-next:after,            .index-blogslist-section .swiper-button-prev:after{font-size:26px;color:#fff}.index-blogslist-section .swiper-button-next,            .index-blogslist-section .swiper-button-prev{width:48px;height:48px;background-color:rgba(0, 0, 0, 0.4);border-radius:50%}.index-blogslist-section .swiper-slide{background:#f5f5f5;display:flex;flex-direction:column;border-radius:20px;overflow:hidden}.index-blogslist-section .swiper-slide .index-blog-banner{height:448px;object-fit:cover;width:100%;}.index-blogslist-section .swiper-slide .index-blog__bottom{height:180px;padding:24px}.index-blogslist-section .swiper-slide .index-blog__bottom a{color:#333;display:flex;align-items:center}.index-blogslist-section .z-button-fill-middle{display:none}@media (min-width:1024px) and (max-width:1360px){.index-blogslist-section{width:70.83333vw;margin:0 auto}.index-blogslist-section .bloglist__title{margin-bottom:0.83333vw}.index-blogslist-section .text-right{margin-bottom:2.08333vw}.index-blogslist-section .swiper-slide{border-radius:1.04167vw}.index-blogslist-section .swiper-slide .index-blog-banner{height:23.33333vw}.index-blogslist-section .swiper-slide .index-blog__bottom{height:9.375vw;padding:1.25vw}}@media (max-width:1024px){.index-blogslist-section{width:100%;margin:8.66667vw 0}.index-blogslist-section .bloglist__title{margin-bottom:20px}.index-blogslist-section .text-right{display:none}.index-blogslist-section .swiper-scrollbar{height:2px!important}.index-blogslist-section .swiper-wrapper{padding-bottom:20px}.index-blogslist-section .swiper-button-next:after,                .index-blogslist-section .swiper-button-prev:after{font-size:22px}.index-blogslist-section .swiper-button-next,                .index-blogslist-section .swiper-button-prev{width:38px;height:38px}.index-blogslist-section .swiper-slide{border-radius:12px;max-width:248px}.index-blogslist-section .swiper-slide .index-blog-banner{height:248px}.index-blogslist-section .swiper-slide .index-blog__bottom{height:120px;padding:10px 12px}.index-blogslist-section .z-button-fill-middle{display:flex;margin:24px auto 0}.index-blogslist-section .swiper-button-next, .index-blogslist-section .swiper-button-prev{display:none}}
+</style>
+        
+        <h2 class="jky-text-2xl font-blod text-center bloglist__title">{{section.settings.title}}</h2>
+        <div class="text-right">
+        <a href="{{section.settings.blog.url}}" class="font-bold underlines-btn">{{section.settings.blog_btn_txt}} <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-sm"></jds-icon></a>
+        </div>
+        <div class="index-bloglist__swiper swiper">
+            <div class="swiper-wrapper">
+                {% for article in section.settings.blog.articles %}
+                <div class="swiper-slide focus-zoom-container">
+                    {% render 'responsive-image', image: article.image, image_class: 'index-blog-banner object-cover focus-zoom', width: 448, mwidth: 248 %}
+                    
+                    <div class="flex flex-col justify-between index-blog__bottom">
+                        <div class="index-blog-title font-500 jky-text-base text-overflow-3">{{article.title}}</div>
+
+                        <a class="underlines-btn font-bold jky-text-sm" href="{{article.url}}">{{section.settings.blog_link_txt}} <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-sm"></jds-icon></a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+    
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-scrollbar"><div class="swiper-scrollbar-drag"></div></div>
+        </div>
+        <a href="{{section.settings.blog.url}}" class="z-button-fill-middle">{{section.settings.blog_btn_txt}}</a>
+
+        <script type="module">
+            document.addEventListener('DOMContentLoaded', function () {
+                let swiper = new Swiper(".index-bloglist__swiper", {
+                slidesPerView: 'auto',
+                spaceBetween: 16,
+                slidesPerGroup: 1,
+                loopFillGroupWithBlank: true,
+                centeredSlides: true,
+                initialSlide: 2,
+                breakpoints: {
+                    1024: {
+                        slidesPerView: 3,
+                        spaceBetween: 16,
+                        slidesPerGroup: 3,
+                        centeredSlides: false,
+                        initialSlide: 1
+                    },
+                },
+                navigation: {
+                    nextEl: ".index-bloglist__swiper .swiper-button-next",
+                    prevEl: ".index-bloglist__swiper .swiper-button-prev",
+                },
+                scrollbar: {
+                    el: ".index-bloglist__swiper .swiper-scrollbar",
+                    },
+                });
+            })
+        </script>
+{% schema %}
+  {
+    "name": "Index Blog Swiper",
+    "tag": "section",
+    "class": "section index-blogslist-section",
+    "disabled_on": {
+      "templates": ["collection"]
+    },
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "New Record"
+      }, {
+        "type": "text",
+        "id": "blog_btn_txt",
+        "label": "Blog link text",
+        "default": "Go to all articles"
+      },
+      {
+        "type": "blog",
+        "id": "blog",
+        "label": "Blog"
+        },
+        {
+        "type": "text",
+        "id": "blog_link_txt",
+        "label": "Blog Link",
+        "default": "READ MORE"
+        }
+    ],
+    "blocks": [],
+    "presets": [{
+        "name": "Index Blog Swiper"
+    }]
+  }
+{% endschema %}

@@ -1,0 +1,158 @@
+{% if section.blocks.size > 0 %}
+    {% comment %} Products Swiper {% endcomment %}
+    <div class="bg-f5 pb-65 relative slideshow">
+        {% assign swiper_str = '' %}
+        {% for block in section.blocks %}
+            {% assign swiper_str = swiper_str | append: ',' | append: block.settings.product_short_name %}
+        {% endfor %}
+        {% assign swiper_str = swiper_str | remove_first: ',' %}
+        <div
+            class="swiper-container swiper-collection-products w-full !lg:j-w-1200 mx-auto overflow-hidden px-60 lg:j-px-0 relative"
+            data-collection-products="{{swiper_str}}"
+        >
+            <div class="swiper-wrapper">
+                {% for block in section.blocks %}
+                    {% assign index = forloop.index %}
+                    <div key="{{index}}" class="swiper-slide w-full lg:j-w-480 p-60 lg:j-px-30 lg:j-pt-40 lg:j-pb-50 flex flex-col items-center justify-start rounded-30 lg:j-rounded-30 bg-white">
+                        {% if block.settings.product.url %}
+                            <h3 class="text-36 leading-54 lg:j-text-36 lg:j-leading-54 text-black font-600 text-center">
+                                <a class="text-black" href="{{block.settings.product.url}}">{{block.settings.product_short_name | escape}}</a>
+                            </h3>
+                        {% else %}
+                            <h3 class="text-36 leading-54 lg:j-text-36 lg:j-leading-54 text-black font-600 text-center">{{block.settings.product_short_name | escape}}</h3>
+                        {% endif %}
+
+                        {%- 
+                            render 'responsive-image', 
+                            image: block.settings.product.featured_image, 
+                            width: 267,
+                            mwidth: 191,
+                            image_class: "w-380 h-219 lg:j-w-240 lg:j-h-140 object-contain my-40 lg:j-my-20"
+                        -%}
+
+                        <p class="text-overflow-2 text-24 leading-36 lg:j-text-24 lg:j-leading-36 text-main font-500 text-center">{{block.settings.p_subtitle | newline_to_br}}</p>
+                        <dl class="flex gap-70 lg:j-gap-50 my-35 lg:j-my-30 px-15 lg:j-px-15">
+                            <dd class="flex-center flex-col gap-10 lg:j-gap-10">
+                                {%- 
+                                    render 'responsive-image', 
+                                    image: block.settings.icon_1, 
+                                    width: 90,
+                                    mwidth: 45,
+                                    image_class: 'w-90 h-90 lg:j-w-90 lg:j-h-90 object-contain'
+                                -%}
+
+                                <p class="text-20 leading-30 lg:j-text-18 lg:j-leading-27 text-main text-center break-keep">{{block.settings.icon_t_1 | newline_to_br}}</p>
+                            </dd>
+                            <dd class="flex-center flex-col gap-10 lg:j-gap-10">
+                                {%- 
+                                    render 'responsive-image', 
+                                    image: block.settings.icon_2, 
+                                    width: 90,
+                                    mwidth: 45,
+                                    image_class: 'w-90 h-90 lg:j-w-90 lg:j-h-90 object-contain'
+                                -%}
+                                <p class="text-20 leading-30 lg:j-text-18 lg:j-leading-27 text-main text-center break-keep">{{block.settings.icon_t_2 | newline_to_br}}</p>
+                            </dd>
+                            <dd class="flex-center flex-col gap-10 lg:j-gap-10">
+                                {%- 
+                                    render 'responsive-image', 
+                                    image: block.settings.icon_3, 
+                                    width: 90,
+                                    mwidth: 45,
+                                    image_class: 'w-90 h-90 lg:j-w-90 lg:j-h-90 object-contain'
+                                -%}
+                                <p class="text-20 leading-30 lg:j-text-18 lg:j-leading-27 text-main text-center break-keep">{{block.settings.icon_t_3 | newline_to_br}}</p>
+                            </dd>
+                        </dl>
+                        {% assign target = block.settings.product.selected_or_first_available_variant %}
+                        {% assign compare_at_price = target.compare_at_price %}
+                        {% assign price = target.price | default: 1999 %}
+                        {% assign available = target.available | default: false %}
+                        {% assign price_discounted = block.settings.product.metafields.custom.manual_discounted_price %}
+                        <p class="flex items-center gap-30 lg:j-gap-30 mb-50 lg:j-mb-50">
+                            {%- if price_discounted != blank -%}
+                                {%- assign price_discounted = block.settings.product.metafields.custom.manual_discounted_price | times: 100 -%}
+                                <span class="text-36 leading-54 lg:j-text-36 lg:j-leading-54 text-primary font-600">{{price_discounted | money}}</span>
+                                <span style="text-decoration-line:line-through;" class="text-24 leading-36 lg:j-text-18 lg:j-leading-27 font-300 text-sub">{{ price | money }}</span>
+                            {%- else -%}
+                                {% comment %} 如果开启了全局的 自动计算折扣价 {% endcomment %}
+                                {%- if settings.open_auto_discount_price -%}
+                                    {% comment %} 自动计算 - 折后价格 {% endcomment %}
+                                    {%- assign auto_discount_price = target.metafields.custom.auto_discount_price | times: 1 -%}
+
+                                    {%- if auto_discount_price > 0 -%}
+                                        {% comment %} 当前价格 {% endcomment %}
+                                        {%- assign current_price = price -%}
+
+                                        {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+                                        {%- if auto_discount_price < price -%}
+                                            {%- assign current_price = auto_discount_price -%}
+                                        {%- endif -%}
+                                        <span class="text-36 leading-54 lg:j-text-36 lg:j-leading-54 text-primary font-600">{{current_price | money}}</span>
+                                        {%- if current_price < compare_at_price -%}
+                                            <span style="text-decoration-line:line-through;" class="text-24 leading-36 lg:j-text-18 lg:j-leading-27 font-300 text-sub">{{compare_at_price | money}}</span>
+                                        {%- else -%}
+                                            {%- if current_price < price -%}
+                                                <span style="text-decoration-line:line-through;" class="text-24 leading-36 lg:j-text-18 lg:j-leading-27 font-300 text-sub">{{price | money}}</span>
+                                            {%- endif -%}
+                                        {%- endif -%}
+                                    {%- else -%}
+                                        <span class="text-36 leading-54 lg:j-text-36 lg:j-leading-54 text-primary font-600">{{price | money}}</span>
+                                        {%- if price < compare_at_price -%}
+                                            <span style="text-decoration-line:line-through;" class="text-24 leading-36 lg:j-text-18 lg:j-leading-27 font-300 text-sub">{{ compare_at_price | money }}</span>
+                                        {%- endif -%}
+                                    {%- endif -%}
+                                {%- else -%}
+                                    <span class="text-36 leading-54 lg:j-text-36 lg:j-leading-54 text-primary font-600">{{price | money}}</span>
+                                    {%- if price < compare_at_price -%}
+                                        <span style="text-decoration-line:line-through;" class="text-24 leading-36 lg:j-text-18 lg:j-leading-27 font-300 text-sub">{{ compare_at_price | money }}</span>
+                                    {%- endif -%}
+                                {%- endif -%}
+                            {%- endif -%}
+                        </p>
+                        <a class="z-button-fill-big-solid" href="{{block.settings.product.url}}" data-analytics-title="{{ block.settings.product_short_name | escape }}">{{ 'general.action_text.learn_more' | t }} 
+                            <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+            
+
+            {% comment %} Add Pagination {% endcomment %}
+            <div class="swiper-collection-products-pagination w-120% flex-center gap-40 lg:j-gap-80 mt-65 lg:j-mt-80 text-20 leading-42 text-black font-400 lg:j-text-18 lg:j-leading-27 scale-[0.9] lg:scale-100 -ml-10% lg:w-full lg:ml-0 cursor-pointer"></div>
+        </div>
+
+        <div class="slideshow-navigation-button prev">
+          {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+        </div>
+        <div class="slideshow-navigation-button next">
+          {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+        </div>
+    </div>
+{% endif %}
+
+{% schema %}
+    {
+      "name": "Product Swiper",
+      "class": "section section-collection-product-swiper section-sp-pps-sg-collection",
+      "settings": [],
+      "blocks": [
+          {
+            "type": "product_collection",
+            "name": "Collection Product",
+            "settings": [
+                {"type": "product", "id": "product", "label": "Product"},
+                {"type": "text", "id": "product_short_name", "label": "Product Short Name"},
+                {"type": "image_picker", "id": "p_img", "label": "Product image"},
+                {"type": "textarea", "id": "p_subtitle", "label": "Product Heading"},
+                {"type": "image_picker", "id": "icon_1", "label": "Product icon 1"},
+                {"type": "textarea", "id": "icon_t_1", "label": "Product advantage 1"},
+                {"type": "image_picker", "id": "icon_2", "label": "Product icon 2"},
+                {"type": "textarea", "id": "icon_t_2", "label": "Product advantage 2"},
+                {"type": "image_picker", "id": "icon_3", "label": "Product icon 3"},
+                {"type": "textarea", "id": "icon_t_3", "label": "Product advantage 3"}
+            ]
+          }
+        ]
+    }
+{% endschema %}

@@ -1,0 +1,281 @@
+{% liquid
+  assign first_tab_key = ''
+  assign tab_count = 0
+  for block in section.blocks
+    if block.type == 'tab'
+      assign tab_count = tab_count | plus: 1
+      if first_tab_key == ''
+        assign first_tab_key = block.settings.tab_key | strip
+      endif
+    endif
+  endfor
+
+  assign active_tab_key = section.settings.default_tab_key | strip
+  if active_tab_key == blank
+    assign active_tab_key = first_tab_key
+  endif
+%}
+
+<section
+  class="train-in-value-section train-in-value-section-{{ section.id }} bg-gray-200 lg:bg-transparent"
+>
+  <div
+    class="train-in-container mx-auto box-border w-full !p-0"
+    style="max-width: {{ section.settings.page_width }}px;"
+  >
+
+    {% if section.settings.intro_text != blank %}
+      <div class="text-left text-[#000000] font-bold text-[0.875rem] lg:text-[1.625rem] px-[1.5625rem] lg:px-0">
+        <div class="my-[1rem] lg:mt-[3.1875rem] lg:mb-[6.0625rem]">{{ section.settings.intro_text | newline_to_br }}</div>
+      </div>
+    {% endif %}
+
+    <div
+      class="mb-[0.6667rem] flex w-full items-center {% if tab_count == 1 %}justify-center{% else %}justify-around{% endif %} pt-[2.2rem] pb-[1rem] {% if tab_count == 1 %}px-[1rem]{% endif %} lg:pt-[3.75rem] lg:pb-[1.5rem] lg:px-[12.5rem]"
+      style="background: {{ section.settings.tabs_bg }};"
+      role="tablist"
+      aria-label="{{ section.settings.tabs_aria_label | escape }}"
+    >
+      {% for block in section.blocks %}
+        {% if block.type == 'tab' %}
+          {% assign tab_key = block.settings.tab_key | strip %}
+          {% assign is_active = false %}
+          {% if tab_key == active_tab_key %}
+            {% assign is_active = true %}
+          {% endif %}
+          <button
+            type="button"
+            class="train-in-value__tab flex {% if tab_count == 1 %}w-full max-w-[12rem]{% endif %} cursor-pointer appearance-none flex-col items-center border-0 bg-transparent text-center"
+            data-tab-trigger="{{ tab_key | escape }}"
+            data-default-color="{{ section.settings.tab_text_color }}"
+            data-active-color="{{ section.settings.tab_active_color }}"
+            role="tab"
+            aria-selected="{% if is_active %}true{% else %}false{% endif %}"
+            aria-controls="train-in-value-panel-{{ section.id }}-{{ tab_key | handle }}"
+            id="train-in-value-tab-{{ section.id }}-{{ tab_key | handle }}"
+            style="color: {% if is_active %}{{ section.settings.tab_active_color }}{% else %}{{ section.settings.tab_text_color }}{% endif %};"
+            {{ block.shopify_attributes }}
+          >
+            {% if block.settings.tab_icon != blank or block.settings.tab_icon_active != blank %}
+              <span class="flex items-center justify-center">
+                {% if block.settings.tab_icon != blank %}
+                  <span class="train-in-value__tab-icon-default{% if is_active %} hidden{% endif %}">
+                    {{ block.settings.tab_icon | image_url: width: 136 | image_tag: loading: 'lazy', widths: '80,96,136', alt: block.settings.tab_label, class: 'h-[2.5rem] w-auto lg:h-[4.25rem]' }}
+                  </span>
+                {% endif %}
+                {% if block.settings.tab_icon_active != blank %}
+                  <span class="train-in-value__tab-icon-active{% unless is_active %} hidden{% endunless %}">
+                    {{ block.settings.tab_icon_active | image_url: width: 136 | image_tag: loading: 'lazy', widths: '80,96,136', alt: block.settings.tab_label, class: 'h-[2.5rem] w-auto lg:h-[4.25rem]' }}
+                  </span>
+                {% endif %}
+              </span>
+            {% endif %}
+            <span class="text-[0.8rem] font-bold lg:text-[1.5rem]">{{ block.settings.tab_label }}</span>
+          </button>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% for block in section.blocks %}
+      {% if block.type == 'tab' %}
+        {% assign tab_key = block.settings.tab_key | strip %}
+        {% assign is_active = false %}
+        {% if tab_key == active_tab_key %}
+          {% assign is_active = true %}
+        {% endif %}
+        <div
+          class="train-in-value__panel{% if is_active %} is-active{% endif %}"
+          data-tab-panel="{{ tab_key | escape }}"
+          id="train-in-value-panel-{{ section.id }}-{{ tab_key | handle }}"
+          role="tabpanel"
+          aria-labelledby="train-in-value-tab-{{ section.id }}-{{ tab_key | handle }}"
+          {% unless is_active %}hidden{% endunless %}
+        >
+          <div
+            class="w-full lg:mt-[3.25rem] lg:px-[4.25rem] lg:py-[4.375rem]"
+            style="background: {{ section.settings.card_bg }};"
+          >
+            {% if block.settings.card_title != blank %}
+              <div
+                class="hidden w-[31.875rem] text-[1.75rem] font-bold leading-[2.625rem] text-[#333333] lg:block"
+              >
+                {{ block.settings.card_title | newline_to_br }}
+              </div>
+            {% endif %}
+
+            <div class="mt-[1rem] flex flex-col-reverse items-center lg:mt-[3rem] lg:flex-row lg:items-start">
+              <div class="mb-[2rem] lg:mb-[1rem]">
+                <div class="flex font-normal gap-4 lg:gap-0 leading-[1.5rem] lg:leading-[2.6rem] lg:text-[1.375rem]">
+                  <div class="w-[9.3333rem] lg:w-[20.875rem] font-bold text-[#000000] text-[0.8667rem] lg:text-[1.625rem]">
+                    {{ section.settings.product_heading }}
+                  </div>
+                  <div class="w-[8.6667rem] lg:w-[20.625rem] font-bold text-[#000000] text-[0.8667rem] lg:text-[1.625rem]">
+                    {{ section.settings.value_heading }}
+                  </div>
+                </div>
+                {% for row_block in section.blocks %}
+                  {% assign row_tab_key = row_block.settings.tab_key | strip %}
+                  {% if row_block.type == 'row' and row_tab_key == tab_key %}
+                    <div
+                      class="flex gap-4 lg:gap-0 lg:leading-[2.6rem] leading-[1.5rem] lg:text-[1.375rem] text-[#1F2937] font-semibold"
+                      {{ row_block.shopify_attributes }}
+                    >
+                      <div class="w-[9.3333rem] lg:w-[20.875rem]">{{ row_block.settings.product_name }}</div>
+                      <div class="w-[8.6667rem] lg:w-[20.625rem]">{{ row_block.settings.estimated_value }}</div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              {% if block.settings.card_title != blank %}
+                <div
+                  class="mb-[1.3333rem] block w-[17.0667rem] text-[0.8333rem] leading-[1.4rem] font-bold text-[#333333] lg:hidden"
+                >
+                  {{ block.settings.card_title | newline_to_br }}
+                </div>
+              {% endif %}
+
+              {% if block.settings.card_image != blank %}
+                <div class="flex items-center lg:min-h-[17.5rem]">
+                  <img class="!w-[14.7333rem] mt-[3.3333rem] mb-[2rem] lg:!w-[27.5rem] lg:mb-0 lg:mt-0"
+                        src="{{ block.settings.card_image | image_url: width: 900 }}"
+                        alt="Jackery Explorer train In" loading="lazy">
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+  .train-in-value-section-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top_mobile }}px;
+    padding-bottom: {{ section.settings.padding_bottom_mobile }}px;
+  }
+
+  @media screen and (min-width: 1024px) {
+    .train-in-value-section-{{ section.id }} {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .train-in-value-section-{{ section.id }} .train-in-value__panel.is-active img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+  }
+</style>
+
+<script defer>
+  (function() {
+    const init = () => {
+      const sectionEl = document.querySelector('.train-in-value-section-{{ section.id }}');
+      if (!sectionEl) return;
+
+      const triggers = Array.from(sectionEl.querySelectorAll('[data-tab-trigger]'));
+      const panels = Array.from(sectionEl.querySelectorAll('[data-tab-panel]'));
+      if (!triggers.length || !panels.length) return;
+
+      const setActiveTab = (tabKey) => {
+        triggers.forEach((trigger) => {
+          const isActive = trigger.getAttribute('data-tab-trigger') === tabKey;
+          trigger.classList.toggle('is-active', isActive);
+          trigger.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          trigger.style.color = isActive
+            ? trigger.getAttribute('data-active-color') || ''
+            : trigger.getAttribute('data-default-color') || '';
+          const defaultIcon = trigger.querySelector('.train-in-value__tab-icon-default');
+          const activeIcon = trigger.querySelector('.train-in-value__tab-icon-active');
+          if (defaultIcon) defaultIcon.classList.toggle('hidden', isActive && !!activeIcon);
+          if (activeIcon) activeIcon.classList.toggle('hidden', !isActive);
+        });
+
+        panels.forEach((panel) => {
+          const isActive = panel.getAttribute('data-tab-panel') === tabKey;
+          panel.classList.toggle('is-active', isActive);
+          if (isActive) panel.removeAttribute('hidden');
+          else panel.setAttribute('hidden', '');
+        });
+      };
+
+      triggers.forEach((trigger) => {
+        trigger.addEventListener('click', () => {
+          setActiveTab(trigger.getAttribute('data-tab-trigger'));
+        });
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+      init();
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "V5 Support Train Switch",
+  "tag": "section",
+  "settings": [
+    { "type": "textarea", "id": "intro_text", "label": "顶部说明文案", "default": "With Jackery train In, you can get the best value for your current product and apply it towards a new one. Simply click the Start train-in button above to submit your application." },
+    { "type": "text", "id": "tabs_aria_label", "label": "Tab 无障碍标签", "default": "train in value tabs" },
+    { "type": "text", "id": "product_heading", "label": "产品列表标题", "default": "Your Product" },
+    { "type": "text", "id": "value_heading", "label": "估值列表标题", "default": "Estimated Value" },
+    { "type": "text", "id": "default_tab_key", "label": "默认激活 tab key", "info": "需与下方 tab block 的 tab key 一致；不填则默认第一个 tab" },
+    { "type": "range", "id": "page_width", "label": "内容最大宽度", "min": 1000, "max": 1600, "step": 20, "default": 1200, "unit": "px" },
+    { "type": "color", "id": "section_bg", "label": "Section 背景色", "default": "#ffffff" },
+    { "type": "color", "id": "tabs_bg", "label": "Tab 区背景色", "default": "#f0f0f0" },
+    { "type": "color", "id": "card_bg", "label": "内容卡片背景色", "default": "#f6f6f6" },
+    { "type": "color", "id": "tab_text_color", "label": "Tab 默认文字颜色", "default": "#333333" },
+    { "type": "color", "id": "tab_active_color", "label": "Tab 激活颜色", "default": "#FD5000" },
+    { "type": "range", "id": "padding_top", "label": "PC 上边距", "min": 0, "max": 120, "step": 4, "default": 24, "unit": "px" },
+    { "type": "range", "id": "padding_bottom", "label": "PC 下边距", "min": 0, "max": 120, "step": 4, "default": 24, "unit": "px" },
+    { "type": "range", "id": "padding_top_mobile", "label": "移动端上边距", "min": 0, "max": 80, "step": 4, "default": 12, "unit": "px" },
+    { "type": "range", "id": "padding_bottom_mobile", "label": "移动端下边距", "min": 0, "max": 80, "step": 4, "default": 12, "unit": "px" }
+  ],
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "Tab 面板",
+      "settings": [
+        { "type": "text", "id": "tab_key", "label": "Tab key", "info": "用于和下方列表行匹配，例如 explorer", "default": "explorer" },
+        { "type": "text", "id": "tab_label", "label": "Tab 文案", "default": "Explorer Series" },
+        { "type": "image_picker", "id": "tab_icon", "label": "Tab 置灰图标" },
+        { "type": "image_picker", "id": "tab_icon_active", "label": "Tab 激活图标" },
+        { "type": "textarea", "id": "card_title", "label": "卡片标题", "default": "Get $40-$810 when you train in an Explorer Portable Power Station." },
+        { "type": "image_picker", "id": "card_image", "label": "右侧产品图" }
+      ]
+    },
+    {
+      "type": "row",
+      "name": "产品估值行",
+      "settings": [
+        { "type": "text", "id": "tab_key", "label": "所属 tab key", "info": "需与 Tab 面板中的 tab key 一致", "default": "explorer" },
+        { "type": "text", "id": "product_name", "label": "产品名", "default": "Explorer 240" },
+        { "type": "text", "id": "estimated_value", "label": "估值文案", "default": "Up to $40" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Support Train In Switch",
+      "category": "V5.0 Support",
+      "blocks": [
+        { "type": "tab", "settings": { "tab_key": "explorer", "tab_label": "Explorer Series", "card_title": "Get $40-$810 when you train in an Explorer Portable Power Station." } },
+        { "type": "tab", "settings": { "tab_key": "pro_plus", "tab_label": "Explorer Pro/Plus Series", "card_title": "train in your Explorer Pro/Plus Series product for an estimated value toward a new upgrade." } },
+        { "type": "row", "settings": { "tab_key": "explorer", "product_name": "Explorer 240", "estimated_value": "Up to $40" } },
+        { "type": "row", "settings": { "tab_key": "explorer", "product_name": "Explorer 240 v2", "estimated_value": "Up to $120" } },
+        { "type": "row", "settings": { "tab_key": "explorer", "product_name": "Explorer 300", "estimated_value": "Up to $65" } },
+        { "type": "row", "settings": { "tab_key": "pro_plus", "product_name": "Explorer 1000 Pro", "estimated_value": "Up to $330" } },
+        { "type": "row", "settings": { "tab_key": "pro_plus", "product_name": "Explorer 2000 Pro", "estimated_value": "Up to $530" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

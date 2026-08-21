@@ -1,0 +1,436 @@
+{% comment %} V5 集合产品卡片 {% endcomment %}
+
+{%- liquid
+  # 产品总数量
+  assign blocks_total_count = section.blocks.size
+  assign banner_class = 'lg:w-[82.5rem] lg:h-[18.75rem]'
+  assign banner_pc_width = 1320
+  if blocks_total_count == 4
+    assign banner_class = 'lg:w-[54.5rem] lg:h-[43.1875rem]'
+    assign banner_pc_width = 872
+  elsif blocks_total_count == 5
+    assign banner_class = 'lg:w-[26.5rem] lg:h-[43.1875rem]'
+    assign banner_pc_width = 424
+  endif
+-%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  {{ section.shopify_attributes }}
+  class="section-padding {% if section.settings.type == 'embed' %}embed-component{% endif %}"
+  {% if section.settings.type == 'independent' and section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+>
+  <div
+    class="section-padding"
+    {% if section.settings.type == 'embed' and section.settings.belongs_to != blank %}
+      belongs-to-target="{{section.settings.belongs_to | escape}}"
+    {% endif %}
+    style="background: {{section.settings.bg_color}};{{style}}"
+  >
+    <div class="w-full lg:w-[82.5rem] mx-auto">
+      <div class="flex w-full justify-start flex-wrap gap-4 lg:gap-6">
+        <div class="w-full h-40 {{ banner_class }}">
+          {% content_for 'block',
+            type: '_v5-product-banner',
+            id: 'v5-colletion-products-banner',
+            banner_pc_width: banner_pc_width
+          %}
+        </div>
+
+        {% content_for 'blocks' %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  const initV5CollectionProductsGa = () => {
+    if (window.v5CollectionProductsGaBound) return;
+    window.v5CollectionProductsGaBound = true;
+    const getModuleText = (container) => {
+      const heading = container?.querySelector('.blocks-heading-content .heading');
+      return (
+        heading?.dataset?.text ||
+        heading?.getAttribute?.('data-text') ||
+        heading?.textContent?.trim() ||
+        'Product'
+      );
+    };
+    const moduleText = getModuleText(document.querySelector('#MainContent'));
+
+    // 监听产品卡片点击事件 点击后触发GA事件
+    // 使用事件委托，避免产品卡片异步渲染/替换导致逐个绑定失效
+    const getProductLink = (event) => {
+      const path = event.composedPath?.() || [];
+      for (const el of path) {
+        if (el instanceof HTMLElement && el.matches?.('.v5-base-product-link')) return el;
+      }
+      const target = event.target;
+      if (target instanceof HTMLElement) return target.closest?.('.v5-base-product-link');
+      return null;
+    };
+
+    const onProductLinkClick = (event) => {
+      const link = getProductLink(event);
+      if (!link) return;
+
+      const href = link.getAttribute('href');
+      const productTitle = link
+        .closest('.base-product-card-info')
+        ?.querySelector('.v5-base-product-title')
+        ?.textContent?.trim();
+
+      gaPushDataLayer('5.0_products_collection_user_clicks', {
+        module: moduleText,
+        position: productTitle,
+        button_name: link?.textContent?.trim() || 'Shop Now',
+        link: href,
+      });
+
+    };
+
+    document.addEventListener('click', onProductLinkClick, true);
+
+    // 监听Compare按钮点击事件 点击后触发GA事件
+    // Compare 为自定义 checkbox：change 可能不稳定冒泡，所以 click + change 双保险
+    const getCompareCheckbox = (event) => {
+      const path = event.composedPath?.() || [];
+      for (const el of path) {
+        if (el instanceof HTMLElement && el.matches?.('.v5-compare-checkbox')) return el;
+      }
+      return null;
+    };
+
+    // 统一读取“是否选中”状态：兼容原生 input 与自定义元素（aria-checked/checked attribute）
+    const getCheckedState = (checkbox) => {
+      if (typeof checkbox.checked === 'boolean') return checkbox.checked;
+      if (checkbox.hasAttribute?.('checked')) return true;
+      const ariaChecked = checkbox.getAttribute?.('aria-checked');
+      if (ariaChecked === 'true') return true;
+      if (ariaChecked === 'false') return false;
+      return false;
+    };
+
+    // 只统计“未选中 -> 选中”的一次；取消选中不统计
+    const shouldSendCompareGa = (checkbox, checked, time) => {
+      const last = checkbox._v5CompareGaLast;
+      if (!checked) {
+        checkbox._v5CompareGaLast = { checked: false, time };
+        return false;
+      }
+      if (last?.checked) return false;
+      checkbox._v5CompareGaLast = { checked: true, time };
+      return true;
+    };
+
+    const onCompareInteraction = (event) => {
+      const checkbox = getCompareCheckbox(event);
+      if (!checkbox) return;
+
+      const time = typeof event.timeStamp === 'number' ? event.timeStamp : Date.now();
+
+      // 部分自定义 checkbox 在 click/change 时状态更新有微小延迟，微任务里读取更稳定
+      queueMicrotask(() => {
+        const checked = getCheckedState(checkbox);
+        if (!shouldSendCompareGa(checkbox, checked, time)) return;
+
+        const productTitle = checkbox
+          .closest('.base-product-card-info')
+          ?.querySelector('.v5-base-product-title')
+          ?.textContent?.trim();
+
+        gaPushDataLayer('5.0_products_collection_user_clicks', {
+          module: moduleText,
+          position: productTitle,
+          button_name: checkbox.getAttribute('label') || checkbox.textContent?.trim() || 'compare',
+        });
+      });
+    };
+
+    document.addEventListener('click', onCompareInteraction, true);
+    document.addEventListener('change', onCompareInteraction, true);
+  };
+
+  // 兼容脚本在 DOMContentLoaded 前/后执行两种场景，避免漏绑定
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initV5CollectionProductsGa, { once: true });
+  } else {
+    initV5CollectionProductsGa();
+  }
+</script>
+
+{% schema %}
+{
+  "name": "V5-集合页产品列表",
+  "class": "v5-colletion-products",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "基础配置"
+    },
+    {
+      "type": "select",
+      "id": "type",
+      "label": "类型",
+      "default": "embed",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示",
+      "visible_if": "{{ section.settings.type == 'embed' }}"
+    },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)",
+      "info": "用于在页面中定位该组件",
+      "visible_if": "{{ section.settings.type == 'independent' }}"
+    },
+    {
+      "type": "header",
+      "content": "文案说明"
+    },
+    {
+      "type": "paragraph",
+      "content": "1.【Shop Now文案】在站点多语言【Products - Product - Shop now】中配置"
+    },
+    {
+      "type": "paragraph",
+      "content": "2.【Compare文案】在站点多语言【Sections - Collection template - Compare button text】中配置"
+    },
+    {
+      "type": "header",
+      "content": "内容样式"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色",
+      "default": "#F5F5F3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_compare",
+      "label": "是否显示Compare按钮",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "link_target",
+      "label": "是否新标签页打开",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "PC边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 40,
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 96,
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "header",
+      "content": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 40,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and section.settings.mb_padding_type == 'custom' }}"
+    }
+  ],
+  "max_blocks": 5,
+  "blocks": [
+    {
+      "type": "_v5-product-card"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-集合页产品列表",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "name": "v5-产品banner",
+          "type": "_v5-product-banner",
+          "id": "v5-colletion-products-banner",
+          "static": true,
+          "blocks": [
+            {
+              "type": "v-heading-content",
+              "settings": {
+                "content_width": "custom",
+                "custom_content_width": 500,
+                "content_alignment": "lg:justify-start",
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "padding_left": 0,
+                "padding_right": 0,
+                "radius_3": 0,
+                "radius_4": 0
+              },
+              "blocks": [
+                {
+                  "type": "_v-heading-content-heading",
+                  "settings": {
+                    "heading": "<p>Home Power</p>",
+                    "mb_heading": "<p>Home Power</p>",
+                    "padding_top": 0,
+                    "padding_bottom": 16,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff",
+                    "heading_size": "heading_2",
+                    "font_weight": "font-semibold",
+                    "mb_content_type": "custom",
+                    "mb_heading_size": "heading_4",
+                    "mb_font_weight": "font-semibold"
+                  }
+                },
+                {
+                  "type": "_v-heading-content-des",
+                  "settings": {
+                    "heading": "<p>Lightweight, solar-ready systems for long outdoor stays.</p>",
+                    "mb_heading": "<p>Lightweight, solar-ready systems for long outdoor stays.</p>",
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff",
+                    "heading_size": "text_b1",
+                    "font_weight": "font-normal"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "_v5-product-card"
+        },
+        {
+          "type": "_v5-product-card"
+        },
+        {
+          "type": "_v5-product-card"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

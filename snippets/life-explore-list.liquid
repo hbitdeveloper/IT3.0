@@ -1,0 +1,94 @@
+{% if show %}
+  {% if from == 'life-activity' %}
+    {{ 'page.life.min.css' | asset_url | stylesheet_tag }}
+  {% endif %}
+
+  <section class="jf-custom-body jf-works-list-body">
+    <section class="jf-min-width jf-works-list-wrap">
+      {% comment %} main {% endcomment %}
+      <div class="jf-container jf-main-content">
+        <div class="jf-tabs-area" onclick="return false;">
+          <div class="jf-flex-1"></div>
+          {% comment %} 作品类型tab {% endcomment %}
+          <div class="layui-tab layui-tab-brief jf-work-list-tab-brief" lay-filter="docDemoTabBrief">
+            <ul class="layui-tab-title"></ul>
+            <div class="layui-tab-content"></div>
+          </div>
+          {% comment %} 作品类型tab {% endcomment %}
+          <div class="jf-flex-1 jf-input-flex">
+            <div class="jf-input-wrap">
+              <i class="life-icon jf-icon-icon-sousuo jf-icon jf-icon-search"></i>
+              <input
+                class="jf-type-input"
+                id="jfContentSearch"
+                type="text"
+                name="title"
+                autocomplete="off"
+                class="layui-input" />
+            </div>
+          </div>
+        </div>
+        <div class="js-select-area">
+          <button class="layui-btn layui-btn-primary jf-dropdown">
+            <span class="sort-title" data-i18n="common.default"></span>
+            <i class="layui-icon layui-icon-down layui-font-12"></i>
+          </button>
+        </div>
+        {% comment %} 作品瀑布流 {% endcomment %}
+        <div class="jf-search-empty-area" id="searchEmptyArea"></div>
+        <div class="jf-waterfall-flow" id="jfWaterfall">
+          <div class="jf-flow-item"></div>
+          <div class="jf-flow-item jf-ignore-item"></div>
+          <div class="jf-flow-item jf-ignore-item"></div>
+        </div>
+        <div class="jf-loading-wrap" id="jfLoading">
+          <i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>
+          <span data-i18n="common.loading"></span>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  {% comment %} life 活动页 {% endcomment %}
+  {% if from == 'life-activity' %}
+
+    {%- assign isLogin = false -%}
+    {% if customer %}
+      {%- assign isLogin = true -%}
+    {% endif %}
+
+    <script src="{{ 'jquery-3.6.4.min.js' | asset_url }}" data-cookieconsent="ignore" defer></script>
+    <script defer src="{{ 'page.life.min.js' | asset_url }}" data-cookieconsent="ignore" type="module"></script>
+    <script defer>
+      document.addEventListener("DOMContentLoaded", () => {
+        // 获取 cookie
+        function getCookie(n) {
+          let name = n + "=";
+          let ca = document.cookie.split(';');
+          for (let i = 0; i < ca.length; i++) {
+            let c = ca[i].trim();
+            if (c.indexOf(name) === 0) {
+              return c.substring(name.length, c.length)
+            }
+          }
+          return ""
+        }
+
+        new _receiveInstance.ReceiveJackeryLife({
+          isSign: {{ isLogin }},
+          cr: Shopify.country,
+          shopId: window.shopId,
+          authorization: {{ isLogin }} ? getCookie("_jk_user") : '',
+
+          isOpenBlank: {{ isOpenBlank }},
+          isLifeIconImg: {{ isLifeIconImg }},
+          lifeIconImg: '{{ lifeIconImg | image_url: width: 44 }}',
+          lifeIconText: '{{ lifeIconText | escape }}',
+          lifeUserTabText: '{{ lifeUserTabText | escape }}',
+          lifeUserTabLink: '{{ lifeUserTabLink }}',
+        })
+      })
+    </script>
+  {% endif %}
+
+{% endif %}

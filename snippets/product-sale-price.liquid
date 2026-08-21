@@ -1,0 +1,75 @@
+{% comment %} 商品价格显示 {% endcomment %}
+<style>
+    .product-price-wrapper {margin: 4px 0;}
+    .index-product-price-origin {color: #666;}
+    .index-product-price-name,.index-product-price-sale { color: var(--primary-color); }
+    .index-product-price-sale {margin-right: 1.82292vw;}
+    .index-product-prices {align-items: baseline;}
+    @media screen and (max-width: 1024px) {
+        .index-product-price-sale {margin-right: 0px;}
+        .index-product-prices{ justify-content: center; }
+    }
+</style>
+
+{% comment %} {% if product.price_varies %}
+    {% assign price_min = product.price_min %}
+    {% assign compare_at_price_min = product.compare_at_price_min %}
+{% else %}
+    {% assign price_min = product.price %}
+    {% assign compare_at_price_min = product.compare_at_price %}
+{% endif %} {% endcomment %}
+{% assign price_discounted = product.metafields.custom.manual_discounted_price %}
+
+{% assign target = product.selected_or_first_available_variant %}
+{% assign compare_at_price = target.compare_at_price %}
+{% assign price = target.price | default: 1999 %}
+
+<div class="flex flex-col product-price-wrapper" compare_at_price_min="{{compare_at_price}}" price_min="{{price}}" xxxx="{{price_discounted}}">
+    <div class="index-product-price-name jky-text-base font-400">{{ 'general.action_text.sale_price_text' | t }}</div>
+    <div class="index-product-prices flex">
+        {%- if price_discounted != blank -%}
+            {% assign price_discounted = product.metafields.custom.manual_discounted_price | times: 100 %}
+                <div class="index-product-price-sale jky-text-xl font-bold price--on-sale">{{ price_discounted | money }}</div>
+                <div class="index-product-price-origin jky-text-lg font-400 origin-price" style="text-decoration: line-through;">{{ price | money }}</div>
+        {%- else -%}
+            {% comment %} 如果开启了自动计算折扣价 {% endcomment %}
+            {%- if settings.open_auto_discount_price -%}
+                {% comment %} 自动计算 - 折后价格 {% endcomment %}
+                {%- assign auto_discount_price = target.metafields.custom.auto_discount_price | times: 1 -%}
+
+                {%- if auto_discount_price > 0 -%}
+                    {% comment %} 当前价格 {% endcomment %}
+                    {%- assign current_price = price -%}
+
+                    {% comment %} 如果自动折扣价 小于 当前价，则取 自动折扣价 {% endcomment %}
+                    {%- if auto_discount_price < price -%}
+                        {%- assign current_price = auto_discount_price -%}
+                    {%- endif -%}
+                    <div class="index-product-price-sale jky-text-xl font-bold price--on-sale">{{ current_price | money }}</div>
+
+                    {%- if current_price < compare_at_price -%}
+                        <div class="index-product-price-origin jky-text-lg font-400 origin-price" style="text-decoration: line-through;">{{ compare_at_price | money }}</div>
+                    {%- else -%}
+                        {%- if current_price < price -%}
+                            <div class="index-product-price-origin jky-text-lg font-400 origin-price" style="text-decoration: line-through;">{{ price | money }}</div>
+                        {%- endif -%}
+                    {%- endif -%}
+                {%- else -%}
+                    {%- if price < compare_at_price -%}
+                        <div class="index-product-price-sale jky-text-xl font-bold price--on-sale">{{ price | money }}</div>
+                        <div class="index-product-price-origin jky-text-lg font-400 origin-price" style="text-decoration: line-through;">{{ compare_at_price | money }}</div>
+                    {%- else -%}
+                        <div class="index-product-price-sale jky-text-xl font-bold price">{{ price | money }}</div>
+                    {%- endif -%}
+                {%- endif -%}
+            {%- else -%}
+                {%- if price < compare_at_price -%}
+                    <div class="index-product-price-sale jky-text-xl font-bold price--on-sale">{{ price | money }}</div>
+                    <div class="index-product-price-origin jky-text-lg font-400 origin-price" style="text-decoration: line-through;">{{ compare_at_price | money }}</div>
+                {%- else -%}
+                    <div class="index-product-price-sale jky-text-xl font-bold price">{{ price | money }}</div>
+                {%- endif -%}
+            {%- endif -%}
+        {%- endif -%}
+    </div>
+</div>

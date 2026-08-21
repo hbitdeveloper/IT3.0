@@ -1,0 +1,129 @@
+{{ 'section-index-awards.min.css' | asset_url |  stylesheet_tag}}
+
+<div id="index-awards-{{ section.id }}" class="index-awards {% if section.settings.type == 'embed' %}embed-component{% endif %}" data-handle="{{ section.settings.handle }}" data-section-id="{{ section.id }}">
+    {% if section.settings.pc_image != blank and section.settings.mb_image != blank %}
+        {%- render 'responsive-image',image_class:'index-awards-bg-img', image: section.settings.pc_image, mimage: section.settings.mb_image -%}
+    {% endif %}
+    <div class="new-main-container">
+        <div class="awards">
+            <div class="content">
+                <div class="left jky-slidedown">
+                    <div class="title"><span class="jky-slideup">{{ section.settings.module_title | escape }}</span> </div>
+                    {%- if section.settings.sub_title != blank -%}
+                        <div class="sub-title line-clamp-4"> {{ section.settings.sub_title}}</div>
+                    {%- endif -%}
+
+                    {% if section.settings.button_text != blank %}
+                        <a
+                            data-ga-event="home_page_media_recommendations4.0"
+                            data-ga-action="click"
+                            data-ga-params-module="{{ section.settings.module_title | escape }}"
+                            data-ga-params-link="{{ section.settings.link }}"
+                            data-ga-params-button_name="{{ section.settings.button_text }}"
+                            data-ga-params-type="Media recommendations"
+                            target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ section.settings.link }}">
+                            <button class="index-button" >
+                                <span>{{ section.settings.button_text | escape }}</span>
+                                <div>
+                                    <div class="arrow">
+                                        <svg class="line" width="20" height="15" viewBox="0 0 20 15">
+                                            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                                <g transform="translate(-694.000000, -311.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                                    <g transform="translate(672.000000, 286.000000)">
+                                                        <polygon points="34.7083333 25 31.0625 25 37 31.0256733 22 31.0256733 22 33.4570853 37 33.4570853 31.0625 39.4827586 34.7083333 39.4827586 42 32.2942361"></polygon>
+                                                    </g>
+                                                </g>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </button>
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="right">
+                    <div class="swiper awards-swiper">
+                        <div class="swiper-wrapper">
+                            {% for item in section.blocks %}
+                                <div class="swiper-slide">
+                                    {%- render 'responsive-image',image_class:'award-item-img', image: item.settings.pc_image,width: 304, mimage: item.settings.mb_image,mwidth: 300 -%}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-pagination awards-pagination"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ 'section-index-awards.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+    {
+        "name": "首页-媒体背书",
+        "disabled_on": {
+            "templates": ["collection"]
+        },
+        "settings": [
+              {
+                "type": "select",
+                "id": "type",
+                "label": "类型",
+                "default": "independent",
+                "options": [
+                  {
+                    "value": "embed",
+                    "label": "内嵌使用"
+                  },
+                  {
+                    "value": "independent",
+                    "label": "独立使用"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "id": "handle",
+                "label": "Handle（当前页面唯一的handle）",
+                "default": "embed-component-01"
+              },
+            { "type": "text", "id": "module_title", "label": "模块标题(必填)" },
+            { "type": "textarea", "id": "sub_title", "label": "描述" },
+            { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+            { "type": "image_picker", "id": "pc_image", "label": "PC 背景图", "info": "大小: 1920x640"},
+            { "type": "image_picker", "id": "mb_image", "label": "MB 背景图", "info": "大小: 750x1237"},
+            { "type": "text", "id": "button_text", "label": "按钮文案" },
+            { "type": "url", "id": "link", "label": "跳转地址" }
+        ],
+        "blocks": [
+            {
+                "type": "block",
+                "name": "媒体背书",
+                "settings": [
+                    { "type": "image_picker", "id": "pc_image", "label": "PC图片(必填)", "info": "大小: 304x383"},
+                    { "type": "image_picker", "id": "mb_image", "label": "MB图片(必填)", "info": "大小: 620x712"}
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "首页-媒体背书",
+                "settings": {
+                    "module_title": "Awards And Recognition",
+                    "sub_title": "Jackery's efforts on R&D and sustainability are globally recognized.",
+                    "new_window": false,
+                    "pc_image": "",
+                    "mb_image": "",
+                    "button_text": "VIEW MORE"
+                },
+                "blocks": [
+                    {
+                        "type": "block"
+                    }
+                ]
+            }
+        ]
+    }
+{% endschema %}

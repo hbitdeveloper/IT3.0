@@ -1,0 +1,178 @@
+<div class="lg-100plus-swiper relative overflow-hidden bg-[#fff0f3] py-12 lg:py-16 min-h-[27.25rem] lg:min-h-[54.5rem]"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{ section.settings.anchor | escape }}"
+  {% endif %}
+  >
+  {% render 'diff-end-img',
+    picture_class: 'lg-100plus-swiper-img-picture absolute top-0 left-0 w-full min-h-[27.25rem] lg:min-h-[54.5rem] h-full',
+    class: 'lg-100plus-swiper-img lg:absolute top-0 left-0 w-full h-full object-cover',
+    pc_img: 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/100plus-swiper-bg-pc.png?v=1769238608',
+    mb_img: 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/100plus-swiper-bg-mb.png?v=1769502813',
+    placeholder_name: 'hero-apparel-1',
+    alt: section.settings.title | strip_html | append: ' background image'
+  %}
+
+  <div class="content-box relative mx-auto w-full lg:px-[10px] flex justify-center flex-wrap items-center flex-col">
+    <div class="relative flex w-[13.375rem] lg:w-[28.6875rem] items-center justify-center pt-4 lg:pt-[3.75rem] lg:pb-[0.625rem]">
+      <img
+        width="auto"
+        height="auto"
+        src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/100plus-swiper-title-bg.png?v=1769239359"
+        alt="{{ section.settings.title }}"
+        class="absolute top-0 lg:top-4"
+      >
+      <p class="relative z-10 w-auto text-center text-[1.3125rem] lg:text-[2.625rem] font-bold leading-1 tracking-[0.16em] lg:tracking-[0.42rem] text-white">
+        {{ section.settings.title }}
+      </p>
+    </div>
+    <div class="relative z-10 bg-white mx-auto w-full max-w-[93.3125rem] lg:rounded-[1.5rem] py-5 lg:py-0">
+      <div class="hidden items-stretch justify-center gap-10 lg:flex pt-16 pb-20">
+        {% for block in section.blocks %}
+          <a
+            href="{{ block.settings.link }}"
+            class="flex w-[26.6875rem] flex-col items-center rounded-[1.25rem] bg-[#fff0f3] hover:bg-[#ec76a2] hover:scale-110 transition-all duration-300 px-[3.0625rem] py-[3.3125rem]"
+          >
+            <div class="h-[15.375rem] w-[20.5625rem] bg-white">
+              <img
+                src="{{ block.settings.img | image_url: width: '329', height: '246' }}"
+                width="329"
+                height="246"
+                alt="image alt"
+                class="w-full h-full object-cover"
+              >
+            </div>
+            <p class="mt-[1.625rem] px-[1.625rem] w-full break-words text-[1.25rem] font-medium leading-[1.4] text-black">
+              {{ block.settings.desc }}
+            </p>
+          </a>
+        {% endfor %}
+      </div>
+
+      <div class="lg:hidden swiper related-swiper">
+        <div class="swiper-wrapper items-stretch [&_.swiper-slide]:scale-80 [&_.swiper-slide-active>a:first-child]:bg-[#ec76a2]">
+          {% for block in section.blocks %}
+            <div class="swiper-slide flex justify-center">
+              <a
+                href="{{ block.settings.link }}"
+                class="flex w-[13.375rem] max-w-[16.25rem] flex-col items-center rounded-[0.625rem] bg-[#fff0f3] p-[1.5625rem]"
+              >
+                <div class="h-[7.5rem] w-full max-w-[11.25rem] bg-white">
+                  <img
+                    src="{{ block.settings.img | image_url: width: '329', height: '246' }}"
+                    width="329"
+                    height="246"
+                    alt="image alt"
+                    class="w-full h-full object-cover"
+                  >
+                </div>
+                <p
+                  class="mt-4 w-full break-words text-center font-medium leading-[1.4] text-black"
+                  style="font-size: max(0.625rem, 12px);"
+                >
+                  {{ block.settings.desc }}
+                </p>
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @media screen and (max-width: 1023.98px) {
+    .lg-100plus-swiper .swiper-wrapper .swiper-slide {
+      transform: scale(0.8);
+      height: auto;
+    }
+    .lg-100plus-swiper .swiper-wrapper .swiper-slide-active {
+      transform: scale(1);
+    }
+    .lg-100plus-swiper .user-info-content {
+      --jp-custom-line-height: 1;
+    }
+  }
+</style>
+
+<script type="module">
+  (() => {
+    let mySwiper = null;
+    const createSwiper = () => {
+      const swiperEl = document.querySelector('.related-swiper');
+      if (!swiperEl) return;
+      if (!Swiper) return;
+
+      mySwiper = new Swiper(swiperEl, {
+        slidesPerView: 1.8,
+        centeredSlides: true,
+        spaceBetween: 18,
+        loop: true,
+        initialSlide: 1,
+        grabCursor: true,
+      });
+    };
+
+    if (window.innerWidth < 1024) {
+      createSwiper();
+    }
+    window.addEventListener(
+      'resize',
+      () => {
+        if (window.innerWidth < 1024) {
+          mySwiper?.destroy();
+          createSwiper();
+        }
+      },
+      { passive: true }
+    );
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "JP 100plus Swiper",
+  "class": "jp-100plus-swiper",
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "标题"
+    }
+  ],
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "item-list",
+      "name": "Item",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "img",
+          "label": "图片（329 * 246px）"
+        },
+        {
+          "type": "text",
+          "id": "desc",
+          "label": "描述"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "超链接"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "JP 100plus Swiper"
+    }
+  ]
+}
+{% endschema %}

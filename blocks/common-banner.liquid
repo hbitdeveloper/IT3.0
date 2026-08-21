@@ -1,0 +1,383 @@
+{% liquid
+    assign pc_height = block.settings.pc_height
+    assign mb_height = block.settings.mb_height
+
+    if block.settings.enable_custom_pc_height
+        assign pc_height = block.settings.custom_pc_height
+    endif
+    if block.settings.enable_custom_mb_height
+        assign mb_height = block.settings.custom_mb_height
+    endif
+%}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{{ 'block-v-common-banner.min.css' | asset_url | stylesheet_tag }}
+
+<div
+  class="common-banner-wrapper w-full section-padding {% if settings.enable_animations_scroll %}scroll-trigger animate--slide-in{% endif %}"
+  {% if block.settings.anchor != blank %}
+    anchor-target="{{block.settings.anchor | escape}}"
+  {% endif %}
+  data-autoplay="{{ block.settings.swiper_auto }}"
+  data-loop="{{ block.settings.swiper_loop }}"
+  data-delay="{{ block.settings.swiper_delay }}"
+  style="--pc-banner-h:{{ pc_height}};--mb-banner-h:{{ mb_height}};{{ style }}"
+>
+  <div class="swiper">
+    <div class="swiper-wrapper">
+      {% content_for 'blocks' %}
+    </div>
+    <div class="swiper-arrow swiper-button-next hidden"></div>
+    <div class="swiper-arrow swiper-button-prev hidden"></div>
+    <div class="slideshow-pagination"></div>
+  </div>
+</div>
+
+<script type="module">
+  const COMMON_BANNER_SCRIPT_ID = 'block-v-common-banner-script';
+  const COMMON_BANNER_SCRIPT_SRC = '{{ "block-v-common-banner.min.js" | asset_url }}';
+
+  {% comment %} 单例 Promise 方案 {% endcomment %}
+  if (!window.commonBannerLoadPromise) {
+    window.commonBannerLoadPromise = new Promise((resolve, reject) => {
+      const existingScript = document.getElementById(COMMON_BANNER_SCRIPT_ID);
+
+      if (existingScript) {
+        if (existingScript.dataset.loaded === 'true') {
+          resolve();
+          return;
+        }
+
+        existingScript.addEventListener('load', resolve, { once: true });
+        existingScript.addEventListener('error', reject, { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.id = COMMON_BANNER_SCRIPT_ID;
+      script.src = COMMON_BANNER_SCRIPT_SRC;
+      script.async = true;
+
+      script.addEventListener('load', () => {
+        script.dataset.loaded = 'true';
+        resolve();
+      }, { once: true });
+
+      script.addEventListener('error', (event) => {
+        console.warn('CommonBanner: script load failed.', event);
+        reject(event);
+      }, { once: true });
+
+      document.body.appendChild(script);
+    });
+  }
+</script>
+{% schema %}
+{
+  "name": "V-通用Banner",
+  "class": "block-common-banner",
+  "blocks": [{ "type": "_common-banner-img" }],
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "select",
+      "id": "pc_height",
+      "label": "PC高度",
+      "options": [
+        {
+          "value": "800",
+          "label": "800px"
+        },
+        {
+          "value": "640",
+          "label": "640px"
+        },
+         {
+          "value": "600",
+          "label": "600px"
+        }
+      ],
+      "default": "800"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_custom_pc_height",
+      "label": "使用自定义PC高度",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "custom_pc_height",
+      "label": "自定义PC高度",
+      "default": 800
+    },
+    {
+      "type": "header",
+      "content": "MB端配置"
+    },
+    {
+      "type": "select",
+      "id": "mb_height",
+      "label": "MB高度",
+      "options": [
+         {
+          "value": "960",
+          "label": "960px"
+        },
+        {
+          "value": "1000",
+          "label": "1000px"
+        },
+        {
+          "value": "1200",
+          "label": "1200px"
+        }
+      ],
+      "default": "1000"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_custom_mb_height",
+      "label": "使用自定义MB高度",
+      "default": false
+    },
+    {
+      "type": "number",
+      "id": "custom_mb_height",
+      "label": "自定义MB高度",
+      "default": 1000
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "轮播设置"
+    },
+    {
+      "type": "checkbox",
+      "id": "swiper_loop",
+      "label": "无限循环",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "swiper_auto",
+      "label": "自动轮播",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "swiper_delay",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "轮播间隔",
+      "default": 5,
+      "visible_if": "{{ block.settings.swiper_auto == true }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-通用Banner",
+      "category": "内容展示",
+      "blocks": [
+        {
+          "type": "_common-banner-img",
+          "blocks": [
+            {
+              "type": "v-heading-content",
+              "settings": {
+                "padding_top": 0,
+                "padding_bottom": 32,
+                "padding_left": 0,
+                "padding_right": 0,
+                "radius_3": 0,
+                "radius_4": 0
+              },
+              "blocks": [
+                {
+                  "type": "_v-heading-content-des",
+                  "settings": {
+                    "heading": "<p><em>Living and Blackouts</em></p>",
+                    "mb_heading": "<p><em>Living and Blackouts</em></p>",
+                    "padding_top": 0,
+                    "padding_bottom": 4,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff",
+                  }
+                },
+                {
+                  "type": "_v-heading-content-heading",
+                  "settings": {
+                    "heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                    "mb_heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                    "padding_top": 0,
+                    "padding_bottom": 16,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff",
+                  }
+                },
+                {
+                  "type": "_v-heading-content-subheading",
+                  "settings": {
+                    "heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                    "mb_heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff",
+                    "heading_size": "heading_5"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "_button-group",
+              "settings": {
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "pc_content_align": "left",
+                "mb_content_align": "left",
+              },
+              "blocks": [
+                {
+                  "type": "_button-group-btn",
+                  "settings": {
+                    "content": "VIEW MORE",
+                    "animated": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "_common-banner-img",
+          "blocks": [
+            {
+              "type": "v-heading-content",
+              "settings": {
+                "padding_top": 0,
+                "padding_bottom": 32,
+                "padding_left": 0,
+                "padding_right": 0,
+                "radius_3": 0,
+                "radius_4": 0
+              },
+              "blocks": [
+                {
+                  "type": "_v-heading-content-des",
+                  "settings": {
+                    "heading": "<p><em>Living and Blackouts</em></p>",
+                    "mb_heading": "<p><em>Living and Blackouts</em></p>",
+                    "padding_top": 0,
+                    "padding_bottom": 16,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff",
+                  }
+                },
+                {
+                  "type": "_v-heading-content-heading",
+                  "settings": {
+                    "heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                    "mb_heading": "<p>Jackery Solar</p><p>Generator 3000 Pro</p>",
+                    "padding_top": 0,
+                    "padding_bottom": 16,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff",
+                  }
+                },
+                {
+                  "type": "_v-heading-content-subheading",
+                  "settings": {
+                    "heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                    "mb_heading": "<p>All You Need For Off-grid Living and Blackouts</p>",
+                    "padding_top": 0,
+                    "padding_bottom": 0,
+                    "alignment": "left",
+                    "alignment_mb": "left",
+                    "text_color": "#ffffff",
+                  }
+                }
+              ]
+            },
+            {
+              "type": "_button-group",
+              "settings": {
+                "padding_top": 0,
+                "padding_bottom": 0,
+                "pc_content_align": "left",
+                "mb_content_align": "left",
+              },
+              "blocks": [
+                {
+                  "type": "_button-group-btn",
+                  "settings": {
+                    "content": "VIEW MORE",
+                    "animated": true
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

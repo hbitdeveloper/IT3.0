@@ -1,0 +1,219 @@
+<style>
+  .section-keyword-medium-comment {
+    background: #ffffff;
+    margin-bottom: 3.125vw;
+    max-width: 75vw;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .keyword-kmc-panel {
+    background: #f5f5f5;
+    padding: 3.5417vw 2.6042vw;
+    position: relative;
+  }
+  .keyword-kmc-content {
+    min-height: 15.1562vw;
+    position: relative;
+  }
+  .keyword-kmc-panel .left-top-icon {
+    position: absolute;
+    top: 68px;
+    left: 50px;
+    width: 1.7708vw;
+    height: 2.8125vw;
+  }
+  .keyword-kmc-panel .right-bottom-icon {
+    position: absolute;
+    right: 50px;
+    bottom: 57px;
+    width: 2.3958vw;
+    height: 3.4375vw;
+  }
+
+  .keyword-kmc-content .kmc-content-title {
+    font-size: 1.8229vw;
+    font-weight: 600;
+    color: #000000;
+    line-height: 1.4583vw;
+    padding: 1.8229vw 4.1667vw;
+    text-align: center;
+  }
+
+  .keyword-kmc-content .kmc-content-content {
+    font-size: 1.25vw;
+    font-weight: 500;
+    color: #000000;
+    line-height: 1.875vw;
+    padding: 0 4.1667vw;
+  }
+
+  .kw-swiper-pagination{
+    display: flex;
+    justify-content: center;
+    padding-top: 2.0833vw;
+    align-items: center;
+  }
+  .kw-swiper-pagination .keyMc-swiper-pagination-customs {
+    width: 2.0833vw;
+    height: 0.1042vw;
+    background: #CCCCCC;
+    margin-right: 0.5208vw;
+    cursor: pointer;
+  }
+  .kw-swiper-pagination .keyMc-swiper-pagination-customs-active{
+    width: 5.2083vw;
+    height: 0.2083vw;
+    background: var(--primary-color);
+  }
+  @media screen and (max-width: 768px) {
+    .section-keyword-medium-comment {
+      max-width: 100%;
+      padding: 0;
+      margin-left:0;
+      margin-right:0;
+      margin-bottom: 11.4667vw;
+    }
+    .keyword-kmc-panel{
+      width: 100%;
+      padding: 8.8vw 8vw;
+    }
+
+    .keyword-kmc-panel .left-top-icon {
+      position: absolute;
+      top: 8.8vw;
+      left: 8vw;
+      width: 4.5333vw;
+      height: 7.2vw;
+    }
+
+    .keyword-kmc-panel .right-bottom-icon{
+      position: absolute;
+      right: 8.1333vw;
+      top: 12.5333vw;
+      width: 6.1333vw;
+      height: 8.8vw;
+    }
+
+    .keyword-kmc-content .kmc-content-title{
+      padding: 0 10.6667vw;
+      font-size: 3.2vw;
+      font-weight: 600;
+      color: #000000;
+      line-height: 4.8vw;
+    }
+
+    .keyword-kmc-content .kmc-content-content {
+      padding: 5.3333vw 4.8vw 0 7.4667vw;
+      font-size: 3.2vw;
+      font-weight: 500;
+      color: #000000;
+      line-height: 4.8vw;
+    }
+
+    .kw-swiper-pagination{
+     padding-top: 3.6vw;
+    }
+
+    .kw-swiper-pagination .keyMc-swiper-pagination-customs {
+      width: 5.3333vw;
+      height: 0.2667vw;
+    }
+
+    .kw-swiper-pagination .keyMc-swiper-pagination-customs-active {
+      width: 13.3333vw;
+      height: 0.5333vw;
+    }
+  }
+</style>
+
+<div class="keyword-kmc-panel" anchor="{{ section.settings.anchor | escape }}">
+  <img
+    class="left-top-icon"
+    src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/1_d4621f27-b474-43ea-902e-f00f790cf09b.png?v=1670915016" loading="lazy"
+  >
+  <img
+    class="right-bottom-icon"
+    src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/2_55109115-cdac-4786-9031-e7168f04d355.png?v=1670915016" loading="lazy"
+  >
+  <div class="swiper keyword-kmc-swiper-main">
+    <div class="swiper-wrapper">
+      {% for block in section.blocks %}
+        <div class="swiper-slide keyword-kmc-content">
+          <div class="kmc-content-title">{{ block.settings.title | escape }}</div>
+          <div class="kmc-content-content">
+            {{ block.settings.content | newline_to_br }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<div id="kw_medium_comment_page" class="kw-swiper-pagination"></div>
+
+<script type="module">
+  function keywordMediumCommentInit() {
+    var swiper = new Swiper('.keyword-kmc-swiper-main', {
+      autoHeight: true,
+      loop: true,
+      autoplay: true,
+      pagination: {
+        el: '#kw_medium_comment_page',
+        type: 'custom',
+        renderCustom: function (swiper, current, total) {
+          var paginationHtml = '';
+          for (var i = 1; i <= total; i++) {
+            // 判断是否是激活焦点，是的话添加active类，不是就只添加基本样式类
+            if (i === current) {
+              paginationHtml +=
+                '<span class="keyMc-swiper-pagination-customs keyMc-swiper-pagination-customs-active"></span>';
+            } else {
+              paginationHtml += '<span class="keyMc-swiper-pagination-customs"></span>';
+            }
+          }
+          return paginationHtml;
+        },
+      },
+    });
+
+    const paginationContainer = document.getElementById('kw_medium_comment_page');
+    paginationContainer.addEventListener('click', function (e) {
+      const target = e.target;
+      if (target.classList.contains('keyMc-swiper-pagination-customs')) {
+        const siblings = Array.from(target.parentElement.children);
+        const index = siblings.indexOf(target) + 1;
+        swiper.slideTo(index, 1000, false); //切换到对应的slide，速度为1秒
+      }
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', function () {
+    keywordMediumCommentInit();
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Keyword Medium Comment",
+  "class": "section-keyword-medium-comment",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位文案" }
+  ],
+  "blocks": [
+    {
+      "type": "medium-comment-item",
+      "name": "Medium Comment Item",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title" },
+        { "type": "textarea", "id": "content", "label": "Content" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Keyword Medium Comment",
+      "category": "Keyword"
+    }
+  ]
+}
+{% endschema %}

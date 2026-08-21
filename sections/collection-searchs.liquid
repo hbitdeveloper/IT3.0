@@ -1,0 +1,103 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+{% style %}
+  .section-collection-search {background: #F8F8F8;}
+{% endstyle %}
+
+<div class="section-container-lg section-padding section-collection-searchs" style="{{style}}">
+  {%- if section.settings.sectionTitle != blank -%}
+    <h2 class="text-[1.75rem] lg:text-[2.5rem] font-medium mb-6 lg:mb-10 px-0 lg:px-2 text-[#1A1A1A] text-{{section.settings.alignment}} mb-text-{{section.settings.alignment_mb}}">{{- section.settings.sectionTitle -}}</h2>
+  {%- endif -%}
+
+  <div class="flex gap-3 lg:gap-6 flex-wrap">
+    {%- if collection.metafields.custom.related_searches.value != blank -%}
+      {%- for item in collection.metafields.custom.related_searches.value -%}
+        <div
+          class="flex w-full min-h-16 lg:min-h-[4.5rem] lg:w-[40.25rem] rounded lg:rounded-lg bg-white lg:hover:shadow-md lg:transition-shadow lg:duration-300 px-3	lg:px-4 py-2 items-start lg:items-center cursor-pointer"
+        >
+        <a
+          {% if section.settings.open_in_new_tab %}
+            target="_blank" rel="noopener noreferrer"
+          {% endif %}
+          href="{{item.url}}"
+          class="line-clamp-3 lg:line-clamp-2 text-sm lg:text-lg text-[#666666] font-medium gap-3 lg:gap-[1.875rem] flex-1"
+        >{{item.title}}</a>
+        {% render 'icon-search', class: 'iconfont w-5 h-5', width: 20, height: 20, color: "#666666" %}
+      </div>
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+
+{% schema %}
+{
+  "name": "产品系列-相关搜索",
+  "class": "section section-collection-search",
+  "enabled_on": { "templates": ["collection"] },
+  "tag": "section",
+   "settings": [
+        {
+          "type": "checkbox",
+          "id": "open_in_new_tab",
+          "label": "是否在新标签页面打开URL",
+          "default": false
+        },
+        {
+          "type": "richtext",
+          "id": "sectionTitle",
+          "label": "标题",
+          "default": "<p>Related Searches</p>"
+        },
+        {
+          "type": "header",
+          "content": "标题内容样式"
+        },
+        {
+          "type": "text_alignment",
+          "id": "alignment",
+          "label": "PC端对齐方式",
+          "default": "center",
+          "visible_if": "{{ section.settings.sectionTitle != blank }}"
+        },
+        {
+          "type": "text_alignment",
+          "id": "alignment_mb",
+          "label": "移动端对齐方式",
+          "default": "center",
+          "visible_if": "{{ section.settings.sectionTitle != blank }}"
+        },
+        {
+          "type": "header",
+          "content": "内边距"
+        },
+        {
+          "type": "range",
+          "id": "padding_top",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "px",
+          "label": "上边距",
+          "default": 72
+        },
+        {
+          "type": "range",
+          "id": "padding_bottom",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "unit": "px",
+          "label": "下边距",
+          "default": 72
+        }
+    ],
+   "blocks": [],
+   "presets": [
+    {
+        "name": "产品系列-相关搜索",
+        "category": "产品系列",
+        "blocks": []
+    }
+   ]
+}
+{% endschema %}

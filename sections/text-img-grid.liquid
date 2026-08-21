@@ -1,0 +1,107 @@
+{% comment %} Text Img Grid 组件 {% endcomment %}
+{% schema %}
+{
+  "name": "Text Img Grid",
+  "tag": "section",
+  "class": "text-img-grid",
+  "settings": [
+    {"type": "textarea", "id": "title", "label": "Section title", "default": "Intelligent Interface and Multiple Output Ports"},
+    {
+      "type": "textarea",
+      "id": "mb_title",
+      "label": "MB Title"
+    }
+  ],
+  "blocks": [{
+    "type": "slide",
+    "name": "Slide Card Image",
+    "settings": [
+      {"type": "text", "id": "card_title", "label": "Title", "default": "Off-Grid Living"},
+      {"type": "textarea", "id": "card_description", "label": "Description", "default": "Off-Grid Living"},
+      {"type": "image_picker", "id": "card_image", "label": "Image"}
+    ]
+  }]
+}
+{% endschema %}
+<style>
+  @media screen and (max-width: 1024px) {
+    .hide-mb {
+      display: none;
+    }
+    .hide-pc {
+      display: initial!important;
+    }
+  }
+  .hide-pc {
+    display: none;
+  }
+</style>
+<div class="solar-text-img-grid">
+    <div class="text-img-grid-title">
+      {%- liquid
+        assign mb_title = section.settings.title
+        if section.settings.mb_title != blank
+          assign mb_title = section.settings.mb_title
+        endif
+      -%}
+      <span class="hide-mb">{{ section.settings.title | newline_to_br}}</span>
+      <span class="hide-pc">{{ mb_title | newline_to_br}}</span>
+    </div>
+    <div class="text-img-grid-content">
+        {% for block in section.blocks %}
+            <div class="text-img-grid-body">
+                <div class="text-img-grid-ghost">
+                    <div class="grid-title">{{ block.settings.card_title }}</div>
+                    <div class="grid-description">{{ block.settings.card_description }}</div>
+                </div>
+                <div class="text-img-grid-img">
+                    {% render 'responsive-image',image:block.settings.card_image,image_class:'grid-img' %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<script>
+  (function (){
+    $(function (){
+      const $boxTextBox = $('.solar-text-img-grid');
+      window.gsap.registerPlugin(window.ScrollTrigger);
+
+      $('.text-img-grid-body').each(function(index) {
+        $(this).addClass('image-' + (index + 1));
+      });
+
+      function createTimeline(imageClass, xValue) {
+        return window.gsap.timeline({
+          scrollTrigger: {
+            trigger: `${imageClass} .text-img-grid-img`,
+            start: "top bottom",
+            end: "+=400",
+            scrub: 3,
+            id: "scrub"
+          }
+        }).to(`${imageClass} .text-img-grid-img`, {
+          duration: 2,
+          x: xValue
+        });
+      }
+      let screenWidth = $(window).width();
+
+      let solarGridWidth = $('.solar-text-img-grid').outerWidth();
+
+      let bodyWidth = $('.text-img-grid-body').eq(0).outerWidth();
+      let totalBodiesWidth = bodyWidth * 3;
+      let result = (solarGridWidth - totalBodiesWidth) / 2;
+      let offsetWidth = bodyWidth + result;
+
+      if(screenWidth >= 1024){
+        $('.text-img-grid-body').each(function(index) {
+          const imageClass = `.image-${index + 1}`;
+          let largeXOffset = screenWidth > 1440 ? 464 : offsetWidth;
+          const xValue = (index % 2 === 0) ? largeXOffset : 0-largeXOffset;
+          createTimeline(imageClass, xValue);
+        });
+      }
+    })
+  })();
+</script>

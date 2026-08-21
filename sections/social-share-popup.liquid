@@ -1,0 +1,251 @@
+{% schema %}
+{
+  "name": "社交分享弹窗",
+  "tag": "section",
+  "class": "social-share-popup",
+  "settings": [
+    {
+      "type": "header",
+      "content": "右下角分享icon"
+    },
+    {
+      "type": "select",
+      "id": "icon_type",
+      "label": "图片Size",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "small"
+    },
+    {
+      "type": "image_picker",
+      "id": "pageShareIcon",
+      "label": "Icon",
+      "info": "图片Size设置为Small，icon尺寸建议为48*48，图片Size设置为Medium，icon建议为64*64，图片Size设置为Large，icon建议为80*80"
+    },
+    {
+      "type": "number",
+      "id": "pcBottom",
+      "label": "PC端Icon距离底部定位（px）",
+      "default": 156,
+    },
+    {
+      "type": "number",
+      "id": "mbBottom",
+      "label": "移动端Icon距离底部定位（px）",
+      "default": 156,
+      "info": "以响应式规范进行等比换算"
+    },
+    {
+      "type": "textarea",
+      "id": "icon_note",
+      "label": "注意：",
+      "default": "Chatbot如果设置为small，那么当前icon距离底部建议设置为156，\n Chatbot如果设置为Medium，那么当icon距离底部建议设置为188，\n Chatbot如果设置为Large，那么当前icon距离底部建议设置为240"
+    },
+    {
+      "type": "header",
+      "content": "分享弹窗"
+    },
+    {
+      "type": "text",
+      "id": "popupTitle",
+      "label": "弹窗标题",
+      "default": "Share"
+    },
+    {
+      "type": "text",
+      "id": "insShareSuccessText",
+      "label": "Ins分享成功提示语",
+      "default": "Copy successfully,open Instagram to post!"
+    },
+    {
+      "type": "text",
+      "id": "copySuccessText",
+      "label": "复制链接成功提示语",
+      "default": "Copy successfully!"
+    }
+  ],
+  "blocks": [
+    {
+      "name": "社交平台",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "select",
+          "id": "type",
+          "label": "类型",
+          "default": "facebook",
+          "options": [
+            {
+              "label": "Facebook",
+              "value": "facebook"
+            },
+            {
+              "label": "Twitter",
+              "value": "twitter"
+            },
+            {
+              "label": "Instagram",
+              "value": "instagram"
+            },
+            {
+              "label": "WhatsApp",
+              "value": "whatsapp"
+            },
+            {
+              "label": "Line",
+              "value": "line"
+            },
+            {
+              "label": "Copy Link",
+              "value": "copy-link"
+            },
+            {
+              "label": "Refer A Friend",
+              "value": "refer-a-friend"
+            }
+          ]
+        },
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "标题"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "'Refer A Friend' 超链接"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "页面社交分享弹窗"
+    }
+  ]
+}
+{% endschema %}
+
+{{ 'section-social-share-popup.min.css' | asset_url | stylesheet_tag }}
+
+{% assign icon_size = 48 %}
+{% assign share_icon_width  = '3rem' %}
+{% assign share_icon_height = '3rem' %}
+
+{% if section.settings.icon_type == 'medium' %}
+  {% assign icon_size = 64 %}
+  {% assign share_icon_width  = '4rem' %}
+  {% assign share_icon_height = '4rem' %}
+{% elsif section.settings.icon_type == 'large' %}
+  {% assign icon_size = 80 %}
+  {% assign share_icon_width  = '5rem' %}
+  {% assign share_icon_height = '5rem' %}
+{% endif %}
+
+{% assign icon_url_width = icon_size | times: 2 %}
+
+{% if section.settings.pcBottom == blank %}
+  {% assign share_icon_pc_bottom = '156px' %}
+{% else %}
+  {% assign share_icon_pc_bottom = section.settings.pcBottom | append: 'px' %}
+{% endif %}
+
+{% comment %} 移动端以750px分辨率为基准进行等比换算 {% endcomment %}
+{% if section.settings.mbBottom == blank %}
+  {% assign share_icon_mb_bottom = 156 | divided_by: 16.0 | append: 'rem' %}
+{% else %}
+  {% assign share_icon_mb_bottom = section.settings.mbBottom | divided_by: 16.0 | append: 'rem' %}
+{% endif %}
+
+<div
+  class="popup-wrapper"
+  style="
+    --share-icon-pc-bottom:{{ share_icon_pc_bottom }};
+    --share-icon-pc-medium-bottom:{{ share_icon_pc_medium_bottom }};
+    --share-icon-mb-bottom:{{ share_icon_mb_bottom }};
+    --share-icon-width:{{ share_icon_width }};
+    --share-icon-height:{{ share_icon_height }}"
+>
+  {% comment %} 右下角分享icon {% endcomment %}
+  {% if section.settings.pageShareIcon %}
+    {% render 'responsive-image', image: section.settings.pageShareIcon,width: icon_url_width,mwidth: icon_url_width, image_class: 'page-share-icon object-cover object-center' %}
+  {% else %}
+    <svg
+      class="page-share-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      width="48"
+      height="48"
+      viewBox="0 0 59 59"
+      fill="none"
+    >
+      <circle cx="29.5" cy="29.5" r="29.5" fill="var(--jds-color-primary)"></circle>
+      <path
+      		d="M40.2743 30.6546C40.2743 30.2479 40.4899 29.8705 40.8428 29.6695C41.1957 29.4637 41.6319 29.4637 41.9799 29.6695C42.3328 29.8754 42.5484 30.2479 42.5484 30.6546V37.3545C42.5484 41.1529 39.4705 44.2357 35.6672 44.2357H21.3265C17.5281 44.2357 14.4453 41.1578 14.4453 37.3545V23.0089C14.4453 19.2105 17.5232 16.1277 21.3265 16.1277H27.5558C28.1832 16.1277 28.6978 16.6374 28.6978 17.2647C28.6978 17.8921 28.1881 18.4018 27.5558 18.4018H21.3265C20.1061 18.4018 18.9347 18.887 18.0722 19.7496C17.2092 20.6129 16.7245 21.7834 16.7243 23.004V37.3496C16.7243 38.57 17.2096 39.7413 18.0722 40.6039C18.9347 41.4665 20.1061 41.9518 21.3265 41.9518H35.6721C38.2109 41.9518 40.2743 39.8933 40.2743 37.3496V30.6546Z"
+      		fill="white"></path>
+      <path
+      		d="M35.6728 44.6865H21.3272C17.2887 44.6865 14 41.3979 14 37.3594V23.0088C14 18.9703 17.2887 15.6816 21.3272 15.6816H27.5565C28.4338 15.6816 29.1445 16.3923 29.1445 17.2696C29.1445 18.1469 28.4338 18.8576 27.5565 18.8576H21.3272C20.2195 18.8576 19.1756 19.2889 18.3914 20.0731C17.6072 20.8572 17.1759 21.9012 17.1759 23.0088V37.3545C17.1759 38.4621 17.6072 39.506 18.3914 40.2902C19.1756 41.0744 20.2195 41.5057 21.3272 41.5057H35.6728C37.9616 41.5057 39.8241 39.6433 39.8241 37.3545V30.6546C39.8241 30.091 40.1279 29.5616 40.618 29.2774C40.8582 29.1402 41.1327 29.0666 41.412 29.0666C41.6914 29.0666 41.9659 29.1402 42.206 29.2774C42.6961 29.5616 43 30.0861 43 30.6546V37.3545C43 41.3979 39.7162 44.6865 35.6728 44.6865ZM21.3272 16.5785C17.7837 16.5785 14.8969 19.4653 14.8969 23.0088V37.3545C14.8969 40.898 17.7837 43.7847 21.3272 43.7847H35.6728C39.2163 43.7847 42.1031 40.898 42.1031 37.3545V30.6546C42.1031 30.4095 41.9708 30.1792 41.7551 30.0567C41.5444 29.9341 41.2748 29.9341 41.0641 30.0567C40.8533 30.1792 40.721 30.4095 40.721 30.6546V37.3545C40.721 40.1383 38.4566 42.4026 35.6728 42.4026H21.3272C19.9794 42.4026 18.71 41.8782 17.7592 40.9225C16.8034 39.9668 16.279 38.7023 16.279 37.3545V23.0088C16.279 21.661 16.8034 20.3916 17.7592 19.4408C18.7149 18.4851 19.9794 17.9607 21.3272 17.9607H27.5565C27.9388 17.9607 28.2476 17.6519 28.2476 17.2696C28.2476 16.8873 27.9388 16.5785 27.5565 16.5785H21.3272ZM40.275 18.4116H34.2417C33.6143 18.4116 33.1046 17.9019 33.1046 17.2745C33.1046 16.6472 33.6143 16.1374 34.2417 16.1374H41.4169C42.0443 16.1374 42.5589 16.6472 42.5589 17.2745V24.4498C42.5589 24.8566 42.3433 25.2339 41.9904 25.4349C41.6375 25.6407 41.2013 25.6407 40.8533 25.4349C40.5004 25.229 40.2848 24.8566 40.2848 24.4498V18.4116H40.275Z"
+      		fill="white"></path>
+      <path
+      		d="M41.4124 25.9642C41.1477 25.9642 40.883 25.8956 40.6527 25.7633C40.1871 25.4937 39.893 24.9889 39.893 24.4498V18.7889H34.242C33.4039 18.7889 32.7227 18.1077 32.7227 17.2696C32.7227 16.4315 33.4039 15.7502 34.242 15.7502H41.4173C42.2554 15.7502 42.9366 16.4315 42.9366 17.2696V24.4449C42.9366 24.984 42.6475 25.4888 42.1769 25.7584C41.9417 25.8907 41.677 25.9642 41.4124 25.9642ZM34.242 16.5099C33.8205 16.5099 33.4823 16.853 33.4823 17.2696C33.4823 17.6911 33.8254 18.0293 34.242 18.0293H40.6527V24.44C40.6527 24.7095 40.7997 24.9644 41.035 25.1016C41.2653 25.2339 41.5643 25.2339 41.7947 25.1016C42.0299 24.9644 42.1769 24.7144 42.1769 24.44V17.2696C42.1769 16.8481 41.8339 16.5099 41.4173 16.5099H34.242Z"
+      		fill="white"></path>
+      <path
+      		d="M29.3064 30.988C28.8555 31.4046 28.1595 31.3948 27.7233 30.9586C27.2871 30.5224 27.2773 29.8264 27.6939 29.3755L40.6084 16.461C41.0593 16.0444 41.7553 16.0542 42.1915 16.4904C42.6277 16.9266 42.6375 17.6226 42.2209 18.0735L29.3064 30.988Z"
+      		fill="white"></path>
+      <path
+      		d="M28.5275 31.6739C28.1207 31.6739 27.7433 31.5171 27.4541 31.2279C27.1753 30.9504 27.0154 30.5754 27.0081 30.1821C27.0008 29.7888 27.1466 29.4081 27.4149 29.1204L27.4247 29.1106L40.3441 16.1912L40.349 16.1863C40.6284 15.9217 40.9959 15.7795 41.3831 15.7795C41.7899 15.7795 42.1673 15.9364 42.4565 16.2255C42.7352 16.5031 42.8952 16.8781 42.9025 17.2714C42.9098 17.6646 42.7639 18.0453 42.4957 18.333L42.4859 18.3428L29.5665 31.2622L29.5616 31.2671C29.2822 31.5269 28.9146 31.6739 28.5275 31.6739ZM27.9687 29.6399C27.6943 29.9438 27.6992 30.4045 27.9932 30.6937C28.1354 30.8358 28.3265 30.9191 28.5324 30.9191C28.7235 30.9191 28.9048 30.8456 29.047 30.7182L41.9517 17.8135C42.2261 17.5096 42.2212 17.0489 41.9272 16.7598C41.785 16.6176 41.5939 16.5343 41.388 16.5343C41.1969 16.5343 41.0155 16.6078 40.8734 16.7353L27.9687 29.6399Z"
+      		fill="white"></path>
+    </svg>
+  {% endif %}
+
+  {% comment %} 页面社交分享弹窗 {% endcomment %}
+  <div
+    class="dialog-wrapper"
+    data-ins-success-txt="{{ section.settings.insShareSuccessText }}"
+    data-copy-success-txt="{{ section.settings.copySuccessText }}"
+  >
+    <div class="overlay"></div>
+    <div class="content">
+      <p class="title">{{ section.settings.popupTitle }}</p>
+      {% render 'icon-close', class: 'icon-close ', width: 22, height: 22, color: '#121212' %}
+      <ul>
+        {% for block in section.blocks %}
+          <li class="social-item item-{{ block.settings.type }}" data-type="{{ block.settings.type }}">
+            {% if block.settings.type == 'refer-a-friend' %}
+              <a href="{{ block.settings.link }}">
+                <img
+                  src="{{ block.settings.icon | image_url: width: 88 }}"
+                  alt="{{ block.settings.title }}"
+                  loading="lazy"
+                  width="44"
+                  height="44"
+                  loading="lazy"
+                >
+                <p>{{ block.settings.title }}</p>
+              </a>
+            {% else %}
+              <img
+                src="{{ block.settings.icon | image_url: width: 88 }}"
+                alt="{{ block.settings.title }}"
+                loading="lazy"
+                width="44"
+                height="44"
+                loading="lazy"
+              >
+              <p>{{ block.settings.title }}</p>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script src="{{ 'section-social-share-popup.min.js' | asset_url }}" defer></script>

@@ -1,0 +1,86 @@
+{% comment %} account redirect to id system {% endcomment %}
+{%- liquid
+    assign CR = settings.shop_cr | default: localization.country.iso_code | default: 'US'
+  
+    assign account_url = "https://account.jackery.com"
+    if shop.id == 55005249633 or shop.id == 56124375224 or shop.id == 64525172955 or shop.id == 75730714917
+        assign account_url = "https://demo-account.jackery.com"
+    elsif shop.id == 79611232554 or theme.role == "unpublished"
+        assign account_url = "https://account-uat.jackery.com"
+    endif
+  -%}
+  
+  
+  {%- if template contains 'customers/login' -%}
+    {%- assign pageUrlWithHost = content_for_header | split:'"pageurl":"' | last | split:'"' | first |
+      replace:'\/','/' |
+      replace:'%20',' ' |
+      replace:'\u0026','&'
+    -%}
+  
+    {%- if pageUrlWithHost contains "checkout_url" -%}
+      {%- assign checkout_query = pageUrlWithHost | split: '=' | last | url_decode -%}
+      {%- assign checkout_url = request.origin | append: checkout_query -%}
+    {%- endif -%}
+
+    {%- capture login_redirect_url -%}
+      {{ account_url }}/login{%- if checkout_url -%}?cr={{ CR }}&return_url={{ checkout_url | url_encode }}{%- endif -%}
+    {%- endcapture -%}
+    <script>
+      window.location.replace({{ login_redirect_url | strip | json }});
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0;URL={{ login_redirect_url | strip }}">
+    </noscript>
+  {%- endif -%}
+  
+  {%- if template contains 'customers/register' -%}
+    {%- capture register_redirect_url -%}
+      {{ account_url }}/register?return_url={{ request.origin | url_encode }}&cr={{ CR }}
+    {%- endcapture -%}
+    <script>
+      window.location.replace({{ register_redirect_url | strip | json }});
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0;URL={{ register_redirect_url | strip }}">
+    </noscript>
+  {%- endif -%}
+  
+  {%- if template contains 'customers/account' or template contains 'customers/order' or template contains 'customers/addresses' -%}
+    {%- capture account_redirect_url -%}
+      {{ account_url }}?cr={{ CR }}/
+    {%- endcapture -%}
+    <script>
+      window.location.replace({{ account_redirect_url | strip | json }});
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0;URL={{ account_redirect_url | strip }}">
+    </noscript>
+  {%- endif -%}
+  
+  {%- if template contains 'page.registration' -%}
+      <script>
+        window.location.replace("https://support.jackery.com/extend-warranty");
+      </script>
+      <noscript>
+        <meta http-equiv="refresh" content="0;URL=https://support.jackery.com/extend-warranty">
+      </noscript>
+  {%- endif -%}
+  
+  {%- if template contains 'product.' and product.selected_or_first_available_variant.id == blank -%}
+    <script>
+      window.location.href = "{{ product.url }}";
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0;URL={{ product.url }}">
+    </noscript>
+  {%- endif -%}
+
+  {% comment %} 解决日本shogun搭建的迁移问题 {% endcomment %}
+  {%- assign cr = settings.shop_cr | default: localization.country.iso_code | default: 'US' -%}
+  {%- if cr == 'JP' and request.page_type == 'article' and article != blank -%}
+    {%- assign redirect_url = article.metafields.custom.url.value | default: '' | strip -%}
+    {%- if redirect_url != blank -%}
+      <meta http-equiv="refresh" content="0;url={{ redirect_url | escape }}">
+    {%- endif -%}
+  {%- endif -%}

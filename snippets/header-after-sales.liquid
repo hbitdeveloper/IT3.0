@@ -1,0 +1,163 @@
+{%- if isShow -%}
+    {%- style -%}
+        .header-main {background: #fff;z-index: 1;}
+        header .header-after-sales {background: #F2F2F2;height: 34px;transition: all .15s;z-index: -1;}
+        header .header-after-sales.show {bottom: -34px;opacity: 1;z-index: 0}
+        .after-sales-item span {color: #333;transition: color .25s;max-width: 210px;}
+        .after-sales-item:hover span {color: #ff5000;}
+
+        @media screen and (max-width: 1024px) {
+            .after-sales-item {justify-content: center;}
+            .after-sales-container .swiper-wrapper {justify-content: unset;column-gap: unset;max-width: unset;}
+            .after-sales-container .swiper-wrapper .swiper-slide {max-width: unset;display: flex;justify-content: center;align-items: center;}
+        }
+
+        @media screen and (min-width: 1024px) {
+            .after-sales-container .swiper-wrapper {justify-content: center;column-gap: 40px;max-width: 69.27vw;margin: 0 auto;}
+            .after-sales-container .swiper-slide {display: flex;width: max-content;}
+        }
+
+        .after-sales__private_modal.modal {align-items: flex-start!important;padding-top: 100px;}
+        .after-sales__private_modal.modal-container.modal .moadal-header {padding: 16px 32px;height: auto}
+        .after-sales__private_modal.modal-container.modal .moadal-header-content {text-align: left;}
+        .after-sales__private_modal .modal-content {border-radius: var(--theme-dialog-border-radius, 10px);max-width: 800px;width: 800px;}
+        .after-sales-item__content {color: #666;overflow: hidden;}
+        @media screen and (max-width: 1024px) {
+            .after-sales__private_modal.modal {padding-top: 20vw;}
+            .after-sales__private_modal.modal-container.modal .moadal-header {padding: 6px 18px;min-height: 52px;height: auto;}
+            .after-sales__private_modal.modal-container.modal .modal-content {max-width: 85vw;width: 85vw;padding: 0;overflow: hidden;}
+            .after-sales__private_modal..modal-container.modal .modal-content-body {max-height: 60vh;overflow-y: scroll;}
+        }
+    {%- endstyle -%}
+
+    <div class="header-after-sales swiper after-sales-container absolute left-0 right-0 bottom-0 opacity-0">
+        <div class="swiper-wrapper">
+
+        {% for item in list %}
+            <div class="swiper-slide">
+                <div class="after-sales-item flex items-center cursor-pointer" data-index="{{forloop.index}}" data-content="{{item.settings.sales_content | escape | newline_to_br}}">
+                <img class="lazyimg object-contain mr-2 !h-7 !w-7" data-src="{{item.settings.slaes_icon | image_url: width: 56}}" alt="{{- item.settings.sales_title -}}">
+                <span class="text-overflow-2 text-xs">{{item.settings.sales_title}}</span>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+
+    <script type="module">
+        class AfterSales {
+            constructor(e) {
+                this.DOM = e.el;
+                if (!document.querySelector(this.DOM)) return
+                this.swiper = null;
+                this.init()
+            }
+
+            init() {
+                this.checkViewport();
+                let this_ = this
+                window.addEventListener('resize', function () {
+                    this_.checkViewport();
+                });
+
+                window.addEventListener('scroll', function () {
+                    const target = document.querySelector(".header-after-sales")
+                    if(!target) return
+                    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                    if(scrollTop > 500) {
+                        target.classList.add("show");
+                        if(document.querySelector("jky-header")) {
+                            const _h = document.querySelector("jky-header").getBoundingClientRect().height
+                            let _h_num = _h + 34;
+                            document.querySelector("body").style.setProperty(
+                            '--jky-header-h',
+                            `${Math.floor(_h_num)}px`
+                            );
+                        }
+                        if(document.querySelector(".after-sales-container").getAttribute("data-load") !== "loaded") {
+                            this_.loadImg()
+                        }
+                    } else {
+                        target.classList.remove("show");
+                        if(document.querySelector("jky-header") && document.querySelector("body").style.getPropertyValue('--jky-header-h')) {
+                            const _h = Math.floor(document.querySelector("jky-header").getBoundingClientRect().height)
+                            const _jky_h = Number(document.querySelector("body").style.getPropertyValue('--jky-header-h').replace('px', ''))
+                            if(_jky_h > _h + 5) {
+                                let _h_num = _jky_h - 34;
+                                _h_num > 0 && document.querySelector("body").style.setProperty(
+                                '--jky-header-h',
+                                `${Math.floor(_h_num)}px`
+                                );
+                            }
+                        }
+                    }
+                });
+
+                const items = document.querySelectorAll(".header-after-sales .after-sales-item");
+                items.forEach(item => {
+                    item.addEventListener("click", function () {
+                        const content = item.getAttribute("data-content");
+                        const index = item.getAttribute("data-index");
+                        const text = item.textContent || "";
+
+                        ZModle.getInstance(
+                            `<div class="after-sales-item__content jky-text-base">${content}</div>`,
+                            {
+                                id: `after-sales-item__${index}`,
+                                header: text,
+                                class: "after-sales__private_modal"
+                            }
+                        );
+                    })
+                })
+            }
+
+            initSwiper() {
+                this.swiper = new Swiper(this.DOM, {
+                    autoplay: {
+                        delay: 4000
+                    },
+                    loop: true
+                });
+            }
+
+            destroySwiper() {
+                if (this.swiper) {
+                    this.swiper.destroy();
+                    this.swiper = null;
+                }
+            }
+
+            checkViewport() {
+                if (window.innerWidth < 1024) {
+                    if (!this.swiper) {
+                        this.initSwiper();
+                    }
+                } else {
+                    if (this.swiper) {
+                        this.destroySwiper();
+                    }
+                }
+            }
+
+            loadImg() {
+                const $el = document.querySelectorAll(".after-sales-container img.lazyimg")
+                $el.forEach(item => {
+                    const src = item.getAttribute("data-src")
+                    if(src && !item.classList.contains("loaded")) {
+                        item.setAttribute("src", src);
+                        item.classList.add("loaded");
+                        item.removeAttribute("data-src");
+                    }
+                })
+                document.querySelector(".after-sales-container").setAttribute("data-load", "loaded")
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            new AfterSales({
+                el: '.after-sales-container'
+            });
+        });
+    </script>
+{%- endif -%}

@@ -1,0 +1,67 @@
+{% liquid 
+    # 顶部通知栏
+    # 判断当前所有block中的开始事件是否大于服务器时间
+    # 如果开始时间小于等于服务器时间并且结束时间大于等于服务器时间，则展示该通知栏
+    assign announce_blocks = section.blocks | where: 'type', 'announcement_bar'
+    assign show_announcement_bar = false
+    assign now_ts = 'now' | date: '%s' | minus: 0
+    for block in announce_blocks
+        if block.settings.begin_time != blank and block.settings.end_time != blank
+            assign begin_ts = block.settings.begin_time | date: '%s' | minus: 0
+            assign end_ts = block.settings.end_time | date: '%s' | minus: 0
+            if begin_ts <= now_ts and end_ts >= now_ts
+                assign show_announcement_bar = true
+                break
+            endif
+        endif
+    endfor
+%}
+
+<div class="announcement-bar h-8 lg:h-12 flex items-center justify-between text-white" id="{{ section.id }}"
+    style="background-color: {{ section.settings.background_color }}"
+>
+    <div class="hidden lg:block">1</div>
+    {% if show_announcement_bar == true and announce_blocks.size > 0 %}
+        {% render 'v5-announcement-bar__content',
+            blocks: announce_blocks,
+            speed: section.settings.speed,
+            ends_in: section.settings.ends_in,
+            days: section.settings.days,
+            hrs: section.settings.hours,
+            mins: section.settings.mins,
+            secs: section.settings.secs
+         %}
+    {% endif %}
+    <div class="hidden lg:block">1</div>
+</div>
+{% schema %}
+    {
+        "name": "通知栏",
+        "tag": "div",
+        "settings": [
+            { "type": "color_background", "id": "background_color","label": "背景色", "default": "#242F20" },
+            { "type": "header", "content": "顶部通知栏信息配置"},
+            { "type": "text", "id": "ends_in", "label": "Ends in", "default": "Ends in", "info": "截至展示文案" },
+            { "type": "text", "id": "days", "label": "天", "default": "Days", "info": "天的展示文案" },
+            { "type": "text", "id": "hours", "label": "时", "default": "Hrs", "info": "小时的展示文案" },
+            { "type": "text", "id": "mins", "label": "分", "default": "Mins", "info": "分的展示文案" },
+            { "type": "text", "id": "secs", "label": "秒", "default": "Secs", "info": "秒的展示文案" },
+            { "type": "range", "id": "speed", "min": 0, "max": 20, "step": 1, "unit": "秒", "label": "Swiper切换速度", "default": 5}
+        ],
+        "blocks": [
+            {
+                "type": "announcement_bar",
+                "name": "通知栏内容",
+                "limit": 5,
+                "settings": [
+                    { "type": "text", "id": "begin_time", "label": "开始时间(必填)",  "info": "规则: YYYY/MM/DD hh:mm:ss, 例如: 2024/05/06 00:00:00" },
+                    { "type": "text", "id": "end_time", "label": "结束时间(必填)",  "info": "规则:YYYY/MM/DD hh:mm:ss, 例如: 2024/05/06 00:00:00" },
+                    { "type": "checkbox", "id": "show_count_down", "label": "是否展示倒计时", "default": false },
+                    { "type": "url", "id": "link",  "label": "通知栏跳转地址" },
+                    { "type": "text", "id": "text", "label": "通知栏文本信息" },
+                    { "type": "color", "id": "text_color", "label": "通知栏文本颜色", "default": "#FFFFFF" }
+                ]
+            }
+        ]
+    }
+{% endschema %}

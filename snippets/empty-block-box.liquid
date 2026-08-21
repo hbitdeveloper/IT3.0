@@ -1,0 +1,73 @@
+{% comment %} 组件内Block空盒子 {% endcomment %}
+
+{% comment %} 编辑模式下提示文案颜色 {% endcomment %}
+{% if settings.authorTipsColor == blank %}
+  {% assign author_tips_color = '#333' %}
+{% else %}
+  {% assign author_tips_color = settings.authorTipsColor %}
+{% endif %}
+
+{% comment %} 背景色 {% endcomment %}
+{% if settings.bgColor == blank %}
+  {% assign bg_color = '#fff' %}
+{% else %}
+  {% assign bg_color = settings.bgColor %}
+{% endif %}
+
+{% comment %} PC端1440px及其以上 {% endcomment %}
+{% if settings.pcBoxH == blank %}
+  {% assign pc_box_h = '800px' %}
+{% else %}
+  {% assign pc_box_h = settings.pcBoxH | append: 'px' %}
+{% endif %}
+
+{% comment %} PC端1024-1440之间 以1440px分辨率为基准进行等比换算 {% endcomment %}
+{% if settings.pcBoxH == blank %}
+  {% assign pc_box_medium_h = 800 | divided_by: 1440.0 | times: 100 | append: 'vw' %}
+{% else %}
+  {% assign pc_box_medium_h = settings.pcBoxH | divided_by: 1440.0 | times: 100 | append: 'vw' %}
+{% endif %}
+
+{% comment %} 移动端（1024px以下）以750px分辨率为基准进行等比换算 {% endcomment %}
+{% if settings.mbBoxH == blank %}
+  {% assign mb_box_h = 800 | divided_by: 750.0 | times: 100 | append: 'vw' %}
+{% else %}
+  {% assign mb_box_h = settings.mbBoxH | divided_by: 750.0 | times: 100 | append: 'vw' %}
+{% endif %}
+
+<div class="empty-block-box empty-block-box-{{ index }}" anchor="{{ anchorID | escape }}" data-index="{{ index }}" target="{{ handle }}"
+		 style="background-color: {{ bg_color }} ;--author-tips-color:{{ author_tips_color }}; --pc-box-h:{{ pc_box_h }};--pc-box-medium-h:{{ pc_box_medium_h }};--mb-box-h:{{ mb_box_h }}">
+	<div class="box-info">
+		<p><b>空盒子版块</b></p>
+		{% if handle != blank %}
+			<div class="info-content">
+				<b>说明：</b>
+				<p>此处仅用于版块位置标记，方便排序，请在预览或发布页查看最终效果。</p>
+				<br>
+				<b>配置：</b>
+				<p>1. 通过Handle <b>（{{ handle }}）</b>内嵌此页面中对应的组件。</p>
+				<p>2. 可摆脱不能批量添加数据的限制。</p>
+			</div>
+		{% else %}
+			<p class="tips">温馨提醒：请配置必要且唯一的handle。</p>
+		{% endif %}
+	</div>
+</div>
+<style>
+	.empty-block-box-{{ index }}{
+		padding-top:{{ settings.pc_padding_top }}px;
+		padding-bottom:{{ settings.pc_padding_bottom }}px;
+	}
+	@media screen and (min-width: 1024px) and (max-width: 1439.98px){
+		.empty-block-box-{{ index }}{
+			padding-top: calc( {{ settings.pc_padding_top }}  * 100vw / 1440 );
+			padding-bottom: calc( {{ settings.pc_padding_bottom }}  * 100vw / 1440 );
+		}
+	}
+	@media screen and (max-width: 1023.98px){
+		.empty-block-box-{{ index }}{
+			padding-top: calc( {{ settings.mb_padding_top }}  * 100vw / 750 );
+			padding-bottom: calc( {{ settings.mb_padding_bottom }}  * 100vw / 750 );
+		}
+	}
+</style>

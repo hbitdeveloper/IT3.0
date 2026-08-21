@@ -1,0 +1,122 @@
+<style>
+    .main-color {color: var(--primary-color);}
+    .tenth-years .title {margin-bottom: var(--content-distance);}
+    .tenth-years .tenth-wrap {background: var(--normal-color); border-radius: var(--g-radius);overflow: hidden;padding: 0px 50px 0;}
+    .tenth-years .tenth-wrap .text {padding: 20px 50px;}
+    @media screen and (max-width: 1024px) {
+        .tenth-years .tenth-wrap {background: transparent; border-radius: 0;padding: 0;}
+        .tenth-years .tenth-wrap .text {padding: var(--gap) var(--content-distance);}
+    }
+</style>
+<figure {% if section.settings.anchor != blank %} data-anchor="{{section.settings.anchor}}" {% endif %} class="tenth-years numberJump layer-container product-b {% if section.settings.section_type %} product-p-t{% endif %}">
+    {{ section.settings.life_title | replace: '<p>', '<p class="title jky-text-2xl font-500 text-center">' | replace: '<em>', '<em class="main-color">' }}
+    <div class="tenth-wrap relative">
+      {%- if section.settings.anniversary != blank and section.settings.anniversary != 0 -%}
+      <p class="countUp jky-text-2xl font-500" data-count-start="0" data-count-end="{{ section.settings.anniversary }}">
+        <span><i>0</i><i>1</i></span>
+        <span style="color: {{section.settings.life_years_desc_color}};">{{ section.settings.life_years_desc | escape }}</span>
+      </p>
+      {%- endif -%}
+      <img src="{{ section.settings.life_bg | image_url: width: 2000 }}" alt="tenth-years" loading="lazy">
+
+      {%- if section.settings.life_desc != blank -%}
+        <div class="text jky-text-base">{{ section.settings.life_desc }}</div>
+      {%- endif -%}
+    </div>
+</figure>
+
+<script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+        function numberJump() {
+            let lock = [];
+
+            const countUp = (el, start, end, speed) => {
+                let current = start;
+                const interval = setInterval(() => {
+                    current += 1;
+                    let arr = current.toString().padStart(2, '0').split("");
+                    el.innerHTML = `<i>${arr[0]}</i><i>${arr[1]}</i>`
+                    if (current >= end) {
+                    clearInterval(interval)
+                    }
+                }, speed || 100)
+            }
+
+            window.addEventListener('scroll', function() {
+                let windowHeight = document.documentElement.clientHeight;
+                let scrollBarTop = document.documentElement.scrollTop || document.body.scrollTop;
+                let target = document.querySelectorAll(".numberJump");
+
+                target.forEach((item, index) => {
+                    let targetCountUp = item.querySelector(".countUp");
+                    if (targetCountUp && !lock[index] && item.offsetTop < (windowHeight + scrollBarTop - windowHeight / 2)) {
+                      lock[index] = true;
+                      countUp(item.querySelector(".countUp span"), +targetCountUp.dataset.countStart, +targetCountUp.dataset.countEnd)
+                    }
+                })
+            })
+        }
+
+        numberJump()
+    })
+</script>
+
+{% schema %}
+{
+  "name": "product years up", "class": "product-years-up product-section-block", "tag": "div",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "section_type",
+      "default": true,
+      "label": "是否为大版块？",
+      "info": "大版块与上一个模块之间间距大，小版块与上一模块间距较小"
+    },
+    {
+            "type": "select",
+            "id": "anchor",
+            "label": "锚点设置",
+            "info": "非锚点section请清空此项",
+            "options": [
+                {
+                "value": "",
+                "label": "非锚点section"
+                },
+                {
+                "value": "anchor__1",
+                "label": "第一个section锚点"
+                },
+                {
+                "value": "anchor__2",
+                "label": "第二个section锚点"
+                },
+                {
+                "value": "anchor__3",
+                "label": "第三个section锚点"
+                },
+                {
+                "value": "anchor__4",
+                "label": "第四个section锚点"
+                }
+            ],
+            "default": ""
+    },
+    {
+      "type": "richtext", "id": "life_title", "label": "Battery Life Title",
+      "default": "<p><em>Up to 10</em> Years battery life</p>"
+    },
+    {"type": "number", "id": "anniversary", "label": "Anniversary", "default": 10},
+    {"type": "image_picker", "id": "life_bg", "label": "life Scene"},
+    {
+      "type": "text", "id": "life_years_desc", "label": "Life Years Desc",
+      "default": "years"
+    },
+    { "type": "color", "id": "life_years_desc_color", "label": "Life Years Desc Color", "default": "#000000" },
+    {
+      "type": "text", "id": "life_desc", "label": "Safet Content",
+      "default": "Even you go camping and use it weekly, the battery health is still at 80% after 10 years of use. Ultra-long battery standby capacity for more than 365 days, leading the industry benchmark.  Makes it a good choice for emergency backup power."
+    }
+  ],
+  "blocks": []
+}
+{% endschema %}

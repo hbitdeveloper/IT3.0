@@ -1,0 +1,181 @@
+{% comment %} 产品预售状态组件 —— 吸底 {% endcomment %}
+{% schema %}
+{
+  "name": "Presale Status Component",
+  "tag": "section",
+  "class": "presale-status-component",
+  "settings": [
+    {
+      "type": "text",
+      "id": "statusText",
+      "label": "Status Text",
+      "default": "${number} have booked the deal"
+    },
+    {
+      "type": "text",
+      "id": "btnShopNowText",
+      "label": "Button Shop Now Text",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "btnShopNowLink",
+      "label": "Button Shop Now Link"
+    },
+	  {
+      "type": "text",
+      "id": "sku",
+      "label": "SKU",
+      "default": "DIGITAL-US-2000PLUS"
+    }
+  ]
+}
+{% endschema %}
+<div class="presale-status-box" data-sku="{{ section.settings.sku }}" data-status-text="{{ section.settings.statusText }}">
+{% if section.settings.statusText %}
+	<span class="status-txt"></span>
+{% endif %}
+{% if section.settings.btnShopNowText %}
+	<a class="btn-shop-now" href="{{ section.settings.btnShopNowLink }}">{{ section.settings.btnShopNowText }}</a>
+{% endif %}
+</div>
+<script defer>
+	(function () {
+		let presaleStatus = {
+			$mainContent: $('#MainContent'),
+			$selector: $('.presale-status-component'),
+			$selectorBox: $('.presale-status-component .presale-status-box'),
+			$statusTxt: $('.presale-status-component .status-txt'),
+			presaleStatusAPI: "/v1/act/get-pre-sku-stat", // 根据sku获取销量数据
+			sku:'', // 优惠券sku值
+			currStatusText:'', // 配置的展示文本
+			init: function () {
+				this.sku = this.$selectorBox.data('sku') || 'DIGITAL-US-2000PLUS';
+				this.currStatusText = this.$selectorBox.data('status-text') || '${number} have booked the deal';
+				this.$mainContent.after(this.$selector);
+				this.componentInteractive();
+				this.getPresaleSkuStatus();
+			},
+			// 获取域名
+			host: function () {
+				switch (window.shopId) {
+					case "9709262": case "60738666677": case "10015375438": case "56981160124":
+					case "57272172741": case "60455780502": case "68984701213": case "69511053598":
+					case "69224431898": case "69013700929": return "https://api.myjackery.com";
+					default: return "https://demo-api.myjackery.com"
+				}
+			},
+			// 根据sku获取销量数据
+			getPresaleSkuStatus: function () {
+				let that = this;
+				this.presaleStatusAPI = this.host() + this.presaleStatusAPI;
+				$.ajax({
+					type: 'get',
+					url: this.presaleStatusAPI+'?sku='+this.sku,
+					dataType: 'json',
+					contentType: "application/json",
+					timeout: 15000,
+					success: function (info) {
+						if(info.code === 200){
+							let num = info.data.num;
+							let endStatusText = that.currStatusText.replace('${number}',num);
+							that.$statusTxt.text(endStatusText);
+						}
+					},
+					error: function (err) {
+						console.error(err)
+					}
+				})
+			},
+			// 组件各个交互
+			componentInteractive:function (){
+				// 页面滚动监听，展示/隐藏 预售状态吸底版块
+				$(window).scroll(function () {
+					let $presaleStatusFooter = $('.presale-status-component');
+					let domH = $(document).height();
+					let windowH = $(window).height();
+					let topVal = $(document).scrollTop();
+					let footerTop = $('body footer').offset().top;
+					if (topVal > domH / 2) {
+						$presaleStatusFooter.addClass('show-it');
+
+						// 页面滚动到底部时，隐藏
+						if ((topVal == (domH - windowH)) || (topVal > footerTop + 100)) {
+							$presaleStatusFooter.removeClass('show-it');
+						}
+					} else {
+						$presaleStatusFooter.removeClass('show-it');
+					}
+				})
+			}
+		}
+		$(function () {
+			if (presaleStatus.$selector.length === 0) {
+				return;
+			}
+			presaleStatus.init();
+		})
+	})();
+</script>
+<style>
+	.presale-status-component{
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 19999;
+		display: none;
+		align-items: center;
+		justify-content: center;
+		background-color: #fff;
+		border-top: 1px solid #979797;
+	}
+	.presale-status-component.show-it {
+		display: flex;
+	}
+	.presale-status-component .status-txt{
+		font-weight: 600;
+		line-height: 2;
+		color: var(--jds-color-primary);
+	}
+	.presale-status-component .btn-shop-now{
+		font-weight: 500;
+		color: #fff;
+		line-height: 1.5;
+		background: var(--jds-color-primary);
+		border: none;
+	}
+	.presale-status-component .btn-shop-now:hover{
+		color: #fff;
+	}
+	@media screen and (min-width: 1024px){
+		.presale-status-component{
+			min-height: 6.25vw;
+			padding: 1.4583vw 4.1667vw;
+		}
+		.presale-status-component .status-txt{
+			margin-right: 2.0833vw;
+			font-size: 1.4583vw;
+		}
+		.presale-status-component .btn-shop-now{
+			padding: 0.625vw 1.5625vw;
+			font-size: 1.3542vw;
+			border-radius: 1.7708vw;
+		}
+	}
+	@media screen and (max-width: 1023px){
+		.presale-status-component{
+			padding: 5.3333vw 4vw;
+			min-height: 19.0667vw;
+		}
+		.presale-status-component .status-txt{
+			margin-right: 40px;
+			font-size: 3.7333vw;
+		}
+		.presale-status-component .btn-shop-now{
+			padding: 1.6vw 4vw;
+			font-size: 3.4667vw;
+			border-radius: 4.5333vw;
+		}
+	}
+</style>

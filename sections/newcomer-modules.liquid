@@ -1,0 +1,181 @@
+<style>
+  .newcomer-education-modules{
+        padding-top: calc(var(--pc-padding-top) * 1px);
+        padding-bottom: calc(var(--pc-padding-bottom) * 1px);
+    }
+    @media screen and (min-width: 1024px) and (max-width: 1439.98px){
+        .newcomer-education-modules{
+            padding-top: calc( var(--pc-padding-top)  * 100vw / 1440 );
+            padding-bottom: calc( var(--pc-padding-bottom)  * 100vw / 1440 );
+        }
+    }
+    @media screen and (max-width: 1023.98px){
+        .newcomer-education-modules{
+            padding-top: calc( var(--mb-padding-top) * 100vw / 750 );
+            padding-bottom: calc( var(--mb-padding-bottom) * 100vw / 750 );
+        }
+    }
+</style>
+
+{% assign total = section.blocks | size %}
+<div
+  class="newcomer-education-modules {% if section.settings.types == 'embed' %}embed-component{% endif %}" data-handle="{{ section.settings.handle }}"
+  anchor="{{ section.settings.anchor_id  | url_decode | strip | replace: ' ', ''}}"
+  style="--pc-padding-top:{{ section.settings.pc_padding_top }};--pc-padding-bottom:{{ section.settings.pc_padding_bottom }};--mb-padding-top:{{ section.settings.mb_padding_top }};--mb-padding-bottom:{{ section.settings.mb_padding_bottom }};"
+>
+  <div class="newcomer-education-container">
+    <h2 class="title">
+      {{ section.settings.title }}
+    </h2>
+
+    <div class="for-position">
+      <div class="swiper mySwiper">
+        <div class="swiper-wrapper">
+          {% for block in section.blocks %}
+            {% if block.settings.pc_image != blank %}
+              <div class="swiper-slide">
+                {% render 'responsive-image', image: block.settings.pc_image, image_class: 'image-pc' %}
+                {% render 'responsive-image', image: block.settings.mb_image, image_class: 'image-mb' %}
+                <a
+                  href="{{ block.settings.btn_link }}"
+                  class="link"
+                  target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                >
+                  <span class="text text-overflow-2">{{ block.settings.btn_text }}</span>
+                  <span class="icon">></span>
+                </a>
+                <div class="bottom text-overflow-2">
+                  {{ block.settings.bottom_text }}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% if total > 1 %}
+          <div class="mb-pagination recharge-pagination show-mb"></div>
+        {% endif %}
+      </div>
+      <div class="swiper-button-next show-pc"></div>
+      <div class="swiper-button-prev show-pc"></div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Newcomer Modules",
+  "settings": [
+    {
+      "type": "select",
+      "id": "types",
+      "label": "类型",
+      "default": "independent",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle（当前页面唯一的handle）",
+      "default": "embed-component-01"
+    },
+    { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+    { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+    { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+    { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+    { "type": "text", "id": "title", "label": "模块标题" },
+    { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "newcomer-modules",
+      "name": "module Item",
+      "settings": [
+        { "type": "image_picker", "id": "pc_image", "label": "PC icon图片", "info": "108*108" },
+        { "type": "image_picker", "id": "mb_image", "label": "MB icon图片", "info": "144*144" },
+        { "type": "text", "id": "btn_text", "label": "按钮文案" },
+        { "type": "url", "id": "btn_link", "label": "按钮链接" },
+        { "type": "richtext", "id": "bottom_text", "label": "描述文案" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "newcomer modules"
+    }
+  ]
+}
+{% endschema %}
+
+<script type="module">
+  (function () {
+    const init = function () {
+      const carousel = document.querySelector('.newcomer-education-modules');
+      if (!carousel) return;
+
+      const autoplayVal = String(carousel.getAttribute('data-autoplay') || '').toLowerCase() === 'true';
+      const delayVal = (Number(carousel.getAttribute('data-delay')) || 0) * 1000;
+      const clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+
+      // 判断当前是 PC 端还是 MB 端
+      if (clientWidth < 1024) {
+        new Swiper('.newcomer-education-modules .mySwiper', {
+          autoplay: autoplayVal
+            ? {
+                delay: delayVal,
+                disableOnInteraction: false,
+              }
+            : false,
+          slidesPerView: 'auto',
+          observer: true,
+          observeParents: true,
+          lazy: {
+            loadPrevNext: true,
+            loadPrevNextAmount: 1,
+          },
+          pagination: {
+            el: '.recharge-pagination',
+          },
+        });
+      } else {
+        const slideCount = document.querySelectorAll('.newcomer-education-modules .swiper-slide').length;
+        if (slideCount <= 2) {
+          const wrapper = document.querySelector('.newcomer-education-modules .swiper-wrapper');
+          if (wrapper) wrapper.style.justifyContent = 'center';
+        }
+
+        new Swiper('.newcomer-education-modules .mySwiper', {
+          lazy: {
+            loadPrevNext: true,
+            loadPrevNextAmount: 1,
+          },
+          spaceBetween: 18,
+          grabCursor: true,
+          slidesPerView: '3',
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+          },
+        });
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>

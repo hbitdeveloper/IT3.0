@@ -1,0 +1,70 @@
+{% style %}
+    .compare-banner { position: relative; }
+
+    .compare-banner img {
+        width: 100%;
+        object-fit: cover;
+        height: 320px;
+    }
+
+    .compare-banner .title {
+        font-size: 56px;
+        font-weight: 600;
+        line-height: 64px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    /* 屏幕宽度 ≤ 1440px */
+    @media (max-width: 1439.98px) {
+        .compare-banner img {
+            height: 22.222vw;
+        }
+        .compare-banner .title {
+            font-size: 3.889vw;
+            line-height: 4.444vw;
+        }
+   }
+
+    /* 屏幕宽度 ≤ 1024px */
+    @media (max-width: 1023.98px) {
+        .compare-banner img {
+            height: 43.945vw;
+        }
+        .compare-banner .title {
+            font-size: 5.469vw;
+            line-height: 6.250vw;
+        }
+    }
+
+{% endstyle %} 
+
+<div class="compare-banner">
+        {%-liquid
+            assign is_lcp = false
+            if section.index < 2
+                assign is_lcp = true
+            endif
+        -%}
+        {%- 
+            render 'responsive-image', 
+            image: section.settings.image, 
+            mimage: section.settings.mimage,
+            fcp: is_lcp
+        -%}
+    <div class="title" style="color: {{ section.settings.color }}">{{ section.settings.title | escape }}</div>
+</div> 
+
+{% schema %}
+    {
+        "name": "Compare Banner",
+        "settings": [
+            { "type": "text", "id": "title", "label": "标题", "default": "Product Compare" },
+            { "type": "image_picker", "id": "image", "label": "PC图片(1920*320)" },
+            { "type": "image_picker", "id": "mimage", "label": "移动端图片(750*450)" },
+            { "type": "color", "id": "color", "label": "文本颜色", "default": "#ffffff" }
+        ]
+    }
+{% endschema %}

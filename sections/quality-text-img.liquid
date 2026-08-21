@@ -1,0 +1,206 @@
+<style>
+  .quality-text-img {
+    padding-top: calc(var(--pc-padding-top) * 1px);
+    padding-bottom: calc(var(--pc-padding-bottom) * 1px);
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+    .quality-text-img {
+      padding-top: calc(var(--pc-padding-top) * 100vw / 1440);
+      padding-bottom: calc(var(--pc-padding-bottom) * 100vw / 1440);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .quality-text-img {
+      padding-top: calc(var(--mb-padding-top) * 100vw / 750);
+      padding-bottom: calc(var(--mb-padding-bottom) * 100vw / 750);
+    }
+  }
+</style>
+
+<div
+  class="quality-text-img {% if  section.settings.show_triangle %} has-triangle {% endif %}"
+  anchor="{{ section.settings.anchor | escape }}"
+  style="
+    background: {{ section.settings.bg_color }};
+    --pc-padding-bottom:{{ section.settings.pc_padding_bottom }};--mb-padding-bottom:{{ section.settings.mb_padding_bottom }};
+    --pc-padding-top:{{ section.settings.pc_padding_top }};--mb-padding-top:{{ section.settings.mb_padding_top }};
+  "
+>
+  <div class="quality-container">
+    {% if section.settings.pc_title != blank and section.settings.mb_title %}
+      {% render 'quality-title', settings: section.settings, index: section.id %}
+    {% endif %}
+    {% if section.settings.sub != blank %}
+      {% assign subColor = '<em style="color: ' | append: section.settings.sub_color_sp | append: '">' %}
+      <div class="quality-sub" style="color: {{ section.settings.sub_color }}">
+        {{ section.settings.sub | replace: '<em>', subColor }}
+      </div>
+    {% endif %}
+
+      {% comment %} pc {% endcomment %}
+      {%- if section.settings.videoSrc != blank -%}
+        <div class="quality-video  pc-block">
+          {%- render 'jky-video',
+            video_url: section.settings.videoSrc,
+            poster: section.settings.poster,
+            isHidePauseBtn: false,
+            class: 'quality-video-box',
+            autoplay: section.settings.autoplay,
+            controls: section.settings.controls,
+            loop: section.settings.loop
+          -%}
+        </div>
+      {% elsif section.settings.pc_image != blank %}
+          <div class="quality-img-award pc-block">
+          <a href="{% if section.settings.pdf == blank %}javascript:void(0);{% else %}{{ section.settings.pdf }}{% endif %}"
+          target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+            {% if section.settings.pdf %}
+              data-ga-event="picture_clicks"
+              data-ga-action="click"
+              data-ga-params-button_name="picture_button"
+              data-ga-params-link="{{ section.settings.pdf }}"
+            {% endif %}
+          >
+            {% render 'responsive-image',
+              image: section.settings.pc_image,
+              mimage: section.settings.mb_image,
+              image_class: 'award-image'
+            %}
+            </a>
+          </div>
+      {%- endif -%}
+
+      {% comment %} mb {% endcomment %}
+      {%- if section.settings.videoSrcMB != blank -%}
+        <div class="quality-video  mobile-block">
+          {%- render 'jky-video',
+            video_url: section.settings.videoSrc,
+            poster: section.settings.poster,
+            isHidePauseBtn: false,
+            class: 'quality-video-box',
+            autoplay: section.settings.autoplay,
+            controls: section.settings.controls,
+            loop: section.settings.loop
+          -%}
+        </div>
+      {% elsif section.settings.pc_image != blank %}
+          <div class="quality-img-award mobile-block">
+          <a href="{% if section.settings.pdf == blank %}javascript:void(0);{% else %}{{ section.settings.pdf }}{% endif %}"
+          target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+            {% if section.settings.pdf %}
+              data-ga-event="picture_clicks"
+              data-ga-action="click"
+              data-ga-params-button_name="picture_button"
+              data-ga-params-link="{{ section.settings.pdf }}"
+            {% endif %}
+          >
+            {% render 'responsive-image',
+              image: section.settings.pc_image,
+              mimage: section.settings.mb_image,
+              image_class: 'award-image'
+            %}
+            </a>
+          </div>
+      {%- endif -%}
+
+    {%- if section.settings.sub_two != blank -%}
+      {% assign subTwoColor = '<em style="color: ' | append: section.settings.sub_color_sp_two | append: '">' %}
+      <div class="quality-sub-two" style="color: {{ section.settings.sub_color_two }}">{{ section.settings.sub_two | replace: '<em>', subColor }}</div>
+    {%- endif -%}
+  </div>
+
+  {% comment %} pc {% endcomment %}
+  {%- if section.settings.videoSrc_two != blank -%}
+    <div class="quality-video  pc-block">
+      {%- render 'jky-video',
+        video_url: section.settings.videoSrc_two,
+        poster: section.settings.poster_two,
+        isHidePauseBtn: false,
+        class: 'quality-video-box',
+        autoplay: section.settings.autoplay,
+        controls: section.settings.controls,
+        loop: section.settings.loop
+      -%}
+    </div>
+  {% elsif section.settings.pc_image_two != blank %}
+    <div class="quality-img pc-block">
+        {% render 'responsive-image',
+        image: section.settings.pc_image_two,
+        mimage: section.settings.mb_image_two,
+        image_class: 'regular-image'
+      %}
+    </div>
+  {% endif %}
+
+  {% comment %} mobile {% endcomment %}
+  {%- if section.settings.videoSrcMB_two != blank -%}
+    <div class="quality-video mobile-block">
+      {%- render 'jky-video',
+        video_url: section.settings.videoSrcMB_two,
+        poster: section.settings.posterMB_two,
+        isHidePauseBtn: false,
+        class: 'quality-video-box',
+        autoplay: section.settings.autoplay,
+        controls: section.settings.controls,
+        loop: section.settings.loop
+      -%}
+    </div>
+    {% elsif section.settings.pc_image_two != blank %}
+      <div class="quality-img mobile-block">
+        {% render 'responsive-image',
+          image: section.settings.pc_image_two,
+          mimage: section.settings.mb_image_two,
+          image_class: 'regular-image'
+        %}
+      </div>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Quality Text Img",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "二级标题定位锚点", "info": "搭配二级导航锚点定位未使用到定位则不配置" },
+    { "type": "checkbox", "id": "show_triangle", "label": "组件是否显示内三角形", "default": false },
+    { "type": "number", "id": "pc_padding_top", "label": "上边距PC" },
+    { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC" },
+    { "type": "number", "id": "mb_padding_top", "label": "上边距MB" },
+    { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB" },
+    { "type": "richtext", "id": "pc_title", "label": "PC Section title" },
+    { "type": "richtext", "id": "mb_title", "label": "Mobile Section title" },
+    { "type": "color", "id": "title_color", "label": "标题整体颜色以及svg颜色", "default": "#BA8D6B" },
+    { "type": "color_background", "id": "bg_color", "label": "组件背景色"},
+    { "type": "checkbox", "id": "loop", "label": "视频循环播放？", "default": true },
+    { "type": "checkbox", "id": "controls", "label": "视频显示播放控件？", "default": true },
+    { "type": "checkbox", "id": "autoplay", "label": "视频自动播放", "default": false },
+
+    { "type": "richtext", "id": "sub", "label": "描述文案一【斜体=文案突出】" },
+    { "type": "color", "id": "sub_color", "label": "描述文案一整体颜色" },
+    { "type": "color", "id": "sub_color_sp", "label": "描述文案一突出颜色" },
+    { "type": "url", "id": "videoSrc", "label": "PC视频源（支持格式: mp4、mov、m4v）" },
+    { "type": "image_picker", "id": "poster", "label": "PC视频封面图", "info": "1200*650" },
+    { "type": "url", "id": "videoSrcMB", "label": "MB视频源（支持格式: mp4、mov、m4v）" },
+    { "type": "image_picker", "id": "posterMB", "label": "MB视频封面图", "info": "686*920" },
+
+    { "type": "image_picker", "id": "pc_image", "label": "图片配置一PC", "info": "1200*650" },
+    { "type": "image_picker", "id": "mb_image", "label": "图片配置一MB", "info": "686*450" },
+    { "type": "richtext", "id": "sub_two", "label": "描述文案二【斜体=文案突出】" },
+    { "type": "color", "id": "sub_color_two", "label": "描述文案二整体颜色" },
+    { "type": "color", "id": "sub_color_sp_two", "label": "描述文案二突出颜色" },
+    { "type": "image_picker", "id": "pc_image_two", "label": "图片配置二PC" },
+    { "type": "image_picker", "id": "mb_image_two", "label": "图片配置二MB" },
+    { "type": "url", "id": "videoSrc_two", "label": "PC视频源（支持格式: mp4、mov、m4v）" },
+    { "type": "image_picker", "id": "poster_two", "label": "PC视频封面图", "info": "1200*650" },
+    { "type": "url", "id": "videoSrcMB_two", "label": "MB视频源（支持格式: mp4、mov、m4v）" },
+    { "type": "image_picker", "id": "posterMB_two", "label": "MB视频封面图", "info": "686*920" },
+
+    { "type": "url", "id": "pdf", "label": "PDF下载链接" },
+    { "type": "checkbox", "id": "new_window", "label": "是否新开标签页", "default": false }
+  ],
+  "presets": [
+    {
+      "name": "品质中心 - 上图下文"
+    }
+  ]
+}
+{% endschema %}

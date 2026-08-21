@@ -1,0 +1,111 @@
+{% doc %}
+   @description V5-首页-图文产品 card
+   @param {object} setting 设置
+   @param {string} id 设置块 ID
+   @example
+    {% render 'v5-index-accordion-card', curr_select_variant_id: curr_variant_id, setting: block.settings, index: forloop.index %}
+{% enddoc %}
+
+{% liquid
+  assign product = setting.product
+  assign variant = product.variants | where: "id", setting.variant_id | where: "available", true | first | default: product.selected_or_first_available_variant
+  # 标签
+  assign tag = setting.tag | default: variant.metafields.custom.variant_tag
+  # 标题
+  assign title = variant.metafields.custom.shortname | default: variant.title  | escape | replace: 'Jackery', ''
+  if title == 'Default Title'
+    assign title = product.title | escape | strip | replace: 'Jackery', ''
+  endif
+
+  # 价格（含自动折扣逻辑）
+  if settings.open_auto_discount_price
+    assign auto_discount_price = variant.metafields.custom.auto_discount_price | times: 1
+    if auto_discount_price > 0
+      assign current_price = variant.price
+      if auto_discount_price < variant.price
+        assign current_price = auto_discount_price
+      endif
+    else
+      assign current_price = variant.price
+    endif
+  else
+    assign current_price = variant.price
+  endif
+
+  # 划线价
+  if variant.compare_at_price > current_price
+    assign compare_at_price = variant.compare_at_price
+  else
+    if variant.price > current_price
+      assign compare_at_price = variant.price
+    else
+      assign compare_at_price = blank
+    endif
+  endif
+%}
+
+<div class="py-4 lg:py-6 accordion-card" data-id="{{ variant.id }}" data-index="{{ id }}">
+  {% comment %} 头部：标签 + 图标 {% endcomment %}
+  <div class="accordion-toggle group w-full flex items-center justify-between focus:outline-none cursor-pointer" data-id="{{ variant.id }}" data-index="{{ id }}" data-title="{{ title | escape }}">
+    <div class="lg:h-7">
+      {% if tag != blank %}
+        <div class="tag px-3 py-1 lg:py-2 font-semibold text-[0.75rem] bg-[#242F20] lg:h-7 flex items-center justify-center text-white lg:text-[1rem] tracking-[-0.02rem]">
+          {{ tag | escape }}
+        </div>
+      {% endif %}
+    </div>
+
+    <span class="icon relative w-5 h-5 inline-flex items-center justify-center">
+      <span class="horizontal h-px w-3 lg:w-[1.125rem] bg-[rgba(0,0,0,.65)] inline-block"></span>
+      <span class="vertical absolute h-3 lg:h-[1.125rem] w-[1px] bg-[rgba(0,0,0,.65)] inline-block origin-center"></span>
+    </span>
+  </div>
+
+  {% comment %} 内容 {% endcomment %}
+  <div class="accordion-content">
+    <div class="w-full font-semibold text-[1rem] lg:text-[1.5rem] leading-[1.1] text-[rgba(0,0,0,.9)] mb-4 lg:mb-6 line-clamp-2"> {{ title | escape }} </div>
+
+    {% comment %} 价格 + 按钮 {% endcomment %}
+    <div class="flex items-center justify-between">
+      <div class="text-[rgba(0,0,0,.9)] font-normal">
+        <span class="text-[1rem] lg:text-[1.25rem] font-semibold leading-[1.1]">{{ current_price | money }}</span>
+        {% if compare_at_price != blank %}
+          <span class="text-[0.75rem] lg:text-[0.875rem] pl-1 text-[rgba(0,0,0,.6)] line-through">{{ compare_at_price | money }}</span>
+        {% endif %}
+      </div>
+
+      {%- if setting.btn_type == 'add_to_cart' -%}
+        <button
+          class="flex items-center justify-center px-[1.125rem] lg:px-10 h-10 lg:h-12 font-semibold text-[1rem] lg:text-[1.25rem] text-white bg-[var(--jds-color-primary)] hover:bg-[#e95a18] uppercase"
+          data-id="{{ variant.id }}"
+          data-module="Product Switcher"
+          data-position="{{ title | escape }}"
+          data-button_name="{{ 'products.product.add_to_cart' | t }}"
+          accordion-add-to-cart>
+          {{ 'products.product.add_to_cart' | t }}
+        </button>
+      {% else %}
+        <a
+          href="{{ product.url }}?variant={{ variant.id }}"
+          data-ga-event="5.0_homepage_user_clicks"
+          data-ga-action="click"
+          data-ga-params-module="Product Switcher"
+          data-ga-params-position="{{ title | escape }}"
+          data-ga-params-button_name="{{ 'products.product.shop_now' | t }}"
+          data-ga-params-link="{{ product.url }}?variant={{ variant.id }}"
+        >
+          <button class="flex items-center justify-center px-[1.125rem] lg:px-10 h-10 lg:h-12 font-semibold text-[1rem] lg:text-[1.25rem] text-white bg-primary hover:bg-[#e95a18] uppercase">
+            {{ 'products.product.shop_now' | t }}
+          </button>
+        </a>
+      {%- endif -%}
+    </div>
+
+    {% comment %} 底部图片 {% endcomment %}
+    {% if setting.pc_power_image != blank or setting.mb_power_image != blank %}
+      <div class="w-full pt-4 mb-2 lg:pt-6 lg:mb-0">
+        {% render 'diff-end-img', pc_img: setting.pc_power_image, mb_img: setting.mb_power_image, pc_img_width: 612, mb_img_width: 686, class: 'object-cover focus-zoom w-full h-[9.875rem] lg:h-[9rem] ' %}
+      </div>
+    {% endif %}
+  </div>
+</div>

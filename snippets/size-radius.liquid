@@ -1,0 +1,33 @@
+{%- comment -%}
+  为标准圆角配置生成对应的css样式变量
+
+  <div class="blocks-radius" style="{%  render 'size-radius', settings: section.settings %}">
+ 
+   Accepts: 
+      settings: {block.settings || section.settings}
+{%- endcomment -%}
+
+{%- liquid
+  assign top_left = settings.radius_1 | default: 0
+  assign top_right = settings.radius_2 | default: 0
+  assign bottom_right = settings.radius_3 | default: 0
+  assign bottom_left = settings.radius_4 | default: 0
+-%}
+
+{%- capture variables -%}
+    --radius-top-left: {{top_left | divided_by: 16.0}}rem;--radius-top-right: {{top_right | divided_by: 16.0}}rem;--radius-bottom-right: {{bottom_right | divided_by: 16.0}}rem;--radius-bottom-left: {{bottom_left | divided_by: 16.0}}rem;
+{%- endcapture -%}
+
+{% if settings.mb_radius_type == "custom" %}
+    {%- capture mb_variables -%}
+        --radius-top-left-mb: {{settings.radius_mb_1 | divided_by: 32.0}}rem;--radius-top-right-mb: {{settings.radius_mb_2 | divided_by: 32.0}}rem;--radius-bottom-right-mb: {{settings.radius_mb_3 | divided_by: 32.0}}rem;--radius-bottom-left-mb: {{settings.radius_mb_4 | divided_by: 32.0}}rem;
+    {%- endcapture -%}
+    {% assign variables = variables | append: mb_variables %}
+{% else %}
+    {%- capture mb_variables -%}
+        --radius-top-left-mb: {{top_left | divided_by: 16.0 }}rem;--radius-top-right-mb: {{top_right | divided_by: 16.0 }}rem;--radius-bottom-right-mb: {{bottom_right | divided_by: 16.0 }}rem;--radius-bottom-left-mb: {{bottom_left | divided_by: 16.0 }}rem;
+    {%- endcapture -%}
+    {% assign variables = variables | append: mb_variables %}
+{% endif %}
+
+{{- variables | strip | strip_newlines -}}

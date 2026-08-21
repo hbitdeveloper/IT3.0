@@ -1,0 +1,72 @@
+{%- comment -%}
+  文件说明：
+  - 用途：V5 Header 商品角标渲染（标签文案 / 变体促销角标 / 自动折扣角标）
+  - 入参：
+    - product：Product 对象（必传）
+    - variant：Variant 对象（可选；传入时优先以该 SKU 的 metafield 计算促销与折扣角标，否则回退到 product 的首个变体）
+  - 输出：最多渲染两类角标
+    - background-text-main：来自 product.tags 的 __label_text:
+    - background-text-accent：来自 promotion / auto_discount（按配置开关与展示形式渲染）
+{%- endcomment -%}
+
+{%-liquid 
+    for tag in product.tags
+        if tag contains '__label_text:'
+            assign info = tag | replace_first: '__label_text:'
+            break
+        endif 
+    endfor
+
+    assign first_variant = product.selected_or_first_available_variant
+    assign target_variant = first_variant
+    if variant != blank
+        assign target_variant = variant
+        assign info = target_variant.metafields.custom.variant_tag
+    endif
+
+    assign variant_promotion = target_variant.metafields.custom.promotion
+    if variant_promotion != blank and variant_promotion contains '__label_text:'
+        assign info_2 = variant_promotion | replace_first: '__label_text:'
+    endif
+-%}
+
+{%- if info != blank -%}
+    <span class="px-1 background-text-main line-clamp-1">{{ info }}</span>
+{%- endif -%}
+
+{%- if info_2 != blank -%}
+    <span class="px-1 background-text-accent line-clamp-1">{{ info_2 }}</span>
+{%- elsif settings.open_auto_discount_price -%}
+    {%- assign info_auto = '' -%}
+    {% comment %} 折扣角标展示形式 {% endcomment %}
+    {%- assign discount_tag_display_style = settings.discount_tag_display_style -%}
+    {%- assign discount_amount = settings.discount_amount_display_style -%}
+    {%- assign discount_percent = settings.discount_percent_display_style -%}
+
+    {% comment %} 优惠金额 {% endcomment %}
+    {%- if discount_tag_display_style == 'amount' -%}
+        {%- if discount_amount != blank -%}
+            {%- if target_variant != blank -%}
+                {%- assign discount_amount_value = target_variant.metafields.custom.auto_discount_amount | times: 1 -%}
+                {%- if discount_amount_value > 0 -%}
+                    {%- assign money_string = discount_amount_value | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+                    {%- assign info_auto = discount_amount | replace: '()', money_string -%}
+                {%- endif -%}
+            {%- endif -%}
+        {%- endif -%}
+    {%- else -%}
+        {% comment %} 折扣百分比 {% endcomment %}
+        {%- if discount_percent != blank -%}
+        {%- if target_variant != blank -%}
+            {%- assign discount_percentage_value = target_variant.metafields.custom.auto_discount_percentage | times: 1 -%}
+            {%- if discount_percentage_value > 0 -%}
+                {%- assign info_auto = discount_percent | replace: '()', discount_percentage_value -%}
+            {%- endif -%}
+        {%- endif -%}
+        {%- endif -%}
+    {%- endif -%}
+
+    {%- if info_auto != '' -%}
+    <span class="px-1 background-text-accent line-clamp-1">{{ info_auto }}</span>
+    {%- endif -%}
+{%- endif -%}

@@ -1,0 +1,287 @@
+{% style %} 
+  .sticky-scroll {
+    display: block;
+    position: relative;
+  }
+  .sticky-scroll .sticky-scroll-container {
+    position: sticky;
+    top: 0;
+    min-height: 50dvh;
+    overflow: hidden;
+  }
+
+  power-scroll.sticky-scroll .sticky-scroll-container {
+    height: 100dvh;
+  }
+
+  .power-scroll-content {
+    padding-top: 10dvh;
+  }
+  .power-scroll-content h2 {
+    font-size: 3.375rem;
+    line-height: 1.48;
+  }
+  .power-scroll-content p {
+    font-size: clamp(18px, 4.29dvh, 1.875rem);
+    line-height: 1.33;
+  }
+  .power-num {
+    font-size: clamp(53px, 10dvh, 6.25rem);
+    line-height: 1;
+    margin-top: 15.7dvh;
+  }
+  .power-num span {
+    font-size: clamp(94px, 16dvh, 9.375rem);
+  }
+
+  .power-scroll-product {
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .power-scroll-product.active {
+    opacity: 1;
+  }
+
+  @media (max-width: 1023.9px) {
+    power-scroll.sticky-scroll .sticky-scroll-container {
+      height: auto;
+      padding-bottom: 2rem;
+    }
+    .power-scroll-content {
+      padding-top: 2.25rem; 
+    }
+    power-scroll .sticky-scroll-container {
+      background-color: #020202;
+    }
+
+    .power-scroll-content h2 {
+      font-size: 1.5rem;
+      line-height: 1.167;
+      margin-bottom: 0.25rem;
+    }
+    .power-scroll-content p {
+      font-size: 0.875rem;
+      line-height: 1.28;
+      max-width: 100%;
+      text-align: center;
+    }
+
+    .power-scroll-product {
+      opacity: 1;
+      position: relative;
+      z-index: 2;
+    }
+
+    .power-scroll-media-wrapper {
+      position: relative;
+      overflow: hidden;
+      border-radius: 0.75rem;
+      border: solid 1px rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 2.25rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .power-scroll-media.section-container-lg {
+      width: 100%;
+    }
+  }
+{% endstyle %}
+
+<power-scroll
+  data-mobile-disabled
+  data-sticky-distance="{{ section.settings.scroll_distance }}"
+  data-trigger-position="top"
+  data-top-halt="0"
+  data-bottom-halt="{{ section.settings.scroll_bottom_halt }}"
+  data-start-power="{{- section.settings.powe_1 -}}"
+  data-target-power="{{- section.settings.powe_2 -}}"
+  class="sticky-scroll"
+  {% if section.settings.anchor %}anchor-target="{{ section.settings.anchor | escape }}" {% endif %}
+>
+  <div class="sticky-scroll-container top-0 left-0 ">
+    <div class="text-box relative section-container-lg power-scroll-content z-[2]">
+      {%- if section.settings.title != blank -%}
+        <h2 class="text-center font-semibold" style="color: {{ section.settings.heading_color | default: '#ffffff' }};">{{- section.settings.title -}}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.subtitle != blank -%}
+        <p class="font-normal text-center" style="color: {{ section.settings.content_color | default: '#ffffff' }};">{{- section.settings.subtitle -}}</p>
+      {%- endif -%}
+      <div class="power-num font-semibold lg:block hidden" style="color: {{ section.settings.heading_color | default: '#ffffff' }};">
+        <span>{{- section.settings.powe_1 -}}</span>
+        {{- section.settings.unit_text -}}
+      </div>
+    </div>
+
+    <div
+      class="power-scroll-media lg:absolute relative right-0 bottom-0 lg:w-full top-0 section-container-lg"
+    >
+      {%- if section.settings.banner_1 -%}
+          {%- render 'responsive-image',
+            image_class: 'object-cover w-full h-full hidden lg:block absolute top-0 left-0',
+            image: section.settings.banner_1
+          -%}
+      {%- endif -%}
+      <div class="power-scroll-media-wrapper">
+        {%- if section.settings.banner_1 -%}
+          {%- render 'responsive-image',
+            picture_class: 'power-scroll-product active',
+            image_class: 'object-cover w-full h-full block',
+            image: section.settings.banner_1
+          -%}
+        {%- else -%}
+          <picture class="power-scroll-product active">
+            <source media="(max-width:1023.9px)" srcset="{{'placeholder.webp' | asset_url}}">
+            <source media="(min-width:1024px)" srcset="{{'placeholder.webp' | asset_url}}">
+            <img
+              class="object-cover w-full h-full block"
+              width="3840"
+              height="1864"
+              src="{{'placeholder.webp' | asset_url}}"
+              loading="lazy"
+              alt="{{ shop.name }}"
+            >
+          </picture>
+        {%- endif -%}
+
+        <div class="lg:hidden block font-semibold text-3xl absolute left-6 top-1/2 -translate-y-1/2 z-[2]" style="color: {{ section.settings.heading_color | default: '#ffffff' }};">
+          <span class="text-5xl">{{- section.settings.powe_1 -}}</span>
+          {{- section.settings.unit_text -}}
+        </div>
+      </div>
+
+      <div class="power-scroll-media-wrapper">
+        {%- if section.settings.banner_2 -%}
+          {%- render 'responsive-image',
+            picture_class: 'power-scroll-product',
+            image_class: 'object-cover w-full h-full block',
+            image: section.settings.banner_2
+          -%}
+        {%- else -%}
+          <picture class="power-scroll-product active">
+            <source media="(max-width:1023.9px)" srcset="{{'placeholder.webp' | asset_url}}">
+            <source media="(min-width:1024px)" srcset="{{'placeholder.webp' | asset_url}}">
+            <img
+              class="object-cover w-full h-full block"
+              width="3840"
+              height="1864"
+              src="{{'placeholder.webp' | asset_url}}"
+              loading="lazy"
+              alt="{{ shop.name }}"
+            >
+          </picture>
+        {%- endif -%}
+
+        <div class="lg:hidden block font-semibold text-3xl absolute left-6 top-1/2 -translate-y-1/2 z-[2]" style="color: {{ section.settings.heading_color | default: '#ffffff' }};">
+          <span class="text-5xl">{{ section.settings.powe_2 }}</span>
+          {{- section.settings.unit_text -}}
+        </div>
+      </div>
+    </div>
+  </div>
+</power-scroll>
+
+<script src="{{ 'pd-components.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "PD活动组件 - 滚动切换Banner",
+  "tag": "section",
+  "class": "section-banner-image-scroll",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Your First Home Generator"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "SubTitle",
+      "default": "The entry-level generator grows with you, going through 90% outage."
+    },
+    {
+      "type": "text",
+      "id": "unit_text",
+      "label": "功率单位",
+      "default": "kwh"
+    },
+    { "type": "header", "content": "第一屏内容设置" },
+    {
+      "type": "image_picker",
+      "id": "banner_1",
+      "label": "图片"
+    },
+    {
+      "type": "number",
+      "id": "powe_1",
+      "label": "功率数字",
+      "default": 2
+    },
+    { "type": "header", "content": "第二屏内容设置" },
+    {
+      "type": "image_picker",
+      "id": "banner_2",
+      "label": "图片"
+    },
+    {
+      "type": "number",
+      "id": "powe_2",
+      "label": "功率数字",
+      "default": 12
+    },
+    { "type": "header", "content": "动画设置" },
+    {
+      "type": "range",
+      "id": "scroll_distance",
+      "min": 0.4,
+      "max": 2.4,
+      "step": 0.1,
+      "label": "滚动动画行程",
+      "info": "控制动画切换响应速度",
+      "default": 0.7
+    },
+    {
+      "type": "range",
+      "id": "scroll_bottom_halt",
+      "min": 0,
+      "max": 200,
+      "step": 2,
+      "label": "距离行程终点提前结束距离",
+      "info": "为0则最后一屏切换后立即滚出",
+      "default": 120
+    },
+    { "type": "header", "content": "颜色设置" },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "标题颜色",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "content_color",
+      "label": "内容颜色",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "PD活动组件 - 滚动切换Banner"
+    }
+  ]
+}
+{% endschema %}

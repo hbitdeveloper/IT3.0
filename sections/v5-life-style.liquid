@@ -1,0 +1,305 @@
+{% style %}
+/* 日站特殊处理 */
+html[lang="ja"] .life-product-card-bottom .life-product-card-title {
+  line-height: 1.75rem;
+}
+  @media screen and (max-width: 1023.98px) {
+    html[lang="ja"] .life-product-card-bottom .life-product-card-title {
+    line-height: 1.5rem !important;
+  }
+}
+{% endstyle %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- assign num = 0 -%}
+{% for block in section.blocks %}
+    {%- assign block_product = block.settings.product -%}
+    {% if block_product != blank and block_product.available %}
+        {%- assign num = num | plus: 1 -%}
+    {% endif %}
+{% endfor %}
+
+{%- assign is_swiper_pc = false -%}
+{%- if num > 4 -%}
+  {%- assign is_swiper_pc = true -%}
+{%- endif -%}
+
+{%- assign is_swiper = false -%}
+{%- if num > 1 and section.settings.mb_card_type == 'card_swiper' -%}
+  {%- assign is_swiper = true -%}
+{%- endif -%}
+
+{%- for block in section.blocks -%}
+  {%- assign block_product = block.settings.product -%}
+  {%- if block_product != blank and block_product.available -%}
+    {%- if is_swiper_pc -%}
+      {%- capture pc_card_content -%}
+        {{ pc_card_content }}
+        <div class="swiper-slide">
+          {% render 'v5-life-product-card', style: section.settings.mb_card_type, link_target: section.settings.link_target, setting: block.settings,  variant_id: block.settings.variant_id, product: block_product, num: num %}
+        </div>
+      {%- endcapture -%}
+    {%- else -%}
+      {%- capture pc_card_content -%}
+        {{ pc_card_content }}
+        {% render 'v5-life-product-card', style: section.settings.mb_card_type, link_target: section.settings.link_target, setting: block.settings,  variant_id: block.settings.variant_id, product: block_product, num: num %}
+      {%- endcapture -%}
+    {%- endif -%}
+
+    {%- if is_swiper -%}
+      {%- capture swiper_card_content -%}
+        {{ swiper_card_content }}
+        <div class="swiper-slide h-auto {% if section.settings.belongs_to != blank %}min-h-[31.25rem]{% endif %}">
+          {% render 'v5-life-product-card', style: section.settings.mb_card_type, link_target: section.settings.link_target, setting: block.settings, variant_id: block.settings.variant_id, product: block_product, num: num %}
+        </div>
+      {%- endcapture -%}
+    {%- else -%}
+      {%- capture swiper_card_content -%}
+        {{ swiper_card_content }}
+        <div>
+          {% render 'v5-life-product-card', style: section.settings.mb_card_type, link_target: section.settings.link_target, setting: block.settings, variant_id: block.settings.variant_id, product: block_product, num: num %}
+        </div>
+      {%- endcapture -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<style>
+  .v5-life-product-card .tag{
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+  html[lang="de"] .life-product-card-bottom .shop-now-btn {
+    font-size: 0.875rem;
+  }
+</style>
+
+<div
+  {{section.settings.link_target}}
+  {{ section.shopify_attributes }}
+  {% if section.settings.belongs_to != blank %}belongs-to-target="{{section.settings.belongs_to | escape}}"{% endif %}
+  class="section-padding section-v5-pdp-compare"
+  {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %}
+  style="background: {{section.settings.bg_color}};{{style}}"
+>
+  <v5-life-style data-num="{{ num }}">
+    <div class="w-full lg:w-[82.5rem] mx-auto">
+      {% if is_swiper_pc %}
+        <div class="hidden lg:block">
+          <div class="swiper v5-life-product-swiper v5-life-product-swiper-pc">
+            <div class="swiper-wrapper">
+              {{ pc_card_content }}
+            </div>
+            <div class="flex items-center justify-center gap-10 mt-6">
+              <div class="swiper-product-button-prev w-10 h-10 flex items-center justify-center">
+                {% render 'v5-icon-arrow-left', class: 'text-[#242F20] !w-10 !h-10' %}
+              </div>
+              <div class="swiper-product-button-next w-10 h-10 flex items-center justify-center">
+                {% render 'v5-icon-arrow-right', class: 'text-[#242F20]' %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="hidden lg:flex w-full justify-start gap-x-6">
+          {{ pc_card_content }}
+        </div>
+      {% endif %}
+      <div class="lg:hidden">
+        <div class="{% if is_swiper %}ml-4 swiper v5-life-product-swiper v5-life-product-swiper-mb {% else %} grid grid-cols-2 gap-[1px] lg:flex lg:justify-center{% endif %}">
+          {% if is_swiper %}<div class="swiper-wrapper items-stretch">{% endif %}
+            {{ swiper_card_content }}
+          {% if is_swiper %}</div>{% endif %}
+        </div>
+      </div> 
+    </div>
+  </v5-life-style>
+</div>
+<script src="{{ 'sections-v5-life-style.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5首页-产品推荐",
+  "class": "v5-home-product-3",
+  "settings": [
+    {
+      "type": "text",
+      "id": "belongs_to",
+      "label": "划分到的组件组名",
+      "info": "用于在【V-Tabs组件（关联sections）】中进行分组显示"
+    },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "color_background", "id": "bg_color", "label": "背景颜色", "default": "#F9F7F3" },
+    { "type": "header", "content": "PC边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 40,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 80,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ section.settings.style_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.style_type == 'custom' and section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "link_target",
+      "label": "是否新标签页打开",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "mb_card_type",
+      "options": [
+        {
+          "value": "card_swiper",
+          "label": "轮播"
+        },
+        {
+          "value": "card_custom",
+          "label": "平铺"
+        }
+      ],
+      "default": "card_custom",
+      "label": "mb样式"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "产品",
+      "settings": [
+        { "type": "product", "id": "product", "label": "选择产品" },
+        { "type": "number", "id": "variant_id", "label": "变体ID", "visible_if": "{{ block.settings.product != blank }}" },
+        { "type": "image_picker", "id": "scene_compare_image", "label": "场景图", "visible_if": "{{ block.settings.product != blank }}", "info": "三张图：424px * 424px 四张图：312px * 312px" },
+        { "type": "image_picker", "id": "info_compare_image", "label": "设备信息图PC", "visible_if": "{{ block.settings.product != blank }}", "info": "三张图：392px * 82px 四张图：280px * 82px" },
+        { "type": "image_picker", "id": "info_compare_image_mb", "label": "设备信息图MB", "visible_if": "{{ block.settings.product != blank }}", "info": "三张图：544px * 132px" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5首页-产品推荐",
+      "category": "V5.0"
+    }
+  ]
+}
+{% endschema %}

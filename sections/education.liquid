@@ -1,0 +1,135 @@
+{% comment %} 教育版块 {% endcomment %}
+{{ 'section-education.min.css' | asset_url | stylesheet_tag }}
+<div class='education' id="{{ section.settings.anchor | escape  }}" data-handle="{{ section.settings.anchor | escape }}">
+    <div class='education--container'>
+        <div class='ducation--title'>
+            <div class="pc-block">{{ section.settings.pc_title | escape}}</div>
+            <div class="mobile-block">{{ section.settings.mb_title | escape}}</div>
+        </div>
+        <div class='education--desc'>
+            <div class='pc-block rte'>{{ section.settings.pc_desc | replace: '<em>', '<em style="color: var(--jds-color-primary)">' }}</div>
+            <div class='mobile-block rte'>{{ section.settings.mb_desc | replace: '<em>', '<em style="color: var(--jds-color-primary)">' }}</div>
+        </div>
+        <div class="education--nav">
+            <div class="nav-list-wrapper">
+                <div class="nav-list">
+                    {% for block in section.blocks %}
+                        <div class="nav-item {% if forloop.first %}active-item{% endif %}"
+                            data-tab="{{ block.settings.my_education.title | handleize}}"
+                            data-ga-position="{{ block.settings.my_education.title | escape}}"
+                            data-ga-pc-title="{{ section.settings.pc_title | escape }}"
+                            data-ga-mb-title="{{ section.settings.mb_title | escape }}"
+                        > {{ block.settings.my_education.title | escape}} </div>
+                    {% endfor %}
+                </div>
+                {%- if section.blocks.size > 4 -%}
+                    <div class="pc-block">
+                        <span class="nav-arrow nav-arrow--left">&lt;</span>
+                        <span class="nav-arrow nav-arrow--right">&gt;</span>
+                    </div>
+                {%- endif -%}
+            </div>
+        </div>
+        <div class="tab-panes pc-block">
+            {% for block in section.blocks %}
+                <div class="education--list {% if forloop.first %}active-tab-pane{% endif %}" data-tab-pane="{{ block.settings.my_education.title | handleize }}">
+                    {% for item in block.settings.my_education.education_item.value %}
+                        <div class="education--item">
+                            {%- capture content -%}
+                                <div class="image">
+                                    {% render 'responsive-image', image: item.pc_image, mimage: item.mb_image, width: 646, mwidth: 297 %}
+                                    <div class="index-arrow">
+                                        {% render 'icon-arrow-right', width: 20, height: 20, color: '#FFFFFF' %}
+                                    </div>
+                                </div>
+                                <div class="item-title">{{ item.title | escape}}</div>
+                                <div class="rte item-desc">{{ item.desc | metafield_tag  | replace: '<em>', '<em style="color: var(--jds-color-primary)">' }}</div>
+                            {%- endcapture -%}
+
+                            {% if item.link != blank %}
+                                <a
+                                    data-ga-event="scene_item_user_clicks"
+                                    data-ga-action="click"
+                                    data-ga-params-module="{{ block.settings.my_education.title | escape}}"
+                                    data-ga-params-position="{{ item.title | escape}}"
+                                    data-ga-params-button_name="hotspot_area"
+                                    data-ga-params-link="{{ item.link}}"
+                                    href="{{ item.link }}"
+                                    > {{ content }} </a>
+                            {% else %}
+                                {{ content }}
+                           {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="tab-panes mobile-block">
+        {% for block in section.blocks %}
+            <div class="education-swiper {% if forloop.first %}active-swiper{% endif %}">
+                <div class="swiper-wrapper">
+                    {% for item in block.settings.my_education.education_item.value %}
+                        <div class="swiper-slide">
+                            {%- capture content -%}
+                                <div class="image">
+                                    {% comment %} image {% endcomment %}
+                                    {% render 'responsive-image', image: item.pc_image, mimage: item.mb_image, width: 646, mwidth: 297 %}
+                                    <div class="index-arrow">
+                                        {% render 'icon-arrow-right', width: 20, height: 20, color: '#FFFFFF' %}
+                                    </div>
+                                </div>
+                                <div class="item-title">{{ item.title | escape}}</div>
+                                <div class="jds-rte rte item-desc">{{ item.desc | metafield_tag  | replace: '<em>', '<em style="color: var(--jds-color-primary)">' }}</div>
+                            {%- endcapture -%}
+                            {% if item.link != blank %}
+                                <a href="{{ item.link }}"> {{ content }} </a>
+                            {% else %}
+                                {{ content }}
+                            {% endif %}
+
+                        </div>
+                    {% endfor %}
+                </div>
+                {%- if section.blocks.size > 1 -%}
+                    <div class="active-swiper-pagination"></div>
+                {%- endif -%}
+
+            </div>
+        {% endfor %}
+    </div>
+</div>
+<script src="{{ 'section-education.min.js' | asset_url }}" defer></script>
+{% schema %}
+    {
+        "name": "教育版块",
+        "settings": [
+            { "type": "text", "id": "anchor", "label": "版块锚点", "default": "education", "info": "当前模板需要具有唯一值" },
+            { "type": "text", "id": "pc_title", "label": "PC标题" },
+            { "type": "text", "id": "mb_title", "label": "MB标题" },
+            { "type": "richtext", "id": "pc_desc", "label": "PC描述", "info": "斜体将会变成品牌色" },
+            { "type": "richtext", "id": "mb_desc", "label": "MB描述", "info": "斜体将会变成品牌色" }
+        ],
+        "blocks": [
+            {
+                "name": "教育内容",
+                "type": "blocks",
+                "limit": 6,
+                "settings": [
+                    { "type": "metaobject", "id": "my_education", "label": "教育元对象", "metaobject_type": "education_list" }
+                ]
+            }
+        ],
+        "presets": [
+            {
+                "name": "教育版块",
+                "settings": {
+                    "pc_title": "For Any Situations",
+                    "mb_title": "For Any Situations",
+                    "pc_desc": "<p>We are a team of designers and developers, who create high quality WordPress themes.</p>",
+                    "mb_desc": "<p>We are a team of designers and developers, who create high quality WordPress themes.</p>"
+                }
+            }
+        ],
+    }
+{% endschema %}

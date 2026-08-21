@@ -1,0 +1,172 @@
+<style>
+.accessories-video{
+  padding-top: 120px;
+  background-color: #F5F5F5;
+}
+.accessories-video .image-text-container{
+    height: 820px;
+}
+.accessories-video .image-text-container h2 {
+    width: 100%;
+    height: 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    font-weight: 500;
+    color: #000000;
+}
+.accessories-video .image-text-container .swiper-slide{
+    height: 820px;
+}
+.accessories-video .image-text-swiper {
+    padding-top: 0;
+    padding-bottom: 100px;
+}
+.accessories-video .image-text-swiper .image-text-imgblock img {
+    height: 610px;
+}
+.accessories-video .image-text-swiper .slideshow-pagination {
+    bottom: 50px;
+}
+@media screen and (max-width: 768px) {
+  .accessories-video{
+    padding-top: 0;
+  }
+  .accessories-video .image-text-container {
+    height: 80vw;
+  }
+  .accessories-video .image-text-container .swiper-slide{
+    height: 80vw;
+  }
+  .accessories-video .image-text-swiper>h2 {
+    padding: 0 6vw;
+  }
+  .accessories-video .image-text-swiper .image-text-imgblock img {
+    height: 58.8vw;
+  }
+  .accessories-video .image-text-container h2 {
+    height: 21.2vw;
+    line-height: 1.5;
+    font-weight: 400;
+    color: #333333;
+    font-size: 2.1333vw;
+    padding: 0 10px;
+  }
+  .accessories-video .image-text-swiper {
+    padding-top: 0;
+    padding-bottom: 13.2vw;
+  }
+  .accessories-video .image-text-swiper .image-text-imgblock img {
+    height: 58.8vw;
+  }
+  .accessories-video .image-text-swiper .slideshow-pagination {
+    bottom: 6.8vw;
+  }
+}
+</style>
+
+
+<div class="accessories-video">
+    <div class="image-text-swiper page-section-swiper relative swiper z-auto">
+        <h2 class="text-center accessories-usage-title jky-text-2xl">{{ section.settings.title | newline_to_br}}</h2>
+
+        <div class="image-text-container relative">
+            <div class="swiper-wrapper">
+                {% for block in section.blocks %}
+                        <div
+                            class="swiper-slide flex flex-col"
+                            block-id="{{block.id}}"
+                            block-src="{{block.settings.video_url}}"
+                        >
+                            <h2 class="text-center jky-text-xl">{{block.settings.title | newline_to_br}}</h2>
+                            <div class="image-text-imgblock relative">
+                                <img
+                                    class="pc-block"
+                                    src="{{block.settings.video_pc_pic | image_url: width: 1200}}"
+                                    alt="" loading="lazy"
+                                >
+
+                                <img
+                                    class="mobile-block"
+                                    src="{{block.settings.video_m_pic | image_url: width: 630}}"
+                                    alt="" loading="lazy"
+                                >
+
+                                {% if block.settings.video_url != blank%}
+                                    <div class="absolute slide-video-btn" data-modal="#s{{block.id}}">
+                                        <span class="iconfont jackery-icon-playCircle"></span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                {% endfor %}
+            </div>
+
+            <div class="index-container absolute slideshow-navigation">
+                <div class="slideshow-navigation-button prev">
+                  {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+                </div>
+                <div class="slideshow-navigation-button next">
+                  {% render 'icon-arrow-right-long', class: 'iconfont icon-arrow-right-long' %}
+                </div>
+            </div>
+        </div>
+
+        <div class="slideshow-pagination"></div>
+    </div>
+
+    <div class="flex items-center justify-center accessories-usage-view-more">
+        <a class="z-button-fill-big-solid blog-cate-link jky-text-lg" href="{{section.settings.more_url}}">
+            {{ 'general.action_text.view_more' | t }}
+            <jds-icon name="arrow-right" class="icon-arrow-right text-base"></jds-icon>
+        </a>
+    </div>
+</div>
+
+
+<div class="modal video-swiper-modal" data-modal-window id="">
+    <video
+        id="index-section-video"
+        class="video-js video-modal-video vjs-modal"
+        controls
+        preload="auto"
+        poster=""
+        data-setup=''
+    >
+        <source
+            src="https://cdn.shopify.com/videos/c/o/v/b4c985e0a54e4f348521244be8303c05.mp4"
+            type="video/mp4"
+        />
+        <p class="vjs-no-js">
+            To view this video please enable JavaScript, and consider upgrading to a web browser that
+            <a href="https://videojs.com/html5-video-support/" target="_blank" rel="noopener noreferrer">supports HTML5 video</a>
+        </p>
+    </video>
+    <div class="video-modal-close" data-modal-close></div>
+</div>
+
+
+{% schema %}
+  {
+    "name": "Usage Easily Video",
+    "class": "section section-collection-accessories-video",
+    "settings": [
+      {"type": "text", "id": "title", "label": "Usage Easily title", "default": "HOW TO USE ACCESSORIES EASILY"},
+      {"type": "text", "id": "more_url","label": "View More Url"}
+    ],
+    "blocks": [
+      {
+        "type": "VIDEO",
+        "name": "Usage Easily Video",
+        "settings": [
+          {"type": "textarea", "id": "title", "label": "heading"},
+          {"type": "url", "id": "link", "label": "Slide link"},
+          {"type": "url", "id": "video_url", "label": "Video url"},
+          {"type": "image_picker", "id": "video_pc_pic", "label": "PC Image"},
+          {"type": "image_picker", "id": "video_m_pic", "label": "Mobile Image"}
+        ]
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,101 @@
+<div class="jky-12th-membership {%if section.settings.is_gift_block == true%} gift-anchor gift-anchor--mb{%endif%}" anchor="{{ section.settings.anchor | escape }}">
+    <div class="jky-12th-container">
+        {% render 'new-title', class: 'membership-title', title: section.settings.title | escape, type: section.settings.type, bgColor: '#FDF3E6' %}
+        <div class="membership">
+            <div class="jky-up sub-title">{{ section.settings.sub_title | escape }}</div>
+            <div class="jky-up content">
+                <div class="pc-list ">
+                    <div class="icons">
+                      <div class="icon-list">
+                        {% for item in section.blocks %}
+                            <div class="icon-item">
+                                {%- assign val = forloop.index  | modulo: 2 -%}
+                                {% assign color = '<em style="color: ' | append: item.settings.color | append: '">' %}
+                                {% if val == 0  %}
+                                    <div class="text">{{ item.settings.description | replace: '<em>', color}}</div>
+                                {% else %}
+                                    {% render 'responsive-image', image_class: 'icon', image: item.settings.icon %}
+                                {% endif %}
+                                <img class="gift" src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/gift_d5a1a9e5-acf9-4212-9d5a-9ca57ea086c2.png?v=1726740645" alt="jackery" loading="lazy">
+                            </div>
+                        {% endfor %}
+                      </div>
+                      <div class="icon-list second-list">
+                        {% for item in section.blocks %}
+                            <div class="icon-item">
+                                {%- assign val = forloop.index | modulo: 2 -%}
+                                {% assign color = '<em style="color: ' | append: item.settings.color | append: '">' %}
+                                {% if val == 0  %}
+                                    {% render 'responsive-image', image_class: 'icon', image: item.settings.icon %}
+                                {% else %}
+                                    <div class="text">{{ item.settings.description | replace: '<em>', color}}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                </div>
+                <div class="mobile-list">
+                    <div class="icons">
+                        {% for item in section.blocks %}
+                        <div class="icon-item">
+                            <div class="img-list">
+                                {% render 'responsive-image', image_class: 'icon', image: item.settings.icon %}
+                                <img class="gift" src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/gift_d5a1a9e5-acf9-4212-9d5a-9ca57ea086c2.png?v=1726740645" alt="GIFT" loading="lazy">
+                            </div>
+                            {% assign color = '<em style="color: ' | append: item.settings.color | append: '">' %}
+                            <div class="text">{{ item.settings.description | replace: '<em>', color }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {%- if customer.id -%}
+                    <button class="jky-12th-btn jky-12th-joined" disabled><span>{{ section.settings.joined | escape }}</span></button>
+                {%- else -%}
+                    <button
+                        class="jky-12th-btn jky-12th-join-in"
+                        data-ga-event="12anniversary_page_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{{section.settings.title | escape}}"
+                        data-ga-params-button_name="{{section.settings.join_now | escape}}"
+                    ><span>{{ section.settings.join_now | escape }}</span></button>
+                {%- endif -%}
+
+                <div class="tips">{{ section.settings.description }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% schema %}
+    {
+        "name": "十二周年-会员",
+        "settings": [
+            { "type": "checkbox", "id": "is_gift_block", "label": "是否为礼盒模块", "default": false, "info": "该模块的顺序请保持：KV-滚动介绍-品牌介绍-获奖Swiper" },
+            { "type": "text",  "id": "anchor", "label": "二级标题定位锚点" },
+            { "type": "text",  "id": "title", "label": "标题" },
+            { "type": "checkbox", "id": "new_window", "label": "新开标签页", "default": false },
+            { "type": "select", "id": "type", "label": "标题类型", "options": [
+                { "value": "1", "label": "小档" },
+                { "value": "2", "label": "大档" }
+            ], "default": "1"},
+            { "type": "text",  "id": "sub_title", "label": "小标题" },
+            { "type": "text",  "id": "joined", "label": "Joined" },
+            { "type": "text",  "id": "join_now", "label": "Join Now" },
+            { "type": "richtext", "id": "description",  "label": "底部说明文案", "default": "<p></p>" }
+        ],
+        "blocks": [
+            {
+                "type": "block",
+                "name": "会员场景",
+                "limit": 4,
+                "settings": [
+                    { "type": "image_picker", "id": "icon", "label": "图标", "info": "大小: 110*110"},
+                    { "type": "richtext",  "id": "description", "label": "场景描述" },
+                    { "type": "color",  "id": "color", "label": "主文案颜色", "default": "#ffffff" }
+                ]
+            }
+        ]
+
+    }
+{% endschema %}

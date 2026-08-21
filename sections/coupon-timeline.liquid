@@ -1,0 +1,384 @@
+{% style %}
+  #shopify-section-{{ section.id }} {
+    margin-top: calc({{ section.settings.margin_top | default: 0 }} / 16 * 1rem);
+    margin-bottom: calc({{ section.settings.margin_bottom | default: 0 }} / 16 * 1rem);
+  }
+  {% if section.settings.mb_margin_type == 'custom' %}
+    @media (max-width: 1023.98px) {
+      #shopify-section-{{ section.id }} {
+        margin-top: calc({{ section.settings.margin_top_mb | default: 0 }} / 16 * 1rem);
+        margin-bottom: calc({{ section.settings.margin_bottom_mb | default: 0 }} / 16 * 1rem);
+      }
+    }
+  {% endif %}
+
+  /* 优惠券锯齿边缘效果 */
+  .coupon-ticket {
+    mask-image: radial-gradient(circle at 10px 50%, transparent 10px, black 11px);
+    mask-position: -10px 0;
+    mask-size: 100% 100%;
+  }
+
+  /* 优惠券中间的虚线分割 */
+  .coupon-divider {
+    background-image: linear-gradient(to bottom, transparent 50%, rgba(255,255,255,0.5) 50%);
+    background-size: 2px 8px;
+    background-repeat: repeat-y;
+  }
+
+  /* 左上角 EXTRA 标签 */
+  .coupon-badge {
+    pointer-events: none;
+  }
+{% endstyle %}
+
+<div class="w-full py-12 px-4 lg:py-20 lg:px-8" style="background-color: {{ section.settings.bg_color }};">
+  <div class="mx-auto max-w-[75rem]">
+    {% comment %} PC 端布局 (横向排布，时间轴在底部) {% endcomment %}
+    <div class="hidden lg:block relative">
+      {% comment %} 卡片组 {% endcomment %}
+      <div class="flex justify-center gap-6 relative z-10">
+        {%- for block in section.blocks -%}
+          {%- assign b = block.settings -%}
+          <div class="flex h-32 rounded-lg overflow-hidden" {{ block.shopify_attributes }}>
+            {% comment %} 左半边 (折扣信息) {% endcomment %}
+            <div class="relative w-[11.75rem] flex flex-col justify-center items-center p-4" style="background-color: {{ section.settings.card_left_bg }}; color: {{ section.settings.text_color_primary }};">
+              {% comment %} Extra Badge {% endcomment %}
+              {%- if b.badge_text != blank -%}
+                <div class="coupon-badge absolute left-0 top-0 h-16 w-16 overflow-hidden">
+                  <span
+                    class="absolute left-[-1.5rem] top-[0.75rem] flex h-5 w-24 items-center justify-center -rotate-45 text-[10px] font-bold tracking-wider"
+                    style="background-color: {{ section.settings.badge_bg_color }}; color: {{ section.settings.text_color_primary }};"
+                  >
+                    {{ b.badge_text }}
+                  </span>
+                </div>
+              {%- endif -%}
+
+              <div class="text-[2rem] font-semibold leading-none mb-1">{{ b.discount }}</div>
+              <div class="text-[0.875rem] text-center">{{ b.condition }}</div>
+            </div>
+
+            {% comment %} 分割虚线 {% endcomment %}
+            <div class="w-px relative" style="background-color: {{ section.settings.card_left_bg }};">
+              <div class="absolute inset-0 coupon-divider"></div>
+              {% comment %} 上下半圆缺口 {% endcomment %}
+              <div class="absolute -top-2.5 -left-2.5 w-5 h-5 rounded-full" style="background-color: {{ section.settings.bg_color }};"></div>
+              <div class="absolute -bottom-2.5 -left-2.5 w-5 h-5 rounded-full" style="background-color: {{ section.settings.bg_color }};"></div>
+            </div>
+
+            {% comment %} 右半边 (Copy Code) {% endcomment %}
+            <div class="w-[12.25rem] flex flex-col justify-center items-center p-4" style="background-color: {{ section.settings.card_right_bg }}; color: {{ section.settings.text_color_primary }};">
+              <div class="text-xl font-bold tracking-wider">{{ b.code }}</div>
+              <div class="text-xs text-center leading-tight mb-2">{{ b.note }}</div>
+              <button
+                class="js-copy-btn font-semibold text-base px-[1rem] py-0.5 rounded mb-2 hover:opacity-90 transition-opacity"
+                style="background-color: {{ section.settings.btn_bg_color }}; color: {{ section.settings.btn_text_color }};"
+                data-code="{{ b.code }}"
+                data-copied-text="{{ b.copied_text | default: 'Copied!' }}"
+              >
+                {{ b.copy_btn_text | default: 'Copy' }}
+              </button>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {% comment %} 时间轴 {% endcomment %}
+        <div class="{% if section.blocks.size == 2 %}pl-[20.8rem] pr-[20.9rem]{% else %}pl-[8rem] pr-[8.25rem]{% endif %} mt-4 relative">
+        {% comment %} 进度条背景 {% endcomment %}
+        <div
+            class="absolute top-3.5 {% if section.blocks.size == 2 %}left-[24rem] right-[24rem]{% else %}left-[11.75rem] right-[12.25rem]{% endif %} h-0.5 rounded-full"
+            style="background-color: {{ section.settings.timeline_line_color }};"
+        ></div>
+
+        {% comment %} 进度节点 {% endcomment %}
+        <div class="flex justify-between relative z-10">
+          {%- for block in section.blocks -%}
+            {%- assign b = block.settings -%}
+            <div class="flex flex-col items-center">
+              <div class="w-7 h-7 rounded-full border-2 border-solid flex items-center justify-center" style="background-color: {{ section.settings.card_left_bg }}; border-color: {{ section.settings.bg_color }}; color: {{ section.settings.text_color_primary }};">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </div>
+              <div class="text-sm font-semibold mt-1" style="color: {{ section.settings.text_color_secondary }};">{{ b.timeline_text }}</div>
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+
+    {% comment %} 移动端布局 (竖向排布，时间轴在右侧) {% endcomment %}
+    <div class="lg:hidden relative flex max-w-sm mx-auto gap-4">
+      {% comment %} 左侧竖向时间轴 {% endcomment %}
+      <div class="w-5 relative flex flex-col justify-between pt-8 py-[3rem]">
+        {% comment %} 竖向进度条背景 {% endcomment %}
+        <div
+          class="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-0.5 rounded-full"
+          style="background-color: {{ section.settings.card_left_bg }};"
+        ></div>
+
+        {% comment %} 进度节点 {% endcomment %}
+        {%- for block in section.blocks -%}
+          {%- assign b = block.settings -%}
+          <div class="relative z-10 flex flex-col items-center">
+            <div class="w-5 h-5 rounded-full border-4 flex items-center justify-center mb-1" style="background-color: {{ section.settings.card_left_bg }}; border-color: {{ section.settings.bg_color }}; color: {{ section.settings.text_color_primary }}; box-shadow: 0 0 0 2px {{ section.settings.card_left_bg | color_modify: 'alpha', 0.2 }};">
+              <svg class="w-2.5 h-2.5 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {% comment %} 右侧卡片组 {% endcomment %}
+      <div class="flex-1 flex flex-col gap-4 relative z-10">
+        {%- for block in section.blocks -%}
+          {%- assign b = block.settings -%}
+          <div class="flex flex-col h-28 rounded-lg overflow-hidden w-full" {{ block.shopify_attributes }}>
+            <div class="flex h-28 rounded-lg overflow-hidden w-full">
+            {% comment %} 左半边 {% endcomment %}
+            <div class="relative w-1/2 flex flex-col justify-center items-center p-3" style="background-color: {{ section.settings.card_left_bg }}; color: {{ section.settings.text_color_primary }};">
+              {%- if b.badge_text != blank -%}
+                <div class="coupon-badge absolute left-0 top-0 h-14 w-14 overflow-hidden">
+                  <span
+                    class="absolute left-[-2.25rem] top-[0.625rem] flex h-4 w-28 items-center justify-center -rotate-45 text-[9px] font-bold tracking-wider"
+                    style="background-color: {{ section.settings.badge_bg_color }}; color: {{ section.settings.text_color_primary }};"
+                  >
+                    {{ b.badge_text }}
+                  </span>
+                </div>
+              {%- endif -%}
+              <div class="text-[1.5rem] font-semibold leading-none mb-1">{{ b.discount }}</div>
+              <div class="text-xs text-center leading-tight">{{ b.condition }}</div>
+            </div>
+
+            {% comment %} 分割虚线 {% endcomment %}
+            <div class="w-px relative" style="background-color: {{ section.settings.card_left_bg }};">
+              <div class="absolute inset-0 coupon-divider"></div>
+              <div class="absolute -top-2 -left-2 w-4 h-4 rounded-full" style="background-color: {{ section.settings.bg_color }};"></div>
+              <div class="absolute -bottom-2 -left-2 w-4 h-4 rounded-full" style="background-color: {{ section.settings.bg_color }};"></div>
+            </div>
+
+            {% comment %} 右半边 {% endcomment %}
+            <div class="w-1/2 flex flex-col justify-center items-center p-2" style="background-color: {{ section.settings.card_right_bg }}; color: {{ section.settings.text_color_primary }};">
+              <div class="text-base font-semibold tracking-wider leading-none mb-1">{{ b.code }}</div>
+              <div class="text-[0.625rem] text-center leading-none">{{ b.note }}</div>
+              <button
+                class="js-copy-btn font-semibold text-xs px-3 py-1 rounded hover:opacity-90 active:scale-95 transition-all mt-1.5"
+                style="background-color: {{ section.settings.btn_bg_color }}; color: {{ section.settings.btn_text_color }};"
+                data-code="{{ b.code }}"
+                data-copied-text="{{ b.copied_text | default: 'Copied!' }}"
+              >
+                {{ b.copy_btn_text | default: 'Copy' }}
+              </button>
+            </div>
+            </div>
+
+            <div class="text-base font-medium mt-1" style="color: {{ section.settings.text_color_secondary }};">{{ b.timeline_text }}</div>
+          </div>
+          
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  document.addEventListener('DOMContentLoaded', function () {
+    const copyBtns = document.querySelectorAll('.js-copy-btn');
+    copyBtns.forEach((btn) => {
+      btn.addEventListener('click', function () {
+        const code = this.getAttribute('data-code');
+        const copiedText = this.getAttribute('data-copied-text') || 'Copied!';
+        const originalText = this.innerText;
+
+        if (code) {
+          navigator.clipboard
+            .writeText(code)
+            .then(() => {
+              this.innerText = copiedText;
+              setTimeout(() => {
+                this.innerText = originalText;
+              }, 2000);
+            })
+            .catch((err) => {
+              console.error('Failed to copy: ', err);
+            });
+        }
+      });
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Coupon Timeline",
+  "tag": "section",
+  "class": "section-coupon-timeline",
+  "settings": [
+    { "type": "header", "content": "目前适配2个或者3个blocks" },
+    { "type": "header", "content": "外边距（PC）" },
+    {
+      "type": "range",
+      "id": "margin_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上外边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下外边距",
+      "default": 0
+    },
+    { "type": "header", "content": "外边距（MB）" },
+    {
+      "type": "select",
+      "id": "mb_margin_type",
+      "label": "MB外边距",
+      "options": [
+        { "value": "default", "label": "与PC一致" },
+        { "value": "custom", "label": "单独配置" }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "range",
+      "id": "margin_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上外边距",
+      "default": 0,
+      "visible_if": "{{section.settings.mb_margin_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下外边距",
+      "default": 0,
+      "visible_if": "{{section.settings.mb_margin_type == 'custom' }}"
+    },
+    { "type": "header", "content": "颜色配置" },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "组件背景色",
+      "default": "#FFF6EC"
+    },
+    {
+      "type": "color",
+      "id": "card_left_bg",
+      "label": "卡片左侧背景色",
+      "default": "#F9722D"
+    },
+    {
+      "type": "color",
+      "id": "card_right_bg",
+      "label": "卡片右侧背景色",
+      "default": "#FFA15A"
+    },
+    {
+      "type": "color",
+      "id": "text_color_primary",
+      "label": "主要字体颜色",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "text_color_secondary",
+      "label": "次要字体颜色(时间轴)",
+      "default": "#F9722D"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg_color",
+      "label": "按钮背景色",
+      "default": "#F9722D"
+    },
+    {
+      "type": "color",
+      "id": "btn_text_color",
+      "label": "按钮文字颜色",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "timeline_line_color",
+      "label": "时间轴线条颜色",
+      "default": "#F9722D"
+    },
+    {
+      "type": "color",
+      "id": "badge_bg_color",
+      "label": "角标背景色",
+      "default": "#242F20"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "coupon",
+      "name": "Coupon Card",
+      "limit": 3,
+      "settings": [
+        { "type": "text", "id": "badge_text", "label": "左上角角标", "default": "EXTRA" },
+        { "type": "text", "id": "discount", "label": "折扣额度", "default": "3% OFF" },
+        { "type": "text", "id": "condition", "label": "折扣条件", "default": "on $1,500+ orders" },
+        { "type": "text", "id": "code", "label": "优惠码", "default": "OFFER3" },
+        { "type": "text", "id": "copy_btn_text", "label": "复制按钮文案", "default": "Copy" },
+        { "type": "text", "id": "copied_text", "label": "复制成功文案", "default": "Copied!" },
+        { "type": "text", "id": "note", "label": "底部提示", "default": "(Please apply at checkout)" },
+        { "type": "text", "id": "timeline_text", "label": "时间轴节点文案", "default": "Order over $1,500" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Coupon Timeline",
+      "blocks": [
+        {
+          "type": "coupon",
+          "settings": {
+            "discount": "3% OFF",
+            "condition": "on $1,500+ orders",
+            "code": "OFFER3",
+            "timeline_text": "Order over $1,500"
+          }
+        },
+        {
+          "type": "coupon",
+          "settings": {
+            "discount": "5% OFF",
+            "condition": "on $2,300+ orders",
+            "code": "OFFER5",
+            "timeline_text": "Order over $2,300"
+          }
+        },
+        {
+          "type": "coupon",
+          "settings": {
+            "discount": "7% OFF",
+            "condition": "on $3,400+ orders",
+            "code": "OFFER7",
+            "timeline_text": "Order over $3,400"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

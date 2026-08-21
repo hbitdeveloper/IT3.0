@@ -1,0 +1,279 @@
+{%- liquid
+    assign time_now = 'now' | date: '%s'
+    assign is_show = false
+    assign begin_time = 0
+    if block.settings.begin_time != blank
+      assign begin_time = block.settings.begin_time | date: '%s'
+    endif
+
+    assign end_time = 0
+    if block.settings.end_time != blank
+      assign end_time = block.settings.end_time | date: '%s'
+    endif
+
+    if begin_time == 0 and end_time == 0
+      assign is_show = true
+    endif
+
+    if begin_time != 0 and end_time == 0 and begin_time < time_now
+      assign is_show = true
+    endif
+
+    if begin_time == 0 and end_time != 0 and end_time > time_now
+      assign is_show = true
+    endif
+
+    if begin_time != 0 and end_time != 0 and end_time > time_now and begin_time < time_now
+      assign is_show = true
+    endif
+-%}
+
+{%- if is_show == true -%}
+  {% style %}
+    .blocks-subscribe-banner .field_error-tips {
+      position: absolute;
+      top: calc(100% + 1px);font-size: 12px;font-weight: 400;color: var(--error-color);
+    }
+
+    .blocks-subscribe-banner jky-checkbox {
+      flex: unset;
+    }
+
+    .type-subs_mode_color .subs_mode_color--show {
+      display: block;
+    }
+
+    {%- if block.settings.align_right == 'right' -%}
+      @media screen and (min-width: 1024px) {
+        .subscribe-banner-content.subs-banner-right-group .blocks-heading-content:not(.blocks-subscribe-banner-form .blocks-heading-content) {
+          text-align: right;
+        }
+      }
+    {%- endif -%}
+
+      .type-subs_mode_color.blocks-subscribe-banner .blocks-subscribe-banner-form {
+        width: 100%;
+      }
+
+      @media screen and (min-width: 1024px) {
+        .type-subs_mode_color.blocks-subscribe-banner .blocks-subscribe-banner-form .blocks-heading-content,.type-subs_mode_color.blocks-subscribe-banner .blocks-subscribe-banner-form .blocks-subscribe-banner-form_inner {
+          width: fit-content;
+        }
+        .type-subs_mode_color.blocks-subscribe-banner .blocks-subscribe-banner-form {
+          padding-top: 1.5rem;
+          padding-left: 3rem;
+          padding-right: 3rem;
+        }
+      }
+
+      @media screen and (max-width: 1024px) {
+        .type-subs_mode_color.blocks-subscribe-banner .blocks-subscribe-banner-form {
+          padding: 1.125rem 0.75rem;
+        }
+      }
+  {% endstyle %}
+  {%- capture style -%}
+    {% render 'spacing-padding', settings: block.settings %}
+  {%- endcapture -%}
+  <div
+      {% if block.settings.anchor != blank %}anchor-target="{{block.settings.anchor | escape}}"{% endif %}
+      class="group blocks-subscribe-banner blocks-subscribe-banner--form section-padding h-auto
+      w-full type-subs_mode_color-{{section.id}} type-subs_mode_color
+      relative flex justify-center items-center {% if settings.enable_animations_scroll %}scroll-trigger animate--slide-in{% endif %}"
+      style="{{style}}; background-color: {{block.settings.comp_bg_color}};"
+      {{ block.shopify_attributes }}
+  >
+    <div class="subscribe-banner-content {% if block.settings.page_width == 'section-container-lg' %}section-container-lg rounded-xl{%else%}w-full{% endif %} relative z-2
+    {% if block.settings.align_right == 'right' %} subs-banner-right-group items-end{% elsif block.settings.align_right == 'center' %}items-center{% endif %}
+    h-full lg:h-fit lg:justify-between flex flex-col
+    "
+    style="background: {{block.settings.subs_bg_color}};"
+    >
+        {%- if block.settings.img_pc != blank -%}
+          {%- assign mimage = block.settings.img_pc -%}
+          {%- if block.settings.img_mb != blank -%}
+              {%- assign mimage = block.settings.img_mb -%}
+          {%- endif -%}
+          {%- assign img_class = 'blocks-image-pic w-full h-full inset-0 absolute object-cover overflow-hidden' -%}
+          {%- if block.settings.page_width == 'section-container-lg' -%}
+            {%- assign img_class = img_class | append: ' rounded-xl' -%}
+          {%- endif -%}
+          {% render 'responsive-image', image: block.settings.img_pc, image_class: img_class, mimage: mimage, width: 1312, mwidth: 680 %}
+        {%- endif -%}
+        {% content_for 'blocks' %}
+    </div>
+  </div>
+{%- endif -%}
+
+{% comment %} FIX-CSS {% endcomment %}
+<style>
+  .subscribe-banner-content.lg\:h-fit, .subscribe-banner-content.h-fit {height: fit-content;}
+</style>
+{% comment %} FIX-CSS {% endcomment %}
+
+{% schema %}
+{
+  "name": "V-订阅组件",
+  "blocks": [{"type": "_subscribe-banner-form"}],
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度"
+    },
+    { 
+      "type": "select", 
+      "id": "align_right", 
+      "label": "PC端内容位置", 
+      "options": [
+        {
+          "value": "left",
+          "label": "左"
+        },
+        {
+          "value": "center",
+          "label": "中"
+        },
+        {
+          "value": "right",
+          "label": "右"
+        }
+      ],
+      "default": "left",
+      "info": "PC端指所有文案+订阅模块位置"
+    },
+    {
+      "type": "color_background",
+      "id": "comp_bg_color",
+      "label": "背景颜色"
+    },
+    {
+      "type": "color_background",
+      "id": "subs_bg_color",
+      "label": "组件内背景颜色",
+      "default": "#333333"
+    },
+    { "type": "header", "content": "组件有效期" },
+    {
+        "type": "text", "id": "begin_time", "label": "开始时间",
+        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+    },
+    {
+        "type": "text", "id": "end_time", "label": "结束时间",
+        "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+    },
+    {
+      "type": "header",
+      "content": "桌面端图片配置"
+    },
+    { "type": "image_picker", "id": "img_pc", "label": "图片地址", "info": "建议图片尺寸：1312 * 178二倍图，若修改了高度请按实际比例调整上传"},
+
+    {
+      "type": "header",
+      "content": "移动端图片配置"
+    },
+    { "type": "image_picker", "id": "img_mb", "label": "图片地址", "info": "建议图片尺寸：654 * 368，若修改了高度请按实际比例调整上传"},
+    { "type": "header", "content": "内边距" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-订阅组件",
+      "category": "功能业务",
+      "blocks": [
+          {
+              "type": "_subscribe-banner-form",
+              "blocks": [
+                  {
+                      "type": "v-heading-content",
+                      "blocks": [
+                          {
+                              "type": "_v-heading-content-subheading",
+                              "settings": {
+                                  "heading": "<p>Subscribe now for sales updates!</p>",
+                                  "mb_heading": "<p>Subscribe now for sales updates!</p>",
+                                  "text_color": "#FFFFFF",
+                                  "heading_size": "heading_6",
+                                  "padding_top": 0,
+                                  "padding_bottom": 16,
+                                  "alignment": "left",
+                              }
+                          }
+                      ],
+                      "settings": {
+                          "padding_top": 0,
+                          "padding_bottom": 0,
+                          "page_width": "w-full"
+                      }
+                  },
+                  {
+                    "type": "_subscribe-banner-modal",
+                    "static": true,
+                    "id": "subscribe-banner-modal",
+                    "settings": {
+                      "is_show": "form"
+                    }
+                  }
+              ],
+              "settings": {
+                  "bg_color": "",
+                  "has_blur": false,
+                  "component_name": "V-订阅组件"
+              }
+          }
+      ]
+    }
+  ]
+}
+{% endschema %}

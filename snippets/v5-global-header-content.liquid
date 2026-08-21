@@ -1,0 +1,28 @@
+{% comment %} 结构化数据 {% endcomment %}
+{% render 'structure-data' %}
+
+{% comment %} 全局公共js，Footer DOM后立即执行，无需defer {% endcomment %}
+<script src="{{ 'common-theme.min.js' | asset_url }}" defer></script>
+
+{% comment %} 页面H1 {% endcomment %}
+{% render 'page-h1' %}
+
+{% comment %} GTM noscript代码 {% endcomment %}
+{% render 'ga-manger', shown_place: 'body' %}
+
+{%- if settings.use_v5_header -%}
+    <link rel="preload" href="{{ 'header-v5.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>{{- 'header-v5.css' | asset_url | stylesheet_tag }}</noscript>
+    <link rel="preload" href="{{ 'snippets-v5-shop-menu.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>{{- 'snippets-v5-shop-menu.css' | asset_url | stylesheet_tag }}</noscript>
+    {{ 'header-v5.js' | asset_url | preload_tag: as: 'script' }}
+    {{ 'v5-shop-menu.js' | asset_url | preload_tag: as: 'script' }}
+{%- endif -%}
+
+{% comment %} 国家店铺数据 {% endcomment %}
+{% render 'countries-selection' %}
+
+{% comment %} V4.0 Header {% endcomment %}
+{%- unless settings.use_v5_header -%}
+    {% section 'header-new' %}
+{%- endunless -%}

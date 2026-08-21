@@ -1,0 +1,141 @@
+{% comment %} 产品功能按钮组 snippet 版本 {% endcomment %}
+
+{% comment %} 处理按钮参数的默认值和验证 {% endcomment %}
+{%- assign button_function_type = function_type | default: '' -%}
+{%- assign button_variant_style = button_variant | default: 'primary' -%}
+{%- assign button_size_style = button_size | default: 'medium' -%}
+{%- assign button_display_text = button_text -%}
+{%- if button_display_text == blank -%}
+  {%- case button_function_type -%}
+    {%- when 'add_to_cart' -%}
+      {%- assign button_display_text = 'Add to Cart' -%}
+    {%- when 'shop_now' -%}
+      {%- assign button_display_text = 'Shop Now' -%}
+    {%- when 'buy_now' -%}
+      {%- assign button_display_text = 'Buy Now' -%}
+    {%- when 'pre_sale' -%}
+      {%- assign button_display_text = 'Notify Me' -%}
+    {%- else -%}
+      {%- assign button_display_text = '' -%}
+  {%- endcase -%}
+{%- endif -%}
+
+<v-product-action-buttons class="v-product-action-buttons flex-1 w-full" data-variant-id="{{ firstProduct.id }}">
+  <style>
+    jds-button::part(button) {width:100%;}
+
+    .jky-general-product--pop.modal-container.modal .modal-content {border-radius: var(--theme-dialog-border-radius, 1.125rem);width:30rem;overflow-y:auto;}
+    .jky-general-product--pop.modal-container.modal .modal-content .moadal-header {border-bottom:none;}
+    .jky-general-product--pop.modal-container.modal .modal-content .modal-content-body {padding:0 2.5rem 3.75rem;}
+    .jky-general-product--pop.modal-container.modal .modal-content .title {font-size:1.75rem;font-weight:600;line-height:2.125rem;margin-bottom:0.25rem;}
+    .jky-general-product--pop.modal-container.modal .modal-content .subtitle {color:#666;font-size:1rem;font-weight:500;line-height:1.5rem;margin-bottom:1.25rem;}
+    .jky-general-product--pop.modal-container.modal .modal-content .newbee-form_shortage .form_sub_btn {width: 100%;height: 2.8125rem;}
+    @media screen and (max-width: 1023.98px) {
+      .jky-general-product--pop.modal-container.modal .modal-content {border-radius: var(--theme-dialog-border-radius, 0.75rem);width:21.4375rem;}
+      .jky-general-product--pop.modal-container.modal .modal-content .modal-content-body {padding:0 1.25rem 1.875rem;}
+      .jky-general-product--pop.modal-container.modal .modal-content .title {font-size:2.5rem;line-height:3rem;}
+      .jky-general-product--pop.modal-container.modal .modal-content .subtitle {font-size:1.5rem;line-height:2.25rem;}
+      .jky-general-product--pop.modal-container.modal .modal-content .newbee-form_shortage .form_sub_btn {border-radius:1.5rem;}
+    }
+  </style>
+  {% comment %} 根据功能类型显示对应按钮 {% endcomment %}
+  {%- if button_function_type == 'add_to_cart' -%}
+    {% comment %} 加入购物车按钮 {% endcomment %}
+    <jds-button
+      class="w-full lg:w-full function-btn disabled:cursor-not-allowed disabled:opacity-40"
+      btn-action="addtocart"
+      data-id="{{ firstProduct.id }}"
+      {% unless firstProduct.available %}
+        disabled
+      {% endunless %}
+      variant="{{ button_variant_style }}"
+      size="{{ button_size_style }}"
+      {% if custom_color != blank %}
+        kind="custom"
+        style="--jds-btn-display:block;--jds-btn-line-height:normal;--jds-btn-custom-color:{{ custom_color }};--jds-btn-primary-custom-text-color:{{ custom_text_color | default: '#FFFFFF' }};"
+      {% else %}
+        kind="custom"
+        style="--jds-btn-display:block;--jds-btn-line-height:normal;--jds-btn-custom-color:var(--jds-color-primary);--jds-btn-primary-custom-text-color:#FFFFFF;"
+      {% endif %}
+      {% if icon != blank %}
+        icon="{{ icon }}"
+      {% endif %}
+    >
+      {%- if firstProduct.available -%}
+        {{ button_display_text | escape }}
+      {%- else -%}
+        {{ 'products.product.sold_out' | t }}
+      {%- endif -%}
+    </jds-button>
+  {%- elsif button_function_type == 'shop_now' -%}
+    {% comment %} 商品详情按钮 {% endcomment %}
+    <jds-button
+      class="w-full lg:w-full function-btn"
+      href="{{ custom_link | escape | default: firstProduct.url }}"
+      {%if link_blank == true%} target="_blank"{% endif %}
+      variant="{{ button_variant_style }}"
+      size="{{ button_size_style }}"
+      {% if custom_color != blank %}
+        kind="custom"
+        style="--jds-btn-display:block;--jds-btn-line-height:normal;--jds-btn-custom-color:{{ custom_color }};--jds-btn-primary-custom-text-color:{{ custom_text_color | default: '#FFFFFF' }};"
+      {% else %}
+        kind="custom"
+        style="--jds-btn-display:block;--jds-btn-line-height:normal;--jds-btn-custom-color:var(--jds-color-primary);--jds-btn-primary-custom-text-color:#FFFFFF;"
+      {% endif %}
+      {% if icon != blank %}
+        icon="{{ icon }}"
+      {% endif %}
+    >
+      {{ button_display_text | escape }}
+    </jds-button>
+  {%- elsif button_function_type == 'buy_now' -%}
+    {% comment %} 立即购买按钮 {% endcomment %}
+    <jds-button
+      class="w-full lg:w-full function-btn disabled:cursor-not-allowed disabled:opacity-40"
+      btn-action="buyitnow"
+      {% unless firstProduct.available %}
+        disabled
+      {% endunless %}
+      {% if link_blank == true %} target="_blank" {% endif %}
+      variant="{{ button_variant_style }}"
+      size="{{ button_size_style }}"
+      {% if custom_color != blank %}
+        kind="custom"
+        style="--jds-btn-display:block;--jds-btn-line-height:normal;--jds-btn-custom-color:{{ custom_color }};--jds-btn-primary-custom-text-color:{{ custom_text_color | default: '#FFFFFF' }};"
+      {% else %}
+        kind="custom"
+        style="--jds-btn-display:block;--jds-btn-line-height:normal;--jds-btn-custom-color:var(--jds-color-primary);--jds-btn-primary-custom-text-color:#FFFFFF;"
+      {% endif %}
+      {% if icon != blank %}
+        icon="{{ icon }}"
+      {% endif %}
+    >
+      {%- if firstProduct.available -%}
+        {{ button_display_text | escape }}
+      {%- else -%}
+        {{ 'products.product.sold_out' | t }}
+      {%- endif -%}
+    </jds-button>
+  {%- elsif button_function_type == 'pre_sale' -%}
+    {% comment %} 预售按钮 {% endcomment %}
+    <jds-button
+      class="w-full lg:w-full function-btn"
+      btn-action="presale"
+      {% if link_blank == true %} target="_blank" {% endif %}
+      variant="{{ button_variant_style }}"
+      size="{{ button_size_style }}"
+      {% if custom_color != blank %}
+        kind="custom"
+        style="--jds-btn-display:block;--jds-btn-line-height:normal;--jds-btn-custom-color:{{ custom_color }};--jds-btn-primary-custom-text-color:{{ custom_text_color | default: '#FFFFFF' }};"
+      {% else %}
+        kind="custom"
+        style="--jds-btn-display:block;--jds-btn-line-height:normal;--jds-btn-custom-color:var(--jds-color-primary);--jds-btn-primary-custom-text-color:#FFFFFF;"
+      {% endif %}
+      {% if icon != blank %}
+        icon="{{ icon }}"
+      {% endif %}
+    >
+      {{ button_display_text | escape }}
+    </jds-button>
+  {%- endif -%}
+</v-product-action-buttons>

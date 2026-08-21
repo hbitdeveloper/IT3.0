@@ -1,0 +1,345 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign type = section.settings.type
+  assign article_list = '' | split: ','
+
+  if type == 'standards'
+    assign blog = section.settings.blog
+    for item in blog.articles
+      assign handle = item.handle | split: ','
+      assign article_list = article_list | concat: handle
+    endfor
+  else
+    for item in section.blocks
+      assign handle = item.settings.article.handle | split: ','
+      assign article_list = article_list | concat: handle
+    endfor
+  endif
+-%}
+
+<div
+  class="v5-sg-blogs section-padding"
+  {{ section.shopify_attributes }}
+  style="background: {{section.settings.bg_color}};{{style}}"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+>
+  {%- if section.settings.module_title != blank -%}
+    <h2 class="section-container-lg text-center text-2xl lg:text-5xl text-[#242F20] font-semibold mb-10 lg:mb-16 leading-[1.1]">
+      {{ section.settings.module_title | newline_to_br }}
+    </h2>
+  {%- endif -%}
+
+  <div class="w-full lg:w-[82.5rem] mx-auto relative">
+    {% comment %} Swiper {% endcomment %}
+    <div class="swiper related-blog-swiper px-4 lg:px-0">
+      <div class="swiper-wrapper" data-number="{{ article_list.size }}">
+        {% comment %} Slide {% endcomment %}
+        {% for item in article_list %}
+          {% assign article_obj = articles[item] %}
+          <div class="swiper-slide w-80 lg:w-[26.5rem] flex flex-col bg-white focus-zoom-container">
+            <a
+              class="flex w-full h-[14.1875rem] lg:w-[26.5rem] lg:h-[18.8125rem] overflow-hidden"
+              target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+              href="{{ article_obj.url }}"
+              data-ga-event="5.0_products_collection_user_clicks" 
+              data-ga-action="click"
+              data-ga-params-module="{{ section.settings.module_title | escape }}"
+              data-ga-params-link="{{ article_obj.url }}"
+              data-ga-params-position="{{article_obj.title }}"
+              data-ga-params-button_name="pic"
+            >
+              {% render 'diff-end-img',
+                pc_img: article_obj.image,
+                mb_img: article_obj.image,
+                class: 'focus-zoom object-cover w-full h-[14.1875rem] lg:w-[26.5rem] lg:h-[18.8125rem]',
+                pc_img_width: 848,
+                mb_img_width: 640
+              %}
+            </a>
+            <div class="flex-1 flex flex-col justify-between p-4">
+              <div class="flex flex-col gap-y-4">
+                <a
+                  class="flex font-semibold text-[#242F20] line-clamp-2 text-sm lg:text-xl h-10 lg:h-[3.5rem]"
+                  target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}"
+                  href="{{ article_obj.url }}"
+                  data-ga-event="5.0_products_collection_user_clicks" 
+                  data-ga-action="click"
+                  data-ga-params-module="{{ section.settings.module_title | escape }}"
+                  data-ga-params-link="{{ article_obj.url }}"
+                  data-ga-params-position="{{article_obj.title }}"
+                  data-ga-params-button_name="text"
+                >
+                  {{ article_obj.title }}
+                </a>
+                <p class="lg:text-sm text-[0.75rem] text-[rgba(36,47,32,0.9)] flex gap-[0.25rem] lg:mb-[1rem] mb-[0.5rem] lg:min-h-[1.75rem] h-[1.375rem]">
+                  {% for tag in article_obj.tags limit: 3 %}
+                    <span class="tag p-[0.25rem] bg-[#F5F5F3]"> {{ tag | escape }}</span>
+                  {% endfor %}
+                </p>
+              </div>
+              <p class="text-sm text-[#242F20]">{{ article_obj.published_at | time_tag: format: 'date' }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% comment %} Navigation {% endcomment %}
+    {% if article_list.size > 1 %}
+      <div class="hidden {% if article_list.size > 3 %} lg:flex {% endif %} justify-center gap-[2.5rem] lg:mt-[1.5rem]">
+        <button
+          class="blog-prev w-10 h-10 flex items-center justify-center transition bg-[rgba(245,245,243,0.5)]"
+        >
+          {% render 'v5-icon-arrow-left' %}
+        </button>
+        <button
+          class="blog-next w-10 h-10 flex items-center justify-center transition bg-[rgba(245,245,243,0.5)]"
+        >
+          {% render 'v5-icon-arrow-right' %}
+        </button>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+<style>
+  .v5-sg-blogs .related-blog-swiper:not(.swiper-initialized) .swiper-wrapper {
+    display: flex;
+  }
+
+  .v5-sg-blogs .related-blog-swiper:not(.swiper-initialized) .swiper-slide {
+    margin-right: 1rem;
+  }
+
+  @media (min-width: 1024px) {
+    .v5-sg-blogs .related-blog-swiper:not(.swiper-initialized) .swiper-slide {
+      margin-right: 1.5rem;
+    }
+  }
+</style>
+
+<script type="module">
+  const getSpaceBetween = () => {
+    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const isDesktop = window.innerWidth >= 1024;
+    return isDesktop ? rootFontSize * 1.5 : rootFontSize * 1;
+  };
+
+  const containers = document.querySelectorAll('.related-blog-swiper');
+
+  containers.forEach((container) => {
+    const wrapper = container.querySelector('.swiper-wrapper');
+    if (!wrapper) return;
+
+    const total = Number(wrapper.dataset.number || 0);
+    let swiperInstance;
+
+    const createSwiper = () => {
+      if (swiperInstance) return;
+
+      const initialSpaceBetween = getSpaceBetween();
+
+      swiperInstance = new Swiper(container, {
+        spaceBetween: initialSpaceBetween,
+        slidesPerView: 'auto',
+        loop: true,
+        navigation: {
+          nextEl: container.parentElement.querySelector('.blog-next'),
+          prevEl: container.parentElement.querySelector('.blog-prev'),
+        },
+        breakpoints: {
+          1024: {
+            slidesPerView: 3,
+            allowTouchMove: false,
+          },
+        },
+      });
+    };
+
+    const destroySwiper = () => {
+      if (!swiperInstance) return;
+
+      swiperInstance.destroy(true, true);
+      swiperInstance = null;
+    };
+
+    const updateSwiper = () => {
+      const isDesktop = window.innerWidth >= 1024;
+
+      if (swiperInstance) {
+        const gap = getSpaceBetween();
+        swiperInstance.params.spaceBetween = gap;
+
+        if (swiperInstance.params.breakpoints && swiperInstance.params.breakpoints[1024]) {
+          swiperInstance.params.breakpoints[1024].spaceBetween = gap;
+        }
+
+        swiperInstance.update();
+      }
+
+      if (isDesktop) {
+        if (total > 3) {
+          createSwiper();
+        } else {
+          destroySwiper();
+        }
+      } else {
+        if (total > 1) {
+          createSwiper();
+        } else {
+          destroySwiper();
+        }
+      }
+    };
+
+    updateSwiper();
+
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(updateSwiper);
+      observer.observe(document.documentElement);
+    } else {
+      window.addEventListener('resize', updateSwiper);
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "V5-相关博客",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#F5F5F3" },
+    { "type": "header", "content": "PC边距" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "label": "MB边距",
+      "options": [
+        { "value": "default", "label": "与PC一致" },
+        { "value": "custom", "label": "单独配置" }
+      ],
+      "default": "custom"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    { "type": "textarea", "id": "module_title", "label": "模块标题" },
+    { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+    {
+      "type": "header",
+      "content": "类型说明",
+      "info": "如果选择博客分类，则只需要配置一个博客分类即可；若选择自定义博客，则最多配置九个自定义博客"
+    },
+    {
+      "type": "select",  
+      "label": "类型",
+      "id": "type",
+      "options": [
+        { "value": "standards", "label": "博客分类" },
+        { "value": "customizes", "label": "自定义博客" }
+      ]
+    },
+    { "type": "blog", "id": "blog", "label": "博客分类" }
+  ],
+  "blocks": [
+    {
+      "type": "block",
+      "name": "自定义博客",
+      "limit": 9,
+      "settings": [{ "type": "article", "id": "article", "label": "博客" }]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-相关博客"
+    }
+  ]
+}
+{% endschema %}

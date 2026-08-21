@@ -1,0 +1,204 @@
+{% liquid
+    assign banner_count = 0
+    for block in blocks
+        if block.type == 'page_banner'
+            assign banner_count = banner_count | plus: 1
+        endif
+    endfor
+%}
+
+<div class="page-banner relative">
+        <style>
+            @media screen and (max-width: 768px) {
+                .page-banner .swiper-slide .pc-banner-container {
+                    height: auto;
+                }
+            }
+        </style>
+        <div class="swiper-wrapper swiper">
+            {% for block in blocks %}
+                {% case block.type %}
+                    {% when 'page_banner' %}
+                    {% liquid
+                        assign desktop_image = block.settings.image
+                        assign mobile_image = block.settings.m_image
+
+                        if desktop_image == blank
+                            assign desktop_image = mobile_image
+                        endif
+
+                        if mobile_image == blank
+                            assign mobile_image = desktop_image
+                        endif
+
+                        assign banner_alt = block.settings.title | strip_html | escape
+                        if banner_alt == blank
+                            assign banner_alt = desktop_image.alt | default: mobile_image.alt
+                        endif
+                    %}
+                    <div class="swiper-slide relative{% if banner_count == 1 and forloop.first %} ani-slide-top{% endif %}">
+                        <div class="pc-banner-container">
+                            {% if desktop_image != blank %}
+                                <picture>
+                                    {% if mobile_image != blank %}
+                                        <source
+                                            media="(max-width: 768px)"
+                                            srcset="{{ mobile_image | image_url: width: 375 }} 375w, {{ mobile_image | image_url: width: 550 }} 550w, {{ mobile_image | image_url: width: 750 }} 750w"
+                                            sizes="100vw"
+                                        >
+                                    {% endif %}
+                                    {{ desktop_image | image_url: width: 1920 | image_tag:
+                                        class: 'slide-banner',
+                                        widths: '768, 990, 1200, 1440, 1680, 1920',
+                                        sizes: '100vw',
+                                        alt: banner_alt,
+                                        loading: 'eager',
+                                        fetchpriority: 'high'
+                                    }}
+                                </picture>
+                            {% endif %}
+                        </div>
+                        <div class="swiper-banner-foot"></div>
+ 
+                        <div class="page-banner-container index-container absolute {% if block.settings.subtitle %}has-subtitle{% endif %}">
+                            {% if settings.jky_theme_version == 'v4' %}
+                            <img class="absolute left-0 brand-left-icon"
+                                src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/1_d4621f27-b474-43ea-902e-f00f790cf09b.png?v=1670915016"
+                                alt="" width="54" height="54" loading="lazy">
+                            <img class="absolute right-0 bottom-0 brand-right-icon"
+                                src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/2_55109115-cdac-4786-9031-e7168f04d355.png?v=1670915016"
+                                alt="" width="62" height="62" loading="lazy">
+                            {% endif %}
+                            {% if block.settings.banner_icon != blank %}
+                                {{ block.settings.banner_icon | image_url: width: 470 | image_tag:
+                                    class: 'banner-icon absolute left-0 bottom-0',
+                                    widths: '160, 240, 320, 470, 640, 940, 1116',
+                                    sizes: '(max-width: 768px) 30vw, 470px',
+                                    alt: '',
+                                    loading: 'lazy',
+                                    decoding: 'async'
+                                }}
+                            {% endif %}
+                            <div class="page-banner-content absolute right-0 top-0 flex flex-col">
+
+                                {% if block.settings.title != blank %}
+                                    <div class="jky-text-3xl text-overflow-2 font-bold text-break-word {% if settings.jky_theme_version != 'v4' %}v5-font-oxm{% endif %}" style="{% if block.settings.color != blank %}color: {{block.settings.color}} {% endif %}">
+                                        {% if block.settings.link != blank %}
+                                            <a class="text-black" href="{{block.settings.link}}">{{block.settings.title | newline_to_br}}</a>
+                                        {% else %}
+                                            {{block.settings.title | newline_to_br}}
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
+                                {% if block.settings.subtitle %}
+                                    <div class="h4 text-overflow-1" style="{% if block.settings.color != blank %}color: {{block.settings.color}} {% endif %}">
+                                        {{block.settings.subtitle | newline_to_br}}
+                                    </div>
+                                {% endif %}
+
+                                {% if block.settings.link != blank %}
+                                    <a class="z-button-big" href="{{block.settings.link}}" data-analytics-title="{{ block.settings.title | replace: '/n', '' }}">
+                                        {{ 'general.action_text.view_more' | t }} <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right"></jds-icon>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endcase %}
+            {% endfor %}
+        </div>
+
+        {% if banner_count > 1 %}
+            <div class="slideshow-pagination"></div>
+        {% endif %}
+</div>
+
+{% if banner_count > 1 %}
+    <script src="{{ 'gsap.js' | asset_url }}" defer></script>
+    <script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+
+    <script type="module">
+        class PageBanner {
+            constructor(el) {
+                this.DOM = {
+                    el: el
+                };
+                this.init();
+            }
+            init() {
+                this.swiper = new Swiper(".page-banner", {
+                    loop: true,
+                    followFinger: false,
+                    effect: "fade",
+                    autoplay: {{autoplay}} ? {
+                        delay: {{autoplay_speed}} * 1000,
+                        disableOnInteraction: false,
+                    } : false,
+                    pagination: {
+                            el: '.page-banner .slideshow-pagination',
+                            clickable: true,
+                            bulletClass: 'slideshow-pagination-item',
+                            bulletActiveClass: 'active pagination-active',
+                            clickableClass: 'slideshow-pagination-clickable',
+                            modifierClass: 'slideshow-pagination-',
+                            renderBullet: function (index, className) {
+                                var slideIndex = index,
+                                    number = (index <= 8) ? '0' + (slideIndex + 1) : (slideIndex + 1);
+                
+                                var paginationItem = '<span class="slideshow-pagination-item">';
+                                paginationItem = (index <= 8) ? paginationItem +
+                                    '<span class="pagination-separator"><span class="pagination-separator-loader"></span></span>' :
+                                    paginationItem;
+                                paginationItem += '</span>';
+                                return paginationItem;
+                            },
+                    },
+                    on: {
+                            init: function (swiper) {
+                                let slide = this.slides.eq(0);
+                                slide.addClass('ani-slide-top');
+                            },
+                            transitionStart: function () {
+                                for (let i = 0; i < this.slides.length; i++) {
+                                    let slide = this.slides.eq(i);
+                                    slide.removeClass('ani-slide-top');
+                                }
+                            },
+                            transitionEnd: function () {
+                                let slide = this.slides.eq(this.activeIndex);
+                                slide.addClass('ani-slide-top');
+                            },
+                    }
+                }); 
+                this.initEvents()
+            }
+            initEvents() {
+                this.swiper.on('paginationUpdate', (swiper, paginationEl) => setTimeout(() => {
+                    this.pageAnimatePagination(swiper, paginationEl)
+                }, 20));
+
+                this.pageAnimatePagination()
+            }
+            pageAnimatePagination(swiper, paginationEl) {
+                const DOC = paginationEl || this.DOM.el.querySelector('.slideshow-pagination')
+                let paginationItemsLoader = DOC.querySelectorAll('.pagination-separator-loader');
+                let activePaginationItem = DOC.querySelector('.pagination-active');
+                let activePaginationItemLoader = activePaginationItem?.querySelector('.pagination-separator-loader');
+                gsap.set(paginationItemsLoader, {
+                    scaleX: 0
+                });
+                gsap.to(activePaginationItemLoader, 7, {
+                    startAt: {
+                        scaleX: 0
+                    },
+                    scaleX: 1
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            new PageBanner(document.querySelector('.page-banner'));
+        })
+    </script>
+{% endif %}

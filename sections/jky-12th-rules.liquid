@@ -1,0 +1,117 @@
+<style>
+  .jky-12th-rules .article-box .content-box.rule_center{
+    text-align: center;
+  }
+  .jky-12th-rules .article-box .content-box.rule_right{
+    text-align: right;
+  }
+</style>
+
+<div class="jky-12th-rules" anchor="{{ section.settings.anchor | escape }}" anchor-target="{{ section.settings.anchor | escape }}">
+  <div class="jky-12th-container">
+    <div class="article-box">
+      <div class="title-info">
+        <h2 class="section-title">{{ section.settings.title }}</h2>
+        {% comment %} <i class="iconfont jackery-icon-arrowdown"></i> {% endcomment %}
+        <jds-icon name="arrow-down" class="icon-arrow-down"></jds-icon>
+      </div>
+      <div class="content-box {{ section.settings.align }}">
+        {% if section.settings.type == 'html' %}
+          <div class="article-content">{{ section.settings.content }}</div>
+        {% else %}
+          {% assign color = '<em style="color: ' | append: section.settings.color | append: '">' %}
+          <div class="article-content rte">{{ section.settings.richtext | replace: '<em>', color }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<script defer>
+  (function () {
+    function slideToggle(el, duration) {
+      if (!el) return;
+      var isHidden = window.getComputedStyle(el).display === 'none';
+      if (isHidden) {
+        el.style.removeProperty('display');
+        if (window.getComputedStyle(el).display === 'none') {
+          el.style.display = 'block';
+        }
+        var height = el.scrollHeight;
+        el.style.height = '0px';
+        el.style.overflow = 'hidden';
+        el.offsetHeight;
+        el.style.transition = 'height ' + duration + 'ms ease';
+        el.style.height = height + 'px';
+        window.setTimeout(function () {
+          el.style.removeProperty('height');
+          el.style.removeProperty('overflow');
+          el.style.removeProperty('transition');
+        }, duration);
+      } else {
+        el.style.height = el.scrollHeight + 'px';
+        el.style.overflow = 'hidden';
+        el.offsetHeight;
+        el.style.transition = 'height ' + duration + 'ms ease';
+        el.style.height = '0px';
+        window.setTimeout(function () {
+          el.style.display = 'none';
+          el.style.removeProperty('height');
+          el.style.removeProperty('overflow');
+          el.style.removeProperty('transition');
+        }, duration);
+      }
+    }
+
+    function initRulesToggle() {
+      var headers = document.querySelectorAll('.jky-12th-rules .title-info');
+      headers.forEach(function (header) {
+        header.addEventListener('click', function () {
+          header.classList.toggle('active');
+          var content = header.parentElement ? header.parentElement.querySelector('.content-box') : null;
+          slideToggle(content, 250);
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initRulesToggle);
+    } else {
+      initRulesToggle();
+    }
+  })();
+</script>
+
+
+{% schema %}
+{
+  "name": "12周年-规则版块",
+  "tag": "section",
+  "settings": [
+    { "type": "text",  "id": "anchor", "label": "二级标题定位锚点" },
+    { "type": "text",  "id": "title", "label": "活动标题", "default": "Event rules" },
+    {
+      "type": "select", "id": "type", "label": "类型",
+      "options": [
+        { "value": "html", "label": "HTML" },
+        { "value": "rich_text", "label": "富文本" }
+      ],"default": "html"
+    },
+    {
+      "type": "select", "id": "align", "label": "对齐方式",
+      "options": [
+        { "value": "rule_left", "label": "左对齐" },
+        { "value": "rule_center", "label": "居中对齐" },
+        { "value": "rule_right", "label": "右对齐" }
+      ],"default": "rule_left"
+    },
+    { "type": "header", "content": "HTML配置" },
+    {
+      "type": "html", "id": "content", "label": "Section Content",
+      "default": "<p>Here is a paragraph from the article</p><p>Here is a paragraph from the article</p>"
+    },
+    { "type": "header", "content": "富文本配置" },
+    { "type": "richtext", "id": "richtext", "label": "富文本", "info": "斜体将会变为以下的配置色"},
+    { "type": "color", "id": "color", "label": "字体颜色" }
+  ]
+}
+{% endschema %}

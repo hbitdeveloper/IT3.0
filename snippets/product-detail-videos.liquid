@@ -1,0 +1,127 @@
+{%- assign sizes = 0 -%}
+{%- for i in (0..10) -%}
+    {% assign poster_index = 'poster_' | append: forloop.index %}
+    {% assign video_index = 'video_url_' | append: forloop.index %}
+
+    {%- if settings[video_index] or settings[poster_index] -%}
+        {%- assign sizes = sizes | plus: 1 -%}
+    {%- endif -%}
+{%- endfor -%}
+{% assign small_v = false %}
+{% assign large_v = false %}
+{% assign small_icon = false %}
+{% assign large_icon = false %}
+
+{% if sizes <= 5 and settings.video_size == 'video_small' %}
+    {% assign small_v = true %}
+{% endif %}
+
+{% if sizes <= 0 and settings.video_size == 'video_large' %}
+    {% assign large_v = true %}
+{% endif %}
+
+{% if sizes > 5 and settings.video_size == 'video_small' %}
+    {% assign small_icon = true %}
+{% endif %}
+
+{% if sizes > 1 and settings.video_size == 'video_large' %}
+    {% assign large_icon = true %}
+{% endif %}
+
+
+<style>
+    .section-photovolatic-find-out .xl\:a-mb-30 {
+        margin-bottom: 24px!important;
+    }
+    @media screen and (max-width: 1024px) {
+        .section-photovolatic-find-out .xl\:a-mb-30 {
+            margin-bottom: 5.3333vw!important;
+        }
+        .photovolatic-find-out-popup-warp.modal-container.modal .close svg{
+            top: 10vw !important;
+        }
+    }
+</style>
+<section
+        class="w-full flex-center bg-white px-40 pt-80 {% if sizes > 1 %} pb-200 {% else %} pb-80 {% endif %} lg:px-0 lg:j-py-50 xl:a-py-50"  style="background:{{ settings.bg_color }}"
+        data-photovolatic-find-out-video-size="{{ settings.video_size }}"
+>
+    <div class="w-full flex-center flex-col lg:j-w-1200 xl:a-w-1200 relative">
+        <h2 class="video-title w-full text-center font-600 text-#1A1A1A mb-60 text-48 leading-60 lg:text-#1A1A1A lg:j-px-40 xl:a-px-40 lg:j-text-40 lg:j-leading-48 lg:j-mb-30 xl:a-text-40 xl:a-leading-48 xl:a-mb-30" data-videotitle="{{ settings.title }}">
+            {{ settings.title | newline_to_br }}
+        </h2>
+
+        {% comment %} PC Swiper {% endcomment %}
+        <div class="hidden lg:block swiper w-full h-full findout-pc-swiper lg:j-rounded-12 xl:a-rounded-12" data-size="{{ sizes }}"  data-video-size="{{ settings.video_size }}">
+            <div class="swiper-wrapper no-swiping {% if small_v or large_v %} flex-center lg:gap-x-[12px] {% endif %}">
+                {%- for i in (0..9) -%}
+                    {% assign poster_index = 'poster_' | append: forloop.index %}
+                    {% assign video_index = 'video_url_' | append: forloop.index %}
+
+                    {%- if settings[video_index] or settings[poster_index] -%}
+                        <div
+                                class="swiper-slide bg-#C4C4C4 lg:j-h-430 lg:j-rounded-12 {% if settings.video_size == 'video_small' %} !xl:a-w-240 !lg:j-w-240 {% else %} !xl:a-w-l-240 !lg:j-w-l-240 {% endif %} xl:a-h-430 xl:a-rounded-12 overflow-hidden"
+                                data-video-src="{{ settings[video_index] }}"
+                                data-controls="{{ settings.controls }}"
+                                data-loop="{{ settings.loop }}"
+                                data-index="{{ forloop.index0 }}"
+                                data-section-title="{{ settings.title | escape }}"
+                        >
+                            {%-
+                                    render 'jky-video',
+                                    video_url: settings[video_index],
+                                    poster: settings[poster_index],
+                                    autoplay: false,
+                                    controls: settings.controls,
+                                    loop: settings.loop
+                            -%}
+                        </div>
+                    {%- endif -%}
+                {%- endfor -%}
+            </div>
+        </div>
+
+        {% comment %} PC Navigation {% endcomment %}
+        {% if small_icon or large_icon %}
+            <div class="hidden lg:flex swiper-button-next swiper-findout-pc-button-next swiper-btn"></div>
+            <div class="hidden lg:flex swiper-button-prev swiper-findout-pc-button-prev swiper-btn"></div>
+        {% endif %}
+
+        {% comment %} Mobile Swiper {% endcomment %}
+        <div class="block lg:hidden swiper w-full h-full findout-mb-swiper rounded-24" data-size="{{ sizes }}">
+            <div class="swiper-wrapper no-swiping {% if sizes < 2%} flex-center gap-x-[12px] {% endif %}">
+                {%- for i in (0..10) -%}
+                    {% assign poster_index = 'poster_' | append: forloop.index %}
+                    {% assign video_index = 'video_url_' | append: forloop.index %}
+
+                    {%- if settings[video_index] or settings[poster_index] -%}
+                        <div
+                                class="swiper-slide bg-#C4C4C4 {% if settings.video_size == 'video_small' %} w-480 h-860 {% else %} w-l-480 h-l-860 {% endif %} rounded-24 overflow-hidden"
+                                data-video-src="{{ settings[video_index] }}"
+                                data-controls="{{ settings.controls }}"
+                                data-loop="{{ settings.loop }}"
+                                data-index="{{ forloop.index0 }}"
+                                data-section-title="{{ settings.title | escape }}"
+                        >
+                            {%-
+                                    render 'jky-video',
+                                    video_url: settings[video_index],
+                                    poster: settings[poster_index],
+                                    autoplay: false,
+                                    controls: settings.controls,
+                                    loop: settings.loop
+                            -%}
+                        </div>
+                    {%- endif -%}
+                {%- endfor -%}
+            </div>
+        </div>
+
+        {% comment %} Mobile Navigation {% endcomment %}
+        {% if sizes > 1 %}
+            <div class="flex lg:hidden swiper-button-next swiper-findout-mb-button-next"></div>
+            <div class="flex lg:hidden swiper-button-prev swiper-findout-mb-button-prev"></div>
+        {% endif %}
+
+    </div>
+</section>

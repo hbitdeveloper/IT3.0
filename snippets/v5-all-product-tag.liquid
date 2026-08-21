@@ -1,0 +1,170 @@
+{% doc %}
+  V5 所有产品标签
+
+  @description 做可复用的产品标签（展示对于SPU或SKU信息，不做兜底）
+
+  @param {product} product - 产品对象
+  @param {string} variant_id - 产品变体Id
+  @param {boolean} show_spu_tag - 控制是否显示产品SPU展示标签，默认值为false
+  @param {boolean} show_variant_tag - 控制是否显示产品变体展示标签（纯文本无逻辑配置什么展示什么，示例：The Standard Solution）, 默认值为false
+  @param {boolean} show_promotion - 控制是否显示产品折扣角标（有叠加逻辑，示例：46% OFF）, 默认值为true
+  @param {boolean} show_tag_img - 控制是否显示产品标签图片, 默认值为false
+
+  @description 产品标签展示逻辑：
+    1. 产品SPU 展示标签（优先级最高）：
+      - 配置：show_spu_tag = true
+      - 逻辑：取产品标签中包含 '__label_text:' 前缀的第一个标签，作为SPU展示标签
+    2. 产品变体 展示标签（仅 show_spu_tag = false 时才生效）：
+      - 配置：show_variant_tag = true
+      - 逻辑：取产品变体元数据中 custom.variant_tag 字段的值，作为变体展示标签
+    3. 产品折扣角标：
+      - 配置：show_promotion = true
+      - 逻辑：取产品变体元数据中 custom.promotion 字段的值，作为折扣角标展示内容。如果为空，则取自动计算产品折扣价逻辑。
+{% enddoc %}
+
+{% liquid
+  # 产品变体 未配置时取第一个可用变体的id
+  assign did = product.selected_or_first_available_variant.id
+  assign vid = variant_id | default: did
+  if variant_id == 0
+    assign vid = did
+  endif
+  assign variant = product.variants | where: 'id', vid | first
+
+  # 产品SPU 展示标签
+  assign show_spu_tag = show_spu_tag | default: false
+  assign variant_tag = ''
+  if show_spu_tag
+    for tag in product.tags
+      if tag contains '__label_text:'
+        assign variant_tag = tag | replace_first: '__label_text:'
+        break
+      endif
+    endfor
+  else
+    # 产品变体 展示标签
+    assign show_variant_tag = show_variant_tag | default: false
+    if show_variant_tag
+      assign variant_tag = variant.metafields.custom.variant_tag
+    endif
+  endif
+
+  # 产品变体 促销信息角标
+  assign promotion_content = blank
+
+  # 会员价
+  if show_membership_price
+    assign mem_discount_tag_display_style = settings.mem_discount_tag_display_style
+    assign mem_discount_amount = settings.mem_discount_amount_display_style
+    assign mem_discount_percent = settings.mem_discount_percent_display_style
+
+    # 会员价
+    assign mem_price = variant.metafields.custom.member_price | times: 1
+    assign compare_at_price = variant.compare_at_price | default: variant.price | times: 1
+
+    if mem_price > 0
+      if mem_discount_tag_display_style == 'amount'
+        if mem_discount_amount != blank
+          if compare_at_price > mem_price
+            assign money_string = compare_at_price | minus: mem_price | times: 1 | money_without_trailing_zeros
+            assign promotion_content = mem_discount_amount | replace: '()', money_string
+          endif
+        endif
+      else
+        if mem_discount_percent != blank
+          if compare_at_price > mem_price
+            assign discount_percentage_value = compare_at_price | minus: mem_price | divided_by: compare_at_price | times: 100 | floor
+            assign promotion_content = mem_discount_percent | replace: '()', discount_percentage_value
+          endif
+        endif
+      endif
+    else
+      if settings.open_auto_discount_price
+        assign discount_amount_value = variant.metafields.custom.auto_discount_amount | times: 1
+        if discount_amount_value > 0
+          if mem_discount_tag_display_style == 'amount'
+            assign money_string = discount_amount_value | times: 1 | money_without_trailing_zeros
+            assign promotion_content = mem_discount_amount | replace: '()', money_string
+          else
+            assign discount_percentage_value = variant.metafields.custom.auto_discount_percentage | times: 1 | floor
+            if discount_percentage_value > 0
+              assign promotion_content = mem_discount_percent | replace: '()', discount_percentage_value
+            endif
+          endif
+        endif
+      endif
+    endif
+  else
+
+    # 产品变体 促销信息角标，取对于变体中的promotion
+    if promotion_content == blank
+      assign show_promotion = show_promotion | default: true
+      if variant != blank
+        assign variant_promotion = variant.metafields.custom.promotion
+        if variant_promotion != blank and variant_promotion contains '__label_text:'
+          assign promotion_content = variant_promotion | replace_first: '__label_text:'
+        endif
+      endif
+    endif
+
+    # 产品变体促销信息角标为空，则取 自动计算产品折扣价逻辑，该配置对于逻辑是站点级别开关控制
+    if promotion_content == blank and settings.open_auto_discount_price
+      assign discount_tag_display_style = settings.discount_tag_display_style
+      assign discount_amount = settings.discount_amount_display_style
+      assign discount_percent = settings.discount_percent_display_style
+
+      if discount_tag_display_style == 'amount'
+        if discount_amount != blank
+          assign discount_amount_value = variant.metafields.custom.auto_discount_amount | times: 1
+          if discount_amount_value > 0
+            assign money_string = discount_amount_value | divided_by: 100 | times: 100 | money_without_trailing_zeros
+            assign promotion_content = discount_amount | replace: '()', money_string
+          endif
+        endif
+      else
+        if discount_percent != blank
+          assign discount_percentage_value = variant.metafields.custom.auto_discount_percentage | times: 1 | floor
+          if discount_percentage_value > 0
+            assign promotion_content = discount_percent | replace: '()', discount_percentage_value
+          endif
+        endif
+      endif
+    endif
+  endif
+
+  # 是否显示产品标签图片
+  assign show_tag_img = show_tag_img | default: false
+  # 产品 标签图片
+  assign product_tag_image = product.metafields.custom.product_tag_image
+
+  assign tag_class = ' tag text-[#fff] font-semibold text-[0.75rem] leading-[1] p-2 lg:p-[0.375rem] lg:text-[1rem] transform-gpu backface-hidden will-change-[transform,opacity] [-webkit-backface-visibility:hidden]'
+-%}
+
+<div class="all-product-tag absolute top-2 lg:top-5 left-2 lg:left-5 right-2 lg:right-5 z-[1] flex items-center gap-x-[0.625rem]">
+  {% comment %} 产品变体 展示标签 {% endcomment %}
+  {%- if variant_tag != blank -%}
+    <div class="bg-[#242F20] variant-tag {{ tag_class }}">
+      {{ variant_tag | escape }}
+    </div>
+  {%- endif -%}
+
+  {% comment %} 产品变体 折扣角标 {% endcomment %}
+  {% if show_promotion and promotion_content != blank %}
+    <div class="bg-[var(--jds-color-primary)] promotion-tag {{ tag_class }}" data-vid="{{ vid }}">
+      {{ promotion_content }}
+    </div>
+  {% endif %}
+
+  {% comment %} 产品 标签图片 {% endcomment %}
+  {% if show_tag_img and product_tag_image != blank %}
+    <div class="absolute top-0 right-0 w-auto h-7">
+      <img
+        src="{{ product_tag_image | image_url: height: 28 }}"
+        alt="product tag image"
+        loading="lazy"
+        width="auto"
+        height="28"
+      >
+    </div>
+  {%- endif -%}
+</div>

@@ -1,0 +1,282 @@
+{% comment %}
+  PC端
+    1. header:4.1666667vw 最大60px
+    2. 产品二级导航:66px
+    3. 吸底购物车：3.75rem
+  移动端：
+    1. header: 3.125rem
+    2. 产品二级导航: 12.8vw
+    3. 吸底购物车: 26.6666vw - 高度随内容动态变化
+{% endcomment %}
+
+{% style %}
+  @media screen and (min-width: 1024px) {
+    .v5-scroll-video-kv-3 {
+      height: calc(100vh - min(4.1666667vw, 60px));
+    }
+    .v5-scroll-video-kv-3.in-pdp {
+      height: calc(100vh - 66px - 3.75rem);
+    }
+    .v5-scroll-video-kv-3 .content-box {
+      height: calc(100% - 10.25rem);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    .v5-section-scroll-video-kv .pin-spacer {
+      background-color: #000;
+    }
+    .v5-scroll-video-kv-3 {
+      height: calc(100vh - 3.125rem);
+    }
+
+    .v5-scroll-video-kv-3.in-pdp {
+      height: calc(100vh - 12.8vw - 26.6666vw);
+    }
+
+    .v5-scroll-video-kv-3 .content-box {
+      height: calc(100% - 2.5rem);
+    }
+  }
+{% endstyle %}
+
+{%- liquid
+  # 产品页
+  if template == 'product' or template contains 'product.'
+    assign is_product_template = true
+  endif
+
+  assign wrapper_class = 'v5-scroll-video-kv-3 relative w-full overflow-hidden'
+  if is_product_template
+    assign wrapper_class = wrapper_class | append: ' in-pdp'
+  endif
+
+  assign bg_class = 'block w-full h-full object-cover'
+  assign title_class = 'pb-[1rem] lg:pb-[1.5rem] tracking-[-0.5px] lg:tracking-[-0.64px] text-[1.5rem] lg:text-[2rem] leading-[1.5] lg:leading-[1.2] font-semibold text-[#fff] w-full'
+  assign desc_class = 'tracking-[-0.28px] lg:tracking-[-0.48px] text-[0.875rem] lg:text-[1rem] leading-[1.5] font-medium text-[#fff] w-full'
+
+  assign block_num = 0
+  for block in section.blocks
+   assign block_num = forloop.length
+  endfor
+-%}
+
+<div
+  id="v5ScrollVideoKv3"
+  class="{{ wrapper_class }}"
+  {{ section.shopify_attributes }}
+  data-block-num="{{ block_num }}"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  data-video-play="false"
+>
+  {%- for block in section.blocks -%}
+    {%- liquid
+      assign block_index = forloop.index
+      assign pc_video = block.settings.pc_bg_video
+      assign pc_preview_image = block.settings.pc_poster
+      if block.settings.pc_poster == blank
+      assign pc_preview_image = pc_video.preview_image
+      endif
+
+      assign mb_video = block.settings.mb_bg_video
+      assign mb_preview_image = block.settings.mb_poster
+      if block.settings.mb_poster == blank
+      assign mb_preview_image = mb_video.preview_image
+      endif
+
+      if block_index == 1
+        assign screen_class = 'screen-1 relative w-full h-full'
+        assign content_wrapper_class = 'bottom-0'
+
+      else
+        assign screen_class = 'screen-2 opacity-0 absolute top-0 left-0 z-10 w-full h-full'
+        assign content_wrapper_class = 'top-full'
+      endif
+  -%}
+
+    <div class="{{ screen_class }}" data-video-play="false">
+      <div class="content-wrapper absolute right-[1rem] lg:right-[4rem] pb-[2rem] lg:pb-[2.5rem] z-10 w-[21.4375rem] lg:w-[34.5625rem] {{ content_wrapper_class }}">
+        <div class="subtitle1 tracking-[-0.28px] lg:tracking-[-0.24px] pb-[1rem] lg:pb-[1.5rem] leading-[1.5] font-semibold relative text-[#fff] text-[0.875rem] lg:text-[1.5rem] w-full">
+          {{ block.settings.subtitle }}
+        </div>
+        <div class="content-box bg-[rgba(3,3,3,0.5)] rounded-[1rem] px-[1.5rem] py-[1.5rem] lg:py-[2.5rem]">
+          <div class="title1 {{ title_class }}">
+            {{ block.settings.title }}
+          </div>
+          <div class="desc1 {{ desc_class }}">
+            {{ block.settings.desc }}
+          </div>
+        </div>
+      </div>
+      <div class="pc-video-wrap hidden lg:block h-full w-full overflow-hidden relative">
+        {%- if pc_video != blank -%}
+          {%- render 'viewport-video',
+            type: 'banner',
+            pauseAllDOM: '#v5ScrollVideoKv3',
+            url: pc_video,
+            observe: false,
+            poster: pc_preview_image,
+            autoplay: false,
+            loop: true,
+            controls: false,
+            show_muted_button: false,
+            show_pause_button: false
+          -%}
+        {%- else -%}
+          {%- if pc_preview_image != blank -%}
+            <img
+              class="{{ bg_class }}"
+              src="{{ pc_preview_image | image_url: width:1440 }}"
+              alt="{{ pc_preview_image.alt }}"
+              loading="lazy"
+              width="1440"
+              height="740"
+            >
+          {%- else -%}
+            {{ 'hero-apparel-1' | placeholder_svg_tag: bg_class }}
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+      <div class="mb-video-wrap block lg:hidden h-full w-full overflow-hidden relative">
+        {%- if mb_video != blank -%}
+          {%- render 'viewport-video',
+            type: 'banner',
+            pauseAllDOM: '#v5ScrollVideoKv3',
+            url: mb_video,
+            observe: false,
+            poster: mb_preview_image,
+            autoplay: false,
+            loop: true,
+            controls: false,
+            show_muted_button: false,
+            show_pause_button: false
+          -%}
+        {%- else -%}
+          {%- if mb_preview_image != blank -%}
+            <img
+              class="{{ bg_class }}"
+              src="{{ mb_preview_image | image_url: width:375 }}"
+              alt="{{ mb_preview_image.alt }}"
+              loading="lazy"
+              width="375"
+              height="500"
+            >
+          {%- else -%}
+            {{ 'hero-apparel-1' | placeholder_svg_tag: bg_class }}
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endfor -%}
+</div>
+
+<script src="{{ 'gsap.js' | asset_url }}" defer></script>
+<script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+<script src="{{ 'section-v5-scroll-video-kv-3.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-滚动视频KV-3",
+  "tag": "section",
+  "class": "v5-section-scroll-video-kv",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["product", "page"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "提醒：此组件固定为覆盖视窗可视区域（除吸顶和吸底元素的区域）展示"
+    },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" }
+  ],
+  "max_blocks": 2,
+  "blocks": [
+    {
+      "name": "每屏内容",
+      "type": "slide",
+      "settings": [
+        {
+          "type": "header",
+          "content": "文案配置"
+        },
+        {
+          "type": "richtext",
+          "id": "subtitle",
+          "label": "副标题",
+          "default": "<p>Our Customers Love It</p>"
+        },
+        {
+          "type": "richtext",
+          "id": "title",
+          "label": "标题",
+          "default": "<p>Power, Peace, and Parenthood</p>"
+        },
+        {
+          "type": "richtext",
+          "id": "desc",
+          "label": "描述",
+          "default": "<p>“It’s not about survival anymore. It’s about stability,” Joseph said. “Diapers. Bottles. White noise machines. Fans. A working microwave. These aren’t luxuries when you have kids — they’re structure.”</p>"
+        },
+        {
+          "type": "header",
+          "content": "视频配置"
+        },
+        {
+          "type": "video",
+          "id": "pc_bg_video",
+          "label": "PC端背景视频"
+        },
+        {
+          "type": "image_picker",
+          "id": "pc_poster",
+          "label": "PC端视频封面图",
+          "info": "推荐尺寸: 1440x800，不配置时默认取视频封面"
+        },
+        {
+          "type": "video",
+          "id": "mb_bg_video",
+          "label": "移动端背景视频"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb_poster",
+          "label": "移动端视频封面图",
+          "info": "推荐尺寸: 375x500，不配置时默认取视频封面"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-滚动视频KV-3",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

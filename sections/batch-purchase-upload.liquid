@@ -1,0 +1,179 @@
+<div class="batch-purchase--upload {% if section.settings.upload_Proof == blank %} batch-purchase--none {% endif %}"
+  data-first="{{section.settings.form_first_error}}"
+  data-last="{{section.settings.form_last_error}}"
+  data-email="{{section.settings.form_email_error}}"
+  data-phone="{{section.settings.form_phone_error}}"
+  data-company="{{section.settings.form_company_error}}"
+  data-industry="{{section.settings.form_industry_error}}"
+  data-detailAddress="{{section.settings.form_address_error}}"
+  data-zipCode="{{section.settings.form_zip_error}}"
+  data-city="{{section.settings.form_city_error}}"
+  data-state="{{section.settings.form_state_error}}"
+  data-upload="{{section.settings.form_upload_error}}"
+  data-upload-success="{{section.settings.form_upload_success}}"
+  data-excal="{{section.settings.download_name}}"
+  data-download-success="{{section.settings.download_success}}">
+  {% comment %} Upload Tax Exemption Proof {% endcomment %}
+  {% if section.settings.upload_Proof != blank %}
+    <div class="batch-purchase-container">
+      <div v-if="!isUpload" class="upload-content">
+        <div class="upload-text">
+            <div class="title batch-purchase-upload-title">{{ section.settings.upload_tax | escape}}</div>
+            <div class="sub-info"> {{ section.settings.upload_tax_info | escape}}</div>
+        </div>
+        <button class="upload-button" @click="uploadProof(false)">{{ section.settings.upload_Proof | escape}}</button>
+      </div>
+      <div v-else class="upload-content">
+        <div class="upload-text">
+            <div class="title">{{ section.settings.upload_success }} </div>
+            <div class="sub-info">
+               {{ section.settings.success_sub_text }}
+                <a href="mailto:{{section.settings.email}}">{{ section.settings.email }}</a>
+            </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% comment %} 弹窗 {% endcomment %}
+<div class="batch-purchase--upload-modal batch-purchase-modal" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="modal-mask"></div>
+  <div class="modal-content">
+    <div class="modal-content-close">
+        <svg @click="handleUploadCose" fill="#888888" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </div>
+    <div class="modal-content-main">
+      <div class="list">
+        <div class="item">
+            <div class="item-label">{{ section.settings.form_first | escape}}</div>
+            <input v-model="form.first" type="text">
+        </div>
+        <div class="item">
+            <div class="item-label">{{ section.settings.form_last | escape}}</div>
+            <input v-model="form.last" type="text">
+        </div>
+      </div>
+      <div class="list">
+        <div class="item">
+            <div class="item-label">{{ section.settings.form_email | escape}}</div>
+            <input v-model="form.email" type="text">
+        </div>
+        <div class="item">
+            <div class="item-label">{{ section.settings.form_phone | escape}}</div>
+            <input v-model="form.phone" type="text" @input="handlePhoneInput">
+        </div>
+      </div>
+      <div class="list">
+          <div class="item">
+              <div class="item-label">{{ section.settings.form_company | escape}}</div>
+              <input v-model="form.company" type="text">
+          </div>
+          <div class="item">
+              <div class="item-label">{{ section.settings.form_industry | escape}}</div>
+              <input v-model="form.industry" type="text">
+          </div>
+      </div>
+
+      <template v-if="!isDownloadExcal">
+        <div class="list">
+            <div class="item area-item">
+                <div class="item-label">{{ section.settings.form_address | escape}}</div>
+                <textarea v-model="form.detailAddress" placeholder=""></textarea>
+                <div class="info pc-block">{{ section.settings.form_address_info}}</div>
+            </div>
+            <div class="info mobile-block">{{ section.settings.form_address_info}}</div>
+        </div>
+        <div class="list">
+            <div class="item">
+                <div class="item-label">{{ section.settings.form_state | escape}}</div>
+                <select v-model="form.state">
+                    <option v-for="item in stateList" :value="item.name">${item.name}</option>
+                </select>
+            </div>
+            <div class="item">
+                <div class="item-label">{{ section.settings.form_city | escape}}</div>
+                <input v-model="form.city" type="text">
+            </div>
+        </div>
+        <div class="list">
+            <div class="item">
+                <div class="item-label">{{ section.settings.form_zip | escape}}</div>
+                <input v-model="form.zipCode" type="text">
+            </div>
+            <div class="item">
+            </div>
+        </div>
+
+        <div class="upload">
+            <div class="buttons">
+                <button :class="[uploadLoading ? 'btn--loading' : '']">{{ section.settings.form_upload_file | escape}}</button>
+                <input type="file" name="file" accept="image/png, image/jpeg, .pdf" @change="handleUpload">
+            </div>
+            <div v-if="!fileName" class="tips">{{ section.settings.form_upload_tip }}</div>
+            <div v-else class="tips filename">
+                <jds-icon name="link-big" class="pr-[4px] text-sm align-middle"></jds-icon>
+                <span>${fileName}</span>
+            </div>
+        </div>
+      </template>
+      <div class="submit">
+          <button v-if="!isDownloadExcal" :class="[submitUploadLoading ? 'btn--loading' : '']" @click="handleSubmit('{{ section.settings.form_submit }}')">{{ section.settings.form_submit }}</button>
+          {% if shop.id == 10015375438 or shop.id == 56124375224 %}
+            <button v-else :class="[submitUploadLoading ? 'btn--loading' : '']" @click="handleDownloadJp('{{ section.settings.download_excal }}','{{ section.settings.money_limit }}','{{ section.settings.limit_error }}')">{{ section.settings.download_excal }}</button>
+          {% else %}
+            <button v-else :class="[submitUploadLoading ? 'btn--loading' : '']" @click="handleDownload('{{ section.settings.download_excal }}')">{{ section.settings.download_excal }}</button>
+          {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Upload Proof",
+    "tag": "div",
+    "settings": [
+      { "type": "text", "id": "upload_Proof", "label": "Upload Proof", "default": "Upload Proof", "info": "不配置则该版块不展示"},
+      { "type": "text", "id": "upload_tax", "label": "Upload Tax Exemption Proof", "default": "Upload Tax Exemption Proof" },
+      { "type": "text", "id": "upload_tax_info",  "label": "Situation Sub Title", "default": "Whether you’re looking for Jackery Solar Generators as a business or as an enthusiast, we’ve got something for you."},
+      { "type": "text", "id": "upload_success", "label": "Upload Success Text", "default": "Your tax exemption certificate has been successfully uploaded."},
+      { "type": "text", "id": "success_sub_text", "label": "Success Sub Text", "default": "We will complete the review within 5 business days, and you will be notified of the relevant information via email. If you have any questions, please contact customer service at"},
+      { "type": "text", "id": "email", "label": "Email", "default": "Hello@Jackery.com"},
+      { "type": "text","id": "form_first", "label": "Form First Name*", "default": "First Name*" },
+      { "type": "text", "id": "form_first_error", "label": "Form First Name Error Info", "default": "Invalid First Name"},
+      { "type": "text", "id": "form_last", "label": "Form Last Name*", "default": "Last Name*" },
+      { "type": "text", "id": "form_last_error", "label": "Form Last Name Error Info", "default": "Invalid Last Name" },
+      { "type": "text", "id": "form_email", "label": "Form Email*", "default": "Email*"},
+      { "type": "text", "id": "form_email_error", "label": "Form Email Error Info", "default": "Invalid Email" },
+      { "type": "text", "id": "form_phone", "label": "Form Phone Number", "default": "Phone Number" },
+      { "type": "text", "id": "form_phone_error", "label": "Form Phone Number Error Info", "default": "Invalid Phone Number" },
+      { "type": "text", "id": "form_company", "label": "Form Company", "default": "Company*" },
+      { "type": "text", "id": "form_company_error", "label": "Form Company Error Info", "default": "Invalid Company" },
+      { "type": "text", "id": "form_industry", "label": "Form Industry", "default": "Industry*" },
+      { "type": "text", "id": "form_industry_error", "label": "Form Industry Error Info", "default": "Invalid Industry"},
+
+      { "type": "text", "id": "form_address", "label": "Form Detailed Address", "default": "Detailed Address*" },
+      { "type": "text", "id": "form_address_info", "label": "Form Detailed Address Info", "default": "*The address information needs to match the address on the tax exemption certificate documents" },
+      { "type": "text", "id": "form_address_error", "label": "Form Detailed Address Error Info", "default": "Invalid Detailed Address"},
+
+      { "type": "text", "id": "form_state", "label": "Form Province", "default": "Province*" },
+      { "type": "text", "id": "form_state_error", "label": "Form Province Error Info", "default": "Invalid Province"},
+      { "type": "text", "id": "form_city", "label": "Form City", "default": "City*" },
+      { "type": "text", "id": "form_city_error", "label": "Form City Error Info", "default": "Invalid City"},
+      { "type": "text", "id": "form_zip", "label": "Form Zip Code*", "default": "Zip Code*" },
+      { "type": "text", "id": "form_zip_error", "label": "Form Zip Code Error Info", "default": "Invalid Zip Code*"},
+
+      { "type": "text", "id": "form_upload_file", "label": "Upload File", "default": "Upload File"},
+      { "type": "text", "id": "form_upload_tip", "label": "Upload Tips", "default": "Supports PDF, images（JPG/PNG）, document uploads."},
+      { "type": "text", "id": "form_upload_success", "label": "Upload Success", "default": "Upload Successful" },
+      { "type": "text", "id": "form_upload_error", "label": "Form Upload Error", "default": "The file you uploaded has exceeded 10MB, please upload it again."},
+      { "type": "text", "id": "form_submit",  "label": "Submit Button", "default": "SUBMIT" },
+      { "type": "text", "id": "download_excal", "label": "SUBMIT AND  PRICE LIST", "default": "SUBMIT AND  PRICE LIST" },
+      { "type": "text", "id": "download_name", "label": "Jackery Quotation", "default": "Jackery Quotation" },
+      { "type": "text", "id": "download_success", "label": "Download Successful Tip", "default": "Download Successful" },
+      { "type": "number", "id": "money_limit", "label": "日站下载报价单限制金额"},
+      { "type": "text", "id": "limit_error", "label": "日站下载报价单限制金额提示语"},
+    ]
+  }
+{% endschema %}

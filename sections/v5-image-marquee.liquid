@@ -1,0 +1,381 @@
+{%- capture style -%}
+    {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div {% if section.settings.anchor != blank %}anchor-target="{{ section.settings.anchor | escape }}"{% endif %}
+     style="{{ style }}" class="section-padding">
+
+    <div
+            id="card-belt-{{ section.id }}"
+            class="w-full"
+            data-card-belt
+            data-section-id="{{ section.id }}"
+    >
+        <div class="overflow-hidden w-full"
+             style="
+                     --gap: {{ section.settings.gap_px | divided_by: 16.0 }}rem;
+                     --card-w: {{ section.settings.card_width | divided_by: 16.0 }}rem;
+                     --card-h: {{ section.settings.card_height | divided_by: 16.0 }}rem;
+                     --gap-mb: {{ section.settings.gap_px_mb | divided_by: 16.0 }}rem;
+                     --card-w-mb: {{ section.settings.card_width_mb | divided_by: 16.0 }}rem;
+                     --card-h-mb: {{ section.settings.card_height_mb | divided_by: 16.0 }}rem;
+                     ">
+            <div class="flex w-max will-change-transform" data-marquee-track>
+                <div
+                        class="flex items-stretch shrink-0"
+                        data-marquee-group>
+                    {%- for block in section.blocks -%}
+                        {%- liquid
+                            assign pcimage = block.settings.image
+                            assign mimage = block.settings.mimage
+                            assign caption = block.settings.caption
+                            assign url = block.settings.link
+                        -%}
+
+                        {%- capture card_inner -%}
+                            <figure
+                                    class="relative shrink-0 overflow-hidden"
+                                    data-card
+                            >
+                                {%- if pcimage != blank or mimage != blank -%}
+                                    {% render 'diff-end-img', pc_img: pcimage, mb_img: mimage,
+                                      pc_img_width: 220,
+                                      mb_img_width: 220,
+                                      class: 'w-full h-full object-cover' %}
+                                {%- else -%}
+                                    {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg placeholder w-full h-full object-cover' }}
+                                {%- endif -%}
+
+                            </figure>
+                        {%- endcapture -%}
+
+                        <div class="shrink-0" {{ block.shopify_attributes }}>
+                            {%- if url != blank -%}
+                                <a href="{{ url }}" class="block">
+                                    {{ card_inner }}
+                                </a>
+                            {%- else -%}
+                                {{ card_inner }}
+                            {%- endif -%}
+                        </div>
+                    {%- endfor -%}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<style>
+    #shopify-section-{{ section.id }} {
+        background: {{ section.settings.bg_color }};
+    }
+
+    #card-belt-{{ section.id }} [data-marquee-track],
+    #card-belt-{{ section.id }} [data-marquee-group] {
+        gap: var(--gap);
+    }
+
+    #card-belt-{{ section.id }} [data-card] {
+        width: var(--card-w);
+        height: var(--card-h);
+    }
+
+    @media (max-width: 1023.98px) {
+        #card-belt-{{ section.id }} [data-marquee-track],
+        #card-belt-{{ section.id }} [data-marquee-group] {
+            gap: var(--gap-mb);
+        }
+
+        #card-belt-{{ section.id }} [data-card] {
+            width: var(--card-w-mb);
+            height: var(--card-h-mb);
+        }
+    }
+
+    #card-belt-{{ section.id }} [data-marquee-track] {
+        animation: cardBeltMarquee-{{ section.id }} {{ section.settings.speed_s }}s linear infinite;
+        transform: translateX(0);
+    }
+
+    {% if section.settings.move_direction == 'toRight' %}
+        @keyframes cardBeltMarquee-{{ section.id }} {
+            from {
+                transform: translateX(-25%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+    {% else %}
+        @keyframes cardBeltMarquee-{{ section.id }} {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-25%);
+            }
+        }
+    {%endif%}
+
+    @media (max-width: 1023.98px) {
+        {% if section.settings.move_direction == 'toRight' %}
+            @keyframes cardBeltMarquee-{{ section.id }} {
+                from {
+                    transform: translateX(-50%);
+                }
+                to {
+                    transform: translateX(0);
+                }
+            }
+        {% else %}
+            @keyframes cardBeltMarquee-{{ section.id }} {
+                from {
+                    transform: translateX(0);
+                }
+                to {
+                    transform: translateX(-50%);
+                }
+            }
+        {% endif %}
+        #card-belt-{{ section.id }} [data-marquee-track] {
+            animation-duration: {{ section.settings.speed_s_mb }}s;
+        }
+    }
+
+    {% if section.settings.pause_on_hover %}
+        #card-belt-{{ section.id }}:hover [data-marquee-track] {
+            animation-play-state: paused;
+        }
+
+    {% endif %}
+
+    /* 减少动态效果 */
+    @media (prefers-reduced-motion: reduce) {
+        #card-belt-{{ section.id }} [data-marquee-track] {
+            animation: none !important;
+            transform: none !important;
+        }
+    }
+</style>
+
+<script type="module">
+    window.addEventListener("load", () => {
+
+        const init = (root) => {
+            if (!root || root.dataset.inited === "1") return;
+            root.dataset.inited = "1";
+
+            const track = root.querySelector("[data-marquee-track]");
+            const group = root.querySelector("[data-marquee-group]");
+            if (!track || !group) return;
+
+            // 主题编辑器重渲染时，先清理旧克隆
+            track.querySelectorAll("[data-marquee-clone]").forEach(n => n.remove());
+
+            let index = 3;
+            if (Jackery.Utils.isLessThan1024Screen()){
+                index = 1;
+            }
+
+            for (let i = 0; i < index; i++) {
+                const clone = group.cloneNode(true);
+                clone.setAttribute("aria-hidden", "true");
+                clone.dataset.marqueeClone = "1";
+
+                // 清掉克隆里的 block editor 标记，避免编辑器重复高亮
+                clone.querySelectorAll("[data-shopify-editor-block-id]").forEach(el => {
+                    el.removeAttribute("data-shopify-editor-block-id");
+                });
+
+                track.appendChild(clone);
+            }
+        };
+
+        const boot = (sectionId) => {
+            const root = document.querySelector(`#card-belt-${sectionId}[data-card-belt]`);
+            if (!root) return;
+            init(root);
+        };
+
+        boot("{{ section.id }}");
+
+        document.addEventListener("shopify:section:load", (e) => {
+            if (e?.detail?.sectionId) boot(e.detail.sectionId);
+        });
+    });
+</script>
+
+{% schema %}
+{
+  "name": "V5-图片跑马灯",
+  "tag": "section",
+  "class": "section section--infinite-card-belt",
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "select",
+      "id": "move_direction",
+      "options": [
+        {
+            "value": "toLeft",
+            "label": "从右到左"
+        },
+        {
+          "value": "toRight",
+          "label": "从左到右"
+        }
+      ],
+      "default": "toLeft",
+      "label": "滚动方向"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "label": "PC上边距",
+      "default": 40
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "PC下边距",
+      "default": 40
+    },
+    {
+      "type": "text",
+      "id": "mb_padding_type",
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ false }}",
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "MB上边距",
+      "default": 32
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "MB下边距",
+      "default": 32
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "鼠标悬停暂停",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "桌面端（PC）"
+    },
+    {
+      "type": "number",
+      "id": "speed_s",
+      "label": "滚动速度（每圈秒数）",
+      "default": 8
+    },
+    {
+      "type": "number",
+      "id": "gap_px",
+      "label": "卡片间距（px）",
+      "default": 16
+    },
+    {
+      "type": "number",
+      "id": "card_width",
+      "label": "卡片宽度（px）",
+      "default": 220
+    },
+    {
+      "type": "number",
+      "id": "card_height",
+      "label": "卡片高度（px）",
+      "default": 120
+    },
+    {
+      "type": "header",
+      "content": "移动端（MB）"
+    },
+    {
+      "type": "number",
+      "id": "speed_s_mb",
+      "label": "滚动速度（每圈秒数）",
+      "default": 10
+    },
+    {
+      "type": "number",
+      "id": "gap_px_mb",
+      "label": "卡片间距（px）",
+      "default": 16
+    },
+    {
+      "type": "number",
+      "id": "card_width_mb",
+      "label": "卡片宽度（px）",
+      "default": 220
+    },
+    {
+      "type": "number",
+      "id": "card_height_mb",
+      "label": "卡片高度（px）",
+      "default": 88
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "卡片",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "PC图片"
+        },
+        {
+          "type": "image_picker",
+          "id": "mimage",
+          "label": "MB图片"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "跳转链接（可选）"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "V5-图片跑马灯",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "card"
+        },
+        {
+          "type": "card"
+        },
+        {
+          "type": "card"
+        },
+        {
+          "type": "card"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

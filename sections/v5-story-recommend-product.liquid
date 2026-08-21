@@ -1,0 +1,122 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div
+  class="w-full section-padding"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+  style="background-color: {{section.settings.bg_color | default: '#FFFFFF' }};{{ style }}"
+>
+  {%- if section.settings.module_title != blank -%}
+    <h2 class="section-container-lg text-center text-2xl lg:text-5xl text-[#242F20] font-semibold mb-10 lg:mb-16 leading-[1.1]">
+      {{ section.settings.module_title | newline_to_br }}
+    </h2>
+  {%- endif -%}
+
+  <div class="section-container-lg overflow-hidden w-full">
+    <div class="w-full flex flex-col gap-4 lg:flex-row lg:justify-center lg:gap-6">
+      {% for block in section.blocks %}
+        {%- render 'v5-story-detail-products',
+          card_class: 'w-full lg:w-[19.5rem] bg-white',
+          img_class: 'w-full h-[13.375rem]',
+          product: block.settings.product,
+          variant_id: block.settings.variant_id,
+          product_title: block.settings.product_title,
+          pc_product_image: block.settings.pc_product_image,
+          mb_product_image: block.settings.mb_product_image,
+          pc_img_width: 300,
+          mb_img_width: 303,
+          price_layout: 'vertical'
+        -%}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{%  schema %}
+{
+  "name": "V5-故事详情-产品推荐",
+  "tag": "section",
+  "enabled_on": {
+    "templates": ["product", "page"]
+  },
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 96 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 96 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#F5F5F3" },
+    { "type": "textarea", "id": "module_title", "label": "版块标题", "default": "Our Recommendation" }
+  ],
+  "blocks": [
+    {
+      "name": "产品",
+      "type": "product",
+      "limit": 4,
+      "settings": [
+        { "type": "product", "id": "product", "label": "选择产品" },
+        { "type": "number", "id": "variant_id", "label": "变体ID", "info": "如果不填写, 则默认显示产品的第一个变体" },
+        { "type": "textarea", "id": "product_title", "label": "产品标题" },
+        { "type": "image_picker", "id": "pc_product_image", "label": "PC端产品图", "info": "宽度272, 高度214" },
+        { "type": "image_picker", "id": "mb_product_image", "label": "MB端产品图", "info": "宽度303, 高度214" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-故事详情-产品推荐",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "product"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

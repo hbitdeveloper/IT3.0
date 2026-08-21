@@ -1,0 +1,306 @@
+<style>
+  .image-banner {
+      overflow: hidden;
+  }
+  .image-banner {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 6;
+    max-height: 760px
+  }
+
+  @media (min-width: 1024px) {
+    .image-banner {
+      aspect-ratio: 192 / 89;
+    }
+  }
+  .image-banner-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      animation-name: scale-in;
+      animation-duration: 2s;
+  }
+  .image-banner-bg.no-animation {
+    animation-name: none;
+  }
+
+  .image-banner .image-banner-content {
+      left: 50%;
+      transform: translateX(-50%);
+      top: 140px;
+      bottom: 130px;
+  }
+  .image-banner-title {
+      color: #fff;
+  }
+  .image-banner-subtitle {
+      max-width: 800px;
+      color: #fff;
+      margin: 9px 0 15px 0;
+      font-weight: 400;
+  }
+  .image-banner-content.top-right {
+      align-items: flex-end;
+      text-align: right;
+  }
+  .image-banner-content.top-left {
+      align-items: flex-start;
+      text-align: left;
+  }
+  .image-banner-content.top-center {
+      align-items: center;
+      text-align: center;
+  }
+  .image-banner-content.middle-center {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+  }
+  .image-banner-content.middle-right {
+      align-items: flex-end;
+      justify-content: center;
+      text-align: right;
+  }
+  .image-banner-content.middle-left {
+      align-items: flex-start;
+      justify-content: center;
+      text-align: left;
+  }
+  .image-banner-content.bottom-center {
+      align-items: center;
+      justify-content: end;
+      text-align: center;
+  }
+  .image-banner-content.bottom-left {
+      align-items: flex-start;
+      justify-content: end;
+      text-align: left;
+  }
+  .image-banner-content.bottom-right {
+      align-items: flex-end;
+      justify-content: end;
+      text-align: right;
+  }
+
+
+  @media screen and (max-width: 1920px) {
+      .image-banner .image-banner-content {
+          top: 7.3vw;
+          bottom: 7.3vw;
+      }
+  }
+
+  @media screen and (max-width: 768px) {
+      .image-banner .image-banner-content {
+          top: 15vw;
+          bottom: 15vw;
+      }
+      .image-banner-subtitle {
+          max-width: 100%;
+          margin: 5.8vw 0 3.5vw;
+      }
+
+      .image-banner-content.top-right, .image-banner-content.top-left {
+          align-items: center;
+          text-align: center;
+      }
+
+      .image-banner-content.middle-right, .image-banner-content.middle-left {
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+      }
+
+      .image-banner-content.bottom-center, .image-banner-content.bottom-left, .image-banner-content.bottom-right {
+          align-items: center;
+          justify-content: end;
+          text-align: center;
+      }
+  }
+  body.overflow-hidden {
+    overflow: auto;
+  }
+</style>
+{%- assign image_class = 'image-banner-bg' -%}
+{%- if section.settings.image_animation == false -%}
+  {%- assign image_class = 'image-banner-bg no-animation' -%}
+{%- endif -%}
+<div class="image-banner relative">
+    {% assign banner_alt = section.settings.title | strip_html | default: section.settings.image.alt | default: 'image alt' %}
+    {% assign pc_img_width = section.settings.image.width | default: 1920 %}
+    {% assign mb_img_width = section.settings.m_image.width | default: 750 %}
+    {% assign load_scene = section.settings.load_scene | default: 'default' %}
+    {% render 'diff-end-img',
+      picture_class: '',
+      class: image_class,
+      pc_img: section.settings.image,
+      mb_img: section.settings.m_image,
+      pc_img_width: pc_img_width,
+      mb_img_width: mb_img_width,
+      placeholder_name: 'hero-apparel-1',
+      alt: banner_alt,
+      load_scene: load_scene
+    %}
+
+    <div class="section-container image-banner-content absolute flex flex-col {{ section.settings.desktop_content_position }}">
+        {% if section.settings.sbtitle != blank %}
+        <div class="sbtitle">{{section.settings.sbtitle}}</div>
+        {% endif %}
+        <h2 class="image-banner-title font-bold jky-text-3xl" style="{% if section.settings.color != blank %}color: {{section.settings.color}} {% endif %}">{{section.settings.title | newline_to_br}}</h2>
+
+        {% if section.settings.subtitle != blank %}
+            <h2 class="image-banner-subtitle jky-text-sm" style="{% if section.settings.color != blank %}color: {{section.settings.color}} {% endif %}">{{section.settings.subtitle | newline_to_br}}</h2>
+        {% endif %}
+
+        {% if section.settings.banner_link != blank %}
+            <a class="a-button-fill active" href="{{section.settings.banner_link}}">{{section.settings.banner_link_text}} <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right text-base"></jds-icon></a>
+        {% endif %}
+    </div>
+
+    {% if section.settings.video != blank %}
+        <details-modal class="">
+          <details>
+              <summary
+                  class="video-play-btn"
+                  aria-haspopup="dialog"
+                  aria-label="video-modal"
+                  role="button"
+                >
+                  <jds-icon name="play-fill" class="jackery-icon-playCircle"></jds-icon>
+              </summary>
+              <div
+                  class="video-modal modal__content"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="video"
+              >
+                  <div class="modal-overlay"></div>
+                  <div class="video-modal__content relative" tabindex="-1">
+                      <video
+                          id="index-section-video"
+                          class="video-js video-modal-video"
+                          controls
+                          preload="auto"
+                          poster=""
+                          data-setup=''
+                      >
+                          <source
+                              src="{{section.settings.video}}"
+                              type="video/mp4"
+                          />
+                      </video>
+                  </div>
+                  <button type="button" class="jackery-icon-guanbi absolute">
+                    <jds-icon name="close" class="icon-close text-2xl lg:text-3xl"></jds-icon>
+                  </button>
+              </div>
+          </details>
+        </details-modal>
+    {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Image banner",
+  "tag": "section",
+  "class": "section image-banner-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "desktop_content_position",
+      "options": [
+        {
+          "value": "top-left",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__1.label"
+        },
+        {
+          "value": "top-center",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__2.label"
+        },
+        {
+          "value": "top-right",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__3.label"
+        },
+        {
+          "value": "middle-left",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__4.label"
+        },
+        {
+          "value": "middle-center",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__5.label"
+        },
+        {
+          "value": "middle-right",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__6.label"
+        },
+        {
+          "value": "bottom-left",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__7.label"
+        },
+        {
+          "value": "bottom-center",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__8.label"
+        },
+        {
+          "value": "bottom-right",
+          "label": "t:sections.image-banner.settings.desktop_content_position.options__9.label"
+        }
+      ],
+      "default": "top-right",
+      "label": "t:sections.image-banner.settings.desktop_content_position.label"
+    },
+    {"type": "image_picker", "id": "image", "label": "PC Image banner"},
+    {"type": "image_picker", "id": "m_image", "label": "Mobile Image banner"},
+    {
+      "type": "header",
+      "content": "图片加载场景配置"
+    },
+    {
+      "type": "select",
+      "id": "load_scene",
+      "label": "图片加载场景",
+      "options": [
+        { "value": "lcp", "label": "首屏关键图（LCP）" },
+        { "value": "default", "label": "普通图（默认）" },
+        { "value": "defer", "label": "次要/延后图" }
+      ],
+      "default": "default",
+    },
+    {
+      "type": "paragraph",
+      "content": "1. 首屏关键图（LCP）:用于首页主 KV、首屏主图"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 普通图（默认）：用于绝大多数图片（列表、内容图）"
+    },
+    {
+      "type": "paragraph",
+      "content": "3. 次要/延后图（低优先级）：用于轮播非首张、备用图、装饰图"
+    },
+    {"type": "checkbox", "id": "image_animation", "label": "Image Animation", "default": true },
+    {
+      "type": "header",
+      "content": "内容配置"
+    },
+    {"type": "text", "id": "sbtitle", "label": "Title"},
+    {"type": "textarea", "id": "title", "label": "Banner title", "default": "Indoor backup"},
+    {"type": "textarea", "id": "subtitle", "label": "Banner Heading", "default": "Adapters, cables, connectors, carrying case\nbags- all the Jackery accessories you want are here!"},
+    { "type": "color", "id": "color", "label": "Banner text color", "default": "#ffffff" },
+
+    {
+      "type": "url",
+      "id": "banner_link",
+      "label": "Banner Link"
+    },
+    {"type": "text", "id": "banner_link_text", "label": "Banner Link Text", "default": "VIEW MORE"},
+    {
+        "type": "url",
+        "id": "video",
+        "label": "Banner video"
+    }
+  ],
+  "blocks": []
+}
+{% endschema %}

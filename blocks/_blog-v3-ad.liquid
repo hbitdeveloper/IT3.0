@@ -1,0 +1,159 @@
+<div class="blog-v3-ad w-full mb-[2rem] lg:mb-8 lg:last:mb-0" {{ block.shopify_attributes }} data-block-type="_blog-v3-ad">
+  {%- if block.settings.ad_url != blank -%}
+    <a href="{{ block.settings.ad_url }}" {% if settings.article_new_blank %}target="_blank"{% endif %}>
+  {%- endif -%}
+
+  {%- liquid
+    assign pc_img = block.settings.ad_pc_img
+    assign mb_img = block.settings.ad_mb_img
+    assign display_style = block.settings.display_style
+
+    # 按照UI高保真，设置横图或纵图样式的默认高度
+    if display_style == 'horizontal'
+      assign default_pc_height = 100
+      assign default_mb_height = 200
+    else
+      assign default_pc_height = 560
+      assign default_mb_height = 1280
+    endif
+
+    # 有图时，保持宽度100%，高度根据比例计算获取默认高
+    if pc_img != blank
+      # PC端高度计算
+      assign default_pc_height = 320 | times: pc_img.height | divided_by: pc_img.width
+    endif
+    if mb_img != blank
+      # 移动端高度计算
+      assign default_mb_height = 686 | times: mb_img.height | divided_by: mb_img.width
+    endif
+
+    if block.settings.ad_pc_height != blank and block.settings.ad_pc_height >= 80 and block.settings.ad_pc_height <= 800
+      assign pc_height = block.settings.ad_pc_height
+      assign pc_object_fit = ' lg:object-cover'
+    else
+      assign pc_height = default_pc_height
+      assign pc_object_fit = ' lg:object-contain'
+    endif
+
+    if block.settings.ad_mb_height != blank and block.settings.ad_mb_height >= 160 and block.settings.ad_mb_height <= 1600
+      assign mb_height = block.settings.ad_mb_height
+      assign mb_object_fit = 'object-cover'
+    else
+      assign mb_height = default_mb_height
+      assign mb_object_fit = 'object-contain'
+    endif
+
+    # 样式计算
+    assign pc_height_rem = pc_height | divided_by: 16.0 | append: 'rem'
+    assign mb_height_rem = mb_height | divided_by: 32.0 | append: 'rem'
+    assign style_str = '--ad-pc-height:' | append: pc_height_rem | append: ';--ad-mb-height:' | append: mb_height_rem
+    assign class_str = 'ad-img w-full rounded h-[var(--ad-mb-height)] lg:h-[var(--ad-pc-height)] ' | append: mb_object_fit | append: pc_object_fit
+  -%}
+
+  {% render 'diff-end-img',
+    class: class_str,
+    style: style_str,
+    pc_img: pc_img,
+    mb_img: mb_img,
+    pc_img_width: 320,
+    mb_img_width: 686
+  %}
+
+  {%- if block.settings.ad_url != blank -%}
+    </a>
+  {%- endif -%}
+</div>
+
+{%- javascript -%}
+  document.addEventListener('DOMContentLoaded', function () {
+    const dataJson = {
+      module: 'SidebarAd',
+    }
+    const link = document.querySelector('.blog-v3-ad a')?.href
+    if(link){
+      // 完整跳转链接,未配置则为：null(非字符串)
+      dataJson.link = link
+    }
+    document.querySelectorAll('.blog-v3-ad .ad-img').forEach((item) => {
+      item.addEventListener('click', function () {
+         // 识别图片alt内容text，若无则固定为AdsImage
+        dataJson.button_name = item.alt || 'AdsImage'
+        gaPushDataLayer('blogs_collection_user_clicks', dataJson);
+      });
+    });
+  });
+{%- endjavascript -%}
+
+{% schema %}
+{
+  "name": "V3博客-侧边栏广告位",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "display_style",
+      "label": "占位图显示样式",
+      "options": [
+        {
+          "value": "horizontal",
+          "label": "横图样式"
+        },
+        {
+          "value": "vertical",
+          "label": "竖图样式"
+        }
+      ],
+      "default": "horizontal",
+      "info": "仅提供UI高保真推荐效果展示"
+    },
+    {
+      "type": "image_picker",
+      "id": "ad_pc_img",
+      "label": "PC端图片",
+      "info": "建议尺寸：横图320*100，竖图320*560"
+    },
+    {
+      "type": "image_picker",
+      "id": "ad_mb_img",
+      "label": "移动端图片",
+      "info": "建议尺寸：横图686*200，竖图686*1280"
+    },
+    {
+      "type": "url",
+      "id": "ad_url",
+      "label": "广告链接"
+    },
+    {
+      "type": "header",
+      "content": "自定义图片高度"
+    },
+    {
+      "type": "paragraph",
+      "content": "1. 默认即不配置或高度无效时，图片以宽100%，高度自适应展示。",
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 配置有效高度时，图片会以中心为基准放大自动铺满全部区域。",
+    },
+    {
+      "type": "number",
+      "id": "ad_pc_height",
+      "label": "PC端图片高度",
+      "info": "有效范围：80-800px。推荐高度：横图模式100px，竖图模式560px",
+    },
+    {
+      "type": "number",
+      "id": "ad_mb_height",
+      "label": "移动端图片高度",
+      "info": "有效范围：160-1600px。推荐高度：横图模式200px，竖图模式1280px",
+    },
+
+  ],
+  "presets": [
+    {
+      "name": "V3博客-侧边栏广告位",
+      "category": "Blog-V3"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,144 @@
+{%-liquid
+    assign cate_single = 0
+    for item in settings.handle.cate.value
+        assign cate_single = cate_single | plus: 1
+    endfor
+-%}
+
+<link rel="stylesheet" href="{{ 'snippets-v5-pictext-cate.css' | asset_url }}" media="print" onload="this.media='all'">
+<jky-pictext-cate class="lg:block hidden lg:h-full h-auto">
+    <div {% if shopify_attributes != blank %}{{ shopify_attributes }}{% endif %} class="block h-full"> 
+        <div 
+            class="v5-header-main__menu-item list-none h-full flex items-center lg:px-5 px-0 cursor-pointer flex-col"
+            data-ga-event="5.0_top_nav_user_clicks"
+            data-ga-action="mouseenter"
+            data-ga-params-module="Main Menu"
+            data-ga-params-position="{{ settings.handle.title | strip_html | escape }}"
+            data-ga-params-link="NULL"  
+        >
+            {%- if settings.menu_tag != blank -%}
+                {% comment %} <span class="v5-header-main__menu-tag absolute text-xs font-medium top-1 background-text-accent text-white">{{ settings.menu_tag | escape }}</span> {% endcomment %}
+
+                <div class="w-full text-right h-0 relative">
+                    <span class="absolute top-1 text-right v5-header-main__menu-tag text-xs font-medium background-text-accent text-white break-keep whitespace-nowrap right-0">{{ settings.menu_tag | escape }}</span>
+                </div>
+            {%- endif -%}
+
+            <span style="--left: 0;--right: 0;--color-text-main: {{ section.settings.text_color | default: '#242f20' }};" class="color-text-main v5-header-main__menu-name underline-animate relative h-full flex items-center font-semibold text-base justify-between lg:w-auto w-full">
+                <span class="flex-1" style="--color-text-main: {{ section.settings.text_color | default: '#242f20' }};{% if settings.fk_color != blank %}color: {{settings.fk_color}};{% endif %}">
+                    {{ settings.handle.title | strip_html }}
+                </span>
+
+                <div class="lg:hidden flex w-6 h-6 items-center justify-center">
+                    {%- render "icon-arrow-right", class: 'w-3 h-3' -%}
+                </div>
+            </span>
+
+            <div class="v5-header-main__shop-wrapper h-auto absolute top-full w-full left-0 pointer-events-none">
+                <div class="v5-header-main__shop-content transition-medium-ease invisible v5-header-main__text-menu-content section-container-lg opacity-0 flex gap-x-10 py-10 h-full">
+                    <div style="max-height: min(calc(80vh - 80px), 516px);" class="w-full flex gap-x-10">
+                        {%- if cate_single > 1 -%}
+                            <div class="v5-pictext-cate-left pr-10 overflow-y-auto" style="width: 19.5rem;">
+                                {%- for item in settings.handle.cate.value -%}
+                                    {%- unless forloop.first -%}
+                                        <div class="h-6"></div>
+                                    {%- endunless -%}
+                                    <div 
+                                        style="--index: {{ forloop.index }}" 
+                                        anchor-cate="{{item.title | handleize | url_encode | strip | replace: ' ', ''}}" class="transition-medium-ease color-text-main-secondery v5-menu-animate v5-pictext-cate-left__item flex font-normal text-xl cursor-pointer w-full"
+                                        data-ga-event="5.0_top_nav_user_clicks"
+                                        data-ga-action="click"
+                                        data-ga-params-module="{{ settings.handle.title | strip_html | escape }}"
+                                        data-ga-params-position="{{ item.title | strip | escape }}"
+                                        data-ga-params-link="NULL" 
+                                    ><span class="line-clamp-2">{{ item.title }}</span></div>
+                                {%- endfor -%}
+                            </div>
+
+                            <div style="width: 1px;background: rgba(198, 199, 200, 1);--index: 2;margin-left: -1.875rem;" class="h-full v5-menu-animate"></div>
+
+                            <div class="v5-pictext-cate-right overflow-y-auto flex-1 lg:pr-8">
+                                {%- for item in settings.handle.cate.value -%}
+                                <div target-cate="{{item.title | handleize | url_encode | strip | replace: ' ', ''}}" class="{% if forloop.first %}active{% endif %} v5-pictext-cate-content grid grid-cols-3 gap-x-10 gap-y-6">
+                                    {%- for card in item.items.value -%}
+                                        <a 
+                                            href="{{ card.url }}" 
+                                            style="--index: {{ forloop.index }}" 
+                                            class="v5-menu-animate v5-pictext-cate-card flex flex-col gap-y-4 relative"
+                                            data-ga-event="5.0_top_nav_user_clicks"
+                                            data-ga-action="click"
+                                            data-ga-params-module="{{ settings.handle.title | strip_html | escape }}"
+                                            data-ga-params-position="{{ item.title | strip | escape }}"
+                                            data-ga-params-link="{{ card.url | escape }}"
+                                        >
+                                            {%- if card.tag != blank -%}
+                                                <div class="background-text-main absolute top-2 left-2 text-base font-semibold text-white px-2 py-1 z-[2] line-clamp-1">{{ card.tag }}</div>
+                                            {%- endif -%}
+
+                                            <div class="v5-pictext-cate-card_img w-full overflow-hidden">
+                                                <img width="{{ card.card_img.width }}" height="{{ card.card_img.height }}" loading="lazy" class="w-full h-full object-cover transition-slow-ease opacity-0 transition-slow-ease" data-src="{{ card.card_img | image_url: width: 650 }}" alt="{{ card.card_img.alt | escape }}" fetchpriority="low" />
+                                            </div>
+
+                                            <div class="v5-pictext-cate-card__content">
+                                                <h3 class="color-text-main text-base font-semibold mb-2 line-clamp-2">{{ card.title }}</h3>
+                                                <div class="color-text-main-secondery text-base font-normal line-clamp-2">{{ card.subtitle }}</div>
+                                            </div>
+                                        </a>
+                                    {%- endfor -%}
+                                </div>
+                                {%- endfor -%}
+                            </div>
+                        {%- else-%}
+                            <div class="v5-pictext-cate-single">
+                                {%- for item in settings.handle.cate.value -%}
+                                    <div style="--index: {{ forloop.index }}" target-cate="{{item.title | handleize | url_encode | strip | replace: ' ', ''}}" class="{% if forloop.first %}active{% endif %} v5-pictext-cate-content v5-menu-animate grid grid-cols-4 gap-x-10 gap-y-6">
+                                        {%- for card in item.items.value -%}
+                                            <a href="{{ card.url }}" class="v5-pictext-cate-card flex flex-col gap-y-4">
+                                                <div class="v5-pictext-cate-card_img w-full overflow-hidden">
+                                                    <img width="{{ card.card_img.width }}" height="{{ card.card_img.height }}" loading="lazy" class="w-full h-full object-cover" data-src="{{ card.card_img | image_url: width: 650 }}" alt="{{ card.card_img.alt | escape }}" fetchpriority="low" />
+                                                </div>
+
+                                                <div class="v5-pictext-cate-card__content">
+                                                    <h3 class="color-text-main text-base font-semibold mb-2 line-clamp-2">{{ card.title }}</h3>
+                                                    <div class="color-text-main-secondery text-base font-normal line-clamp-2">{{ card.subtitle }}</div>
+                                                </div>
+                                            </a>
+                                        {%- endfor -%}
+                                    </div>
+                                {%- endfor -%}
+                            </div>
+                        {%- endif-%}
+                    </div>
+                </div>
+
+                <div class="v5-header-main__shop-bg transition-medium-ease bg-white absolute top-0 w-full left-0"></div>
+            </div>
+        </div>
+    </div>
+</jky-pictext-cate>
+
+{% comment %} 移动端menu 开关 {% endcomment %}
+<drawer-opener data-drawer="#Drawer__pictext-cate--{{ id }}" class="lg:hidden block" {% if shopify_attributes != blank %}{{ shopify_attributes }}{% endif %}>
+    <div 
+        class="v5-menu-opener drawer-opener--trigger flex justify-between items-center gap-x-2"
+        data-ga-event="5.0_top_nav_user_clicks"
+        data-ga-action="click"
+        data-ga-params-module="Main Menu"
+        data-ga-params-position="{{ settings.handle.title | strip_html | escape }}"
+        data-ga-params-link="NULL" 
+    >
+        <div class="flex items-center flex-nowrap gap-x-2">
+            <span class="text-base font-semibold line-clamp-2 flex-1">
+                {{ settings.handle.title | strip_html }}
+            </span>
+
+            {%- if settings.menu_tag != blank -%}
+                <span style="padding: 0 1px;" class="text-xs font-medium bg-primary text-white h-fit">{{ settings.menu_tag | escape }}</span>
+            {%- endif -%}
+        </div>
+
+        <div class="w-6 h-6 flex items-center justify-center">
+            {%- render "icon-arrow", class: 'w-3 h-3' -%}
+        </div>
+    </div>
+</drawer-opener>

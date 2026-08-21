@@ -1,0 +1,53 @@
+{% comment %}
+    Renders video (mp4 youtube image)
+
+    Accepts:
+    - video_url: {String} 视频地址
+    - poster: {Object} 封面地址
+    - autoplay: {Boolean} 是否自动播放
+    - controls: {Boolean} 是否显示控件
+    - loop: {loop} 是否循环播放
+    - isHidePauseBtn: {Boolean} 是否隐藏暂停按钮
+    - class: {String} class类
+
+    Usage:
+    {%- render 'jky-video', video_url: section.settings.feature_video_1, poster: section.settings.feature_video_poster, title: product.title, class: "features-media", autoplay: false, controls: true, loop: false -%}
+{% endcomment %}
+        
+{% assign type = 'mp4' %}
+{%- if video_url contains "youtube.com" -%}
+    {% assign type = 'youtube' %}
+{%- endif -%}
+<jky-video 
+    video-type="{{type}}" 
+    video-autoplay="{{autoplay}}" 
+    video-controls="{{controls}}" 
+    video-loop="{{loop}}" 
+    video-src="{{video_url}}"
+    class="{{class}}"
+>
+    <div class="jky-video-poster_container absolute">
+        {%- if poster != blank -%}
+            {% comment %} Mobile 端 封面图 {% endcomment %}
+            {% comment %} {% assign mobilePoster = poster %}
+            {% if mbPoster != blank %}
+                {% assign mobilePoster = mbPoster %}
+            {% endif %} {% endcomment %}
+            
+            {%- render 'responsive-image', image: poster, mimage: mbPoster, width: poster_w, mwidth: mbPoster_w -%}
+        {%- else -%}
+            <img
+                class="loading_img"
+                src=""
+                alt="Poster"
+                loading="lazy"
+            >
+        {%- endif -%}
+
+        {%- if isHidePauseBtn != true -%}
+            <span {% if video_url == blank or video_url == "" %}style="display: none;"{% endif %} class="jky-video-poster_button jky-new-video-poster_button">
+                <svg class="icon icon-play" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="48" height="48"><path d="M426.929231 335.556923l245.76 146.510769c7.876923 4.726154 12.603077 12.603077 12.603077 22.055385 0 9.452308-4.726154 17.329231-12.603077 22.055385l-245.76 144.935384c-9.452308 6.301538-18.904615 6.301538-26.781539 3.150769-9.452308-3.150769-12.603077-11.027692-12.603077-20.48V351.310769c0-9.452308 4.726154-15.753846 14.178462-20.48 9.452308-3.150769 18.904615-3.150769 26.781538 1.575385z" fill="#ffffff"></path></svg>
+            </span>
+        {%- endif -%}
+    </div>
+</jky-video>

@@ -1,0 +1,145 @@
+{{ 'product-table.css' | asset_url | stylesheet_tag }}
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+<div
+  class="product-table section-padding text-{{block.settings.alignment}} max-w-full {{block.settings.page_width}}" {{ block.shopify_attributes }}
+  style="--img-width:{{ block.settings.img_width }}px;{{style}}">
+  {%- if block.settings.heading != blank -%}
+    <h2 class="heading">{{ block.settings.heading }}</h2>
+  {%- endif -%}
+
+  <div class="table-container">
+    <table class="w-full">
+      {% content_for 'blocks' %}
+    </table>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "表格",
+  "blocks": [{"type": "_product-table-head"}, {"type": "_product-table-body"}],
+  "settings": [
+    {
+      "type": "header",
+      "content": "表格内容设置"
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+            "value": "section-container-lg",
+            "label": "大版心/1312px"
+        },
+        {
+          "value": "container-fluid",
+          "label": "拉伸/铺满两边留白"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        }
+      ],
+      "default": "section-container",
+      "label": "组件宽度"
+    },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "使用できる電化製品の例" },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "default": "center",
+      "label": "文案对齐方式"
+    },
+    {
+      "type": "range",
+      "id": "img_width",
+      "min": 20,
+      "max": 400,
+      "step": 10,
+      "label": "表格图片尺寸？",
+      "default": 240
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "表格",
+      "blocks": [
+        {
+          "type": "_product-table-head",
+          "blocks": [
+            {
+              "type": "_product-table-head-td",
+              "settings": {
+                "td": "表头Text"
+              }
+            }
+          ]
+        },
+        {
+          "type": "_product-table-body",
+          "blocks": [
+            {
+              "type": "_product-table-body-row",
+              "blocks": [
+                {
+                  "type": "_product-table-body-td"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

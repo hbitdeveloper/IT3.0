@@ -1,0 +1,90 @@
+{%- comment -%}
+  FAQPage 公共生成器：读取当前对象的 FAQ 元字段，并可合并 faq-content Section 手动配置的 FAQ。
+  faq-block-switch 控制产品和集合灰度逻辑，最终最多输出 10 个有效问题。
+{%- endcomment -%}
+{%- liquid
+  assign output_faq_schema = true
+  assign faq_item_limit = 10
+
+  unless settings.enable_faq_schema
+    assign output_faq_schema = false
+  endunless
+
+  if faq_categories == blank
+    case request.page_type
+      when 'product'
+        assign faq_categories = product.metafields.custom.faq_multiple_columns.value
+      when 'collection'
+        assign faq_categories = collection.metafields.custom.faq_multiple_columns.value
+      when 'article'
+        assign faq_categories = article.metafields.custom.faq_multiple_columns.value
+      when 'blog'
+        assign faq_categories = blog.metafields.custom.faq_multiple_columns.value
+      when 'page'
+        assign faq_categories = page.metafields.custom.faq_multiple_columns.value
+    endcase
+  endif
+
+  assign faq_page_url = canonical_url
+  assign faq_schema_id = faq_page_url | append: '#faq'
+-%}
+
+{%- capture faq_main_entity_json -%}
+  {%- assign first_faq_item = true -%}
+  {%- assign faq_item_count = 0 -%}
+  {%- for faq_category in faq_categories -%}
+    {%- if faq_item_count >= faq_item_limit -%}{%- break -%}{%- endif -%}
+    {%- for faq_item in faq_category.column_content.value -%}
+      {%- if faq_item_count >= faq_item_limit -%}{%- break -%}{%- endif -%}
+      {%- assign faq_question = faq_item.question.value | strip -%}
+      {%- assign faq_answer = faq_item.answer_text | metafield_text | strip_html | strip -%}
+      {%- if faq_question != blank and faq_answer != blank -%}
+        {%- unless first_faq_item -%},{%- endunless -%}
+        {
+          "@type": "Question",
+          "name": {{ faq_question | truncate: 180 | json }},
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": {{ faq_answer | truncate: 300 | json }}
+          }
+        }
+        {%- assign first_faq_item = false -%}
+        {%- assign faq_item_count = faq_item_count | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endfor -%}
+
+  {%- if include_manual_faqs == true -%}
+    {%- for faq_block in faq_blocks -%}
+      {%- if faq_item_count >= faq_item_limit -%}{%- break -%}{%- endif -%}
+      {%- assign faq_question = faq_block.settings.question | strip -%}
+      {%- assign faq_answer = faq_block.settings.answer | strip_html | strip -%}
+      {%- if faq_block.type == 'faq' and faq_question != blank and faq_answer != blank -%}
+        {%- unless first_faq_item -%},{%- endunless -%}
+        {
+          "@type": "Question",
+          "name": {{ faq_question | truncate: 180 | json }},
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": {{ faq_answer | truncate: 300 | json }}
+          }
+        }
+        {%- assign first_faq_item = false -%}
+        {%- assign faq_item_count = faq_item_count | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+{%- endcapture -%}
+{%- assign faq_main_entity_json = faq_main_entity_json | strip -%}
+
+{% if output_faq_schema and faq_main_entity_json != blank %}
+<script id="faq-structured-data" type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": {{ faq_schema_id | json | replace: '\/', '/' }},
+    "url": {{ faq_page_url | json | replace: '\/', '/' }},
+    "mainEntity": [{{ faq_main_entity_json }}]
+  }
+</script>
+{% endif %}

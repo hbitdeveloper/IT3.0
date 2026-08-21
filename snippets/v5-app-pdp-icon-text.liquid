@@ -1,0 +1,41 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- assign loop_count = 1 -%}
+{%- assign width_height = 'w-12 h-12 lg:w-20 lg:h-20 object-contain' -%}
+{%- if block.settings.position == 'pos_2' -%}
+  {%- assign loop_count = 2 -%}
+  {%- assign width_height = 'w-12 h-12 lg:w-[3.75rem] lg:h-[3.75rem] object-contain' -%}
+{%- endif -%}
+
+<ul {{ block.shopify_attributes }} class="w-full {{ class }} items-start section-padding {% if block.settings.position == 'pos_1' %} bg-[#F5F5F3] lg:bg-transparent {% endif %}" style="{{ style }}">
+  {%- for i in (0..loop_count) -%}
+    {%- assign icon_index = 'icon_' | append: forloop.index -%}
+    {%- assign text_index = 'text_' | append: forloop.index -%}
+    {%- if block.settings[icon_index] != blank or block.settings[text_index] != blank -%}
+      <li class="flex-1 flex items-center justify-center flex-col gap-y-2 border-0 border-r-[1px] border-solid border-[#E2E3E3] px-2 lg:gap-y-3 {% if block.settings.position == 'pos_1' %} lg:px-12 {% else %} lg:px-6 {% endif %} last-of-type:border-r-0 {% if block.settings.position == 'pos_2' %} first-of-type:pl-0 last-of-type:pr-0 {% endif %}">
+        {%- render 'diff-end-img',
+          class: width_height,
+          pc_img: block.settings[icon_index],
+          mb_img: block.settings[icon_index],
+          pc_img_width: 80,
+          mb_img_width: 48,
+          placeholder_name: 'hero-apparel-1'
+        -%}
+        {%- if block.settings[text_index] != blank -%}
+          <span class="feature-icon-text text-center text-[#242F20]/90 text-[0.75rem] leading-[1.125rem] lg:text-base line-clamp-2 pr-[2px]">
+            {{ block.settings[text_index] | newline_to_br }}
+          </span>
+          {%- style -%}
+            html:is([lang="de"], [lang="fr"], [lang="nl"]) .feature-icon-text {
+              -webkit-hyphens: auto; 
+              -ms-hyphens: auto; 
+              hyphens: auto;
+            }
+          {%- endstyle -%}
+        {%- endif -%}
+      </li>
+    {%- endif -%}
+  {%- endfor -%}
+</ul>

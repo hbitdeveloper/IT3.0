@@ -1,0 +1,141 @@
+{% comment %} header {% endcomment %}
+{% liquid
+    # 相关文章数量
+    assign related_articles_count = article.metafields.custom.related_articles.value.count
+    assign right_flag = false
+    # 广告
+    if settings.article_show_tag_banner
+      assign tag_obj = null
+      if shop.metaobjects.article_item.values_count > 0 and article.tags.size > 0 and settings.article_show_tags
+        for tag in article.tags
+          if tag_obj == null
+            for item in shop.metaobjects.article_item.values
+              if tag == item.tag.value
+                assign tag_obj = item
+                break
+              endif
+            endfor
+          else
+            break
+          endif
+        endfor
+      endif
+      assign img = tag_obj.img.value | default: settings.article_ad_image
+    else
+      assign img = settings.article_ad_image
+    endif
+    # 右侧显示 关联文章/广告位/订阅
+    if related_articles_count > 0  or img != blank or settings.article_subscribe_title != blank
+        assign right_flag = true
+    endif
+    if section.settings.new_jp == true
+      assign right_flag = false
+    endif
+%}
+
+
+<div class="w-full lg:a-max-w-1200 mx-auto new-article-header {% if right_flag == false %} flex-center {% endif %}"
+    data-share-successful="{{settings.article_share_successful}}"
+    data-learn-more="{{settings.article_learn_more}}"
+    data-add-to-cart="{{settings.article_add_to_cart}}"
+    data-title="{{article.title}}"
+    data-new-blank="{{settings.article_new_blank}}"
+>   
+    
+    <div class="lg:a-w-800 px-40 lg:a-p-0 pt-24 pb-32 lg:a-pt-24 lg:p-0 lg:a-mb-24">
+        <div class="text-26 font-500 lg:font-400 text-#666666 lg:a-text-16">
+            <a class="text-#666666 article-type" target="{% if settings.article_new_blank %}_blank{% else %}_self{% endif %}" title="{{settings.article_home}}" href=" {{ routes.root_url }}">{{settings.article_home}}</a> 
+            > 
+            <a class="text-#666666 article-type" target="{% if settings.article_new_blank %}_blank{% else %}_self{% endif %}" title="{{blog.title}}" href="{% if section.settings.new_jp == true %}/pages/jp-notice{% else %}{{blog.url}}{% endif %}">{{blog.title}}</a> 
+        </div>
+        <h1 class="text-44 text-#333 font-bold leading-52 my-24 lg:a-text-44 lg:a-leading-52 lg:a-my-24"> {{ article.title }} </h1>
+        <div class="lg:flex lg:items-center lg:justify-between lg:a-w-800">
+            <div class="text-26 font-500 lg:font-400 text-[#666666] mb-40 lg:a-text-16 lg:mb-0 tag-lh">
+                {% if settings.article_show_date or article.tags.size > 0 or articles.comments_count > 0 %}
+                    {% if settings.article_show_tags and article.tags.size > 0 and section.settings.new_jp == false %}
+                        <div class="tags-list">
+                           {% for tag in article.tags %}
+                                  <a class="text-[#666666] article-type" target="{% if settings.article_new_blank %}_blank{% else %}_self{% endif %}" title="{{ tag }}" href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag }}</a>
+                                    {% unless forloop.last %} &middot; {% endunless %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if settings.article_show_comments and article.comments_count > 0 %}
+                        <a class="text-[#666666] article-comments" href="#comments">{{ article.comments_count }} {{ article.comments_count | pluralize: 'comment', 'comments' }}</a> &middot;
+                    {% endif %}
+                    {% if settings.article_show_date %}
+                        <span class="article_update">{{ settings.article_update }}</span>
+                        {{ article.updated_at | time_tag: format: 'date' }}
+                        {%- if section.settings.new_jp == true -%}
+                          {%- assign w = article.updated_at | date: '%w' -%}
+                          {%- case w -%}
+                            {%- when '0' -%}（日）
+                            {%- when '1' -%}（月）
+                            {%- when '2' -%}（火）
+                            {%- when '3' -%}（水）
+                            {%- when '4' -%}（木）
+                            {%- when '5' -%}（金）
+                            {%- when '6' -%}（土）
+                          {%- endcase -%}
+                        {%- endif -%}
+                    {% endif %}
+                    {% if settings.article_show_author %}
+                        <div class="article__author">by {{ article.author }}</div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {%- if settings.article_show_share and section.settings.new_jp == false -%}
+                <div class="flex-between">
+                    <div class="text-26 font-500 lg:font-400 text-[#666666] lg:hidden">{{ settings.article_share_text }}</div>
+                    <div class="flex">
+                        {%- if settings.article_show_share_fb -%}
+                            <div class="blog-share blog-share-fb w-72 h-72 rounded-full bg-[#f5f5f5] flex-center ml-24 lg:a-w-40 lg:a-h-40 lg:a-ml-16 cursor-pointer hover:text-[#fff] hover:bg-[#007af8]" data-type="facebook" >
+                                {% render 'icon-facebook', class="text-52 lg:a-text-34" %}
+                            </div>
+                        {%- endif -%}
+                        {%- if settings.article_show_share_tw -%}
+                            <div class="blog-share blog-share-tw w-72 h-72 rounded-full bg-[#f5f5f5] flex-center ml-24 lg:a-w-40 lg:a-h-40 lg:a-ml-16 cursor-pointer hover:text-[#fff] hover:bg-[#000000]" data-type="twitter">
+                                {% render 'icon-twitter', class="text-52 lg:a-text-34" %}
+                            </div>
+                        {%- endif -%}
+                        {%- if settings.article_show_share_ins -%}
+                            <div class="blog-share blog-share-ins w-72 h-72 rounded-full bg-[#f5f5f5] flex-center ml-24 lg:a-w-40 lg:a-h-40 lg:a-ml-16 cursor-pointer hover:text-[#fff] hover:bg-[#f40e66]" data-type="Instagram">
+                                {% render 'icon-instagram', class="text-52 lg:a-text-34" %}
+                            </div>
+                        {%- endif -%}
+                        {%- if settings.article_show_share_line -%}
+                            <div class="blog-share blog-share-line w-72 h-72 rounded-full bg-[#f5f5f5] flex-center ml-24 lg:a-w-40 lg:a-h-40 lg:a-ml-16 cursor-pointer hover:text-[#fff] hover:bg-[#4ac206]" data-type="line">
+                                {% render 'icon-line', class="text-52 lg:a-text-34" %}
+                            </div>
+                        {%- endif -%}
+                        {%- if settings.article_show_share_whatsapp -%}
+                        <div class="blog-share blog-share-whatsapp w-72 h-72 rounded-full bg-[#f5f5f5] flex-center ml-24 lg:a-w-40 lg:a-h-40 lg:a-ml-16 cursor-pointer hover:text-[#fff] hover:bg-[#45D354]" data-type="whatsapp">
+                            {% render 'icon-whatsapp', class="text-52 lg:a-text-34" %}
+                        </div>
+                        {%- endif -%}
+                        {%- if settings.article_show_share_email -%}
+                            <div class="blog-share blog-share-email w-72 h-72 rounded-full bg-[#f5f5f5] flex-center ml-24 lg:a-w-40 lg:a-h-40 lg:a-ml-16 cursor-pointer hover:text-[#fff] hover:bg-[#2296F3]" data-type="email">
+                                {% render 'icon-email', class="text-52 lg:a-text-34" %}
+                            </div>
+                        {%- endif -%}
+                    </div>
+                </div>
+            {%- endif -%}
+        </div>
+    </div>
+</div>
+
+{% schema %}
+  {
+    "name": "Article Template Header",
+
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "new_jp",
+        "label": "是否是日本通知页样式",
+        "default": false
+      }
+    ]
+  }
+{% endschema %}

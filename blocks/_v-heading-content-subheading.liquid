@@ -1,0 +1,464 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  # 判断是否登录
+  assign is_login = false
+  if customer
+    assign is_login = true
+  endif
+
+  # 判断是否展示模块
+  assign module_show_timing = block.settings.module_show_timing | default: 'default'
+  assign show_module = true
+  if module_show_timing == 'show_before_login' and is_login == true
+    assign show_module = false
+  endif
+  if module_show_timing == 'show_after_login' and is_login == false
+    assign show_module = false
+  endif
+
+  if show_module == true
+    # 排版
+    # 历史数据配置 转换为 JDS的字号class
+    capture pc_text_size
+      render 'v-font-size-class', fs: block.settings.heading_size, default_class: 'heading_4'
+    endcapture
+    assign pc_heading_class = pc_text_size | strip
+
+    capture mb_text_size
+      render 'v-font-size-class', fs: block.settings.mb_heading_size, default_class: 'heading_4'
+    endcapture
+    assign mb_heading_class = mb_text_size | strip
+
+    assign mb_content_type = block.settings.mb_content_type | default: 'default'
+    if mb_content_type == 'default'
+      assign mb_heading_class = pc_heading_class
+    endif
+
+    # 换算字重
+    capture pc_end_font_weight
+      render 'v-font-weight-number', fw: block.settings.font_weight
+    endcapture
+    assign pc_end_font_weight = pc_end_font_weight | strip
+    if pc_end_font_weight != blank
+      assign pc_style = '--jds-font-weight:' | append: pc_end_font_weight | append: ';'
+    endif
+
+    if mb_content_type == 'default'
+      assign mb_style = pc_style
+    else
+      capture mb_end_font_weight
+        render 'v-font-weight-number', fw: block.settings.mb_font_weight
+      endcapture
+      assign mb_end_font_weight = mb_end_font_weight | strip
+      if mb_end_font_weight != blank
+        assign mb_style = '--jds-font-weight:' | append: mb_end_font_weight | append: ';'
+      endif
+    endif
+
+    # 对齐方式
+    assign pc_align = block.settings.alignment
+    assign mb_align = block.settings.alignment_mb
+    assign align_class = ''
+    if mb_align != blank
+      assign align_class = 'text-' | append: mb_align | append: ' lg:text-' | append: pc_align
+    endif
+  endif
+-%}
+
+{% if show_module == true %}
+  <div
+    {{ block.shopify_attributes }}
+    class="blocks-text blocks-content-subheading section-padding {{ block.settings.font_family }} {{ align_class }}"
+    style="color: {{block.settings.text_color}};--jds-rte-text-color: {{block.settings.text_color}};--active-color: {{block.settings.active_color}};{{style}}"
+  >
+    <div
+      class="hidden lg:block {{ pc_heading_class }}"
+      {% if pc_style != blank %}
+        style="{{ pc_style }}"
+      {% endif %}
+    >
+      {{ block.settings.heading | newline_to_br }}
+    </div>
+    <div
+      class="block lg:hidden {{ mb_heading_class }}"
+      {% if mb_style != blank %}
+        style="{{ mb_style }}"
+      {% endif %}
+    >
+      {{ block.settings.mb_heading | newline_to_br }}
+    </div>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "V-副标题",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "基础配置"
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "PC副标题",
+      "default": "<p>PC 默认副标题内容</p>",
+      "info": "该处富文本功能只支持换行和斜体高亮标记"
+    },
+    {
+      "type": "richtext",
+      "id": "mb_heading",
+      "label": "MB副标题",
+      "default": "<p>MB 默认副标题内容</p>",
+      "info": "该处富文本功能只支持换行和斜体高亮标记"
+    },
+    {
+      "type": "header",
+      "content": "功能交互配置"
+    },
+    {
+      "type": "select",
+      "id": "module_show_timing",
+      "options": [
+        {
+          "value": "default",
+          "label": "一直展示"
+        },
+        {
+          "value": "show_before_login",
+          "label": "仅登录前展示"
+        },
+        {
+          "value": "show_after_login",
+          "label": "仅登录后展示"
+        }
+      ],
+      "label": "此版块展示时机",
+      "default": "default"
+    },
+    {
+      "type": "header",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0
+    },
+    { "type": "header", "content": "MB边距", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "header",
+      "content": "字体",
+      "visible_if": "{{ settings.jky_theme_version == 'v5' }}"
+    },
+    {
+      "type": "select",
+      "id": "font_family",
+      "options": [
+        {
+          "value": "",
+          "label": "默认"
+        },
+        {
+          "value": "v5-font-oxm",
+          "label": "Oxanium"
+        }
+      ],
+      "default": "",
+      "label": "字体",
+      "visible_if": "{{ settings.jky_theme_version == 'v5' }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "默认：Inter（通用版5.0字体）/Noto Sans JP（日站字体）/Poppins（其他站字体）；",
+      "visible_if": "{{ settings.jky_theme_version == 'v5' }}"
+    },
+    {
+      "type": "paragraph",
+      "content": "Oxanium：通用版5.0特定字体（常用于特大标题或一级标题，仅支持800字重）",
+      "visible_if": "{{ settings.jky_theme_version == 'v5' }}"
+    },
+    {
+      "type": "header",
+      "content": "内容样式"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment",
+      "label": "PC对齐方式",
+      "default": "center"
+    },
+    {
+      "type": "text_alignment",
+      "id": "alignment_mb",
+      "label": "MB对齐方式",
+      "default": "center"
+    },
+    { "type": "color", "id": "text_color", "label": "文本颜色", "default": "#333333" },
+    { "type": "color", "id": "active_color", "label": "文本强调颜色", "default": "#fd5000" },
+
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "heading_1",
+          "label": "一级标题"
+        },
+        {
+          "value": "heading_2",
+          "label": "二级标题"
+        },
+        {
+          "value": "heading_3",
+          "label": "三级标题"
+        },
+        {
+          "value": "heading_4",
+          "label": "四级标题"
+        },
+        {
+          "value": "heading_5",
+          "label": "五级标题"
+        },
+        {
+          "value": "heading_6",
+          "label": "六级标题"
+        }
+      ],
+      "default": "heading_4",
+      "label": "字号"
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "options": [
+        {
+          "value": "jky-font-default",
+          "label": "默认"
+        },
+        {
+          "value": "font-extrabold",
+          "label": "800"
+        },
+        {
+          "value": "font-bold",
+          "label": "700"
+        },
+        {
+          "value": "font-semibold",
+          "label": "600"
+        },
+        {
+          "value": "font-medium",
+          "label": "500"
+        },
+        {
+          "value": "font-normal",
+          "label": "400"
+        }
+      ],
+      "default": "jky-font-default",
+      "label": "字重"
+    },
+    { "type": "header", "content": "MB排版", "visible_if": "{{ settings.customize_vcomponents == true }}" },
+    {
+      "type": "select",
+      "id": "mb_content_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB排版",
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_heading_size",
+      "options": [
+        {
+          "value": "heading_0",
+          "label": "特大标题"
+        },
+        {
+          "value": "heading_1",
+          "label": "一级标题"
+        },
+        {
+          "value": "heading_2",
+          "label": "二级标题"
+        },
+        {
+          "value": "heading_3",
+          "label": "三级标题"
+        },
+        {
+          "value": "heading_4",
+          "label": "四级标题"
+        },
+        {
+          "value": "heading_5",
+          "label": "五级标题"
+        },
+        {
+          "value": "heading_6",
+          "label": "六级标题"
+        }
+      ],
+      "default": "heading_4",
+      "label": "字号",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_content_type == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_font_weight",
+      "options": [
+        {
+          "value": "jky-font-default",
+          "label": "默认"
+        },
+        {
+          "value": "font-extrabold",
+          "label": "800"
+        },
+        {
+          "value": "font-bold",
+          "label": "700"
+        },
+        {
+          "value": "font-semibold",
+          "label": "600"
+        },
+        {
+          "value": "font-medium",
+          "label": "500"
+        },
+        {
+          "value": "font-normal",
+          "label": "400"
+        }
+      ],
+      "default": "jky-font-default",
+      "label": "字重",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_content_type == 'custom' }}"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V-副标题"
+    }
+  ]
+}
+{% endschema %}

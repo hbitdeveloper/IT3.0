@@ -1,0 +1,440 @@
+
+{{ 'sections-v5-support-extend-warranty.css' | asset_url | stylesheet_tag }}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- assign highlight_text = '<em style="color:' | append: section.settings.highlight_color | append: '">' -%}
+{%- assign support_shop_cr = settings.shop_cr | default: localization.country.iso_code | default: 'US' -%}
+
+<div class="v5-extend-warranty-main section-padding" id="v5-extend-warranty-main-{{ section.id }}" style="{{ style }}">
+  <div class="main-container">
+    {% if section.settings.application_title != blank %}
+      <h2 class="page-title">{{ section.settings.application_title }}</h2>
+    {% endif %}
+
+    <div class="tips">
+      {% if section.settings.application_intro != blank %}
+        <p class="explain">{{ section.settings.application_intro }}</p>
+      {% endif %}
+
+      <details {% if section.settings.doc_open %}open{% endif %}>
+        <summary>{{ section.settings.doc_title }}</summary>
+        <ul>
+          {% for block in section.blocks %}
+            {% case block.type %}
+              {% when 'required_doc' %}
+                {% if block.settings.title != blank or block.settings.content != blank %}
+                  <li {{ block.shopify_attributes }}>
+                    {% if block.settings.title != blank %}<b>{{ block.settings.title }}:</b>{% endif %}
+                    {{ block.settings.content }}
+                  </li>
+                {% endif %}
+            {% endcase %}
+          {% endfor %}
+        </ul>
+      </details>
+    </div>
+
+    <form
+            class="p-r-main js-ew-form"
+            data-section-id="{{ section.id }}"
+            data-upload-max="3"
+            data-upload-size="{{ 10 | times: 1024 | times: 1024 }}"
+            data-draft-success="{{ section.settings.draft_success_text | escape }}"
+            data-submit-success="{{ section.settings.submit_success_text | escape }}"
+            data-loading-save="{{ section.settings.loading_save_text | escape }}"
+            data-loading-submit="{{ section.settings.loading_submit_text | escape }}"
+            data-uploading="{{ section.settings.uploading_text | escape }}"
+            data-field-required="{{ section.settings.required_field_text | escape }}"
+            data-invalid-email="{{ section.settings.invalid_email_text | escape }}"
+            data-invalid-phone="{{ section.settings.invalid_phone_text | escape }}"
+            data-privacy-required="{{ section.settings.privacy_required_text | escape }}"
+            data-upload-limit="{{ section.settings.upload_limit_text | escape }}"
+            data-upload-type="{{ section.settings.upload_type_text | escape }}"
+            data-upload-size-text="{{ section.settings.upload_size_text | escape }}"
+            data-upload-delete-failed="{{ section.settings.upload_delete_failed_text | escape }}"
+            data-confirm-all-fields="{{ section.settings.confirm_all_fields | escape }}"
+            data-points-tips-template="{{ section.settings.points_tips_template | strip_newlines | escape }}"
+            data-select-placeholder="{{ section.settings.select_placeholder | escape }}"
+            data-country-required="{{ section.settings.country_required }}"
+            data-first-name-label="{{ section.settings.first_name_label | escape }}"
+            data-company-name-label="{{ section.settings.company_name_label | escape }}"
+            data-last-name-label="{{ section.settings.last_name_label | escape }}"
+            data-email-label="{{ section.settings.email_label | escape }}"
+            data-phone-label="{{ section.settings.phone_label | escape }}"
+            data-order-id-label="{{ section.settings.order_id_label | escape }}"
+            data-serial-number-label="{{ section.settings.serial_number_label | escape }}"
+            data-product-name-label="{{ section.settings.product_name_label | escape }}"
+            data-purchase-date-label="{{ section.settings.purchase_date_label | escape }}"
+            data-remark-label="{{ section.settings.remark_label | escape }}"
+            data-success-title="{{ section.settings.success_title | escape }}"
+            data-success-copy="{{ section.settings.success_copy | escape }}"
+            data-unactivated-copy-template="{{ section.settings.unactivated_copy_template | escape }}"
+            novalidate
+    >
+      <input type="hidden" name="channel" value="Support">
+      <input type="hidden" name="draft_id" value="">
+      <input type="hidden" name="accept_sms" value="0">
+      <input type="hidden" name="need_register" value="1">
+      <input type="hidden" name="user_buy_at" value="">
+
+      <h3 class="form-heading">
+        {{ section.settings.channel_heading }}
+        {% if section.settings.channel_heading_tip != blank %}
+          <span class="heading-tip">{{ section.settings.channel_heading_tip }}</span>
+        {% endif %}
+      </h3>
+
+      <div class="p-r-content">
+        <label>
+          <span class="must-field">{{ section.settings.main_channel_label }}</span>
+          <select name="main_purchase_channel" class="js-main-channel" data-required="true">
+            <option value="">{{ section.settings.select_placeholder }}</option>
+          </select>
+          <span class="field-error"></span>
+        </label>
+
+        <label class="js-sub-channel-wrap {% if support_shop_cr == 'JP' %} is-hidden{% endif %}">
+          {% if section.settings.sub_channel_label == blank %}
+            <span>&nbsp;</span>
+          {% else %}
+            <span>{{ section.settings.sub_channel_label }}</span>
+          {% endif %}
+          <select name="purchase_channel" class="js-sub-channel">
+            <option value="">{{ section.settings.select_placeholder }}</option>
+          </select>
+          <span class="field-error"></span>
+        </label>
+
+        <label class="full js-country-wrap {% if support_shop_cr == 'JP' %} is-hidden{% endif %}">
+          <span class="{% if section.settings.country_required %}must-field {% endif %}tips-popup">
+            {{ section.settings.country_label }}
+            <span class="tips-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 0C4.486 0 0 4.486 0 10s4.486 10 10 10 10-4.486 10-10S15.514 0 10 0zm0 15a1 1 0 110-2 1 1 0 010 2zm1-4H9V5h2v6z"></path>
+              </svg>
+            </span>
+            {% if section.settings.country_tip != blank %}
+              <span class="tips-info">{{ section.settings.country_tip }}</span>
+            {% endif %}
+          </span>
+          <div class="country-autocomplete">
+            <input
+                    type="text"
+                    name="country"
+                    autocomplete="off"
+                    placeholder="{{ section.settings.country_placeholder }}"
+                    {% if section.settings.country_required %}data-required="true"{% endif %}
+            >
+            <ul class="country-autocomplete-list js-country-list" hidden></ul>
+          </div>
+          <span class="field-error"></span>
+        </label>
+      </div>
+
+      <h3 class="form-heading">{{ section.settings.contact_heading }}</h3>
+      <div class="p-r-content">
+        <label>
+          <span class="must-field"><span class="js-first-name-label-text">{{ section.settings.first_name_label }}</span></span>
+          <input type="text" name="first_name" maxlength="32" placeholder="{{ section.settings.first_name_placeholder }}" data-required="true">
+          <span class="field-error"></span>
+        </label>
+
+        <label class="js-last-name-wrap{% if support_shop_cr == 'JP' %} is-hidden{% endif %}">
+          <span class="must-field">{{ section.settings.last_name_label }}</span>
+          <input type="text" name="last_name" maxlength="32" placeholder="{{ section.settings.last_name_placeholder }}" data-required="true">
+          <span class="field-error"></span>
+        </label>
+
+        <label>
+          <span class="must-field">{{ section.settings.email_label }}</span>
+          <input type="email" name="email" maxlength="50" placeholder="{{ section.settings.email_placeholder }}" data-required="true" data-type="email">
+          <span class="field-error"></span>
+        </label>
+
+        <label>
+          <span class="js-phone-label-text">{{ section.settings.phone_label }}</span>
+          <input type="tel" name="phone" maxlength="20" placeholder="{{ section.settings.phone_placeholder }}" data-type="phone">
+          <span class="field-error"></span>
+        </label>
+        <label></label>
+        <label class="tips-agree_sms y-checkbox js-agree-sms-wrap{% if support_shop_cr == 'JP' %} is-hidden{% endif %}">
+          <input type="checkbox" name="accept_sms_toggle" value="1">
+          <span>{{ section.settings.agree_sms_text }}</span>
+        </label>
+      </div>
+
+      <h3 class="form-heading">{{ section.settings.order_heading }}</h3>
+      <div class="p-r-content">
+        <label class="js-order-id-wrap">
+          <span class="tips-popup js-order-id-label-wrap">
+            <span class="js-order-id-label-text">{{ section.settings.order_id_label }}</span>
+            <span class="tips-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 0C4.486 0 0 4.486 0 10s4.486 10 10 10 10-4.486 10-10S15.514 0 10 0zm0 15a1 1 0 110-2 1 1 0 010 2zm1-4H9V5h2v6z"></path>
+              </svg>
+            </span>
+            {% if section.settings.order_id_tip != blank %}
+              <span class="tips-info">{{ section.settings.order_id_tip }}</span>
+            {% endif %}
+          </span>
+          <input type="text" name="out_order_sn" maxlength="40" placeholder="{{ section.settings.order_id_placeholder }}">
+          <span class="field-error"></span>
+        </label>
+
+        <label class="js-serial-wrap">
+          <span class="tips-popup js-serial-label-wrap">
+            {{ section.settings.serial_number_label }}
+            <span class="tips-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 0C4.486 0 0 4.486 0 10s4.486 10 10 10 10-4.486 10-10S15.514 0 10 0zm0 15a1 1 0 110-2 1 1 0 010 2zm1-4H9V5h2v6z"></path>
+              </svg>
+            </span>
+            {% if section.settings.serial_number_tip != blank %}
+              <span class="tips-info">{{ section.settings.serial_number_tip }}</span>
+            {% endif %}
+          </span>
+          <input type="text" name="serial_number" maxlength="20" placeholder="{{ section.settings.serial_number_placeholder }}">
+          <span class="field-error"></span>
+        </label>
+
+        <label class="full js-product-name-wrap is-hidden">
+          <span class="must-field tips-popup">
+            <span class="js-product-name-label-text">{{ section.settings.product_name_label }}</span>
+            <span class="tips-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 0C4.486 0 0 4.486 0 10s4.486 10 10 10 10-4.486 10-10S15.514 0 10 0zm0 15a1 1 0 110-2 1 1 0 010 2zm1-4H9V5h2v6z"></path>
+              </svg>
+            </span>
+            {% if section.settings.product_name_tip != blank %}
+              <span class="tips-info">{{ section.settings.product_name_tip }}</span>
+            {% endif %}
+          </span>
+          <textarea name="product_name" maxlength="200" placeholder="{{ section.settings.product_name_placeholder }}" data-required="true"></textarea>
+          <span class="char-count">0/200</span>
+          <span class="field-error"></span>
+        </label>
+
+        <label class="full js-purchase-date-wrap is-hidden">
+          <span class="must-field">{{ section.settings.purchase_date_label }}</span>
+          <div class="date-input-wrap">
+            <input type="date" name="user_buy_at_visible">
+            <span class="date-input-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path d="M14 2a1 1 0 0 1 1 1v1h1.5A2.5 2.5 0 0 1 19 6.5v9A2.5 2.5 0 0 1 16.5 18h-13A2.5 2.5 0 0 1 1 15.5v-9A2.5 2.5 0 0 1 3.5 4H5V3a1 1 0 1 1 2 0v1h6V3a1 1 0 0 1 1-1Zm2.5 7h-13a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5ZM5 6H3.5a.5.5 0 0 0-.5.5V7h14v-.5a.5.5 0 0 0-.5-.5H15v1a1 1 0 1 1-2 0V6H7v1a1 1 0 1 1-2 0V6Z"></path>
+              </svg>
+            </span>
+          </div>
+          <span class="field-error"></span>
+        </label>
+
+        <div class="label full js-upload-wrap is-hidden">
+          <label>
+            <span class="must-field tips-popup">
+              {{ section.settings.upload_label }}
+              <span class="tips-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 0C4.486 0 0 4.486 0 10s4.486 10 10 10 10-4.486 10-10S15.514 0 10 0zm0 15a1 1 0 110-2 1 1 0 010 2zm1-4H9V5h2v6z"></path>
+                </svg>
+              </span>
+              {% if section.settings.upload_tip != blank %}
+                <span class="tips-info">{{ section.settings.upload_tip }}</span>
+              {% endif %}
+            </span>
+          </label>
+
+          <div class="tickets">
+            <ul class="upload-list js-upload-list" aria-live="polite"></ul>
+            <div class="upload-input js-upload-trigger">
+              <input type="file" class="js-upload-input" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp">
+              <span class="upload-spinner" aria-hidden="true"></span>
+            </div>
+            {% if section.settings.upload_help != blank %}
+              <div class="explain upload-help">{{ section.settings.upload_help }}</div>
+            {% endif %}
+          </div>
+          <span class="field-error js-upload-error"></span>
+        </div>
+
+        <label class="full">
+          <span>{{ section.settings.remark_label }}</span>
+          <textarea name="remark" maxlength="2000" placeholder="{{ section.settings.remark_placeholder }}"></textarea>
+          <span class="char-count">0/2000</span>
+          <span class="field-error"></span>
+        </label>
+      </div>
+
+      <h3 class="form-heading">{{ section.settings.policy_heading }}</h3>
+      {% if section.settings.policy_copy != blank %}
+        <p class="explain">{{ section.settings.policy_copy | replace: '<em>', highlight_text }}</p>
+      {% endif %}
+
+      <div class="operate">
+        <p class="explain mainColor js-warranty-points" hidden></p>
+        <div class="consent-list">
+          <label class="consent-item">
+            <input type="checkbox" name="privacy_consent" value="1" data-required="true">
+            {{ section.settings.privacy_text }}
+            <span class="field-error"></span>
+          </label>
+          <label class="consent-item">
+            <input type="checkbox" name="subscribe_consent" value="1">
+            {{ section.settings.subscribe_text }}
+          </label>
+        </div>
+
+        <div class="button-row">
+                    <jds-button type="button" variant="secondary" class="btn-secondary js-submit-without-activation">{{ section.settings.save_draft_text }}</jds-button>
+                    <jds-button type="button" variant="primary" class="btn-primary js-submit">{{ section.settings.submit_text }}</jds-button>
+                </div>
+
+        <div class="form-status js-form-status" role="status" aria-live="polite"></div>
+  </div>
+    </form>
+
+    <div class="confirm-panel js-ew-confirm" hidden>
+      <p class="confirm-copy">{{ section.settings.confirm_all_fields }}</p>
+      <ul class="confirm-list js-ew-confirm-list"></ul>
+      <div class="button-row confirm-actions">
+        <jds-button type="button" variant="secondary" class="btn-secondary js-ew-edit">{{ section.settings.confirm_edit_text }}</jds-button>
+        <jds-button type="button" variant="primary" class="btn-primary js-ew-confirm-submit">{{ section.settings.confirm_submit_text }}</jds-button>
+      </div>
+    </div>
+
+    <div class="success-panel js-ew-success" hidden>
+      <svg class="success-icon" viewBox="0 0 78 78" aria-hidden="true">
+        <path fill="#52C41A" d="M39,0 C17.4593023,0 0,17.4683721 0,39 C0,60.5316279 17.4683721,78 39,78 C60.5316279,78 78,60.5406977 78,39 C78,17.4593023 60.5406977,0 39,0 Z M57.7290698,29.5583721 L37.3674419,49.92 L36.7144186,50.5730233 C34.9004651,52.3869767 31.9618605,52.3869767 30.147907,50.5730233 L21.6132558,42.0383721 C20.5248837,40.95 20.5248837,39.1904651 21.6132558,38.102093 C22.7016279,37.0137209 24.4611628,37.0137209 25.5495349,38.102093 L31.7895349,44.342093 C32.6965116,45.2490698 34.165814,45.2490698 35.0727907,44.342093 L53.7837209,25.622093 C54.872093,24.5337209 56.6316279,24.5337209 57.72,25.622093 C58.8083721,26.7104651 58.8083721,28.47 57.7290698,29.5583721 Z"></path>
+      </svg>
+      <p class="success-title js-ew-success-title">{{ section.settings.success_title }}</p>
+      <p class="success-copy js-ew-success-copy">{{ section.settings.success_copy }}</p>
+    </div>
+
+    <div class="register-panel js-ew-register-panel" hidden>
+      <svg class="success-icon" viewBox="0 0 78 78" aria-hidden="true">
+        <path fill="#52C41A" d="M39,0 C17.4593023,0 0,17.4683721 0,39 C0,60.5316279 17.4683721,78 39,78 C60.5316279,78 78,60.5406977 78,39 C78,17.4593023 60.5406977,0 39,0 Z M57.7290698,29.5583721 L37.3674419,49.92 L36.7144186,50.5730233 C34.9004651,52.3869767 31.9618605,52.3869767 30.147907,50.5730233 L21.6132558,42.0383721 C20.5248837,40.95 20.5248837,39.1904651 21.6132558,38.102093 C22.7016279,37.0137209 24.4611628,37.0137209 25.5495349,38.102093 L31.7895349,44.342093 C32.6965116,45.2490698 34.165814,45.2490698 35.0727907,44.342093 L53.7837209,25.622093 C54.872093,24.5337209 56.6316279,24.5337209 57.72,25.622093 C58.8083721,26.7104651 58.8083721,28.47 57.7290698,29.5583721 Z"></path>
+      </svg>
+      <p class="register-copy js-ew-register-copy">{{ section.settings.unactivated_copy_template }}</p>
+      <jds-button type="button" variant="primary" class="register-action js-ew-register-login">{{ section.settings.unactivated_button_text }}</jds-button>
+    </div>
+
+  </div>
+</div>
+
+
+<script src="{{ 'aws-sdk-2.1046.0.min.js' | asset_url }}" defer></script>
+{%- assign support_country_options = shop.metafields.custom.support_country_options.value -%}
+<script id="SupportCountryOptions-{{ section.id }}" type="application/json">
+  {%- if support_country_options != blank -%}
+    {{ support_country_options | json }}
+  {%- else -%}
+    []
+  {%- endif -%}
+</script>
+<script src="{{ 'sections-v5-support-extend-warranty.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-Support Extend Form",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "上边距", "default": 36 },
+    { "type": "number", "id": "padding_bottom", "label": "下边距", "default": 0 },
+    { "type": "header", "content": "MB边距" },
+    { "type": "text", "id": "mb_padding_type", "default": "custom", "label": "MB边距", "visible_if": "{{ false }}" },
+    { "type": "number", "id": "padding_top_mb", "label": "上边距", "default": 72 },
+    { "type": "number", "id": "padding_bottom_mb", "label": "下边距", "default": 0 },
+    { "type": "text", "id": "application_title", "label": "Application title", "default": "Warranty Application" },
+    { "type": "richtext", "id": "application_intro", "label": "Application intro", "default": "<p>Please complete the registration form below to extend your warranty.</p>" },
+    { "type": "text", "id": "doc_title", "label": "Required documents title", "default": "Please prepare the following before you start" },
+    { "type": "checkbox", "id": "doc_open", "label": "Open required documents by default", "default": false },
+    { "type": "text", "id": "channel_heading", "label": "Channel heading", "default": "Select purchase channel" },
+    { "type": "text", "id": "channel_heading_tip", "label": "Channel heading tip", "default": "Choose the place where you bought the product." },
+    { "type": "text", "id": "main_channel_label", "label": "Main channel label", "default": "Main purchase channel" },
+    { "type": "text", "id": "sub_channel_label", "label": "Sub channel label", "default": "Sub channel" },
+    { "type": "text", "id": "select_placeholder", "label": "Select placeholder", "default": "Please select" },
+    { "type": "text", "id": "country_label", "label": "Country label", "default": "Country / Region" },
+    { "type": "checkbox", "id": "country_required", "label": "Country required", "default": true },
+    { "type": "textarea", "id": "country_tip", "label": "Country tip", "default": "Please enter the country or region where the product was purchased." },
+    { "type": "text", "id": "country_placeholder", "label": "Country placeholder", "default": "Enter country or region" },
+    { "type": "text", "id": "contact_heading", "label": "Contact heading", "default": "Contact information" },
+    { "type": "text", "id": "first_name_label", "label": "First name label", "default": "First name" },
+    { "type": "text", "id": "company_name_label", "label": "Company name label", "default": "御社名", "info": "Only needed on the JP site" },
+    { "type": "text", "id": "first_name_placeholder", "label": "First name placeholder", "default": "Enter first name" },
+    { "type": "text", "id": "last_name_label", "label": "Last name label", "default": "Last name" },
+    { "type": "text", "id": "last_name_placeholder", "label": "Last name placeholder", "default": "Enter last name" },
+    { "type": "text", "id": "email_label", "label": "Email label", "default": "Email" },
+    { "type": "text", "id": "email_placeholder", "label": "Email placeholder", "default": "Enter email address" },
+    { "type": "text", "id": "phone_label", "label": "Phone label", "default": "Phone" },
+    { "type": "text", "id": "phone_placeholder", "label": "Phone placeholder", "default": "Enter phone number" },
+    { "type": "textarea", "id": "agree_sms_text", "label": "Agree SMS text", "default": "I agree to receive SMS updates about this warranty registration." },
+    { "type": "text", "id": "order_heading", "label": "Order heading", "default": "Order information" },
+    { "type": "text", "id": "order_id_label", "label": "Order ID label", "default": "Order ID" },
+    { "type": "textarea", "id": "order_id_tip", "label": "Order ID tip", "default": "You can find the order ID in your purchase confirmation email." },
+    { "type": "text", "id": "order_id_placeholder", "label": "Order ID placeholder", "default": "Enter order ID" },
+    { "type": "text", "id": "serial_number_label", "label": "Serial number label", "default": "Product serial number" },
+    { "type": "textarea", "id": "serial_number_tip", "label": "Serial number tip", "default": "Enter the serial number printed on the product label." },
+    { "type": "text", "id": "serial_number_placeholder", "label": "Serial number placeholder", "default": "Enter product serial number" },
+    { "type": "text", "id": "product_name_label", "label": "Product name label", "default": "Product name" },
+    { "type": "textarea", "id": "product_name_tip", "label": "Product name tip", "default": "Include the product model if available." },
+    { "type": "text", "id": "product_name_placeholder", "label": "Product name placeholder", "default": "Enter product name" },
+    { "type": "text", "id": "upload_label", "label": "Upload label", "default": "Upload proof of purchase" },
+    { "type": "textarea", "id": "upload_tip", "label": "Upload tip", "default": "Upload a screenshot or photo of your receipt or invoice." },
+    { "type": "richtext", "id": "upload_help", "label": "Upload helper text", "default": "<p>Accepted formats: JPG, PNG, GIF, WEBP. Maximum file size: 10MB. Up to 3 files.</p>" },
+    { "type": "text", "id": "remark_label", "label": "Remark label", "default": "Remark" },
+    { "type": "text", "id": "remark_placeholder", "label": "Remark placeholder", "default": "Additional information" },
+    { "type": "text", "id": "purchase_date_label", "label": "Purchase date label", "default": "Purchase date" },
+    { "type": "text", "id": "policy_heading", "label": "Policy heading", "default": "Terms & privacy" },
+    { "type": "richtext", "id": "policy_copy", "label": "Policy copy", "info": "使用斜体增加文本强调色 ", "default": "<p> Register or login as Jackery's membership, a <em>$200 OFF</em> coupon. Please review the terms below before submitting your registration.</p>" },
+    { "type": "color", "id": "highlight_color", "label": "Policy copy 文本强调颜色", "default": "#fd5000" },
+    { "type": "richtext", "id": "points_tips_template", "label": "Points tips template", "default": "<p>Register this product and earn <strong>[POINTS]</strong> points.</p>" },
+    { "type": "richtext", "id": "privacy_text", "label": "Privacy checkbox text", "default": "<p>I have read and agree to the privacy policy.</p>" },
+    { "type": "richtext", "id": "subscribe_text", "label": "Subscribe checkbox text", "default": "<p>I agree to receive updates and promotional emails from Jackery.</p>" },
+    { "type": "text", "id": "save_draft_text", "label": "Submit without activation button text", "default": "Submit, don't Activate" },
+    { "type": "text", "id": "submit_text", "label": "Submit button text", "default": "Submit" },
+    { "type": "textarea", "id": "confirm_all_fields", "label": "Confirm all fields text", "default": "Please make sure all fields are filled in correctly." },
+    { "type": "text", "id": "confirm_edit_text", "label": "Confirm edit button text", "default": "Edit" },
+    { "type": "text", "id": "confirm_submit_text", "label": "Confirm submit button text", "default": "Confirm" },
+    { "type": "text", "id": "success_title", "label": "Success title", "default": "Thank you for your application." },
+    { "type": "textarea", "id": "success_copy", "label": "Success copy", "default": "We will verify it ASAP. Please check your email for the verification result." },
+    { "type": "textarea", "id": "unactivated_copy_template", "label": "Unactivated account copy template", "default": "Your account is not activated yet. Please sign in to complete activation and claim [COUPON]." },
+    { "type": "text", "id": "unactivated_button_text", "label": "Unactivated account button text", "default": "Sign In to Activate" },
+    { "type": "text", "id": "draft_success_text", "label": "Submit without activation success text", "default": "Submitted without activation successfully." },
+    { "type": "text", "id": "submit_success_text", "label": "Submit success text", "default": "Warranty registration submitted successfully." },
+    { "type": "text", "id": "loading_save_text", "label": "Submit without activation loading text", "default": "Submitting without activation..." },
+    { "type": "text", "id": "loading_submit_text", "label": "Loading submit text", "default": "Submitting..." },
+    { "type": "text", "id": "uploading_text", "label": "Uploading text", "default": "Uploading..." },
+    { "type": "text", "id": "required_field_text", "label": "Required field text", "default": "This field is required." },
+    { "type": "text", "id": "invalid_email_text", "label": "Invalid email text", "default": "Please enter a valid email address." },
+    { "type": "text", "id": "invalid_phone_text", "label": "Invalid phone text", "default": "Please enter a valid phone number." },
+    { "type": "text", "id": "privacy_required_text", "label": "Privacy required text", "default": "Please accept the privacy policy before continuing." },
+    { "type": "text", "id": "upload_limit_text", "label": "Upload limit text", "default": "You can upload up to 3 images." },
+    { "type": "text", "id": "upload_type_text", "label": "Upload type text", "default": "Only JPG, JPEG, PNG, GIF, and WEBP files are supported." },
+    { "type": "text", "id": "upload_size_text", "label": "Upload size text", "default": "Each file must be smaller than 10MB." },
+    { "type": "text", "id": "upload_delete_failed_text", "label": "Upload delete failed text", "default": "Failed to remove the uploaded file from storage." }
+  ],
+  "blocks": [
+    {
+      "type": "required_doc",
+      "name": "Required document",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Order ID" },
+        { "type": "richtext", "id": "content", "label": "Content", "default": "<p>Please prepare your order confirmation or proof of purchase.</p>" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-Support Extend Form",
+      "category": "V5.0 Support",
+      "blocks": [
+        { "type": "required_doc" },
+        { "type": "required_doc", "settings": { "title": "Serial Number", "content": "<p>Please prepare the product serial number printed on the device. </p>"} },
+        { "type": "required_doc", "settings": { "title": "Proof of Purchase", "content": "<p>Please prepare a receipt, invoice, or screenshot of the order. </p>"} }
+      ]
+    }
+  ]
+}
+{% endschema %}

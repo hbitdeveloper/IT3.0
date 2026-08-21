@@ -1,0 +1,68 @@
+{% comment %}
+   标题：全局 3.0&4.0 商详页积分文案版块
+   数据源：内容 - 元对象 - 3.0&4.0商详页-商品积分文案版块
+   详细说明见：https://alidocs.dingtalk.com/i/nodes/R1zknDm0WR3nrLyLU97AKA9dVBQEx5rG
+
+   片段接收参数：
+      id: 版块ID
+
+  示例：
+     {% render 'global-pdp-points-text', id: 'globalPdpPointsText' %}
+{% endcomment %}
+
+{% assign global_pdp_points_text = shop.metaobjects.global_pdp_points_text.values %}
+
+{% if global_pdp_points_text != blank %}
+  {% comment %} 仅获取第一个条目 {% endcomment %}
+  {%- assign global_config = global_pdp_points_text | first -%}
+  {%- assign global_enable = global_config.enable | default: false, allow_false: true -%}
+
+  {% if global_enable %}
+    {%- liquid
+        assign points_bg = global_config.points_bg | default: '#F8F9FA'
+        assign link_color = global_config.link_color | default: 'var(--jds-color-primary)'
+        assign active_color = global_config.active_color | default: 'var(--jds-color-primary)'
+        assign btn_color = global_config.btn_color | default: 'var(--jds-color-primary)'
+        assign block_padding = global_config.block_padding | default: 8
+        assign point_ratio = global_config.point_ratio | default: 1
+    -%}
+
+    <div id="{{ id }}"
+      class="product-info_block section-padding block-product-points"
+      style="background: {{points_bg | default: 'transparent'}};--section-padding-top: {{block_padding}};--section-padding-bottom: {{block_padding}};--section-padding-right: {{block_padding}};--section-padding-left: {{block_padding}};--link-color: {{link_color}};--active-color: {{active_color}};"
+    >
+      {{ 'block-product-points.css' | asset_url | stylesheet_tag }}
+      <div class="flex items-center product-points-wrapper">
+        {%- if global_config.points_icon != blank -%}
+          {% render 'responsive-image',
+            image: global_config.points_icon | metafield_text,
+            image_class: 'points-img',
+            mimage: global_config.points_icon | metafield_text,
+            width: 20,
+            mwidth: 20
+          %}
+        {%- endif -%}
+
+        {%- assign target = product.selected_or_first_available_variant -%}
+        <div class="product-points-content" data-price="{{ target.price }}" data-text="{{ global_config.points_text | metafield_tag | escape }}"
+            data-btn="{{ global_config.btn_text | escape }}"
+            data-color="{{ btn_color }}"
+            data-bold="{{ global_config.btn_bold }}"
+            data-spu="{{ product.selected_or_first_available_variant.title | escape }}"
+            data-id="{{ customer.id }}"
+            data-pop="{{ global_config.btn_type | default:'passwordfree_pop' }}"
+            data-scale="{{ shop.metafields.custom.point_scale }}"
+            data-klav="{{ global_config.klva_id }}"
+            data-ga-event="{{ gaEventName | default: 'products_details_page_user_clicks' }}" 
+            data-ga-action="click"
+            data-ga-params-product_spu_name="{{ product.title | escape }}"
+            data-ga-params-module="PointLogin"
+            data-ga-params-position="hyperlink"
+            data-ga-params-button_name="{{ global_config.points_text | metafield_tag | strip_html }}"
+        >
+        </div>
+      </div>
+      <script src="{{ 'snippet-pdp-points-text.min.js' | asset_url }}" async></script>
+    </div>
+  {% endif %}
+{% endif %}

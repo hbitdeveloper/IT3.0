@@ -1,0 +1,145 @@
+
+
+{%- liquid
+  # 产品
+  assign variant = product.variants | where: "id", variant_id | first
+  if variant == blank
+    assign variant = product.selected_or_first_available_variant
+  endif
+
+  # 标题
+  assign display_title = product.title
+  if variant.title != 'Default Title' and variant.title != blank
+    assign display_title = variant.title
+  endif
+  
+  assign img_alt = display_title
+  if product_title != blank
+    assign img_alt = product_title
+  endif
+  assign title = img_alt | escape
+
+  # 图片
+  assign base_img = variant.featured_image | default: product.featured_image
+  assign pc_image = base_img
+  assign mb_image = base_img
+
+  if pc_product_image != blank
+    assign pc_image = pc_product_image
+  endif
+  if mb_product_image != blank
+    assign mb_image = mb_product_image
+  endif
+
+  assign image_class = 'focus-zoom object-contain w-full h-[14.75rem] lg:h-[16.75rem]'
+  if img_class != blank
+    assign image_class = 'focus-zoom object-contain ' | append: img_class
+  endif
+
+  assign show_mem_price = false
+  if show_membership_price
+    assign show_mem_price = true
+  endif
+
+  assign pc_img_width_val = pc_img_width | default: 355
+  assign mb_img_width_val = mb_img_width | default: 343
+-%}
+
+{%- if product != blank -%}
+  <div class="focus-zoom-container {{ card_class }} flex flex-col pt-5 relative" style="{{ style }}">
+    {% render 'v5-all-product-tag',
+      show_spu_tag: true,
+      show_variant_tag: false,
+      show_promotion: true,
+      show_membership_price: show_mem_price,
+      show_tag_img: false,
+      product: product,
+      variant_id: variant.id
+    %}
+    <div class="px-5 overflow-hidden">
+      {%- render 'diff-end-img',
+        class: image_class,
+        pc_img: pc_image,
+        mb_img: mb_image,
+        pc_img_width: pc_img_width_val,
+        mb_img_width: mb_img_width_val,
+        placeholder_name: 'hero-apparel-1',
+        alt: img_alt
+      -%}
+    </div>
+    <div class="flex-1 flex flex-col justify-between px-3 py-4 gap-y-6">
+      <div class="flex flex-col gap-y-3">
+        <h3
+          class="line-clamp-2 font-semibold text-black/90 text-base lg:text-xl"
+          title="{{ title }}"
+        >
+          {{ title }}
+        </h3>
+        {%- if product.metafields.custom.product_features_info != blank -%}
+          <div class="line-clamp-2 text-black/65 text-xs lg:text-sm">
+            {{ product.metafields.custom.product_features_info | metafield_tag | strip_html }}
+          </div>
+        {%- endif -%}
+      </div>
+      <div class="flex flex-col items-start gap-2 lg:gap-4 {% if price_layout != 'vertical' %} lg:flex-row lg:items-center lg:justify-between lg:h-8 {% endif %}">
+        <div class="flex items-baseline gap-x-1">
+          {%- render 'v5-price',
+            price_class: 'text-base lg:text-xl',
+            origin_price_class: 'text-xs lg:text-sm',
+            show_membership_price: show_mem_price,
+            product: product,
+            variant: variant
+          -%}
+        </div>
+        {%- if show_membership_price == true -%}
+          {%- if customer.id -%}
+            <a href="{{ variant.url }}" class="flex items-center gap-x-1 lg:gap-x-2 font-semibold text-primary text-base lg:text-xl">
+              {{ 'general.action_text.shop_now' | t }}
+              <svg class="text-primary w-3.5 h-3.5 lg:w-4 lg:h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_4559_7516)">
+                  <path d="M-1 9.25H11.2422" stroke="currentColor" stroke-width="1.6"></path>
+                  <path d="M8.49219 3L14.7419 9.24976L8.49219 15.4995" stroke="currentColor" stroke-width="1.6"></path>
+                </g>
+                <defs>
+                  <clipPath id="clip0_4559_7516">
+                    <rect width="16" height="16" fill="white"></rect>
+                  </clipPath>
+                </defs>
+              </svg>
+            </a>
+          {%- else -%}
+            <button class="appearance-none bg-transparent flex items-center gap-x-1 lg:gap-x-2 font-semibold text-primary text-base lg:text-xl" data-login-btn>
+              {{ 'general.action_text.shop_now' | t }}
+              <svg class="text-primary w-3.5 h-3.5 lg:w-4 lg:h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_4559_7516)">
+                  <path d="M-1 9.25H11.2422" stroke="currentColor" stroke-width="1.6"></path>
+                  <path d="M8.49219 3L14.7419 9.24976L8.49219 15.4995" stroke="currentColor" stroke-width="1.6"></path>
+                </g>
+                <defs>
+                  <clipPath id="clip0_4559_7516">
+                    <rect width="16" height="16" fill="white"></rect>
+                  </clipPath>
+                </defs>
+              </svg>
+            </button>
+          {%- endif -%}
+        {%- else -%}
+          <a href="{{ variant.url }}" class="flex items-center gap-x-1 lg:gap-x-2 font-semibold text-primary text-base lg:text-xl">
+            {{ 'general.action_text.shop_now' | t }}
+            <svg class="text-primary w-3.5 h-3.5 lg:w-4 lg:h-4" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g clip-path="url(#clip0_4559_7516)">
+                <path d="M-1 9.25H11.2422" stroke="currentColor" stroke-width="1.6"></path>
+                <path d="M8.49219 3L14.7419 9.24976L8.49219 15.4995" stroke="currentColor" stroke-width="1.6"></path>
+              </g>
+              <defs>
+                <clipPath id="clip0_4559_7516">
+                  <rect width="16" height="16" fill="white"></rect>
+                </clipPath>
+              </defs>
+            </svg>
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}

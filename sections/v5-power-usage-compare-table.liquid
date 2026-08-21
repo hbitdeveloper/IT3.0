@@ -1,0 +1,179 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<section class="section-padding" style="{{ style }}" {{ section.shopify_attributes }}>
+  <div class="section-container-lg">
+    {% if section.settings.title != blank %}
+      <div class="text-center font-semibold text-[#1A1A1A] text-xl leading-tight lg:text-4xl lg:w-[51rem] m-auto">
+        {{ section.settings.title }}
+      </div>
+    {% endif %}
+    
+
+    <div class="mt-6 lg:mt-10 overflow-x-auto overflow-y-hidden relative isolate bg-white">
+      <div class="min-w-[56rem]">
+        <table class="w-full border-separate border-spacing-0 bg-white">
+          <thead>
+            <tr class="bg-[#2F343B] text-white">
+              <th class="sticky left-0 z-[70] will-change-transform bg-[#2F343B] text-left align-middle border-t border-b border-solid border-[#D7D7D7] border-l-0 border-r-0 px-3 py-3 text-sm lg:text-base before:content-[''] before:absolute before:top-[-1px] before:bottom-[-1px] before:left-0 before:w-[1px] before:bg-[#D7D7D7] before:z-[2] before:pointer-events-none after:content-[''] after:absolute after:top-[-1px] after:bottom-[-1px] after:right-[-1px] after:w-[1px] after:bg-[#D7D7D7] after:z-[2] after:pointer-events-none" style="-webkit-transform: translateZ(0); transform: translateZ(0);">
+                {{ section.settings.header_scene | escape }}
+              </th>
+              <th class="text-left align-middle border-t border-b border-r border-l-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base">
+                {{ section.settings.header_example | escape }}
+              </th>
+              <th class="text-left align-middle border-t border-b border-r border-l-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base">
+                {{ section.settings.header_power | escape }}
+              </th>
+              <th class="text-left align-middle border-t border-b border-r border-l-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base">
+                {{ section.settings.header_col_1000 | escape }}
+              </th>
+              <th class="text-left align-middle border-t border-b border-r border-l-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base">
+                {{ section.settings.header_col_2000 | escape }}
+              </th>
+              <th class="text-left align-middle border-t border-b border-r border-l-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base">
+                {{ section.settings.header_col_3000 | escape }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {%- assign skip_until = 0 -%}
+            {%- assign rendered_row_index = 0 -%}
+
+            {%- for block in section.blocks -%}
+              {%- if forloop.index0 < skip_until -%}
+                {%- continue -%}
+              {%- endif -%}
+
+              {%- if block.type == 'scene' -%}
+                {%- assign row_count = 0 -%}
+                {%- for b in section.blocks offset: forloop.index -%}
+                  {%- if b.type == 'scene' -%}
+                    {%- break -%}
+                  {%- endif -%}
+                  {%- if b.type == 'row' -%}
+                    {%- assign row_count = row_count | plus: 1 -%}
+                  {%- endif -%}
+                {%- endfor -%}
+
+                {%- if row_count == 0 -%}
+                  {%- assign row_count = 1 -%}
+                {%- endif -%}
+
+                {%- assign current_scene = block -%}
+                {%- assign first_row_rendered = false -%}
+
+                {%- for b in section.blocks offset: forloop.index -%}
+                  {%- if b.type == 'scene' -%}
+                    {%- break -%}
+                  {%- endif -%}
+                  {%- if b.type != 'row' -%}
+                    {%- continue -%}
+                  {%- endif -%}
+
+                  {%- assign rendered_row_index = rendered_row_index | plus: 1 -%}
+                  {%- assign zebra = rendered_row_index | modulo: 2 -%}
+
+                  <tr class="{% if zebra == 0 %}bg-[#F3F7FF]{% endif %}">
+                    {%- if first_row_rendered == false -%}
+                      <td class="sticky left-0 z-[60] will-change-transform bg-[#D9E2F3] align-middle border-b-2 border-r-0 border-l-0 border-t-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base font-semibold text-[#242F20] w-[5.5rem] lg:w-48 before:content-[''] before:absolute before:top-[-1px] before:bottom-[-1px] before:left-0 before:w-[1px] before:bg-[#D7D7D7] before:z-[2] before:pointer-events-none after:content-[''] after:absolute after:top-[-1px] after:bottom-[-1px] after:right-[-1px] after:w-[1px] after:bg-[#D7D7D7] after:z-[2] after:pointer-events-none" style="-webkit-transform: translateZ(0); transform: translateZ(0);" rowspan="{{ row_count }}" {{ current_scene.shopify_attributes }}>
+                        <div class="leading-tight">
+                          {{ current_scene.settings.scene_title | escape }}
+                        </div>
+                        {% if current_scene.settings.scene_subtitle != blank %}
+                          <div class="mt-1 text-xs lg:text-sm font-semibold text-[rgba(36,47,32,0.75)] leading-tight">
+                            ({{ current_scene.settings.scene_subtitle | escape }})
+                          </div>
+                        {% endif %}
+                      </td>
+                      {%- assign first_row_rendered = true -%}
+                    {%- endif -%}
+                    
+                    <td class="w-24 lg:w-auto align-middle border-b border-r border-l-0 border-t-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base text-[#242F20]" {{ b.shopify_attributes }}>
+                      {{ b.settings.example | escape }}
+                    </td>
+                    <td class="w-24 lg:w-auto align-middle border-b border-r border-l-0 border-t-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base text-[#242F20] whitespace-nowrap">
+                      {{ b.settings.power | escape }}
+                    </td>
+                    <td class="w-24 lg:w-auto align-middle border-b border-r border-l-0 border-t-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base text-[#242F20]">
+                      {{ b.settings.col_1000 | escape }}
+                    </td>
+                    <td class="w-24 lg:w-auto align-middle border-b border-r border-l-0 border-t-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base text-[#242F20]">
+                      {{ b.settings.col_2000 | escape }}
+                    </td>
+                    <td class="w-24 lg:w-auto align-middle border-b border-r border-l-0 border-t-0 border-solid border-[#D7D7D7] px-3 py-3 text-sm lg:text-base text-[#242F20]">
+                      {{ b.settings.col_3000 | escape }}
+                    </td>
+                  </tr>
+                {%- endfor -%}
+
+                {%- assign skip_until = forloop.index0 | plus: row_count | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    
+    {% if section.settings.note != blank %}
+      <div class="mt-3 lg:mt-6 text-xs lg:text-sm text-[#666666] leading-normal">
+        {{ section.settings.note }}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "V5 Power Compare Table",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "通用" },
+    { "type": "richtext", "id": "title", "label": "标题", "default": "<p>ポータブル電源容量別 家電製品連続使用時間比較一覧表</p>" },
+    { "type": "textarea", "id": "note", "label": "底部说明", "default": "※計算法：（電源実容量(Wh) × 0.85）/ 家電消費電力(W)。転換損耗(約15%)を考慮しています。家電の消費電力は一般的な目安です。大電力機器は定格出力も確認してください。" },
+    { "type": "header", "content": "表头" },
+    { "type": "text", "id": "header_scene", "label": "表头：利用シーン", "default": "利用シーン" },
+    { "type": "text", "id": "header_example", "label": "表头：家電製品の例", "default": "家電製品の例" },
+    { "type": "text", "id": "header_power", "label": "表头：定格消費電力(W)", "default": "定格消費電力(W)" },
+    { "type": "text", "id": "header_col_1000", "label": "表头：1000Wh", "default": "1000Wh" },
+    { "type": "text", "id": "header_col_2000", "label": "表头：2000Wh", "default": "2000Wh" },
+    { "type": "text", "id": "header_col_3000", "label": "表头：3000Wh超", "default": "3000Wh超" },
+    { "type": "header", "content": "间距" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "PC上边距", "default": 64 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "PC下边距", "default": 64 },
+    { "type": "range", "id": "padding_left", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "PC左边距", "default": 0 },
+    { "type": "range", "id": "padding_right", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "PC右边距", "default": 0 },
+    { "type": "select", "id": "mb_padding_type", "label": "MB边距", "options": [ { "value": "default", "label": "与PC一致" }, { "value": "custom", "label": "单独配置" } ], "default": "custom" },
+    { "type": "range", "id": "padding_top_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "MB上边距", "default": 40, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "range", "id": "padding_bottom_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "MB下边距", "default": 40, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "range", "id": "padding_left_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "MB左边距", "default": 0, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}" },
+    { "type": "range", "id": "padding_right_mb", "min": 0, "max": 100, "step": 1, "unit": "px", "label": "MB右边距", "default": 0, "visible_if": "{{section.settings.mb_padding_type == 'custom' }}" }
+  ],
+  "blocks": [
+    {
+      "type": "scene",
+      "name": "场景（左侧）",
+      "settings": [
+        { "type": "text", "id": "scene_title", "label": "场景标题（JP）", "default": "家庭防災" },
+        { "type": "text", "id": "scene_subtitle", "label": "场景副标题（EN）", "default": "Basic Survival" }
+      ]
+    },
+    {
+      "type": "row",
+      "name": "行（右侧数据）",
+      "settings": [
+        { "type": "text", "id": "example", "label": "家電製品の例", "default": "車載冷蔵庫" },
+        { "type": "text", "id": "power", "label": "定格消費電力(W)", "default": "60W" },
+        { "type": "text", "id": "col_1000", "label": "1000Wh", "default": "約13時間" },
+        { "type": "text", "id": "col_2000", "label": "2000Wh", "default": "約26時間" },
+        { "type": "text", "id": "col_3000", "label": "3000Wh超", "default": "約40時間以上" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "V5 Power Compare Table", "category": "V5.0" }
+  ]
+}
+{% endschema %}
+

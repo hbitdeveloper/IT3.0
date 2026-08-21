@@ -1,0 +1,171 @@
+{% comment %}
+  产品详情页 - 文案促销机动版块
+
+  Accepts: product
+  Usage:
+  {% render 'app-text-promotion' %}
+  详细说明见：https://alidocs.dingtalk.com/i/nodes/amweZ92PV6vXPzezUdLO7by5VxEKBD6p
+{% endcomment %}
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% comment %} 依据 {% endcomment %}
+{%- assign block_config = block.settings -%}
+
+{% comment %} 本版块是否展示有【版块开关+版块有效期】共同决定 {% endcomment %}
+{%- liquid
+  assign show_block_text_promotion = false
+  assign block_enable = block_config.enable_block | default: true, allow_false: true
+
+  assign is_block_valid_time = false
+  assign time_now = 'now' | date: '%s'
+
+  assign block_begin_time = 0
+  if block_config.text_promotion_block_start_time_str != blank
+    assign block_begin_time = block_config.text_promotion_block_start_time_str | date: '%s'
+  endif
+
+  assign block_end_time = 0
+  if block_config.text_promotion_block_end_time_str != blank
+    assign block_end_time = block_config.text_promotion_block_end_time_str | date: '%s'
+  endif
+
+  if block_begin_time == 0 and block_end_time == 0
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time != 0 and block_end_time == 0 and block_begin_time < time_now
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time == 0 and block_end_time != 0 and block_end_time > time_now
+    assign is_block_valid_time = true
+  endif
+
+  if block_begin_time != 0 and block_end_time != 0 and block_end_time > time_now and block_begin_time < time_now
+    assign is_block_valid_time = true
+  endif
+
+  if block_enable and is_block_valid_time
+    assign show_block_text_promotion = true
+  endif
+-%}
+
+{% comment %} 判断 背景图 与 内容区 是否存在 {% endcomment %}
+{%- liquid
+  assign has_bg_img = false
+  if block_config.text_promotion_block_pc_bg_img or block_config.text_promotion_block_mb_bg_img
+    assign has_bg_img = true
+  endif
+
+  assign has_content = false
+  assign has_countdown = false
+
+  assign is_countdown_valid_time = false
+  assign time_now = 'now' | date: '%s'
+
+  assign countdown_begin_time = 0
+  if block_config.text_promotion_start_time_str != blank
+    assign countdown_begin_time = block_config.text_promotion_start_time_str | date: '%s'
+  endif
+
+  assign countdown_end_time = 0
+  if block_config.text_promotion_end_time_str != blank
+    assign countdown_end_time = block_config.text_promotion_end_time_str | date: '%s'
+  endif
+
+  if countdown_begin_time == 0 and countdown_end_time == 0
+    assign is_countdown_valid_time = true
+  endif
+
+  if countdown_begin_time != 0 and countdown_end_time == 0 and countdown_begin_time < time_now
+    assign is_countdown_valid_time = true
+  endif
+
+  if countdown_begin_time == 0 and countdown_end_time != 0 and countdown_end_time > time_now
+    assign is_countdown_valid_time = true
+  endif
+
+  if countdown_begin_time != 0 and countdown_end_time != 0 and countdown_end_time > time_now and countdown_begin_time < time_now
+    assign is_countdown_valid_time = true
+  endif
+
+  if is_countdown_valid_time
+    assign has_countdown = true
+  endif
+
+  if block_config.text_promotion_text != blank or has_countdown
+    assign has_content = true
+  endif
+
+  assign wrapper_class = ''
+  if has_bg_img and has_content
+    assign wrapper_class = 'has-all'
+  elsif has_bg_img and has_content == false
+    assign wrapper_class = 'only-bg-img'
+  elsif has_bg_img == false and has_content
+    assign wrapper_class = 'only-content'
+  else
+    assign wrapper_class = 'has-nothing'
+  endif
+%}
+
+{%- if show_block_text_promotion -%}
+  {% capture text_promotion_root_id %}app-text-promotion-{{ section.id }}-{{ block.id }}{% endcapture %}
+  {% assign text_promotion_root_selector = '#' | append: text_promotion_root_id %}
+  <div id="{{ text_promotion_root_id }}" class="w-full product-info_block section-padding" style="{{ style }}">
+    <div
+      class="text-promotion-wrapper w-full {{ wrapper_class }}"
+      {{ block.shopify_attributes }}
+      id="blockTextPromotion"
+    >
+      {% if has_bg_img %}
+        {% render 'diff-end-img',
+          class: 'text-promotion-bg-img',
+          pc_img: block_config.text_promotion_block_pc_bg_img,
+          mb_img: block_config.text_promotion_block_mb_bg_img,
+          pc_img_width: 624,
+          mb_img_width: 343,
+          placeholder_name: 'hero-apparel-1'
+        %}
+      {% endif %}
+
+      {% if has_content %}
+        <div
+          id="app-text-promotion"
+          class="text-promotion-content"
+          data-shopify-time-str="{{ 'now' | date: "%Y/%m/%d %H:%M:%S" }}"
+          data-ends-in-text="{{ block_config.text_promotion_ends_in_text | escape }}"
+          data-countdown-start-str="{{ block_config.text_promotion_start_time_str | escape }}"
+          data-countdown-end-str="{{ block_config.text_promotion_end_time_str | escape }}"
+          data-countdown-label-str="{{ block_config.text_promotion_countdown_labels | escape | default:'Days,Hrs,Mins,Secs' }}"
+          data-countdown-text-color="{{ block_config.text_promotion_countdown_text_color | default: '#666666' }}"
+          data-countdown-bg-color="{{ block_config.text_promotion_countdown_bg_color | default: 'var(--jds-color-primary)' }}"
+          data-countdown-number-color="{{ block_config.text_promotion_countdown_number_color | default: '#FFFFFF' }}"
+          style="--text-promotion-text-color: {{ block_config.text_promotion_title_color | default: '#666666' }}; --block-bg-color:{{ block_config.text_promotion_block_bg_color | default: '#F7F9FA' }};"
+        >
+          {% if block_config.text_promotion_text != blank %}
+            <div
+              class="text-promotion-richtext text-#666 text-28 leading-42 lg:j-text-16 lg:j-leading-24 xl:a-text-16 xl:a-leading-24 jds-rte"
+              style="--hight-light-color: {{ block_config.text_promotion_title_main_color | default: 'var(--jds-color-primary)' }};"
+            >
+              {{ block_config.text_promotion_text }}
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% if has_content or has_bg_img %}
+    {% render 'lazy-load-asset-group',
+      script: 'snippet-app-text-promotion.min.js',
+      style: 'snippet-app-text-promotion.min.css',
+      strategy: 'visible',
+      root_selector: text_promotion_root_selector
+    %}
+  {% endif %}
+{% else %}
+  {% render 'global-text-promotion', id: 'blockGlobalTextPromotion' %}
+{%- endif -%}

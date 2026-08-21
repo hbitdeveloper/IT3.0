@@ -1,0 +1,64 @@
+{% comment %} form-field：多选（非下拉，直接展开的） {% endcomment %}
+{% comment %} jky-formField-select_open.css {% endcomment %}
+
+<style>
+    .newbee-form .form-row .form-item jky-select-open .jky-selectopen_extra_input {
+        height: 30px;
+        line-height: 30px!important;
+        width: 520px;
+        display: none; 
+        border: var(--input-border) solid var(--input-border-color)!important;
+    }
+
+    .newbee-form .form-row .form-item jky-select-open .jky-selectopen_extra_input.active {
+        display: block!important;
+    }
+    .newbee-form .form-row .form-item jky-select-open .jky-selectopen_extra_input.active.error {
+        border: var(--input-border) solid var(--error)!important;
+    }
+    @media screen and (max-width: 1024px) {
+        .newbee-form .form-row .form-item jky-select-open .jky-selectopen_extra_input {
+            width: 100%;
+        }
+    }
+</style>
+
+{% comment %} 
+    value_jackery:jackery&&value_shopify:Shopify 
+{% endcomment %}
+{% assign optionList = options | split: '&&' %}
+{% assign show_qty = false %}
+{% assign show_input = false %}
+{% if extra_type == "qty" %}
+    {% assign show_qty = true %}
+{% elsif extra_type == "input" %}
+    {% assign show_input = true %}
+{% endif %}
+
+<jky-select-open 
+    class="jky-selectopen_{{id}} jky-selectopen" 
+    data-value="{{value}}"
+    data-error="{{error_text | escape}}"
+    data-showqty="{{show_qty}}"
+    data-showinput="{{show_input}}"
+>
+    <div data-value="{{value}}" class="form-item form-item_phone_select form-item_phone_select_{{id}} flex">
+        <label for="Contact_Phone_Number">{{key | escape}}</label>
+        <ul class="jky-options" style="max-height: {{max_height}}px">
+            {% for option in optionList %}
+                {% assign option_item = option | split: ':' %}
+                <li class="jky-option-item flex">
+                    {% render "jky-formField-checkbox", key: option_item[1], value: option_item[0] %}
+
+                    {% if show_qty == true %}
+                        {% render "jky-formField-qty_select" %}
+                    {% endif %}
+
+                    {% if show_input == true %}
+                        <input class="jky-selectopen_extra_input" type="text" placeholder="{{ placeholder }}">
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</jky-select-open>

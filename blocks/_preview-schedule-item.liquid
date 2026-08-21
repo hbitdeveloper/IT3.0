@@ -1,0 +1,261 @@
+{%- liquid
+  assign time_now = 'now' | date: '%s'
+
+  assign begin_time_raw = block.settings.begin_time
+  assign end_time_raw = block.settings.end_time
+  assign show_btn = false
+
+  if begin_time_raw != blank
+    assign begin_time = begin_time_raw | date: '%s'
+  else
+    assign begin_time = 0
+  endif
+
+  if end_time_raw != blank
+    assign end_time = end_time_raw | date: '%s'
+  else
+    assign end_time = 0
+  endif
+
+  assign status = 'after'
+  assign show_card = true
+
+  if begin_time_raw != blank and end_time_raw != blank and begin_time > end_time
+    assign show_card = false
+  elsif begin_time_raw == blank and end_time_raw == blank
+    assign show_card = false
+  endif
+
+  if show_card
+    if begin_time != 0 and end_time == 0
+      if time_now < begin_time
+        assign status = 'before'
+      else
+        assign status = 'live'
+      endif
+    elsif begin_time != 0 and end_time != 0
+      if time_now < begin_time
+        assign status = 'before'
+      elsif time_now < end_time
+        assign status = 'live'
+      else
+        assign status = 'after'
+      endif
+    elsif begin_time == 0 and end_time != 0
+      if time_now < end_time
+        assign status = 'live'
+      else
+        assign status = 'after'
+      endif
+    endif
+  endif
+
+  case status
+    when 'before'
+      assign heading_text = block.settings.heading_before
+      assign bg_var = '--live-after'
+      assign bg_var_mb = '--live-after-mb'
+      assign date_color = 'text-[var(--jds-color-primary)]'
+      assign timezone_color = 'text-[#666666]'
+      assign show_btn = true
+    when 'live'
+      assign heading_text = block.settings.heading_live
+      assign bg_var = '--live-after'
+      assign bg_var_mb = '--live-after-mb'
+      assign date_color = 'text-[var(--jds-color-primary)]'
+      assign timezone_color = 'text-[#666666]'
+      assign show_btn = true
+    when 'after'
+      assign heading_text = block.settings.heading_after
+      assign bg_var = '--live-before'
+      assign bg_var_mb = '--live-before-mb'
+      assign date_color = 'text-[#cccccc]'
+      assign timezone_color = 'text-[#cccccc]'
+      assign show_btn = false
+  endcase
+
+  assign common_text_classes = 'absolute left-1/2 -translate-x-1/2 line-clamp-1 text-center'
+  assign text_width_classes = 'lg:w-[17.125rem] w-[8.84375rem]'
+-%}
+
+{% if show_card %}
+  <div
+    class="hidden lg:block schedule-item lg:w-[19.8125rem] lg:h-[15.125rem] w-[10.3125rem] h-[7.5rem] bg-cover bg-center bg-no-repeat relative"
+    style="background-image: var({{ bg_var }});"
+  >
+    {% comment %} 直播状态文案 {% endcomment %}
+    <div
+      class="
+        {{ common_text_classes }} {{ text_width_classes }} text-[#FFF3F3] font-medium
+        lg:text-[1.125rem] lg:leading-[1.375rem] text-[0.75rem] leading-[0.9375rem]
+        lg:top-[2.5625rem] top-[1.25rem]
+      "
+    >
+      {{ heading_text }}
+    </div>
+
+    {% comment %} 日期 {% endcomment %}
+    <div
+      class="
+        {{ common_text_classes }} {{ text_width_classes }} font-semibold {{ date_color }}
+        lg:text-[2.5rem] lg:leading-[3.5rem] text-[1.5rem] leading-[2.25rem] schedule-date
+        lg:top-[5.4375rem] top-[2.5625rem]
+      "
+    >
+      {{ block.settings.date }}
+    </div>
+
+    {% comment %} 时区信息 {% endcomment %}
+    <div
+      class="
+        {{ common_text_classes }} {{ text_width_classes }} font-medium {{ timezone_color }}
+        lg:text-[1rem] lg:leading-[1.625rem] text-[0.75rem] leading-[1.25rem]
+        lg:top-[9.3125rem] top-[4.6875rem]
+      "
+    >
+      {{ block.settings.timezone }}
+    </div>
+
+    {% comment %} 按钮配置 {% endcomment %}
+    {%- if show_btn -%}
+      {%- if section.settings.subsribe != blank -%}
+        <div class="{{ common_text_classes }} {{ text_width_classes }} lg:top-[11.3125rem] top-[4.6875rem]">
+          <jds-button
+            class="only-icon"
+            size="medium"
+            kind="custom"
+            style="--jds-btn-custom-color: color-mix(in srgb, var(--jds-color-primary), transparent 90%);--jds-btn-primary-custom-text-color: var(--jds-color-primary);"
+            data-subscribed="{{ section.settings.subsribed }}"
+          >
+            {{- section.settings.subsribe -}}
+          </jds-button>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+
+  {% comment %} mb端配置 {% endcomment %}
+  <div
+    class="block lg:hidden schedule-item lg:w-[19.8125rem] lg:h-[15.125rem] w-[21.5625rem] h-[5.8125rem] bg-cover bg-center bg-no-repeat flex"
+    style="background-image: var({{ bg_var_mb }});"
+  >
+    <div class="schedule-left w-1/2 flex justify-center items-center flex-col">
+      {% comment %} 日期 {% endcomment %}
+      <div
+        class="
+           {{ text_width_classes }} line-clamp-1 font-semibold text-[#FFFFFF]
+          lg:text-[2.5rem] lg:leading-[3.5rem] text-[1.5rem] leading-[2.25rem] schedule-date
+          lg:top-[5.4375rem] top-[2.5625rem] text-center
+        "
+      >
+        {{ block.settings.date }}
+      </div>
+
+      {% comment %} 时区信息 {% endcomment %}
+      <div
+        class="
+           {{ text_width_classes }} line-clamp-1 font-medium text-[#FFFFFF]
+          lg:text-[1rem] lg:leading-[1.625rem] text-[0.75rem] leading-[1.25rem]
+          lg:top-[9.3125rem] top-[4.6875rem] text-center
+        "
+      >
+        {{ block.settings.timezone }}
+      </div>
+    </div>
+
+    <div class="schedule-right w-1/2 flex justify-center items-center flex-col">
+      {% comment %} 直播状态文案 {% endcomment %}
+      <div
+        class="
+           {{ text_width_classes }} line-clamp-1 text-[var(--jds-color-primary)] font-medium
+          lg:text-[1.125rem] lg:leading-[1.375rem] text-[0.875rem] leading-[0.9375rem]
+          lg:top-[2.5625rem] top-[1.25rem] text-center
+        "
+      >
+        {{ heading_text }}
+      </div>
+
+      {% comment %} 按钮配置 {% endcomment %}
+      {%- if show_btn -%}
+        {%- if section.settings.subsribe != blank -%}
+          <div class=" {{ text_width_classes }} lg:top-[11.3125rem] top-[4.6875rem] text-center mt-[0.625rem]">
+            <jds-button
+              class="only-icon"
+              size="medium"
+              kind="custom"
+              style="--jds-btn-custom-color: color-mix(in srgb, var(--jds-color-primary), transparent 90%);--jds-btn-primary-custom-text-color: var(--jds-color-primary);"
+              data-subscribed="{{ section.settings.subsribed }}"
+            >
+              {{- section.settings.subsribe -}}
+            </jds-button>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Preview Schedule Item",
+  "class": "swiper-slide schedule-item",
+  "settings": [
+    { "type": "header", "content": "建议添加上限4个" },
+    {
+      "type": "text",
+      "id": "heading_before",
+      "label": "直播预告文案",
+      "default": "直播预告文案"
+    },
+    {
+      "type": "text",
+      "id": "heading_live",
+      "label": "直播时文案",
+      "default": "直播时文案"
+    },
+    {
+      "type": "text",
+      "id": "heading_after",
+      "label": "直播结束文案",
+      "default": "直播结束文案"
+    },
+    {
+      "type": "text",
+      "id": "date",
+      "label": "日期",
+      "default": "08.17"
+    },
+    {
+      "type": "text",
+      "id": "timezone",
+      "label": "时区信息",
+      "default": "9.30 PM(EDT)"
+    },
+    { "type": "header", "content": "直播有效期", "info": "开始时间和结束时间都不配置则永久生效" },
+    {
+      "type": "text",
+      "id": "begin_time",
+      "label": "开始时间",
+      "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+    },
+    {
+      "type": "text",
+      "id": "end_time",
+      "label": "结束时间",
+      "info": "rules is matter, YYYY/MM/DD hh:mm:ss, such as: 2022/05/06 00:00:00"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Preview Schedule Item",
+      "settings": {
+        "heading_before": "直播预告文案",
+        "heading_live": "直播预告文案",
+        "heading_after": "直播预告文案",
+        "date": "08.17",
+        "timezone": "9.30 PM(EDT)"
+      }
+    }
+  ]
+}
+{% endschema %}

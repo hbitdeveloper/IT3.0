@@ -1,0 +1,393 @@
+{% comment %}
+    产品详情页 - 底部粘性购物车
+
+    Accepts: product
+    Usage:
+    {% render 'app-stickyCart' %}
+{% endcomment %}
+
+{% comment %} 全局控制启用：open_stickyCart {% endcomment %}
+{%- if settings.open_stickyCart == true and product.metafields.custom.hide_sticky_cart != true -%}
+  {%- assign current_variant = product.selected_or_first_available_variant -%}
+  {% comment %} 变体初始化 ：优先获取选中的变体，若为空则取第一个可用变体 {% endcomment %}
+  {%- if current_variant == blank and product.variants[0] != blank -%}
+    {%- assign current_variant = product.variants[0] -%}
+  {%- endif -%}
+
+  {% style %}
+    body {padding-bottom: 3.75rem;}
+    jky-v5-sticky-cart .v5-jky-sticky-cart .diy-sticky-v5-button-ghost.loading:before{
+      animation: jky-v5-spin 1s linear infinite;
+      border-color: var(--border-color);
+      border-radius: 50%;
+      border-style: solid;
+      border-top-color: transparent;
+      border-width: .15em;
+      box-sizing: border-box;
+      content: "";
+      height: 1.25em;
+      inset: 0;
+      margin: auto;
+      position: absolute;
+      width: 1.25em;
+    }
+    jky-v5-sticky-cart .v5-jky-sticky-cart .diy_sticky_add_cart{
+      background: none;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+    jky-v5-sticky-cart .v5-jky-sticky-cart .sticky_cart_p {
+      color: var(--primary-color);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    jky-v5-sticky-cart .v5-jky-sticky-cart .diy_sticky_cart_p{
+      color: white;
+      font-size: 1.25rem;
+    }
+
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: calc(100% + 0.625rem);
+      max-height: 25rem;
+      overflow-y: auto;
+      opacity: 0;
+      transition: opacity .3s cubic-bezier(.645, .045, .355, 1);
+    }
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure summary .iconfont {
+      transform: rotate(90deg);
+    }
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure details[open] .disclosure-list-menu {
+      opacity: 1;
+    }
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure details[open] summary .iconfont {
+      transform: rotate(-90deg);
+    }
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu li {
+      width: 100%;
+      padding: 0.625rem 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu li[disabled] span {
+      opacity: .5;
+    }
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu li:first-of-type {
+      border-top: 0;
+    }
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu li.active span:last-of-type,
+    jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu li:hover span:last-of-type {
+      color: var(--primary-color);
+    }
+    jky-v5-sticky-cart #sticky_addToCart .loading__spinner {
+      display: none;
+    }
+    jky-v5-sticky-cart #sticky_addToCart.loading,
+    jky-v5-sticky-cart #sticky_addToCart.disabled {
+      background: var(--primary-color);
+      color: #fff;
+      pointer-events: none;
+      opacity: 0.68;
+    }
+    jky-v5-sticky-cart #sticky_addToCart.loading {
+      color: var(--primary-color);
+    }
+    jky-v5-sticky-cart #sticky_addToCart.loading .loading__spinner {
+      display: inline-block;
+    }
+    @media (max-width: 1023.98px) {
+      body {padding-bottom: 8.4375rem;}
+      jky-v5-sticky-cart .v5-jky-sticky-cart .product-price--discount_amount {
+        display: none;
+      }
+      jky-v5-sticky-cart .v5-jky-sticky-cart .sticky_cart_p {
+        font-size: 4.2666666667vw;
+      }
+      jky-v5-sticky-cart .v5-jky-sticky-cart .diy_sticky_cart_p{
+        font-size: 1.125rem;
+      }
+      jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu {
+        bottom: 100%;
+        max-height: 60dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu::-webkit-scrollbar{
+        height: 4px !important;
+        width: 4px !important;
+      }
+      jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu::-webkit-scrollbar{
+        border-radius: 10px !important;
+      }
+      jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu::-webkit-scrollbar-thumb {
+        background-color: rgba(144, 147, 153, 30%);; /* 滑块的颜色 */
+        border-radius: 10px; /* 滑块的圆角 */
+      }
+      jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu li {
+        width: 100%;
+        padding: 0.7rem 0;
+        padding-right: 2rem;
+      }
+      jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu li.active{
+        display: flex;
+        align-items: center;
+      }
+      jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu li:hover span:last-of-type {
+        color: #FFF; /* mb端取消hover效果 */
+      }
+      jky-v5-sticky-cart .sticky_cart_variantSelect details-disclosure .disclosure-list-menu .active::after {
+        content: '';
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzciIGhlaWdodD0iMjkiIHZpZXdCb3g9IjAgMCAzNyAyOSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMyLjY2NzYgMS41MjQ1NUMzMy4zNTc2IDAuODI1MTUxIDM0LjQ3NjIgMC44MjUxNTEgMzUuMTY2MSAxLjUyNDU1QzM1Ljg1NjEgMi4yMjM5NCAzNS44NTYxIDMuMzU3ODkgMzUuMTY2MSA0LjA1NzI5TDE1Ljc1NjUgMjYuMTk4N0MxNC42MDY2IDI3LjM2NDMgMTIuNzQyMyAyNy4zNjQzIDExLjU5MjQgMjYuMTk4N0wxLjUxNzQ1IDE0LjQ3NjdDMC44Mjc1MTYgMTMuNzc3MyAwLjgyNzUxNiAxMi42NDMzIDEuNTE3NDUgMTEuOTQzOUMyLjIwNzM5IDExLjI0NDUgMy4zMjU5OSAxMS4yNDQ1IDQuMDE1OTMgMTEuOTQzOUwxMy42NzQ0IDIzLjI0MzhMMzIuNjY3NiAxLjUyNDU1WiIgZmlsbD0iI0ZENTAwMCIgc3Ryb2tlPSIjRkQ1MDAwIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+) no-repeat center center;
+        background-size: contain;
+        margin-left: 0.5rem; /* 如果需要，可以调整间距 */
+        position: absolute;
+        right: 1.5rem;
+      }
+    }
+
+    /* 吸底购物车滑入/滑出动画 */
+    jky-v5-sticky-cart {
+      pointer-events: none;
+    }
+    jky-v5-sticky-cart:not(.is-hidden) {
+      pointer-events: auto;
+    }
+    jky-v5-sticky-cart .v5-jky-sticky-cart {
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    jky-v5-sticky-cart:not(.is-hidden) .v5-jky-sticky-cart {
+      transform: translateY(0);
+    }
+  {% endstyle %}
+  <jky-v5-sticky-cart
+    {% if is_diy == true %}is-diy="true" {% endif %}
+    {% if hide_add_to_cart_price %}hide-add-to-cart-price{% endif %}
+    {% if show_price_info == true %}show-price-info="true" {% endif %}
+    enable_shortage_reminds="{{ enable_shortage_reminds }}"
+    init-variant-id="{{ current_variant.id }}"
+    init-current-tax-free-popup="{{ current_variant.metafields.custom.open_tax_free_popup_before_buy.value | json }}"
+    pd="{{ product.selected_or_first_available_variant.id }}"
+    product-title="{{ product.title | escape }}"
+    style="display:none"
+    data-discount-format="{{ settings.discount_amount_format }}"
+    data-display-auto-discount-price-in-sticky-cart="{{ settings.display_auto_discount_price_in_sticky_cart }}"
+  >
+    <div 
+      class="v5-jky-sticky-cart fixed bottom-0 left-0 w-full bg-[#242F20] shadow-[0_2px_18px_rgba(255,255,255,0.12)]"
+      data-zindex="{{ settings.sticky_cart_z_index | default: 10001 }}"
+      data-unfold-zindex="{{ settings.sticky_cart_unfold_z_index | default: 99999 }}"
+      style="z-index:{{ settings.sticky_cart_z_index | default: 10001 }}"
+    >
+      <div class="flex w-full h-auto max-h-[17.875rem] mx-auto lg:w-[82.5rem] lg:h-[3.75rem]">
+        <div class="relative w-full h-full flex flex-col lg:flex-row items-center justify-space justify-between px-4 py-3 gap-y-3 lg:py-2.5 lg:px-0 lg:gap-x-4">
+          <div class="sticky_cart_variantSelect lg:relative w-full h-full lg:max-w-[48%] flex-1 {% if product.has_only_default_variant == true %} flex items-center {% endif %}">
+            {%- if product.has_only_default_variant == false -%}
+              <details-disclosure>
+                <details class="!static">
+                  {% comment %} 如果是diy3 则下拉列表被隐藏 {% endcomment %}
+                  <ul class="{% if is_diy == true %}invisible opacity-0 {% endif %} disclosure-list-menu py-1 px-4 bg-[#242F20] border-0 border-solid border-b border-[rgba(255,255,255,0.12)] shadow-[0_-2px_8px_rgba(255,255,255,0.12)]" tabindex="-1">
+                    {%- for variant in product.variants -%}
+                      <li
+                        data-id="{{ variant.id }}"
+                        {% unless variant.available %} disabled {% endunless %}
+                        class="cursor-pointer select-none text-left text-sm lg:text-base flex items-start gap-x-4 disabled:opacity-50 {% if variant.id == product.selected_or_first_available_variant.id %} active {% endif %}"
+                      >
+                        <span class="flex-1 font-semibold text-white text-sm lg:text-base transition-color duration-300">{{ variant.title }}</span>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                  {% comment %} 如果是diy3 标题不可点击 {% endcomment %}
+                  <summary
+                    class="header__menu-item list-menu__item link focus-inset flex items-center justify-between lg:justify-start cursor-pointer {% if is_diy %}pointer-events-none{% endif %}"
+                    aria-expanded="false"
+                  >
+                    {%- assign cur_variant_tag = current_variant.metafields.custom.variant_tag -%}
+                    <div class="shg-fa variant-title max-w-[95%] font-semibold text-white flex items-center gap-x-4 text-base lg:text-xl lg:pr-4 cursor-pointer select-none">
+                      {% if cur_variant_tag != blank and is_diy != true -%}
+                        <span class="hidden lg:flex items-center justify-center bg-white text-[#242F20] font-semibold lg:text-base leading-[1.75rem] px-2 lg:px-3">{{ cur_variant_tag | escape }}</span>
+                      {%- endif -%}
+                      <span class="w-[20.4375rem] pr-4 block lg:w-fit lg:flex-1 lg:pr-2 text-white font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
+                        {% comment %} 显示产品标题而非变体标题 {% endcomment %}
+                        {%- if is_diy == true -%}
+                          {{ product.title }}
+                        {%- else -%}
+                          {{ product.selected_or_first_available_variant.title }}
+                        {%- endif -%}
+                        </span>
+                    </div>
+
+                    {% comment %} 下拉箭头隐藏 {% endcomment %}
+                    {%-liquid
+                      assign icon_class = 'iconfont w-4 h-4 lg:w-5 lg:h-5'
+                      if is_diy == true
+                        assign icon_class = 'iconfont w-4 h-4 lg:w-5 lg:h-5 invisible opacity-0'
+                      endif
+                    -%}
+                    {%- render 'icon-arrow', width: 20, height: 20, color: '#FFFFFF', class: icon_class -%}
+                  </summary>
+                </details>
+              </details-disclosure>
+            {%- else -%}
+              {%- assign cur_variant_tag = current_variant.metafields.custom.variant_tag -%}
+              <div class="shg-fa max-w-[95%] font-semibold text-white flex items-center gap-x-4 text-base lg:text-xl lg:pr-4 cursor-pointer select-none">
+                {% if cur_variant_tag != blank -%}
+                  <span class="hidden lg:flex items-center justify-center bg-white text-[#242F20] font-semibold lg:text-base leading-[1.75rem] px-2 lg:px-3">{{ cur_variant_tag | escape }}</span>
+                {%- endif -%}
+                <span class="flex-1 text-white font-semibold text-overflow-1">{{ product.title }}</span>
+              </div>
+            {%- endif -%}
+          </div>
+
+          <div class="w-full flex-1 flex  
+            {% if is_diy == true or show_price_info == true %}
+              lg:justify-end
+              justify-start
+              flex-wrap
+              {% else %} 
+              justify-end
+            {% endif %}">
+            {%- liquid
+              assign target = current_variant
+              assign price = target.price | default: 1999
+              assign compare_at_price = target.compare_at_price | default: price
+              assign available = target.available | default: false
+              
+              if settings.open_auto_discount_price and settings.display_auto_discount_price_in_sticky_cart
+                assign auto_discount_price = target.metafields.custom.auto_discount_price | times: 1
+                if auto_discount_price > 0 and auto_discount_price < target.price
+                  assign price = auto_discount_price
+                else
+                  assign price = target.price
+                endif
+              endif
+
+              if compare_at_price < target.price
+                assign compare_at_price = target.price
+              endif
+
+              assign money_price = price | money
+    
+              if target == product and product.price_varies
+                assign money_price = 'products.product.price.from_price_html' | t: price: money_price
+              endif
+            -%}
+
+            {% comment %} DIY3价格信息区域 {% endcomment %} 
+            {%- if is_diy == true or show_price_info == true -%}
+              <div class="sticky_cart_p_info flex flex-wrap items-center gap-y-1 md:mr-4 max-lg:leading-[1.625rem]" data-sticky-cart-price-info>
+                <span class="sticky_cart_p diy_sticky_cart_p mr-[0.34375rem] md:mr-2">{{ money_price }}</span>
+                <span class="v5-product-op font-normal text-[#FFFFFF]/65 md:text-white text-sm mr-[0.46875rem] md:mr-2 line-through{% unless compare_at_price > price %} hidden{% endunless %}">{{ compare_at_price | money }}</span>
+                <span class="v5-product-discount_amount font-medium text-sm px-[0.6875rem] py-[0.1875rem] md:px-[0.4375rem] md:py-1 bg-[#FFDCCA] text-primary{% unless compare_at_price > price and settings.show_discount_amount %} hidden{% endunless %}" data-format="{{settings.discount_amount_format}}">
+                  {%- assign amount_discount = compare_at_price | minus: price | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+                  {{settings.discount_amount_format | replace: '()', amount_discount}}
+                </span>
+              </div>
+            {%- endif -%} 
+
+            {% comment %} 缺货时隐藏加购按钮 {% endcomment %}
+            <div data-sticky-copy-container class="w-full lg:w-fit sticky_cart_addToCart mt-[0.5625rem] lg:mt-0 flex items-center gap-x-2 {%if enable_shortage_reminds == true%}{% unless current_variant.available %} !hidden{% endunless %}{% endif %}">
+              {% comment %} 优惠券组件控制是否显示 {% endcomment %}
+              <div class="flex flex-col lg:flex-row gap-x-2 gap-y-1.5 {% if show_price_info == true %}!hidden{% endif %}" style="display:none" data-sticky-copy-wrap>
+                <span class="text-white text-xs lg:text-sm" data-sticky-copy-discount-title></span>
+                <button class="jky-v5-button appearance-none bg-transparent flex items-center gap-x-2" data-sticky-copy-discount-code>
+                  <span class="font-semibold text-[#242F20] bg-[#F5F5F3] text-xs lg:text-sm px-2"></span>
+                  <svg class="w-4 h-4 lg:w-5 lg:h-5" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <rect width="20" height="20" fill="url(#pattern0_3_1004)"/>
+                    <rect width="20" height="20" fill="url(#pattern1_3_1004)"/>
+                    <rect width="20" height="20" fill="url(#pattern2_3_1004)"/>
+                    <rect width="20" height="20" fill="url(#pattern3_3_1004)"/>
+                    <rect width="20" height="20" fill="url(#pattern4_3_1004)"/>
+                    <defs>
+                      <pattern id="pattern0_3_1004" patternContentUnits="objectBoundingBox" width="1" height="1">
+                        <use xlink:href="#image0_3_1004" transform="scale(0.005)"/>
+                      </pattern>
+                      <pattern id="pattern1_3_1004" patternContentUnits="objectBoundingBox" width="1" height="1">
+                        <use xlink:href="#image0_3_1004" transform="scale(0.005)"/>
+                      </pattern>
+                      <pattern id="pattern2_3_1004" patternContentUnits="objectBoundingBox" width="1" height="1">
+                        <use xlink:href="#image0_3_1004" transform="scale(0.005)"/>
+                      </pattern>
+                      <pattern id="pattern3_3_1004" patternContentUnits="objectBoundingBox" width="1" height="1">
+                        <use xlink:href="#image0_3_1004" transform="scale(0.005)"/>
+                      </pattern>
+                      <pattern id="pattern4_3_1004" patternContentUnits="objectBoundingBox" width="1" height="1">
+                        <use xlink:href="#image0_3_1004" transform="scale(0.005)"/>
+                      </pattern>
+                      <image id="image0_3_1004" width="200" height="200" preserveAspectRatio="none" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAAAXNSR0IArs4c6QAACjhJREFUeF7tnVuodWUVhseICAuJtJCyiLAQOhBkRWhGFoooZRQd6KAiakF2VLQSxP8XJBVSC7IDKR00wfJC0Yso0Oqiw0XWhdVF5YVRF1EXlhcd4G0v+oLt7957rTnXGPMw5rNu/ov/+95vjHe8z15rrzXn2m48nuSApKPM7A4zewf2DOOAu/swJ3U7ZZJFdWshdrWkZzU4zo5VRu0gBwBkBvmQ9NwGx5tnUG6pEgFk4uOU9KIGxykTL7VkeQAy4bFKeqmZ3W5mJ024zNKlAchExyvpVQ2Ol020xEWUBSATHLOkkxscJ0ywvEWVBCATG7ekN7XfOZ43sdIWWQ6ATGjsks5qcBwzobIWXQqATGT8kt7e4Hj6REqiDDMDkAnEQNJ7zezbEyiFEp7swOEhTNn5wP5Ql3MW80m6pAvM7LYu5rC2nAOHAWSPmUr6sJl9sdy4aairAwBypGOSLjWzz3V1kvUlHQCQ3WOVdKWZXVty1DTVxwEA+b9rkq4xs6v6uLjBngc3WLO0JafNoGEAWQ1J0g1mdnnSwG5393OTtGcpK2n1ztDVMygeQCR9wcw+mjSsW939oiTt2coCyExGJ+mrZnZxUrm3uPslSdqzlgWQGYxP0jfNLOulz03uvno3jMceDgDIhGMh6Wnt0pF3JpV5nbt/Jkm7hCyATHSMkp7Z4HhLUomdf6lLqmPSsgAywfFIOq7BcXpSeVe6+2eTtEvJAsjExinphe2iw9cnlXapu9+UpF1OFkAmNFJJJzY4Xp1U1iXufkuSdklZAJnIWCW9ssHx8qSSLnL3W5O0y8oCyARGK+l1DY6s+8fPdffVN5vw6OhAECCrW6DXPR5Yt2DN/3d+02UW94NIemOD4/gtDdpr+7/N7P3u/p0E7UVIRgCyyR2F2jloS0PrASLpzAbHsVuas9f2fzQ47k3QXowkgIw0aklvM7M7zSzj/vG/Nji+N1J7ZY4FkBFGKek9DY6Ml4F/MrP3ufsPR2it3JEAMvBIJZ1vZl9POvYP7Znjp0n6i5MFkAFHLulDZvblpCN/0+B4KEl/kbIAMtDYJX3CzLI+wf5lg+PXA7WzmGMAZIBRS/q0mWVd+/SzBsfvB2hlcUcASPLIIww+oMQfNTj+mNzGYuUj5sfnIPvER9L1ZnZFUrq+3+D4S5I+sv/7DoCt70kHkD2iJOnzZvaxpJTd197K/XuSPrLNAQBJiIKkr5jZBxOkV5Lfbc8c/0rSR3aXAwASHIfk+8fvcPcPBJeM3AEOAEhQPCQ9tV1X9a4gySNlbnP3C5O0kd3/90h+B9k2HZKObnC8dVutffZ/yd1XX1LNY2AHeAbZ0nBJz2nXVWXdP36zu39yyzLZ3tMBAOlp3GqbpBc0OE7dQuagrde7++pDRh4jOQAgPY2X9JIGx2t6Sqzbdo27z+E7Ydf1Mev/B5Ae45P0igbH6t+MB1/Lk+FqD00A6WiapNc2OF7cceumyy9z9xs3Xcy6XAcApIO/kt7Q4Hh+h21dln7E3flzal0cS14LIBsaLOmMBsezN9zSddnF7v61rptYn+sAgGzgr6RzGhzP2GB5nyXnufu3+mxkT64DALLGX0nvbnA8JWEU/2nXVd2VoI1kgAMAcoCJks4zs28E+LyXxOMNjnuS9JENcABA9jEx+f7xv7XL1flanoAQZ0oAyB7uSvq4md2cZPyfGxz8NdkkgyNlAeQINyV9ysyuizR5l9Yj7WXVT5L0kQ12AEB2Gbrz/airSztWlzdnPH7b4PhFhjiaOQ4AyBMB2fra/33G9KsGx8M5Y0Q1ywEAyQfk5w2O32UNEd08BwAkF5AfNzgezRshypkOAEgeID9o71bxtTyZCU7WBpAcQO5vcDyWPD/kkx0AkHhA7m4vq/6ZPDvkB3AAQIIB2eRb9AaYK0cEOQAgABIUpZoyAAIgNZMd1BWAAEhQlGrKAAiA1Ex2UFcAAiBBUaopAyAAUjPZQV0BCIAERammDIAASM1kB3UFIAASFKWaMgACIDWTHdQVgABIUJRqygAIgNRMdlBXAAIgQVGqKQMgAFIz2UFdAQiABEWppgyAAEjNZAd1BSAAEhSlmjIAAiA1kx3UFYAASFCUasoACIDUTHZQVwACIEFRqikDIABSM9lBXQEIgARFqaYMgABIzWQHdQUgABIUpZoyAAIgNZMd1BWAAEhQlGrKAAiA1Ex2UFcAAiBBUaopAyAAUjPZQV0BCIAERammDIAASM1kB3UFIAASFKWaMgACIDWTHdQVgABIUJRqygAIgNRMdlBXAAIgQVGqKQMgAFIz2UFdAQiABEWppgyAAEjNZAd1BSAAEhSlmjIAAiA1kx3UFYAASFCUasoACIDUTHZQVwACIEFRqikDIABSM9lBXQEIgARFqaYMgABIzWQHdQUgABIUpZoyAAIgNZMd1BWAAEhQlGrKAAiA1Ex2UFcAAiBBUaopAyAAUjPZQV0BCIAERammDIAASM1kB3UFIAASFKWaMgACIDWTHdQVgABIUJRqygAIgNRMdlBXAAIgQVGqKQMgAFIz2UFdAQiABEWppgyAAEjNZAd1BSAAEhSlmjIAAiA1kx3UFYAASFCUasoACIDUTHZQVwACIEFRqikDIABSM9lBXQEIgARFqaYMgABIzWQHdQUgABIUpZoyAAIgNZMd1BWAAEhQlGrKAAiA1Ex2UFcAAiBBUaopAyAAUjPZQV0BCIAERammDIAASM1kB3UFIAASFKWaMgACIDWTHdQVgABIUJRqygAIgNRMdlBXAAIgQVGqKQMgAFIz2UFdAQiABEWppgyAAEjNZAd1BSAAEhSlmjIAAiA1kx3UFYAASFCUasoACIDUTHZQVwACIEFRqikDIABSM9lBXQEIgARFqaYMgABIzWQHdQUgABIUpZoyABIMiJkdrhmVjbvSjge+8eppLFxX89XblOnua/3QDonbnLHK3c4xh7porC3qSLGInxZdCmTtMhwAkGXMmS57OgAgPY1j2zIcAJBlzJkuezoAID2NY9syHACQZcyZLns6ACA9jWPbMhwAkGXMmS57OgAgPY1j2zIcAJBlzJkuezoAID2NY9syHACQZcyZLns6ACA9jWPbMhwAkGXMmS57OgAgPY1j2zIcqATIaQON7IEtz1ndc/LglhpsH8gBd187q1ncDzKQXxZgxqGdn0pLvzFrqHENck5AJvJvmBrECTMAGcroGZ0DILuGFWAGzyAzCv8mpQZkgmeQXUZ3NmOTIbFmPAcAJPYZBEDGy3LKyQACICnBqiIKIABSJcspfQBILCBr31dPmSKimQ5s+xlc55fdnb8XK7P73doBPy2GKpVz5uMAgMxnVlQ6ggMAMoLpHDkfBwBkPrOi0hEcAJARTOfI+TgAIPOZFZWO4ACAjGA6R87HAQCZz6yodAQHAGQE0zlyPg4AyHxmRaUjOAAgI5jOkfNxAEDmMysqHcEBABnBdI6cjwMAMp9ZUekIDgDICKZz5Hwc6AzIfwHdtOhBnz0QxQAAAABJRU5ErkJggg=="/>
+                    </defs>
+                  </svg>
+                </button>
+              </div>
+              <button
+                id="sticky_addToCart"
+                data-nm-target="add_to_cart_btn"
+                class="jky-v5-button disabled:opacity-40 disabled:cursor-not-allowed appearance-none flex items-center justify-center 
+                  {% if is_diy == true and current_variant.available == false %}
+                    bg-primary text-white font-semibold flex-1 text-base px-2 h-10 lg:text-xl lg:h-10 lg:px-6
+                  {% elsif is_diy == true %}
+                    diy_sticky_add_cart font-semibold text-sm w-[44.666vw] h-[9.0666vw] lg:text-base lg:w-[10rem] lg:h-12
+                  {% else %}
+                    bg-primary text-white font-semibold flex-1 text-base px-2 h-10 lg:text-xl lg:h-10 lg:px-6
+                  {% endif %}
+                "
+                {% comment %} 缺货时禁用按钮 {% endcomment %}
+                {% unless current_variant.available %}
+                  disabled
+                {% endunless %}
+              >
+                {% unless is_diy or show_price_info or hide_add_to_cart_price %}
+                  {% render 'v5-icon-cart', stroke_width: 2, class: 'text-white w-8 h-8 lg:w-9 lg:h-9 shrink-0' %}
+                {% endunless %}
+                {% comment %} 有库存 {% endcomment %}
+                {%-if current_variant.available -%}
+                  <span class="flex items-center justify-center {% unless is_diy or show_price_info or hide_add_to_cart_price %} ml-2 lg:ml-4{% endunless %}">
+                    {% comment %} diy显示纯文字"加入购物车"。 普通产品 显示价格+按钮文字 {% endcomment %}
+                    {%- if is_diy == true or show_price_info == true or hide_add_to_cart_price == true -%}
+                      {{ 'products.product.add_to_cart' | t }}
+                    {%- else -%}
+                      {{ money_price }} {{ 'products.product.in_cart' | t }}
+                    {%- endif -%}
+                    </span>
+                {%- else -%}
+                  {% comment %} 已售罄 {% endcomment %}
+                  <span class="flex items-center justify-center {% unless is_diy or show_price_info or hide_add_to_cart_price %} ml-2 lg:ml-4{% endunless %}">{{ 'products.product.sold_out' | t }}</span>
+                {%- endif -%}
+              </button>
+              
+              {% comment %} 立即购买按钮 - DIY模式下显示 {% endcomment %}
+              {% if is_diy == true and current_variant.available %}
+                <button
+                  id="sticky_buyNow"
+                  class="jky-v5-button-ghost diy-sticky-v5-button-ghost buy-now--box disabled:opacity-40 disabled:cursor-not-allowed appearance-none flex items-center justify-center bg-[var(--primary-color)] text-white font-semibold text-sm w-[44.666vw] h-[9.0666vw] lg:text-base lg:w-[10rem] lg:h-12"
+                  {% unless current_variant.available %} 
+                    disabled
+                  {% endunless %}
+                >
+                  <span>{{ 'products.product.buy_it_now' | t }}</span>
+                </button>
+              {% endif %}
+            </div>
+            
+            {% comment %} 到货提醒 {% endcomment %}
+            {%- if enable_shortage_reminds == true -%}
+              <div class="w-full lg:w-fit shortage-btn flex items-center {% if current_variant.available %}!hidden{% endif %} mt-[0.5625rem] lg:mt-0">
+                <button class="jky-v5-button appearance-none flex items-center justify-center bg-primary text-white font-semibold flex-1 text-base px-[1.125rem] h-10 lg:text-xl lg:h-10 lg:px-10">
+                  {{ 'products.product.sticky_cart_shortage' | t }}
+                </button>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </jky-v5-sticky-cart>
+
+  <script src="{{ 'snippet-v5-app-sticky-cart.js' | asset_url }}" defer></script>
+{% endif %}

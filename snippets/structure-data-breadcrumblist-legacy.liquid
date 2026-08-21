@@ -1,0 +1,39 @@
+{%- comment -%}
+  Legacy 面包屑结构化数据：为产品页、集合页和博客文章页输出两级 BreadcrumbList。
+  第一级为首页，第二级为当前页面，用于替换 SEOAI App 的 BreadcrumbList 输出。
+{%- endcomment -%}
+{%- liquid
+  assign legacy_breadcrumb_name = blank
+
+  case request.page_type
+    when 'product'
+      assign legacy_breadcrumb_name = product.title | strip
+    when 'collection'
+      assign legacy_breadcrumb_name = collection.title | strip
+    when 'article'
+      assign legacy_breadcrumb_name = article.title | strip
+  endcase
+-%}
+
+{% if legacy_breadcrumb_name != blank and canonical_url != blank %}
+<script id="breadcrumb-legacy-structured-data" type="application/ld+json">
+  {
+    "@context": "http://schema.org/",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+      "item": {{ request.origin | json | replace: '\/', '/' }},
+        "name": "Home",
+        "position": 1
+      },
+      {
+        "@type": "ListItem",
+      "item": {{ canonical_url | json | replace: '\/', '/' }},
+        "name": {{ legacy_breadcrumb_name | json }},
+        "position": 2
+      }
+    ]
+  }
+</script>
+{% endif %}

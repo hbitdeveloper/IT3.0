@@ -1,0 +1,116 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{% style %}
+  .v5-membership-customize-title .title-wrap {
+    background-color: var(--pc-title-bg-color);
+  }
+  @media screen and (max-width: 1023.98px) {
+    .v5-membership-customize-title .title-wrap {
+      background-color: var(--mb-title-bg-color);
+    }
+  }
+{% endstyle %}
+
+<div
+  class="v5-membership-customize-title w-full section-padding"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{ section.settings.anchor | escape}}"
+  {% endif %}
+  style="background-color:{{ section.settings.bg_color | default: '#FFFFFF' }};{{ style }}"
+>
+  {% comment %} 模块标题 {% endcomment %}
+  <div class="title-wrap h-fit flex flex-col items-center justify-center gap-y-16 lg:gap-y-0 lg:min-h-[4.875rem] relative" style="--pc-title-bg-color:{{ section.settings.pc_title_bg_color | default: '#FFFFFF' }};--mb-title-bg-color:{{ section.settings.mb_title_bg_color | default: 'transparent' }}">
+    {%- if section.settings.pc_title_bg_img != blank -%}
+      <img
+        class="hidden lg:block section-container-lg h-auto object-contain lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2"
+        src="{{ section.settings.pc_title_bg_img | image_url: width: 1320 }}"
+        alt="{{ section.settings.pc_title_bg_img.alt }}"
+        width="1320" height="auto" loading="lazy"
+      >
+    {%- endif -%}
+    {% if section.settings.mb_title_bg_img != blank %}
+      <img
+        class="block lg:hidden w-full h-auto object-contain"
+        src="{{ section.settings.mb_title_bg_img | image_url: width: 750 }}"
+        alt="{{ section.settings.mb_title_bg_img.alt }}"
+        width="750" height="auto" loading="lazy"
+      >
+    {%- endif -%}
+    <h2 class="hidden lg:block section-container-lg text-center lg:text-5xl text-[#242F20] font-semibold leading-[1.1]" style="color:{{ section.settings.pc_title_color | default: '#FFFFFF' }}">{{ section.settings.pc_title | newline_to_br }}</h2>
+    <h2 class="block lg:hidden section-container-lg text-center text-[1.75rem] lg:text-5xl text-[#242F20] font-semibold leading-[1.1]" style="color:{{ section.settings.mb_title_color | default: '#242F20' }}">{{ section.settings.mb_title | newline_to_br }}</h2>
+  </div>
+</div>
+
+<script src="{{ 'section-v5-membership-get-benefit.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-会员-个性化标题",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 64 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 64 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "#FFFFFF" },
+
+    { "type": "header", "content": "模块标题配置" },
+    { "type": "textarea", "id": "pc_title", "label": "PC端标题", "default": "Ways to Earn Jackery Points" },
+    { "type": "color", "id": "pc_title_color", "label": "PC端字体颜色", "default": "#FFFFFF" },
+    { "type": "textarea", "id": "mb_title", "label": "MB端标题", "default": "Ways to Earn Jackery Points" },
+    { "type": "color", "id": "mb_title_color", "label": "MB端字体颜色", "default": "#242F20" },
+    { "type": "color", "id": "pc_title_bg_color", "label": "PC端背景颜色", "default": "#242F20" },
+    { "type": "color", "id": "mb_title_bg_color", "label": "MB端背景颜色" },
+    { "type": "image_picker", "id": "pc_title_bg_img", "label": "PC端背景图片", "info": "建议图片尺寸宽度：1320px" },
+    { "type": "image_picker", "id": "mb_title_bg_img", "label": "MB端背景图片", "info": "建议图片尺寸宽度：750px" }
+  ],
+  "presets": [
+    {
+      "name": "V5-会员-个性化标题"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,293 @@
+{% comment %}
+  V5-滚动产品特性-1
+  1. 当前仅用于商详页，后续考虑放开，故需要判断pdp
+  2. 移动端使用的整张图片
+  3. 当前默认图片地址在demo店铺-内容-文件中，待确认后迁移到美站
+
+  PC端
+    1. header:4.1666667vw 最大60px
+    2. 产品二级导航:66px
+    3. 吸底购物车：3.75rem
+  移动端：
+    1. header: 3.125rem
+    2. 产品二级导航: 12.8vw
+    3. 吸底购物车: 26.6666vw - 高度随内容动态变化
+{% endcomment %}
+
+{% style %}
+  @media screen and (min-width: 1024px) {
+    .v5-scroll-product-features-1 {
+      height: calc(100vh - min(4.1666667vw, 60px));
+    }
+
+    .v5-scroll-product-features-1.in-pdp {
+      height: calc(100vh - 66px - 3.75rem);
+    }
+  }
+{% endstyle %}
+
+{%- liquid
+  # 产品页
+  if template == 'product' or template contains 'product.'
+    assign is_product_template = true
+  endif
+
+  assign mb_height = section.settings.mb_height | default: 1013
+  assign mb_h_rem = mb_height | divided_by: 16.0 | default: 63.3125
+  assign wrapper_class = 'v5-scroll-product-features-1 relative w-full overflow-hidden'
+  if is_product_template
+    assign wrapper_class = wrapper_class | append: ' in-pdp'
+  endif
+
+  assign em_class = ' [&_em]:text-[var(--jds-color-primary)] [&_em]:inline-block'
+  assign title1_class = 'hidden lg:block absolute top-[4.583333vw] right-[4.583333vw] z-10 w-[min(50.0694444vw,721px)] text-[clamp(12px,6.66667vw,96px)] leading-[1.14583] font-semibold text-[rgba(0, 0, 0, 0.6)] tracking-[-1px]' | append: em_class
+  assign title4_class = 'w-[min(43.19444444vw,622px)] text-[clamp(12px,6.66667vw,96px)] leading-[1.14583] font-semibold text-[rgba(0, 0, 0, 0.9)] tracking-[-1px]' | append: em_class
+  assign desc4_class = 'text-[1.75rem] leading-[1.5] font-semibold' | append: em_class
+
+  assign pc_bg_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-1-bg.png?v=1758011950'
+  if section.settings.pc_bg_img != blank
+    assign pc_bg_img = section.settings.pc_bg_img | image_url: width: 1440
+  endif
+
+  assign mb_all_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-1-mb-img.png?v=1758026422'
+  if section.settings.mb_all_img != blank
+    assign mb_all_img = section.settings.mb_all_img | image_url: width: 750
+  endif
+
+  assign product_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-1-product.png?v=1758011951'
+  if section.settings.product_img != blank
+    assign product_img = section.settings.product_img | image_url: width: 373
+  endif
+
+  assign screen_2_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-1-6000.png?v=1758011950'
+  if section.settings.screen_2_img != blank
+    assign screen_2_img = section.settings.screen_2_img | image_url: width: 1140
+  endif
+
+  assign screen_3_img = 'https://cdn.shopify.com/s/files/1/0550/0524/9633/files/v5-scroll-pf-1-2.0.png?v=1758015186'
+  if section.settings.screen_3_img != blank
+    assign screen_3_img = section.settings.screen_3_img | image_url: width: 1140
+  endif
+%}
+
+<div
+  id="v5ScrollProductFeatures1"
+  class="{{ wrapper_class }}"
+  {{ section.shopify_attributes }}
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{section.settings.anchor | escape}}"
+  {% endif %}
+>
+  {%- if mb_h_rem != blank -%}
+    <style>
+      @media screen and (max-width: 1023.98px){
+        #v5ScrollProductFeatures1 {
+          min-height: auto;
+          height: {{ mb_h_rem }}rem;
+        }
+      }
+    </style>
+  {%- endif -%}
+  <div class="title1 {{ title1_class }}">{{ section.settings.title1 }}</div>
+  {%
+    render 'diff-end-img',
+    class: 'bg-img relative lg:absolute top-0 left-0 z-0 w-full h-auto lg:h-full lg:object-cover',
+    style:'',
+    anchor: '',
+    pc_img: pc_bg_img,
+    mb_img: mb_all_img,
+    pc_img_width: 1440,
+    mb_img_width: 750,
+    placeholder_name: 'hero-apparel-1',
+    alt: 'Product Features Scroll Background Image'
+  %}
+  <picture class="hidden lg:block w-full h-full">
+    <source
+      srcset="{{ product_img }}"
+      media="(min-width: 1024px)"
+    >
+    <img
+      class="product-img absolute left-[19.30555vw] top-[11.125rem] z-10 w-[25.902778vw] h-[47.361111vw] lg:block hidden"
+      src=""
+      width="373"
+      height="682"
+      loading="lazy"
+      alt="{{ section.settings.product_img.alt }}"
+    >
+  </picture>
+  <picture class="hidden lg:block w-full h-full">
+    <source
+      srcset="{{ screen_2_img }}"
+      media="(min-width: 1024px)"
+    >
+    <img
+      class="scroll-img-1 invisible absolute top-full left-0 z-20 w-full h-full hidden lg:block"
+      src=""
+      width="1440"
+      height="702"
+      loading="lazy"
+      alt="{{ section.settings.screen_2_img.alt }}"
+    >
+  </picture>
+  <picture class="hidden lg:block w-full h-full">
+    <source
+      srcset="{{ screen_3_img }}"
+      media="(min-width: 1024px)"
+    >
+    <img
+      class="scroll-img-2 opacity-0 absolute top-0 left-0 z-20 w-full h-full hidden lg:block"
+      src=""
+      width="1440"
+      height="702"
+      loading="lazy"
+      alt="{{ section.settings.screen_3_img.alt }}"
+    >
+  </picture>
+  <div class="hidden lg:block content-box opacity-0 absolute top-[5.416667vw] left-[7.638889vw] z-20">
+    <div class="{{ title4_class }}">{{ section.settings.title4 }}</div>
+    <div class="{{ desc4_class }}">{{ section.settings.desc4 }}</div>
+  </div>
+</div>
+
+<script src="{{ 'gsap.js' | asset_url }}" defer></script>
+<script src="{{ 'scrollTrigger.js' | asset_url }}" defer></script>
+<script src="{{ 'section-v5-scroll-pf-1.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "V5-滚动产品特性-1",
+  "tag": "section",
+  "limit": 1,
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "组件介绍"
+    },
+    {
+      "type": "paragraph",
+      "content": "1. 仅用于商详页，且每页仅支持添加一个"
+    },
+    {
+      "type": "paragraph",
+      "content": "2. 覆盖屏幕可视区（除吸顶和吸底元素的区域）"
+    },
+    {
+      "type": "paragraph",
+      "content": "3. 默认图展示，可自定义配置更新"
+    },
+    {
+      "type": "paragraph",
+      "content": "4. 仅PC端有滚动动效"
+    },
+    {
+      "type": "select",
+      "id": "style_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "样式类型"
+    },
+    { "type": "header", "content": "使用场景设置", "visible_if": "{{ section.settings.style_type == 'custom' }}" },
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "header",
+      "content": "基础图片配置"
+    },
+    {
+      "type": "image_picker",
+      "id": "pc_bg_img",
+      "label": "PC端背景图",
+      "info": "建议尺寸: 1440x702px"
+    },
+    {
+      "type": "image_picker",
+      "id": "product_img",
+      "label": "PC端产品图",
+      "info": "建议尺寸: 373x682px"
+    },
+    {
+      "type": "image_picker",
+      "id": "mb_all_img",
+      "label": "移动端整图",
+      "info": "建议尺寸: 375x1013px"
+    },
+    {
+      "type": "number",
+      "id": "mb_height",
+      "label": "移动端组件高度",
+      "default": 1013,
+      "info": "单位：px，请以设计稿宽度375px为基准，进行高度计算"
+    },
+    {
+      "type": "header",
+      "content": "PC端第1屏配置"
+    },
+    {
+      "type": "richtext",
+      "id": "title1",
+      "label": "文案",
+      "default": "<p><em>Certified Safe.</em>Trusted Power.</p>",
+      "info": "提示：文案斜体将以品牌色显示"
+    },
+    {
+      "type": "header",
+      "content": "PC端第2屏配置"
+    },
+    {
+      "type": "image_picker",
+      "id": "screen_2_img",
+      "label": "第2屏图",
+      "info": "建议尺寸: 1440x702px"
+    },
+    {
+      "type": "header",
+      "content": "PC端第3屏配置"
+    },
+    {
+      "type": "image_picker",
+      "id": "screen_3_img",
+      "label": "第3屏图",
+      "info": "建议尺寸: 1440x702px"
+    },
+    {
+      "type": "header",
+      "content": "PC端第4屏配置"
+    },
+    {
+      "type": "richtext",
+      "id": "title4",
+      "label": "标题",
+      "default": "<p><em>5-Year</em> Warranty</p>",
+      "info": "提示：文案斜体将以品牌色显示"
+    },
+    {
+      "type": "richtext",
+      "id": "desc4",
+      "label": "描述",
+      "default": "<p>Only at Jackery.com</p>",
+      "info": "提示：文案斜体将以品牌色显示"
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-滚动产品特性-1",
+      "category": "V5.0"
+    }
+  ]
+}
+{% endschema %}

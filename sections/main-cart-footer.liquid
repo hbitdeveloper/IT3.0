@@ -1,0 +1,90 @@
+<div class="section-container{% if cart == empty %} is-empty{% endif %}" id="main-cart-footer" data-id="{{ section.id }}">
+  <div>
+    <div class="cart__footer">
+      {%- if settings.show_cart_note -%}
+        <cart-note class="cart__note field">
+          <label for="Cart-note">{{ 'cart.note' | t }}</label>
+          <textarea class="text-area field__input" name="note" form="cart" id="Cart-note" placeholder="{{ 'cart.note' | t }}">{{ cart.note }}</textarea>
+        </cart-note>
+      {%- endif -%}
+
+      <div class="cart__blocks" data-totals__subtotal="{{ cart.total_price | money }}">
+        {% for block in section.blocks %}
+          {%- case block.type -%}
+            {%- when '@app' -%}
+              {% render block %}
+            {%- when 'subtotal' -%}
+              <div id="main-cart-footer__js-contents" class="js-contents" {{ block.shopify_attributes }}>
+                <div class="totals flex">
+                  <div class="totals__subtotal jky-text-base">{{ 'cart.subtotal' | t }}</div>
+                  <div class="totals__subtotal-value jky-text-base">{{ cart.total_price | money }}</div>
+                </div>
+              </div>
+            {%- else -%}
+              <div class="cart__ctas flex justify-end" {{ block.shopify_attributes }}>
+                <noscript>
+                  <button type="submit" class="cart__update-button button button--secondary" form="cart">
+                    {{ 'cart.update' | t }}
+                  </button>
+                </noscript>
+
+                <button type="submit" id="checkout" class="z-button-fill-middle cart__checkout-button button" name="checkout"{% if cart == empty %} disabled{% endif %} form="cart">
+                  {{ 'cart.checkout' | t }}
+                </button>
+              </div>
+          {%- endcase -%}
+        {% endfor %}
+
+        <div id="cart-errors"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% comment %} 报价单功能 - 目前日本特有 {% endcomment %}
+{% if settings.show_baojiadan %}
+{% render 'baojiadan' %}
+{% endif %}
+
+{%- javascript -%}
+  document.addEventListener('DOMContentLoaded', function() {
+    function isIE() {
+      const ua = window.navigator.userAgent;
+      const msie = ua.indexOf('MSIE ');
+      const trident = ua.indexOf('Trident/');
+
+      return (msie > 0 || trident > 0);
+    }
+
+    if (!isIE()) return;
+    const cartSubmitInput = document.createElement('input');
+    cartSubmitInput.setAttribute('name', 'checkout');
+    cartSubmitInput.setAttribute('type', 'hidden');
+    document.querySelector('#cart').appendChild(cartSubmitInput);
+    document.querySelector('#checkout').addEventListener('click', function(event) {
+      document.querySelector('#cart').submit();
+    });
+  });
+{%- endjavascript -%}
+
+{% schema %}
+{
+  "name": "t:sections.main-cart-footer.name",
+  "class": "cart__footer-wrapper",
+  "blocks": [
+    {
+      "type": "subtotal",
+      "name": "t:sections.main-cart-footer.blocks.subtotal.name",
+      "limit": 1
+    },
+    {
+      "type": "buttons",
+      "name": "t:sections.main-cart-footer.blocks.buttons.name",
+      "limit": 1
+    },
+    {
+      "type": "@app"
+    }
+  ]
+}
+{% endschema %}

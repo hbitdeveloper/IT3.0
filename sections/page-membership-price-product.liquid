@@ -1,0 +1,1363 @@
+
+
+<style>
+
+  {% comment %} 新增控制padding上下间距 {% endcomment %}
+  membership-price-product.px-40.pt-100 {
+    padding-top: calc(var(--pc-padding-top) * 1px);
+    padding-bottom: calc(var(--pc-padding-bottom) * 1px);
+  }
+  @media screen and (min-width: 1024px) and (max-width: 1439.98px) {
+    membership-price-product.px-40.pt-100 {
+      padding-top: calc(var(--pc-padding-top) * 100vw / 1440);
+      padding-bottom: calc(var(--pc-padding-bottom) * 100vw / 1440);
+    }
+  }
+  @media screen and (max-width: 1023.98px) {
+    membership-price-product.px-40.pt-100 {
+      padding-top: calc(var(--mb-padding-top) * 100vw / 750);
+      padding-bottom: calc(var(--mb-padding-bottom) * 100vw / 750);
+    }
+  }
+</style>
+
+{{ 'section-membership-price-product.min.css' | asset_url | stylesheet_tag }}
+
+{% assign productItems = section.blocks | where: 'type', 'product_item' %}
+{% assign preheat_time_active = false %}
+{% assign current_timestamp = 'now' | date: '%s' | plus: 0 %}
+{% if section.settings.preheat_start_time != blank and section.settings.preheat_end_time != blank %}
+  {% assign preheat_start_timestamp = section.settings.preheat_start_time | date: '%s' | plus: 0 %}
+  {% assign preheat_end_timestamp = section.settings.preheat_end_time | date: '%s' | plus: 0 %}
+  {% if current_timestamp >= preheat_start_timestamp and current_timestamp <= preheat_end_timestamp %}
+    {% assign preheat_time_active = true %}
+  {% endif %}
+{% endif %}
+
+<membership-price-product
+  id="{{ section.settings.section_id | escape }}"
+  data-handle="{{ section.settings.section_id | escape }}"
+  data-display="flex"
+  class="big-membership-product w-full px-40 pt-100 lg:px-0 lg:j-pt-100 xl:a-pt-100 flex-center {%if section.settings.open_swiper==true%}col-swiper{% endif %} {%if section.settings.mb_colums_2==true%} landing-grid--mb-2{% endif %} {% if section.settings.type == 'embed' %} embed-component {% endif %}"
+  style="background-color:{{ section.settings.section_background_color }};
+    --pc-padding-bottom:{{ section.settings.pc_padding_bottom }};--mb-padding-bottom:{{ section.settings.mb_padding_bottom }};
+  --pc-padding-top:{{ section.settings.pc_padding_top }};--mb-padding-top:{{ section.settings.mb_padding_top }};
+    --buy_at_member_price_color: {{ section.settings.buy_at_member_price_color | default: '#FFFFFF' }};
+    --buy_at_member_price_bg_color: {{ section.settings.buy_at_member_price_bg_color | default: 'linear-gradient(to right, #FDB729 0%, #FA8144 100%)' }};
+    --buy_at_member_price_hover_color: {{ section.settings.buy_at_member_price_hover_color | default: '#FFFFFF' }};
+    --buy_at_member_price_hover_bg_color: {{ section.settings.buy_at_member_price_hover_bg_color | default: 'var(--jds-color-primary)66' }};
+    --buy_at_non_member_price_border_color: {{ section.settings.buy_at_non_member_price_border_color | default: '#99999980'}};
+    --buy_at_non_member_price_color: {{ section.settings.buy_at_non_member_price_color | default: '#666666' }};
+    --buy_at_non_member_price_bg_color: {{ section.settings.buy_at_non_member_price_bg_color | default: '#FFFFFF' }};
+    --buy_at_non_member_price_hover_color: {{ section.settings.buy_at_non_member_price_hover_color | default: '#1A1A1A' }};
+    --buy_at_non_member_price_hover_bg_color: {{ section.settings.buy_at_non_member_price_hover_bg_color | default: '#F5F5F5' }};
+    --learn_more_border_color: {{ section.settings.buy_at_non_member_price_border_color | default: '#99999980'}};
+    --learn_more_color: {{ section.settings.buy_at_non_member_price_color | default: '#666666' }};
+    --learn_more_bg_color: {{ section.settings.buy_at_non_member_price_bg_color | default: '#FFFFFF' }};
+    --learn_more_hover_color: {{ section.settings.buy_at_non_member_price_hover_color | default: '#1A1A1A' }};
+    --learn_more_hover_bg_color: {{ section.settings.buy_at_non_member_price_hover_bg_color | default: '#F5F5F5' }};
+    --product_detail_button_border_color: {{ section.settings.product_detail_button_border_color | default: '#99999980'}};
+    --product_detail_button_color: {{ section.settings.product_detail_button_color | default: '#666666' }};
+    --product_detail_button_bg_color: {{ section.settings.product_detail_button_bg_color | default: '#FFFFFF' }};
+    --product_detail_button_hover_color: {{ section.settings.product_detail_button_hover_color | default: '#1A1A1A' }};
+    --product_detail_button_hover_bg_color: {{ section.settings.product_detail_button_hover_bg_color | default: '#F5F5F5' }};
+    --add_to_cart_button_border_color: {{ section.settings.add_to_cart_button_border_color | default: '#99999980'}};
+    --add_to_cart_button_color: {{ section.settings.add_to_cart_button_color | default: '#666666' }};
+    --add_to_cart_button_bg_color: {{ section.settings.add_to_cart_button_bg_color | default: '#FFFFFF' }};
+    --add_to_cart_button_hover_color: {{ section.settings.add_to_cart_button_hover_color | default: '#1A1A1A' }};
+    --add_to_cart_button_hover_bg_color: {{ section.settings.add_to_cart_button_hover_bg_color | default: '#F5F5F5' }};
+  "
+>
+  <div class="membership-swiper w-full lg:j-w-1200 xl:a-w-1200 flex-center flex-col {{ section.settings.page_width }} {%if section.settings.open_swiper==true%}col-swiper{% endif %}">
+    {% if section.settings.section_title != blank %}
+      {%- assign titleColor = '<em style="color: ' | append: section.settings.section_title_main_color | append: '">' -%}
+      <h2
+        class="
+          font-700 lg:font-semibold text-center max-w-615 text-44 leading-60 mb-18
+          lg:j-text-40 lg:j-leading-56 lg:j-max-w-720 lg:j-mb-15 xl:a-text-40 xl:a-leading-56 xl:a-max-w-720 xl:a-mb-15
+        "
+        style="color:{{ section.settings.section_title_color }}"
+        data-animation-dom
+      >{{ section.settings.section_title | newline_to_br | replace: '<em>', titleColor }}</h2>
+    {% endif %}
+    {% if section.settings.section_sub_title != blank %}
+      {%- assign titleColor = '<em style="color: ' | append: section.settings.section_sub_title_main_color | append: '">' -%}
+      <div
+        class="
+          font-normal w-full text-center text-28 leading-36 mb-40
+          lg:j-w-max-w-880 lg:j-text-18 lg:j-leading-26 lg:j-mb-40 xl:a-max-w-880 xl:a-text-18 xl:a-leading-26 xl:a-mb-40
+        "
+        style="color:{{ section.settings.section_sub_title_color }}"
+        data-animation-dom
+      >{{ section.settings.section_sub_title | newline_to_br | replace: '<em>', titleColor }}</div>
+    {% endif %}
+    {%- assign swiper_size = 0 -%}
+    <ul
+      class="
+        {% if section.settings.show_skeleton %} !hidden {% endif %}
+        membership-ul w-full flex items-start justify-start flex-wrap gap-y-24 overflow-hidden transition-all duration-300
+        lg:j-gap-x-18 lg:j-gap-y-24
+        xl:a-gap-x-18 xl:a-gap-y-24
+        {%if section.settings.open_swiper==true%} swiper-wrapper{% endif %}
+        {%if section.settings.mb_colums_2==true%} landing-grid--mb-2{% endif %}
+      "
+      data-products-wrap
+      data-no-data-text="{{ section.settings.section_no_data_text | newline_to_br }}"
+      data-no-data-img="{{ section.settings.section_no_data_img | image_url: width: 376 }}"
+    >
+      {% for block in productItems %}
+        {% if block.settings.product.available == true %}
+          {% assign variants = block.settings.product.variants %}
+          {% assign image = block.settings.product.featured_image %}
+          {% assign title = block.settings.product.title %}
+          {% assign price = blank %}
+          {% assign linePrice = blank %}
+          {% assign href = blank %}
+          {% assign origin_url = blank %}
+          {% assign swiper_size = forloop.index %}
+
+          {% assign show_preheat_price = false %}
+          {% if preheat_time_active == true and block.settings.preheat_member_price > 0 and block.settings.preheat_non_member_price > 0 %}
+            {% assign show_preheat_price = true %}
+          {% endif %}
+
+          {% assign id = blank %}
+
+          {%- for variant in variants -%}
+            {% if variant.sku == block.settings.skuId and block.settings.skuId != blank %}
+              {% assign price = variant.price %}
+              {% assign linePrice = variant.compare_at_price %}
+
+              {% if show_preheat_price == true %}
+                {% assign price = block.settings.preheat_member_price %}
+              {% endif %}
+
+              {% assign id = variant.id %}
+              {% if variant.featured_image != blank %}
+                {% assign image = variant.featured_image %}
+              {% endif %}
+              {% if variant.title != 'Default Title' %}
+                {% assign title = variant.title %}
+              {% endif %}
+              {% if variant.url != blank %}
+                {% assign href = variant.url %}
+                {% assign origin_url = request.origin | append: href %}
+              {% endif %}
+            {% endif %}
+          {%- endfor -%}
+
+          {% if price == blank %}
+            {% assign availableVariant = block.settings.product.first_available_variant %}
+            {% assign price = availableVariant.price %}
+
+            {% if show_preheat_price == true %}
+              {% assign price = block.settings.preheat_member_price %}
+            {% endif %}
+
+            {% assign linePrice = availableVariant.compare_at_price %}
+            {% assign id = availableVariant.id %}
+
+            {% if availableVariant.featured_image != blank %}
+              {% assign image = availableVariant.featured_image %}
+            {% endif %}
+
+            {% if availableVariant.title != 'Default Title' %}
+              {% assign title = availableVariant.title %}
+            {% endif %}
+
+            {% if availableVariant.url != blank %}
+              {% assign href = availableVariant.url %}
+              {% assign origin_url = request.origin | append: href %}
+            {% endif %}
+          {% endif %}
+
+          {% comment %} 如果有配置，以配置的为准 {% endcomment %}
+          {% if block.settings.product_img != blank %}
+            {% assign image = block.settings.product_img %}
+          {% endif %}
+
+          {% if block.settings.product_title != blank %}
+            {% assign title = block.settings.product_title %}
+          {% endif %}
+
+          {% assign product_detail_url = block.settings.product_detail_link %}
+
+          {% if block.settings.item_display_style == 'full_row' %}
+            {% comment %} 一行1个 {% endcomment %}
+            <div
+              data-sku-id="{{ id }}"
+              data-full-row="1"
+              class="
+                li-one
+                focus-zoom-container
+                w-full flex-center flex-col lg:flex-row bg-transparent rounded-16 pt-10 {% if customer.id == blank %} h-962 {% else %} h-962 {% endif %}
+                lg:j-h-365 lg:j-pt-5 lg:j-rounded-8 xl:a-h-365 xl:a-pt-5 xl:a-rounded-8 overflow-hidden
+                {%if section.settings.mb_colums_2==true%} landing-grid--mb-2{% endif %}
+              "
+              data-animation-dom
+            >
+              {% comment %} 促销角标 {% endcomment %}
+              {% if section.settings.promotional_icon_bg != blank %}
+                <div
+                  class="absolute left-12 top-0 lg:j-left-8 xl:a-left-8 w-155 h-108 lg:j-w-86 lg:j-h-59 xl:a-w-86 xl:a-h-59 z-1"
+                  style="background: url({{ section.settings.promotional_icon_bg | image_url: width: 86 }}) center center / contain no-repeat"
+                >
+                  <div class="flex-center flex-col text-white font-700 pt-20 gap-y-5 lg:j-pt-10 lg:j-gap-y-3 xl:a-pt-10 xl:a-gap-y-3">
+                    <span class="corner-top text-32 lg:j-text-18 xl:a-text-18 leading-none" data-promotion-price>-</span>
+                    <span class="corner-bottom text-22 lg:j-text-12 xl:a-text-12 leading-none">{{ section.settings.promotional_text | escape }}</span>
+                  </div>
+                </div>
+              {% endif %}
+
+              {% comment %} image {% endcomment %}
+              <span
+                data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                class="img-box block w-full h-415 rounded-tl-16 lg:j-w-600 lg:h-full xl:a-w-600 lg:j-rounded-tl-8 xl:a-rounded-tl-8 relative cursor-pointer overflow-hidden"
+                style="background-color: #ffffff;"
+                data-ga-event="membership_price_user_clicks"
+                data-ga-action="click"
+                data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                data-ga-params-position="{{ title }}"
+                data-ga-params-button_name="image_area"
+                data-ga-params-type="pic_big"
+                data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+              >
+                {% render 'responsive-image',
+                  image: image,
+                  mimage: image,
+                  image_class: 'w-full h-415 lg:j-w-600 lg:h-full xl:a-w-600 object-cover focus-zoom'
+                %}
+              </span>
+
+              <div class="membership-product-bottom w-full flex-1 h-full flex items-start justify-between flex-col px-40 pt-10 py-48 bg-white rounded-tr-16 lg:j-py-32 lg:j-pl-56 lg:j-pr-48 lg:j-rounded-tr-8 xl:a-py-32 xl:a-pl-56 xl:a-pr-48 xl:a-rounded-tr-8">
+                <div>
+                  <h2
+                    data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                    class="font-semibold px-40 text-#1A1A1A text-32 leading-46 lg:px-0 lg:j-text-20 lg:j-leading-28 xl:a-text-20 xl:a-leading-28 line-clamp-2 cursor-pointer"
+                    data-ga-event="membership_price_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                    data-ga-params-position="{{ title }}"
+                    data-ga-params-button_name="product_title"
+                    data-ga-params-type="pic_big"
+                    data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                    data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                  >{{ title | newline_to_br }}</h2>
+                  <div class="membership-product-bottom-sub font-normal text-#666 text-28 leading-36 mt-15 lg:j-text-16 lg:j-leading-24 lg:j-mt-10 xl:a-text-16 xl:a-leading-24 xl:a-mt-10 line-clamp-2">{{ block.settings.product_description | newline_to_br }}</div>
+                </div>
+                <div class="w-full">
+                  <p class="membership-price w-full flex items-center" style="width:110%;">
+                    <em
+                      class="text-55 lg:j-text-32 xl:a-text-32 text-primary leading-none font-semibold not-italic"
+                      data-product-price
+                      data-origin-price="{{ price }}"
+                      data-show-preheat-price = {{ show_preheat_price }}
+                      data-line-price="{{ linePrice }}"
+                      data-preheat-non-member-price="{{ block.settings.preheat_non_member_price }}"
+                    >{{ price | money }}</em>
+                    <span
+                      style="white-space:nowrap;word-break:keep-all;line-height:1;"
+                      class="
+                        arrow-text text-#F98C2C leading-none border-solid border-#F98C2C text-26 relative
+                        border-2 border-l-0 py-6 px-16 rounded-8 ml-30
+                        lg:j-text-16 lg:j-py-4 lg:j-px-3 lg:j-rounded-4 lg:j-border-1 lg:j-border-l-0 lg:j-ml-20
+                        xl:a-text-16 xl:a-py-4 xl:a-px-3 xl:a-rounded-4 xl:a-border-1 xl:a-border-l-0 xl:a-ml-20
+                        before:block before:content-[''] before:bg-#F98C2C before:absolute before:rotate-40
+                        before:w-1 before:h-26 before:-left-5 before:-top-4
+                        before:lg:j-w-1 before:lg:j-h-16 before:-lg:j-left-4 before:-lg:j-top-2
+                        before:xl:a-w-1 before:xl:a-h-16 before:-xl:a-left-4 before:-xl:a-top-2
+                        after:block after:content-[''] after:bg-#F98C2C after:absolute after:rotate-140
+                        after:w-1 after:h-26 after:-left-5 after:-bottom-4
+                        after:lg:j-w-1 after:lg:j-h-16 after:-lg:j-left-4 after:-lg:j-bottom-2
+                        after:xl:a-w-1 after:xl:a-h-16 after:-xl:a-left-4 after:-xl:a-bottom-2
+                      "
+                    >{{ section.settings.member_only_text | escape | truncate: 23 }}</span>
+                  </p>
+                  {%- if section.settings.show_current_price -%}
+                    <p class="origin-price text-#666 font-normal mt-25 text-24 lg:j-mt-10 lg:j-text-14 lg:j-leading-20 xl:a-mt-10 xl:a-text-14 xl:a-leading-20">
+                      {% if show_preheat_price == true and block.settings.preheat_non_member_price > block.settings.preheat_member_price%}
+                        {{ block.settings.preheat_non_member_price | money  }}
+                      {% else %}
+                        {{ price | money }}
+                      {% endif %}
+                      {% if section.settings.non_member_price_text != blank %}
+                        ({{ section.settings.non_member_price_text | escape }})
+                      {% endif %}
+                    </p>
+                  {%- endif -%}
+                  {%- if section.settings.show_line_price -%}
+                    <span class="line-price text-#666 font-normal mt-25 text-24 lg:j-mt-10 lg:j-text-14 lg:j-leading-20 xl:a-mt-10 xl:a-text-14 xl:a-leading-20">
+                      {%- if linePrice > price and linePrice > block.settings.preheat_non_member_price  -%}
+                        {{ linePrice | money }}
+                      {%- endif -%}
+                    </span>
+                  {%- endif -%}
+                  <div class="three-button w-full flex-between flex-col gap-y-20 mt-35 lg:flex-row lg:j-mt-50 lg:j-gap-x-10 xl:a-mt-50 xl:a-gap-x-10">
+                    {% if section.settings.product_detail_button != blank %}
+                      <button
+                        data-href="{{ product_detail_url }}"
+                        data-product-detail-button
+                        class="w-full membership-price-button product-detail-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.product_detail_button | escape }}"
+                        data-ga-params-type="pic_big"
+                        data-ga-params-link="{{ product_detail_url }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.product_detail_button | escape }}">{{ section.settings.product_detail_button | escape }}</span>
+                      </button>
+                    {% endif %}
+                    {% if section.settings.add_to_cart_button != blank %}
+                      <button
+                        data-href=""
+                        class="w-full membership-price-button add-to-cart-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.add_to_cart_button | escape }}"
+                        data-ga-params-type="pic_big"
+                        data-ga-params-link="{{ add_to_cart_new_href }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.add_to_cart_button | escape }}">{{ section.settings.add_to_cart_button | escape }}</span>
+                      </button>
+                    {% endif %}
+                    {% if section.settings.buy_at_member_price != blank and  section.settings.buy_at_member_price_after != blank %}
+                      <button
+                        class="w-full lg:j-w-240 xl:a-w-240 membership-price-button membership-price-highlight-button {% if customer.id != blank %} lg:max-w-max {% endif %}"
+                        data-member-price-buy-button
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.buy_at_member_price | escape }}"
+                        data-ga-params-type="pic_big"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.buy_at_member_price | escape }}">
+                          {% if customer.id %}
+                            {{ section.settings.buy_at_member_price_after | escape }}
+                          {% else %}
+                            {{ section.settings.buy_at_member_price | escape }}
+                          {% endif %}
+                        </span>
+                      </button>
+                    {% endif %}
+                    {% if customer.id == blank and section.settings.buy_at_non_member_price != blank %}
+                      {%- assign product_href = '/cart/' | append: id | append: ':1?traffic_source=buy_now' -%}
+                      {%- assign new_href = request.origin | append: product_href -%}
+                      <button
+                        data-member-price-origin-buy-button
+                        class="w-full lg:j-min-w-240 xl:a-min-w-240 membership-price-button membership-price-origin-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.buy_at_non_member_price | escape }}"
+                        data-ga-params-type="pic_big"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: new_href }}"
+                        data-ga-params-status="tourist"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.buy_at_non_member_price | escape }}">{{ section.settings.buy_at_non_member_price | escape }}</span>
+                      </button>
+                    {% endif %}
+
+                    {% comment %} 新增按钮learn more {% endcomment %}
+                    {% if section.settings.learn_more != blank %}
+                      <button
+                        data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-learn-more-button
+                        class="w-full membership-price-button learn-more-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.learn_more | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-ga-params-status="tourist"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.learn_more | escape }}">{{ section.settings.learn_more | escape }}</span>
+                      </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% elsif block.settings.item_display_style == 'card' %}
+            {% comment %} 一行3个 {% endcomment %}
+            <li
+              data-sku-id="{{ id }}"
+              data-full-row="3"
+              class="
+                card focus-zoom-container w-full flex-center flex-col bg-transparent rounded-16 pt-10 overflow-hidden
+                lg:j-w-388 lg:j-pt-5 lg:j-rounded-8
+                xl:a-w-388 xl:a-pt-5 xl:a-rounded-8
+                {% if customer.id == blank %} h-962 lg:j-h-583 xl:a-h-583 {% else %} h-962 lg:j-h-583 xl:a-h-583 {% endif %}
+                {%if section.settings.open_swiper==true%} swiper-slide {% endif %}
+                {%if section.settings.mb_colums_2==true%} landing-grid--mb-2{% endif %}
+              "
+              data-animation-dom
+            >
+              {% comment %} 促销角标 {% endcomment %}
+              {% if section.settings.promotional_icon_bg != blank %}
+                <div
+                  class="promotion-badge absolute left-12 top-0 lg:j-left-8 xl:a-left-8 w-155 h-108 lg:j-w-86 lg:j-h-59 xl:a-w-86 xl:a-h-59 z-1"
+                  style="background: url({{ section.settings.promotional_icon_bg | image_url: width: 86 }}) center center / contain no-repeat"
+                >
+                  <div class="flex-center flex-col text-white font-700 pt-20 gap-y-5 lg:j-pt-10 lg:j-gap-y-3 xl:a-pt-10 xl:a-gap-y-3">
+                    <span class="corner-top text-32 lg:j-text-18 xl:a-text-18 leading-none" data-promotion-price>-</span>
+                    <span class="corner-bottom text-22 lg:j-text-12 xl:a-text-12 leading-none">{{ section.settings.promotional_text | escape }}</span>
+                  </div>
+                </div>
+              {% endif %}
+
+              {% comment %} image {% endcomment %}
+              <span
+                data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                class="img-box block w-full h-415 rounded-tl-16 rounded-tr-16 lg:j-h-240 lg:j-rounded-tl-8 lg:j-rounded-tr-8 xl:a-h-240 xl:a-rounded-tl-8 xl:a-rounded-tr-8 relative cursor-pointer overflow-hidden"
+                style="background-color: #ffffff;"
+                data-ga-event="membership_price_user_clicks"
+                data-ga-action="click"
+                data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                data-ga-params-position="{{ title }}"
+                data-ga-params-button_name="image_area"
+                data-ga-params-type="pic_small"
+                data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+              >
+                {% render 'responsive-image',
+                  image: image,
+                  mimage: image,
+                  image_class: 'w-full h-415 lg:j-h-240 xl:a-h-240 object-contain focus-zoom'
+                %}
+              </span>
+
+              <div class="membership-product-bottom w-full flex-1 h-full flex items-start justify-between flex-col px-40 pt-10 py-48 bg-white lg:j-pt-4 lg:j-pb-22 lg:j-px-24 xl:a-pt-4 xl:a-pb-22 xl:a-px-24">
+                <div>
+                  <h2
+                    data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                    class="font-semibold text-#1A1A1A text-32 leading-46 lg:j-text-20 lg:j-leading-28 xl:a-text-20 xl:a-leading-28 line-clamp-2 cursor-pointer"
+                    data-ga-event="membership_price_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                    data-ga-params-position="{{ title }}"
+                    data-ga-params-button_name="product_title"
+                    data-ga-params-type="pic_small"
+                    data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                    data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                  >{{ title | newline_to_br }}</h2>
+                  <div class="membership-product-bottom-sub font-normal text-#666 text-28 leading-36 mt-15 lg:j-text-14 lg:j-leading-24 lg:j-mt-4 xl:a-text-14 xl:a-leading-24 xl:a-mt-4 line-clamp-2">{{ block.settings.product_description | newline_to_br }}</div>
+                </div>
+                <div class="w-full">
+                  <p class="membership-price w-full flex items-center" style="width:110%;">
+                    <em
+                      class="text-55 lg:j-text-32 xl:a-text-32 text-primary leading-none font-semibold not-italic"
+                      data-product-price
+                      data-origin-price="{{ price }}"
+                      data-show-preheat-price = {{ show_preheat_price }}
+                      data-line-price="{{ linePrice }}"
+                      data-preheat-non-member-price="{{ block.settings.preheat_non_member_price }}"
+                    >{{ display_member_price }}</em>
+                    <span
+                      style="white-space:nowrap;word-break:keep-all;line-height:1;"
+                      class="
+                        arrow-text text-#F98C2C leading-none border-solid border-#F98C2C text-26 relative
+                        border-2 border-l-0 py-6 px-16 rounded-8 ml-30
+                        lg:j-text-16 lg:j-py-4 lg:j-px-3 lg:j-rounded-4 lg:j-border-1 lg:j-border-l-0 lg:j-ml-20
+                        xl:a-text-16 xl:a-py-4 xl:a-px-3 xl:a-rounded-4 xl:a-border-1 xl:a-border-l-0 xl:a-ml-20
+                        before:block before:content-[''] before:bg-#F98C2C before:absolute before:rotate-40
+                        before:w-1 before:h-26 before:-left-5 before:-top-4
+                        before:lg:j-w-1 before:lg:j-h-16 before:-lg:j-left-4 before:-lg:j-top-2
+                        before:xl:a-w-1 before:xl:a-h-16 before:-xl:a-left-4 before:-xl:a-top-2
+                        after:block after:content-[''] after:bg-#F98C2C after:absolute after:rotate-140
+                        after:w-1 after:h-26 after:-left-5 after:-bottom-4
+                        after:lg:j-w-1 after:lg:j-h-16 after:-lg:j-left-4 after:-lg:j-bottom-2
+                        after:xl:a-w-1 after:xl:a-h-16 after:-xl:a-left-4 after:-xl:a-bottom-2
+                      "
+                    >{{ section.settings.member_only_text | escape | truncate: 23 }}</span>
+                  </p>
+                  {%- if section.settings.show_current_price -%}
+                  <p class="origin-price text-#666 font-normal mt-25 text-24 lg:j-mt-10 lg:j-text-14 lg:j-leading-20 xl:a-mt-10 xl:a-text-14 xl:a-leading-20">
+                    {% if show_preheat_price == true and block.settings.preheat_non_member_price > block.settings.preheat_member_price%}
+                      {{ block.settings.preheat_non_member_price | money  }}
+                    {% else %}
+                      {{ price | money }}
+                    {% endif %}
+                    {% if section.settings.non_member_price_text != blank %}
+                      ({{ section.settings.non_member_price_text | escape }})
+                    {% endif %}
+                  </p>
+                  {%- endif -%}
+                  {%- if section.settings.show_line_price -%}
+                    <span class="line-price text-#666 font-normal mt-25 text-24 lg:j-mt-10 lg:j-text-14 lg:j-leading-20 xl:a-mt-10 xl:a-text-14 xl:a-leading-20">
+                      {%- if linePrice > price and linePrice > block.settings.preheat_non_member_price  -%}
+                        {{ linePrice | money }}
+                      {%- endif -%}
+                    </span>
+                  {%- endif -%}
+                  <div class="three-button w-full flex-between flex-col gap-y-20 mt-35 lg:j-mt-30 lg:j-gap-y-10 xl:a-mt-30 xl:a-gap-y-10">
+                    {% if section.settings.product_detail_button != blank %}
+                      <button
+                        data-href="{{ product_detail_url }}"
+                        data-product-detail-button
+                        class="w-full membership-price-button product-detail-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.product_detail_button | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ product_detail_url }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.product_detail_button | escape }}">{{ section.settings.product_detail_button | escape }}</span>
+                      </button>
+                    {% endif %}
+                    {% if section.settings.add_to_cart_button != blank %}
+                      <button
+                        data-href=""
+                        class="w-full membership-price-button add-to-cart-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.add_to_cart_button | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ add_to_cart_new_href }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.add_to_cart_button | escape }}">{{ section.settings.add_to_cart_button | escape }}</span>
+                      </button>
+                    {% endif %}
+                    {% if section.settings.buy_at_member_price != blank and  section.settings.buy_at_member_price_after != blank %}
+                      <button
+                        class="w-full membership-price-button membership-price-highlight-button"
+                        data-member-price-buy-button
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.buy_at_member_price | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.buy_at_member_price | escape }}">
+                          {% if customer.id %}
+                            {{ section.settings.buy_at_member_price_after | escape }}
+                          {% else %}
+                            {{ section.settings.buy_at_member_price | escape }}
+                          {% endif %}
+                        </span>
+                      </button>
+                    {% endif %}
+                    {% if customer.id == blank and section.settings.buy_at_non_member_price != blank %}
+                      {%- assign product_href = '/cart/' | append: id | append: ':1?traffic_source=buy_now' -%}
+                      {%- assign new_href = request.origin | append: product_href -%}
+                      <button
+                        data-member-price-origin-buy-button
+                        class="w-full membership-price-button membership-price-origin-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.buy_at_non_member_price | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: new_href }}"
+                        data-ga-params-status="tourist"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.buy_at_non_member_price | escape }}">{{ section.settings.buy_at_non_member_price | escape }}</span>
+                      </button>
+                    {% endif %}
+
+                    {% comment %} 新增按钮learn more {% endcomment %}
+                    {% if section.settings.learn_more != blank %}
+                      <button
+                        data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-learn-more-button
+                        class="w-full membership-price-button learn-more-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.learn_more | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-ga-params-status="tourist"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.learn_more | escape }}">{{ section.settings.learn_more | escape }}</span>
+                      </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </li>
+
+          {%- else -%}
+             {% comment %} 一行4个 {% endcomment %}
+            <li
+              data-sku-id="{{ id }}"
+              data-full-row="4"
+              class="
+                focus-zoom-container w-full flex-center flex-col bg-transparent rounded-16 pt-10 overflow-hidden
+                lg:j-w-313 lg:j-pt-5 lg:j-rounded-8
+                xl:a-w-313 xl:a-pt-5 xl:a-rounded-8
+                card_four
+                {% if customer.id == blank %} h-962 lg:j-h-536 xl:a-h-536 {% else %} h-962 lg:j-h-536 xl:a-h-536 {% endif %}
+                 {%if section.settings.open_swiper==true%} swiper-slide {% endif %}
+                 {%if section.settings.mb_colums_2==true%} landing-grid--mb-2{% endif %}
+              "
+              data-animation-dom
+            >
+              {% comment %} 促销角标 {% endcomment %}
+              {% if section.settings.promotional_icon_bg != blank %}
+                <div
+                  class="membership-promotion-icon absolute left-12 top-0 lg:j-left-8 xl:a-left-8 w-155 h-108 lg:j-w-86 lg:j-h-59 xl:a-w-86 xl:a-h-59 z-1"
+                  style="background: url({{ section.settings.promotional_icon_bg | image_url: width: 86 }}) center center / contain no-repeat"
+                >
+                  <div class="flex-center flex-col text-white font-700 pt-20 gap-y-5 lg:j-pt-10 lg:j-gap-y-3 xl:a-pt-10 xl:a-gap-y-3">
+                    <span class="corner-top text-32 lg:j-text-18 xl:a-text-18 leading-none" data-promotion-price>-</span>
+                    <span class="corner-bottom text-22 lg:j-text-12 xl:a-text-12 leading-none">{{ section.settings.promotional_text | escape }}</span>
+                  </div>
+                </div>
+              {% endif %}
+
+              {% comment %} image {% endcomment %}
+              <span
+                data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                class="img-box block w-full h-415 rounded-tl-16 rounded-tr-16 lg:j-h-240 lg:j-rounded-tl-8 lg:j-rounded-tr-8 xl:a-h-240 xl:a-rounded-tl-8 xl:a-rounded-tr-8 relative cursor-pointer overflow-hidden"
+                style="background-color: #ffffff;"
+                data-ga-event="membership_price_user_clicks"
+                data-ga-action="click"
+                data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                data-ga-params-position="{{ title }}"
+                data-ga-params-button_name="image_area"
+                data-ga-params-type="pic_small"
+                data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+              >
+                {% render 'responsive-image',
+                  image: image,
+                  mimage: image,
+                  image_class: 'w-full h-415 lg:j-h-240 xl:a-h-240 object-contain focus-zoom'
+                %}
+              </span>
+
+              <div class="membership-product-bottom w-full flex-1 h-full flex items-start justify-between flex-col px-40 pt-10 py-48 bg-white lg:j-pt-4 lg:j-pb-22 lg:j-px-24 xl:a-pt-4 xl:a-pb-22 xl:a-px-24">
+                <div>
+                  <h2
+                    data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                    class="font-semibold text-#1A1A1A text-32 leading-46 lg:j-text-20 lg:j-leading-28 xl:a-text-20 xl:a-leading-28 line-clamp-2 cursor-pointer"
+                    data-ga-event="membership_price_user_clicks"
+                    data-ga-action="click"
+                    data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                    data-ga-params-position="{{ title }}"
+                    data-ga-params-button_name="product_title"
+                    data-ga-params-type="pic_small"
+                    data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                    data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                  >{{ title | newline_to_br }}</h2>
+                  <div class="membership-product-bottom-sub font-normal text-#666 text-28 leading-36 mt-15 lg:j-text-14 lg:j-leading-24 lg:j-mt-4 xl:a-text-14 xl:a-leading-24 xl:a-mt-4 line-clamp-2">{{ block.settings.product_description | newline_to_br }}</div>
+                </div>
+                <div class="w-full">
+                  <p class="membership-price w-full flex items-center" style="width:110%;">
+                    <em
+                      class="text-55 lg:j-text-32 xl:a-text-32 text-primary leading-none font-semibold not-italic"
+                      data-product-price
+                      data-origin-price="{{ price }}"
+                      data-show-preheat-price = {{ show_preheat_price }}
+                      data-line-price="{{ linePrice }}"
+                      data-preheat-non-member-price="{{ block.settings.preheat_non_member_price }}"
+                    >{{ price | money }}</em>
+                    <span
+                      style="white-space:nowrap;word-break:keep-all;"
+                      class="
+                        arrow-text text-#F98C2C leading-none border-solid border-#F98C2C text-26 relative
+                        border-2 border-l-0 py-6 px-16 rounded-8 ml-30
+                        lg:j-text-16 lg:j-py-4 lg:j-px-3 lg:j-rounded-4 lg:j-border-1 lg:j-border-l-0 lg:j-ml-20
+                        xl:a-text-16 xl:a-py-4 xl:a-px-3 xl:a-rounded-4 xl:a-border-1 xl:a-border-l-0 xl:a-ml-20
+                        before:block before:content-[''] before:bg-#F98C2C before:absolute before:rotate-40
+                        before:w-1 before:h-26 before:-left-5 before:-top-4
+                        before:lg:j-w-1 before:lg:j-h-16 before:-lg:j-left-4 before:-lg:j-top-2
+                        before:xl:a-w-1 before:xl:a-h-16 before:-xl:a-left-4 before:-xl:a-top-2
+                        after:block after:content-[''] after:bg-#F98C2C after:absolute after:rotate-140
+                        after:w-1 after:h-26 after:-left-5 after:-bottom-4
+                        after:lg:j-w-1 after:lg:j-h-16 after:-lg:j-left-4 after:-lg:j-bottom-2
+                        after:xl:a-w-1 after:xl:a-h-16 after:-xl:a-left-4 after:-xl:a-bottom-2
+                      "
+                    >{{ section.settings.member_only_text | escape | truncate: 23 }}</span>
+                  </p>
+                  {%- if section.settings.show_current_price -%}
+                    <p class="origin-price text-#666 font-normal mt-25 text-24 lg:j-mt-10 lg:j-text-14 lg:j-leading-20 xl:a-mt-10 xl:a-text-14 xl:a-leading-20">
+                      {% if show_preheat_price == true and block.settings.preheat_non_member_price > block.settings.preheat_member_price%}
+                        {{ block.settings.preheat_non_member_price | money  }}
+                      {% else %}
+                        {{ price | money }}
+                      {% endif %}
+                      {% if section.settings.non_member_price_text != blank %}
+                        ({{ section.settings.non_member_price_text | escape }})
+                      {% endif %}
+                    </p>
+                  {%- endif -%}
+                  {%- if section.settings.show_line_price -%}
+                    <span class="line-price text-#666 font-normal mt-25 text-24 lg:j-mt-10 lg:j-text-14 lg:j-leading-20 xl:a-mt-10 xl:a-text-14 xl:a-leading-20">
+                      {%- if linePrice > price and linePrice > block.settings.preheat_non_member_price  -%}
+                        {{ linePrice | money }}
+                      {%- endif -%}
+                    </span>
+                  {%- endif -%}
+
+                  <div class="three-button w-full flex-between flex-col gap-y-20 mt-35 lg:j-mt-30 lg:j-gap-y-10 xl:a-mt-30 xl:a-gap-y-10">
+                    {% if section.settings.product_detail_button != blank %}
+                      <button
+                        data-href="{{ product_detail_url }}"
+                        data-product-detail-button
+                        class="w-full membership-price-button product-detail-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.product_detail_button | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ product_detail_url }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.product_detail_button | escape }}">{{ section.settings.product_detail_button | escape }}</span>
+                      </button>
+                    {% endif %}
+                    {% if section.settings.add_to_cart_button != blank %}
+                      <button
+                        data-href=""
+                        class="w-full membership-price-button add-to-cart-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.add_to_cart_button | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ add_to_cart_new_href }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.add_to_cart_button | escape }}">{{ section.settings.add_to_cart_button | escape }}</span>
+                      </button>
+                    {% endif %}
+                    {% if section.settings.buy_at_member_price != blank and  section.settings.buy_at_member_price_after != blank %}
+                      <button
+                        class="w-full membership-price-button membership-price-highlight-button"
+                        data-member-price-buy-button
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.buy_at_member_price | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.buy_at_member_price | escape }}">
+                          {% if customer.id %}
+                            {{ section.settings.buy_at_member_price_after | escape }}
+                          {% else %}
+                            {{ section.settings.buy_at_member_price | escape }}
+                          {% endif %}
+                        </span>
+                      </button>
+                    {% endif %}
+                    {% if customer.id == blank and section.settings.buy_at_non_member_price != blank %}
+                      {%- assign product_href = '/cart/' | append: id | append: ':1?traffic_source=buy_now' -%}
+                      {%- assign new_href = request.origin | append: product_href -%}
+                      <button
+                        data-member-price-origin-buy-button
+                        class="w-full membership-price-button membership-price-origin-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.buy_at_non_member_price | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: new_href }}"
+                        data-ga-params-status="tourist"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.buy_at_non_member_price | escape }}">{{ section.settings.buy_at_non_member_price | escape }}</span>
+                      </button>
+                    {% endif %}
+                    {% comment %} 新增按钮learn more {% endcomment %}
+                    {% if section.settings.learn_more != blank %}
+                      <button
+                        data-href="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-learn-more-button
+                        class="w-full membership-price-button learn-more-button"
+                        data-ga-event="membership_price_user_clicks"
+                        data-ga-action="click"
+                        data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+                        data-ga-params-position="{{ title }}"
+                        data-ga-params-button_name="{{ section.settings.learn_more | escape }}"
+                        data-ga-params-type="pic_small"
+                        data-ga-params-link="{{ block.settings.learn_more_link | default: origin_url }}"
+                        data-ga-params-status="tourist"
+                      >
+                        <span class="line-clamp-1" style="word-break:break-all;" title="{{ section.settings.learn_more | escape }}">{{ section.settings.learn_more | escape }}</span>
+                      </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </li>
+
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+     {%- if section.settings.open_swiper==true -%}
+          <div class="swiper-button-prev" data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-button_name="left" data-ga-params-type="{{sb_types}}"><div class="arrow-icon"></div></div>
+          <div class="swiper-button-next" data-ga-event="activity_page_user_clicks" data-ga-action="click" data-ga-params-module="Product Display" data-ga-params-content="{{cate.title | escape}}" data-ga-params-button_name="right" data-ga-params-type="{{sb_types}}"><div class="arrow-icon"></div></div>
+          <div class="membership-pagination swiper-pagination flex justify-center gap-[0.375rem]"></div>
+      {%- endif -%}
+
+
+    {% comment %} 骨架屏 {% endcomment %}
+    <ul
+      class="w-full {% if section.settings.show_skeleton %} flex {% else %} hidden {% endif %} items-start justify-start flex-wrap gap-y-24 lg:j-gap-x-18 lg:j-gap-y-24 xl:a-gap-x-18 xl:a-gap-y-24"
+      data-skeleton-wrap
+    >
+      <li
+        class="
+          w-full flex-center flex-col rounded-16 pt-10
+          lg:j-w-388 lg:j-pt-5 lg:j-rounded-8
+          xl:a-w-388 xl:a-pt-5 xl:a-rounded-8 bg-transparent overflow-hidden
+          {% if customer.id == blank %} h-962 lg:j-h-583 xl:a-h-583 {% else %} h-962 lg:j-h-539 xl:a-h-539 {% endif %}
+        "
+        data-animation-dom
+      >
+        <div class="w-full h-415 lg:j-h-240 xl:a-h-240 bg-[#EEE] skeleton"></div>
+        <div class="w-full flex-1 h-full flex items-start justify-between flex-col px-40 pt-20 py-48 bg-white lg:j-pt-8 lg:j-pb-22 lg:j-px-24 xl:a-pt-8 xl:a-pb-22 xl:a-px-24">
+          <div class="w-full">
+            <div class="w-full h-46 lg:j-h-28 xl:a-h-28 bg-[#EEE] skeleton"></div>
+            <div class="w-3/4 h-36 mt-20 lg:j-h-24 lg:j-mt-8 xl:a-h-24 xl:a-mt-8 bg-[#EEE] skeleton"></div>
+          </div>
+          <div class="w-full">
+            <div class="w-full flex items-center">
+              <div class="w-1/2 h-55 lg:j-h-32 xl:a-h-32 bg-[#EEE] skeleton"></div>
+            </div>
+            <div class="w-3/5 mt-25 h-28 lg:j-mt-10 lg:j-h-20 xl:a-mt-10 xl:a-h-20 bg-[#EEE] skeleton"></div>
+            <div class="w-full flex-between flex-col gap-y-20 mt-35 lg:j-mt-30 lg:j-gap-y-10 xl:a-mt-30 xl:a-gap-y-10">
+              <div class="w-full h-80 rounded-full lg:j-h-44 xl:a-h-44 bg-[#EEE] skeleton"></div>
+              {% if customer.id == blank %}
+                <div class="w-full h-80 rounded-full lg:j-h-44 xl:a-h-44 bg-[#EEE] skeleton"></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </li>
+      <li
+        class="
+          w-full flex-center flex-col rounded-16
+          lg:j-w-388 lg:j-pt-5 lg:j-rounded-8
+          xl:a-w-388 xl:a-pt-5 xl:a-rounded-8 bg-transparent overflow-hidden
+          {% if customer.id == blank %} h-962 lg:j-h-583 xl:a-h-583 {% else %} h-962 lg:j-h-539 xl:a-h-539 {% endif %}
+        "
+        data-animation-dom
+      >
+        <div class="w-full h-415 lg:j-h-240 xl:a-h-240 bg-[#EEE] skeleton"></div>
+        <div class="w-full flex-1 h-full flex items-start justify-between flex-col px-40 pt-20 py-48 bg-white lg:j-pt-8 lg:j-pb-22 lg:j-px-24 xl:a-pt-8 xl:a-pb-22 xl:a-px-24">
+          <div class="w-full">
+            <div class="w-full h-46 lg:j-h-28 xl:a-h-28 bg-[#EEE] skeleton"></div>
+            <div class="w-3/4 h-36 mt-20 lg:j-h-24 lg:j-mt-8 xl:a-h-24 xl:a-mt-8 bg-[#EEE] skeleton"></div>
+          </div>
+          <div class="w-full">
+            <div class="w-full flex items-center">
+              <div class="w-1/2 h-55 lg:j-h-32 xl:a-h-32 bg-[#EEE] skeleton"></div>
+            </div>
+            <div class="w-3/5 mt-25 h-28 lg:j-mt-10 lg:j-h-20 xl:a-mt-10 xl:a-h-20 bg-[#EEE] skeleton"></div>
+            <div class="w-full flex-between flex-col gap-y-20 mt-35 lg:j-mt-30 lg:j-gap-y-10 xl:a-mt-30 xl:a-gap-y-10">
+              <div class="w-full h-80 rounded-full lg:j-h-44 xl:a-h-44 bg-[#EEE] skeleton"></div>
+              {% if customer.id == blank %}
+                <div class="w-full h-80 rounded-full lg:j-h-44 xl:a-h-44 bg-[#EEE] skeleton"></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </li>
+      <li
+        class="
+          w-full flex-center flex-col rounded-16 pt-10
+          lg:j-w-388 lg:j-pt-5 lg:j-rounded-8
+          xl:a-w-388 xl:a-pt-5 xl:a-rounded-8 bg-transparent overflow-hidden
+          {% if customer.id == blank %} h-962 lg:j-h-583 xl:a-h-583 {% else %} h-962 lg:j-h-539 xl:a-h-539 {% endif %}
+        "
+        data-animation-dom
+      >
+        <div class="w-full h-415 lg:j-h-240 xl:a-h-240 bg-[#EEE] skeleton"></div>
+        <div class="w-full flex-1 h-full flex items-start justify-between flex-col px-40 pt-20 py-48 bg-white lg:j-pt-8 lg:j-pb-22 lg:j-px-24 xl:a-pt-8 xl:a-pb-22 xl:a-px-24">
+          <div class="w-full">
+            <div class="w-full h-46 lg:j-h-28 xl:a-h-28 bg-[#EEE] skeleton"></div>
+            <div class="w-3/4 h-36 mt-20 lg:j-h-24 lg:j-mt-8 xl:a-h-24 xl:a-mt-8 bg-[#EEE] skeleton"></div>
+          </div>
+          <div class="w-full">
+            <div class="w-full flex items-center">
+              <div class="w-1/2 h-55 lg:j-h-32 xl:a-h-32 bg-[#EEE] skeleton"></div>
+            </div>
+            <div class="w-3/5 mt-25 h-28 lg:j-mt-10 lg:j-h-20 xl:a-mt-10 xl:a-h-20 bg-[#EEE] skeleton"></div>
+            <div class="w-full flex-between flex-col gap-y-20 mt-35 lg:j-mt-30 lg:j-gap-y-10 xl:a-mt-30 xl:a-gap-y-10">
+              <div class="w-full h-80 rounded-full lg:j-h-44 xl:a-h-44 bg-[#EEE] skeleton"></div>
+              {% if customer.id == blank %}
+                <div class="w-full h-80 rounded-full lg:j-h-44 xl:a-h-44 bg-[#EEE] skeleton"></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <button
+      class="
+        hidden appearance-none bg-transparent font-medium mt-48 text-30
+        lg:j-text-18 lg:j-px-20 lg:j-mt-32 xl:a-text-18 xl:a-px-20 xl:a-mt-32
+      "
+      style="color:{{ section.settings.section_view_more_or_hide_color }}"
+      data-product-expand-button
+      data-view-more-text="{{ section.settings.section_view_more | escape }}"
+      data-hide-text="{{ section.settings.section_hide | escape }}"
+      data-ga-event="membership_price_user_clicks"
+      data-ga-action="click"
+      data-ga-params-module="{% if section.settings.section_title != blank %}{{ section.settings.section_title }}{% else %}Product Display{% endif %}"
+      data-ga-params-button_name="{{ section.settings.section_view_more | escape }}"
+      data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+    >
+      {{ section.settings.section_view_more | escape }}
+      <jds-icon name="arrow-right" class="iconfont jackery-icon-arrow-right inline-block text-base lg:text-xl -mt-3 -lg:j-mt-3 -xl:a-mt-3 rotate-90"></jds-icon>
+    </button>
+
+  </div>
+</membership-price-product>
+
+<script src="{{ 'section-membership-price-product.min.js' | asset_url }}" defer></script>
+
+{% schema %}
+  {
+    "name": "Membership Price Product",
+    "tag": "section",
+    "class": "section-membership-price section-membership-price-product",
+    "disabled_on": {
+      "templates": ["collection"]
+    },
+    "settings": [
+      {
+        "type": "select",
+        "id": "type",
+        "label": "类型",
+        "default": "independent",
+        "options": [
+          {
+            "value": "embed",
+            "label": "内嵌使用"
+          },
+          {
+            "value": "independent",
+            "label": "独立使用"
+          },
+        ]
+      },
+      {
+        "type": "select",
+        "id": "page_width",
+        "options": [
+          {
+            "value": "section_container",
+            "label": "版心/1200px"
+          },
+          {
+            "value": "section_container_lg",
+            "label": "大版心/1312px"
+          }
+        ],
+        "default": "section_container",
+        "label": "组件宽度"
+      },
+      {
+        "type": "text",
+        "id": "section_id",
+        "label": "Section ID",
+        "info": "和关联的 Anchor ID 保持一致。不能包含空格。【如果是“内嵌使用”，则作为当前页面唯一的handle】"
+      },
+      {"type": "checkbox", "id": "open_swiper", "label": "启用轮播图模式", "default": false},
+      {"type": "checkbox", "id": "mb_colums_2", "label": "移动端两列显示？", "default": false, "info": "关闭则单列显示"},
+      { "type": "number", "id": "pc_padding_top", "label": "上边距PC","default": 100},
+      { "type": "number", "id": "pc_padding_bottom", "label": "下边距PC", "default": 40},
+      { "type": "number", "id": "mb_padding_top", "label": "上边距MB","default": 100 },
+      { "type": "number", "id": "mb_padding_bottom", "label": "下边距MB", "default": 40 },
+      {
+        "type": "color_background",
+        "id": "section_background_color",
+        "label": "Section Background Color",
+        "default": "#FCF7F1"
+      },
+      {
+        "type": "richtext",
+        "id": "section_title",
+        "label": "Section Title【斜体=文案突出】"
+      },
+      {
+        "type": "color",
+        "id": "section_title_color",
+        "label": "Section Title 文案颜色",
+        "default": "#F3702E"
+      },
+      {
+        "type": "color",
+        "id": "section_title_main_color",
+        "label": "Section Title 突出文案颜色",
+        "default": "#fd5000"
+      },
+      {
+        "type": "richtext",
+        "id": "section_sub_title",
+        "label": "Section Sub Title【斜体=文案突出】"
+      },
+      {
+        "type": "color",
+        "id": "section_sub_title_color",
+        "label": "Section Sub Title 文案颜色",
+        "default": "#666666"
+      },
+      {
+        "type": "color",
+        "id": "section_sub_title_main_color",
+        "label": "Section Sub Title 突出文案颜色",
+        "default": "#fd5000"
+      },
+      {
+        "type": "textarea",
+        "id": "section_no_data_text",
+        "label": "Section No Data Text",
+        "info": "版块无内容时的文案",
+        "default": "Membership discounts for related products have been exhausted, so please look forward to the next promotion!"
+      },
+      {
+        "type": "image_picker",
+        "id": "section_no_data_img",
+        "label": "Section No Data Image",
+        "info": "版块无内容时的图片"
+      },
+
+      {
+        "type": "image_picker",
+        "id": "promotional_icon_bg",
+        "label": "Promotional Icon Background Image",
+        "info": "促销角标"
+      },
+      {
+        "type": "text",
+        "id": "promotional_text",
+        "label": "Promotional Text（多语言）",
+        "default": "OFF"
+      },
+      {
+        "type": "text",
+        "id": "member_only_text",
+        "label": "Member-only Text（多语言）",
+        "default": "Member-only",
+        "info": "23个字符以内"
+      },
+      {
+        "type": "text",
+        "id": "non_member_price_text",
+        "label": "Non-Member Price Text（多语言）",
+        "default": "Non-Member Price"
+      },
+      {
+        "type": "text",
+        "id": "preheat_start_time",
+        "label": "预热期开始时间",
+        "info": "格式示例：2026-03-17 00:00:00"
+      },
+      {
+        "type": "text",
+        "id": "preheat_end_time",
+        "label": "预热期结束时间",
+        "info": "格式示例：2026-03-20 23:59:59"
+      },
+      {
+        "type": "text",
+        "id": "product_detail_button",
+        "label": "【商详页按钮】文案（多语言）"
+      },
+      {
+        "type": "color",
+        "id": "product_detail_button_border_color",
+        "label": "【商详页按钮】边框颜色"
+      },
+      {
+        "type": "color",
+        "id": "product_detail_button_color",
+        "label": "【商详页按钮】文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "product_detail_button_bg_color",
+        "label": "【商详页按钮】背景颜色"
+      },
+      {
+        "type": "color",
+        "id": "product_detail_button_hover_color",
+        "label": "【商详页按钮】hover文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "product_detail_button_hover_bg_color",
+        "label": "【商详页按钮】hover背景颜色"
+      },
+      {
+        "type": "text",
+        "id": "add_to_cart_button",
+        "label": "【加购按钮】文案（多语言）"
+      },
+      {
+        "type": "color",
+        "id": "add_to_cart_button_border_color",
+        "label": "【加购按钮】边框颜色"
+      },
+      {
+        "type": "color",
+        "id": "add_to_cart_button_color",
+        "label": "【加购按钮】文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "add_to_cart_button_bg_color",
+        "label": "【加购按钮】背景颜色"
+      },
+      {
+        "type": "color",
+        "id": "add_to_cart_button_hover_color",
+        "label": "【加购按钮】hover文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "add_to_cart_button_hover_bg_color",
+        "label": "【加购按钮】hover背景颜色"
+      },
+      {
+        "type": "text",
+        "id": "buy_at_member_price",
+        "label": "【登录前会员价购买按钮】文案（多语言）",
+        "default": "Buy at Member Price Before"
+      },
+      {
+        "type": "text",
+        "id": "buy_at_member_price_after",
+        "label": "【登录后会员价购买按钮】文案（多语言）",
+        "default": "Buy at Member Price After"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_member_price_color",
+        "label": "【会员价购买按钮】文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_member_price_bg_color",
+        "label": "【会员价购买按钮】背景颜色"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_member_price_hover_color",
+        "label": "【会员价购买按钮】hover文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_member_price_hover_bg_color",
+        "label": "【会员价购买按钮】hover背景颜色"
+      },
+      {
+        "type": "text",
+        "id": "buy_at_non_member_price",
+        "label": "【非会员价购买按钮】文案（多语言）",
+        "default": "Buy at Original Price"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_non_member_price_border_color",
+        "label": "【非会员价购买按钮】边框颜色"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_non_member_price_color",
+        "label": "【非会员价购买按钮】文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_non_member_price_bg_color",
+        "label": "【非会员价购买按钮】背景颜色"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_non_member_price_hover_color",
+        "label": "【非会员价购买按钮】hover文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "buy_at_non_member_price_hover_bg_color",
+        "label": "【非会员价购买按钮】hover背景颜色"
+      },
+      {
+        "type": "text",
+        "id": "learn_more",
+        "label": "【Learn More按钮】文案（多语言）",
+        "default": "Buy at Original Price"
+      },
+      {
+        "type": "color",
+        "id": "learn_more_border_color",
+        "label": "【Learn More按钮】边框颜色"
+      },
+      {
+        "type": "color",
+        "id": "learn_more_color",
+        "label": "【Learn More按钮】文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "learn_more_bg_color",
+        "label": "【Learn More按钮】背景颜色"
+      },
+      {
+        "type": "color",
+        "id": "learn_more_hover_color",
+        "label": "【Learn More按钮】hover文案颜色"
+      },
+      {
+        "type": "color",
+        "id": "learn_more_hover_bg_color",
+        "label": "【Learn More按钮】hover背景颜色"
+      },
+      {
+        "type": "text",
+        "id": "section_view_more",
+        "label": "View More Text（多语言）",
+        "default": "View More"
+      },
+      {
+        "type": "text",
+        "id": "section_hide",
+        "label": "Hide Text（多语言）",
+        "default": "Hide"
+      },
+      {
+        "type": "color",
+        "id": "section_view_more_or_hide_color",
+        "label": "View More / Hide 文案颜色",
+        "default": "#fd5000"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_skeleton",
+        "label": "是否显示骨架屏占位",
+        "default": false,
+        "info": "配置时不建议开启，上线后建议开启，可以优化商品显示"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_current_price",
+        "label": "是否显示现价",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_line_price",
+        "label": "是否显示划线价",
+        "default": true
+      }
+    ],
+    "blocks": [
+      {
+        "name": "Product Item",
+        "type": "product_item",
+        "settings": [
+          {
+            "type": "select",
+            "id": "item_display_style",
+            "label": "Item Display Style",
+            "options": [
+              {
+                "value": "full_row",
+                "label": "一行1个"
+              },
+              {
+                "value": "card",
+                "label": "一行3个"
+              },
+              {
+                "value": "card_four",
+                "label": "一行4个"
+              }
+            ],
+            "default": "card"
+          },
+          {
+            "type": "product",
+            "id": "product",
+            "label": "Product"
+          },
+          {
+            "type": "text",
+            "id": "skuId",
+            "label": "Product Sku *"
+          },
+          {
+            "type": "image_picker",
+            "id": "product_img",
+            "label": "Product Image"
+          },
+          {
+            "type": "textarea",
+            "id": "product_title",
+            "label": "Product Title"
+          },
+          {
+            "type": "textarea",
+            "id": "product_description",
+            "label": "Product Description"
+          },
+          {
+            "type": "paragraph",
+            "content": "必须同时配置预热期会员价和非会员价才会展示预热期价格逻辑"
+          },
+          {
+            "type": "number",
+            "id": "preheat_member_price",
+            "label": "预热期会员价（分）",
+            "info": "按分填写，例如 19999 表示 $199.99"
+          },
+          {
+            "type": "number",
+            "id": "preheat_non_member_price",
+            "label": "预热期非会员价（分）",
+            "info": "按分填写，例如 24999 表示 $249.99"
+          },
+          {
+            "type": "url",
+            "id": "learn_more_link",
+            "label": "Learn More跳转链接"
+          },
+          {
+            "type": "url",
+            "id": "product_detail_link",
+            "label": "商详页按钮跳转链接"
+          }
+        ]
+      }
+    ],
+    "presets": [{
+      "name": "Membership Price Product"
+    }]
+  }
+{% endschema %}

@@ -1,0 +1,209 @@
+<section class="stories-collection-gallery section-stories-gallery w-full px-48 lg:j-w-1376 mx-auto lg:j-px-0 xl:a-w-1376 xl:a-px-0" data-stories-sort="{{ section.settings.stories_sort }}">
+  {% if section.settings.stories_title != blank %}
+    <div class="stories-collection-gallery-title stories-title">
+      {{ section.settings.stories_title }}
+    </div>
+  {% endif %}
+
+  <div class="stories-collection-gallery-body story-body mb-120 lg:j-mb-96 xl:a-mb-96">
+    {%- assign is_has_hot = false -%}
+    {%- for block in section.blocks -%}
+      {%- if block.settings.is_hot -%}
+        {%- assign is_has_hot = true -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+    
+    {%- comment -%} 精选卡片区域：最多 3 条 is_hot = true {%- endcomment -%}
+    {%- if is_has_hot -%}
+      <div class="featured-items w-full flex flex-wrap gap-40 lg:j-gap-24 xl:a-gap-24">
+        {% assign featured_ids = '' %}
+        {% assign featured_count = 0 %}
+        {%- for block in section.blocks -%}
+          {%- if block.settings.is_hot and featured_count < 3 -%}
+            {% render 'stories-gallery-card', is_hot: true, block: block, class: 'lg:j-w-442 xl:a-w-442' %}
+            {% assign featured_count = featured_count | plus: 1 %}
+            {% assign featured_ids = featured_ids | append: ',' | append: block.id %}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} 计算所有 stories 和 films 的数量（包括精选和普通） {%- endcomment -%}
+    {% assign total_stories_count = 0 %}
+    {% assign total_films_count = 0 %}
+    {% for block in section.blocks %}
+      {% assign block_type = block.settings.type | default: '1' %}
+      {% if block_type == '1' or block_type == '2' %}
+        {% assign total_stories_count = total_stories_count | plus: 1 %}
+      {% elsif block_type == '3' %}
+        {% assign total_films_count = total_films_count | plus: 1 %}
+      {% endif %}
+    {% endfor %}
+
+    {%- comment -%} 只有当 stories 或 films 有数据时才显示 tab 切换 {%- endcomment -%}
+    {% if total_stories_count > 0 and total_films_count > 0 %}
+      <div class="story-tab w-full">
+        <div class="story-tab-item">
+            <div class="stories-item story-tab-text active">{{ 'stories.article.stories' | t }}</div>
+            <div class="films-item story-tab-text{% unless total_stories_count > 0 %} active{% endunless %}">{{ 'stories.article.films' | t }}</div>
+        </div>
+        <div class="story-order">
+          <div class="order-text">{{ 'stories.article.sort' | t }}</div>
+          <div class="order-text-select">
+            <div class="custom-select" id="story-order-select">
+              <div class="select-trigger-box">
+                <div class="select-trigger">{{ 'stories.article.ascend' | t }}</div>
+                <jds-icon name="arrow-down" class="order-icon"></jds-icon>
+              </div>
+              <ul class="select-options">
+                <li data-value="asc" class="active">{{ 'stories.article.ascend' | t }}</li>
+                <li data-value="desc">{{ 'stories.article.descend' | t }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {%- comment -%} 普通卡片区域：显示未出现在精选区域的 block {%- endcomment -%}
+    {%- comment -%} 计算普通区域的卡片数量 {%- endcomment -%}
+    {% assign normal_stories_count = 0 %}
+    {% assign normal_films_count = 0 %}
+    {% for block in section.blocks %}
+      {% unless featured_ids contains block.id %}
+        {% if block.settings.type == '1' or block.settings.type == '2' %}
+          {% assign normal_stories_count = normal_stories_count | plus: 1 %}
+        {% elsif block.settings.type == '3' %}
+          {% assign normal_films_count = normal_films_count | plus: 1 %}
+        {% endif %}
+      {% endunless %}
+    {% endfor %}
+
+    {%- comment -%} 当普通区域没有卡片时显示居中的缺失图 {%- endcomment -%}
+    {% if section.settings.no_card_image != blank %}
+      {% if normal_stories_count == 0 %}
+        <div class="no-card-container no-card-container--stories w-full flex justify-center items-center py-20">
+          <div class="no-card-image text-center">
+            <img src="{{ section.settings.no_card_image | image_url }}" alt="No stories available" loading="lazy" class="mx-auto no-card-img">
+          </div>
+        </div>
+      {% endif %}
+      {% if normal_films_count == 0 %}
+        <div class="no-card-container no-card-container--films w-full flex justify-center items-center py-20">
+          <div class="no-card-image text-center">
+            <img src="{{ section.settings.no_card_image | image_url }}" alt="No films available" loading="lazy" class="mx-auto no-card-img">
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+
+    {%- comment -%} 只有当有卡片时才显示flex布局 {%- endcomment -%}
+    {% if normal_stories_count > 0 or normal_films_count > 0 %}
+      <div class="stories-gallery-items normal-items w-full flex flex-wrap gap-40 lg:j-gap-24 xl:a-gap-24">
+        {%- comment -%} 根据 stories_sort 配置决定渲染顺序 {%- endcomment -%}
+        {% if section.settings.stories_sort %}
+          {%- comment -%} 反序渲染：从后到前 {%- endcomment -%}
+          {%- comment -%} Stories：type = 1 或 2 {%- endcomment -%}
+          {% for block in section.blocks reversed %}
+            {% unless featured_ids contains block.id %}
+              {% if block.settings.type == '1' or block.settings.type == '2' %}
+                <div class="story-card-item story-card-item--stories w-full lg:w-fit">
+                  {% render 'stories-gallery-card', is_hot: false, block: block, class: 'lg:j-w-442 xl:a-w-442' %}
+                </div>
+              {% endif %}
+            {% endunless %}
+          {% endfor %}
+
+          {%- comment -%} Films：type = 3 {%- endcomment -%}
+          {% for block in section.blocks reversed %}
+            {% unless featured_ids contains block.id %}
+              {% if block.settings.type == '3' %}
+                <div class="story-card-item story-card-item--films w-full lg:w-fit" style="display: none;">
+                  {% render 'stories-gallery-card', is_hot: false, block: block, class: 'lg:j-w-442 xl:a-w-442' %}
+                </div>
+              {% endif %}
+            {% endunless %}
+          {% endfor %}
+        {% else %}
+          {%- comment -%} 正序渲染：从前到后 {%- endcomment -%}
+          {%- comment -%} Stories：type = 1 或 2 {%- endcomment -%}
+          {% for block in section.blocks %}
+            {% unless featured_ids contains block.id %}
+              {% if block.settings.type == '1' or block.settings.type == '2' %}
+                <div class="story-card-item story-card-item--stories w-full lg:w-fit">
+                  {% render 'stories-gallery-card', is_hot: false, block: block, class: 'lg:j-w-442 xl:a-w-442' %}
+                </div>
+              {% endif %}
+            {% endunless %}
+          {% endfor %}
+
+          {%- comment -%} Films：type = 3 {%- endcomment -%}
+          {% for block in section.blocks %}
+            {% unless featured_ids contains block.id %}
+              {% if block.settings.type == '3' %}
+                <div class="story-card-item story-card-item--films w-full lg:w-fit" style="display: none;">
+                  {% render 'stories-gallery-card', is_hot: false, block: block, class: 'lg:j-w-442 xl:a-w-442' %}
+                </div>
+              {% endif %}
+            {% endunless %}
+          {% endfor %}
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+
+{% schema %}
+{
+    "name": "Stories Gallery",
+    "class": "section-stories-collection section-stories-gallery",
+    "settings": [
+      {"type": "checkbox", "id": "stories_sort", "label": "排序", "info": "默认故事列表从前到后，开启则是故事列表倒序从后到前"},
+      {"type": "text", "id": "stories_title", "label": "组件主标题"},
+      {"type": "image_picker", "id": "no_card_image", "label": "缺失图", "info": "pc:1376x256 mb:654x600"}
+    ],
+    "blocks": [
+        {
+            "type": "collection_gallery", "name": "Collection Gallery",
+            "settings": [
+                {"type": "text", "id": "gallery_item_tag", "label": "Gallery Item Tag"},
+                {"type": "textarea", "id": "gallery_item_title", "label": "Gallery Item Title"},
+                {"type": "textarea", "id": "gallery_item_subtitle", "label": "Gallery Item Sub Title"},
+                {"type": "textarea", "id": "gallery_item_description", "label": "Gallery Item Description"},
+                {"type": "image_picker", "id": "gallery_item_image", "label": "Gallery Item Image"},
+                {"type": "url", "id": "gallery_item_link", "label": "Gallery Item Link"},
+                {"type": "text", "id": "read_num", "label": "阅读/观看时间", "info": "示例：3MIN"},
+                {"type": "text", "id": "play_time", "label": "播放时间", "info": "例：00:00"},
+                {
+                  "type": "select",
+                  "id": "type",
+                  "label": "卡片类型",
+                  "default": "1",
+                  "options": [
+                    {
+                      "value": "1",
+                      "label": "图文"
+                    },
+                    {
+                      "value": "2",
+                      "label": "音频"
+                    },
+                    {
+                      "value": "3",
+                      "label": "视频"
+                    }
+                  ]
+                },
+                {"type": "checkbox", "id": "is_hot", "label": "是否精选", "default": false}
+            ]
+        }
+    ],
+    "presets": [
+        {
+            "name": "Stories Collection Gallery section"
+        }
+    ]
+}
+{% endschema %}

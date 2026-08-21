@@ -1,0 +1,109 @@
+{% assign stepItems = section.blocks | where: 'type', "old_invite_new_step_item" %}
+
+{% if stepItems.size > 0 %}
+  {{ 'section-old-invite-new-steps.min.css' | asset_url | stylesheet_tag }}
+
+  <section
+    class="steps-invite flex-center flex-col px-30 pt-56 pb-120 lg:j-pt-50 lg:j-pb-125 xl:a-pt-56 xl:a-pb-125 bg-white"
+    data-old-invite-new-steps  anchor="{{ section.settings.anchor | escape }}"
+  >
+
+    {%- if section.settings.title != blank -%}
+    <div class="module-title">
+      <h2 class="steps-title w-full text-center font-semibold leading-none text-44 leading-56 mb-70 lg:j-max-w-800 lg:j-text-48 lg:j-leading-60 lg:j-mb-40 xl:a-max-w-800 xl:a-text-48 lg:j-leading-60 xl:a-mb-40"
+              data-animation-dom>
+        {{ section.settings.title | newline_to_br }}
+      </h2>
+      {%- if section.settings.button_text != blank -%}
+        <a class="pc-block" target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ section.settings.url }}">
+          <button class="index-button">
+            <span>{{ section.settings.button_text | escape}}</span>
+            <div>
+              <div class="arrow">
+                <svg class="prefix__line" width="20" height="15" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12.708 0H9.063L15 6.026H0v2.431h15l-5.937 6.026h3.645L20 7.294z" class="svg-arrow" fill="#FFF" fill-rule="nonzero" />
+                </svg>
+              </div>
+            </div>
+          </button>
+        </a>
+      {%- endif -%}
+    </div>
+    {%- endif -%}
+    <ol class="flex items-start justify-start flex-wrap gap-y-60 lg:items-stretch lg:justify-center lg:gap-y-0 lg:j-gap-x-20 xl:a-gap-x-20">
+      {% for block in stepItems %}
+        <li
+          class="steps-item
+            focus-zoom-container flex items-start justify-start flex-row gap-x-30 lg:grid lg:place-items-center lg:content-start lg:items-center lg:flex-col lg:j-w-285 lg:j-px-12 lg:j-py-20 xl:a-w-285 xl:a-px-12 xl:a-py-20 relative
+            after:hidden after:lg:block after:content-['>'] after:absolute after:-lg:j-right-17 after:-xl:a-right-17 after:lg:j-top-78 after:xl:a-top-78 after:text-#97979780 after:lg:j-text-28 after:xl:a-text-28 after:scale-y-125 after:leading-none
+            last-of-type:after:hidden
+          "
+          style="grid-template-columns:100%"
+          data-animation-dom
+        >
+          <img class="steps-img focus-zoom w-150 h-150 lg:j-w-140 lg:j-h-140 xl:a-w-140 xl:a-h-140 object-cover" src="{{ block.settings.step_icon | image_url: width: 280 }}" alt="" loading="lazy" width="280" height="280">
+          <div class="old-invite-new-step-item flex-1 flex items-start justify-start lg:items-center lg:justify-center flex-col">
+            <h3 class="step-item-title font-semibold text-#1A1A1A text-32 leading-none line-clamp-1 mt-12 lg:j-mt-36 lg:j-text-24 xl:a-mt-36 xl:a-text-24" title="{{ block.settings.step_title | escape }}">
+              {{ block.settings.step_title | escape }}
+            </h3>
+            {{ block.settings.step_content | newline_to_br }}
+            {% if block.settings.step_button_text != blank %}
+              <button
+                class="appearance-none bg-transparent font-semibold lg:font-medium text-primary lg:text-#1A1A1A hover:text-primary transition-color duration-300 underline underline-offset-2 lg:underline-offset-3 text-30 mt-20 lg:j-text-16 lg:j-mt-20 xl:a-text-16 xl:a-mt-20"
+                data-link-url="{{block.settings.step_button_link}}"
+                data-module-title="{{ section.settings.title | escape }}"
+                data-index="{{ forloop.index0 }}"
+                data-old-invite-new-link-button
+              >{{ block.settings.step_button_text | escape }}</button>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+    <a target="{% if section.settings.new_window %}_blank{% else %}_self{% endif %}" href="{{ section.settings.url }}">
+      <div class="content mb-content">
+        <div>
+          <div class="link"> {{ section.settings.button_text | escape}} </div>
+        </div>
+        <svg class="prefix__mobile-block" width="20" height="15" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.708 0H9.063L15 6.026H0v2.431h15l-5.937 6.026h3.645L20 7.294z" fill="var(--jds-color-primary)" fill-rule="nonzero" />
+        </svg>
+      </div>
+    </a>
+  </section>
+
+  <script defer src="{{ 'section-old-invite-new-steps.min.js' | asset_url }}"></script>
+{% endif %}
+
+
+{% schema %}
+  {
+    "name": "Old Invite New Steps",
+    "class": "section-old-invite-new section-old-invite-new-steps",
+    "settings": [
+      { "type": "text", "id": "anchor", "label": "二级标题定位锚点", "info": "搭配二级导航锚点定位未使用到定位则不配置" },
+      {"type": "text", "id": "title", "label": "Steps Title", "default": "How does it work?"},
+      { "type": "checkbox", "id": "new_window", "label": "新开标签", "default": false },
+      { "type": "text", "id": "button_text", "label": "按钮文案" },
+      { "type": "url", "id": "url", "label": "跳转地址" }
+    ],
+    "blocks": [
+      {
+        "type": "old_invite_new_step_item",
+        "name": "Step Item",
+        "limit": 4,
+        "settings": [
+          {"type": "image_picker", "id": "step_icon", "label": "Step Icon"},
+          {"type": "text", "id": "step_title", "label": "Step title", "default": "Step 1"},
+          {"type": "richtext", "id": "step_content", "label": "Step content", "default": "<p></p>"},
+          {"type": "text", "id": "step_button_text", "label": "Step Button Text"},
+          {"type": "url", "id": "step_button_link", "label": "Step Button Link", "info": "在配置了Button Text的情况下，如果没有配置Button Link，则默认锚回顶部；\n如果配置了Button Link，则跳Button Link链接"}
+        ]
+      }
+    ],"presets": [
+    {
+      "name": "老带新 / 合作案例"
+    }
+  ]
+  }
+{% endschema %}

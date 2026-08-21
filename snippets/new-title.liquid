@@ -1,0 +1,92 @@
+{% comment %}
+    1: title：标题
+    2: type: 类型 （新增一个档位，中档为原来的小档，中档为默认值）
+        0: 小档
+        1: 中档
+        2: 大档
+        3: 自定义
+        注释：所有padding是再括号之外，所需加上括号的top/bottom值pc端上加40，下加32。
+             移动端需要加上高度56，下高度66
+    3: color: 文本颜色
+    4：bgColor: 初始背景色
+    5: class: 类名
+    例子: {% render 'new-title', color: '#000', bgColor: '#ffffff', title: 'jackery', type: '1' %}
+{% endcomment %}
+{%- style -%}
+    .title-snippet.title-snippet-small {padding: 88px 0 80px;}
+    .title-snippet.title-snippet-big {padding: 136px 0 128px;}
+    .title-snippet.title-snippet-middle {padding: 112px 0 104px;}
+    .title-snippet.title-snippet-custom {padding-top: var(--pc-padding-top);padding-bottom: var(--pc-padding-bottom);}
+    .title-snippet .title-container .text {max-width: 1000px;color: #1a1a1a;letter-spacing: -1px;font-size: 48px;line-height: 58px;}
+    .title-snippet .title-container .overlay .box {transition: all .6s cubic-bezier(.8, 0, .2, 1);}
+    .title-snippet .title-container .overlay .right {transform: translateY(-50%);}
+    .title-snippet .title-container .overlay .top-left {width: 38px;top: calc(50% - 46px);left: calc(50% - 52px);transition: all .6s cubic-bezier(.8, 0, .2, 1);}
+    .title-snippet .title-container .overlay .bottom-right {width: 50px;bottom: calc(50% - 46px);right: calc(50% - 50px);transition: all .6s cubic-bezier(.8, 0, .2, 1);}
+    .title-snippet .title-container .overlay .kong {translate: -50% -50%;transition: all 3s cubic-bezier(.8, 0, .2, 1);}
+    .title-snippet.title-snippet-show .title-container .overlay .top,
+    .title-snippet.title-snippet-show .title-container .overlay .bottom {height: 0;}
+    .title-snippet.title-snippet-show .title-container .overlay .left,
+    .title-snippet.title-snippet-show .title-container .overlay .right {width: 0;height: 100%;}
+    .title-snippet.title-snippet-show .title-container .overlay .top-left {top: -40px;left: -52px;}
+    .title-snippet.title-snippet-show .title-container .overlay .bottom-right {bottom: -34px;right: -54px;}
+
+    @media screen and (max-width: 1440px) {
+        .title-snippet.title-snippet-small {padding: 6.111111vw 0 5.5555557vw;}
+        .title-snippet.title-snippet-middle {padding: 9.444444vw 0 8.8888889vw;}
+        .title-snippet.title-snippet-big {padding: 7.7777778vw 0 7.222222vw;}
+        .title-snippet.title-snippet-custom {padding-top: var(--pc-padding-bottom-m);padding-bottom: var(--pc-padding-bottom-m);}
+        .title-snippet .title-container .text {max-width: 69.44444444vw;font-size: 3.33333333333333vw;line-height: 4.02777777777778vw;}
+        .title-snippet .title-container .overlay .top-left {width: 38px;top: calc(50% - (46 * .06944444vw));left: calc(50% - (52 * .06944444vw));}
+        .title-snippet .title-container .overlay .bottom-right {width: 3.47222222vw;bottom: calc(50% - (46 * .06944444vw));right: calc(50% - (50 * .06944444vw));}
+        .title-snippet.title-snippet-show .title-container .overlay .top-left {top: -2.77777778vw;left: -3.61111111vw;}
+        .title-snippet.title-snippet-show .title-container .overlay .bottom-right {bottom: -2.36111111vw;right: -3.75vw;}
+    }
+
+    @media screen and (max-width: 1024px) {
+        .title-snippet.title-snippet-small {padding: 20.266667vw 0 21.6vw;}
+        .title-snippet.title-snippet-middle {padding: 24.5333333vw 0 25.6666667vw;}
+        .title-snippet.title-snippet-big {padding: 28.8vw 0 30.1333333vw;}
+        .title-snippet.title-snippet-custom {padding-top: var(--mb-padding-top);padding-bottom: var(--mb-padding-bottom);}
+        .title-snippet .title-container .text {font-size: 8.53333333vw;line-height: 10.66666667vw;max-width: 66.66666667vw;}
+        .title-snippet .title-container .overlay .top-left {width: 6.66666667vw;top: calc(50% - (50 * .13333333vw));left: calc(50% - (56 * .13333333vw));}
+        .title-snippet .title-container .overlay .bottom-right {width: 9.6vw;bottom: calc(50% - (50 * .13333333vw));right: calc(50% - (72 * .13333333vw));}
+        .title-snippet.title-snippet-show .title-container .overlay .top-left {top: -7.46666667vw;left: -10.4vw;}
+        .title-snippet.title-snippet-show .title-container .overlay .bottom-right {bottom: -9.6vw;right: -10.4vw;}
+    }
+{%- endstyle -%}
+
+{% assign type_class = '' %}
+{% case type %}
+    {% when '0' %}{% assign type_class = 'title-snippet-small' %}
+    {% when '1' %}{% assign type_class = 'title-snippet-middle' %}
+    {% when '2' %}{% assign type_class = 'title-snippet-big' %}
+    {% when '3' %}{% assign type_class = 'title-snippet-custom' %}
+{% endcase %}
+
+<jky-animate-title class="title-snippet block {{ type_class }} {{class}}" style="background: {{ bgColor | escape}};--pc-padding-top:{{ settings.pc_padding_top }}px;--pc-padding-bottom:{{ settings.pc_padding_bottom }}px;--pc-padding-top-m:{{ settings.pc_padding_top | divided_by: 14.4 }}vw;--pc-padding-bottom-m:{{ settings.pc_padding_bottom | divided_by: 14.4 }}vw;--mb-padding-top:{{ settings.mb_padding_top | divided_by: 7.5 }}vw;--mb-padding-bottom:{{ settings.mb_padding_bottom | divided_by: 7.5  }}vw;">
+    <div class="title-container mx-auto w-fit flex items-center justify-center text-center relative">
+      <h2 class="text flex items-center justify-center font-semibold w-auto h-auto v5-font-oxm" style="color: {{ color | escape}};">{{ title }}</h2>
+      <div class="overlay absolute inset-0 z-[1]">
+        <div class="box top absolute pointer-events-none bg-white left-0 w-full h-1/2 top-0" style="background-color: {{ bgColor | escape}};"></div>
+        <div class="box left absolute pointer-events-none bg-white left-0 top1/2 w-1/2 h-full" style="background-color: {{ bgColor | escape}};"></div>
+        <div class="kong absolute left-1/2 top-1/2 w-0 h-0 bg-transparent pointer-events-none"></div>
+        <div class="box right absolute pointer-events-none bg-white top-1/2 w-1/2 h-full right-0" style="background-color: {{ bgColor | escape}};"></div>
+        <div class="box bottom absolute pointer-events-none bg-white bottom-0 left-0 w-full h-1/2" style="background-color: {{ bgColor | escape}};"></div>
+        <svg class="top-left absolute z-[2]" width="34" height="56" viewBox="0 0 34 56">
+          <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+              <g transform="translate(-465.000000, -5850.000000)" fill="var(--jds-color-primary)">
+                  <path d="M499,5850 L499,5864.31756 C494.302527,5864.31756 490.11706,5864.31756 486.443599,5864.31756 C480.933408,5864.31756 479.462853,5868.32561 479.462853,5872.88588 C479.462853,5875.92605 479.462853,5886.96409 479.462853,5906 L465,5906 C465,5891.74214 465,5880.7041 465,5872.88588 C465,5861.15854 473.887198,5850 486.443599,5850 C494.814533,5850 499,5850 499,5850 Z" id="路径-4备份-5"></path>
+              </g>
+          </g>
+        </svg>
+        <svg class="bottom-right absolute z-[2]" width="46" height="66" viewBox="0 0 46 66">
+          <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+              <g transform="translate(-1410.000000, -5877.000000)" fill="var(--jds-color-primary)">
+                  <path d="M1456,5877 L1456,5890.07651 C1442.47352,5890.07651 1433.95828,5890.07651 1430.4543,5890.07651 C1425.19832,5890.07651 1423.79561,5893.73714 1423.79561,5897.90212 C1423.79561,5900.67877 1423.79561,5915.7114 1423.79561,5943 L1410,5943 C1410,5920.07528 1410,5905.04266 1410,5897.90212 C1410,5887.19132 1418.47719,5877 1430.4543,5877 C1438.43904,5877 1446.95427,5877 1456,5877 Z" id="路径-4备份-8" transform="translate(1433.000000, 5910.000000) rotate(180.000000) translate(-1433.000000, -5910.000000) "></path>
+              </g>
+          </g>
+      </svg>
+      </div>
+    </div>
+</jky-animate-title>
+<script src="{{ 'snippets-new-title.js' | asset_url }}" defer></script>

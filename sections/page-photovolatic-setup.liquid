@@ -1,0 +1,121 @@
+
+{% assign videoItems = section.blocks | where: 'type', 'video_item' %}
+
+<section class="w-full flex-center flex-col">
+  <div class="photovolatic-setup-wrapper w-full flex-center flex-col px-40 py-64 lg:px-0 lg:j-w-1280 lg:j-py-75 xl:a-w-1280 xl:a-py-75 bg-white">
+      <h2 class="w-full text-left lg:text-center font-600 text-#222226 mb-16 text-52 leading-68 lg:j-px-40 xl:a-px-40 lg:j-text-40 lg:j-leading-64 lg:j-mb-24 xl:a-text-40 xl:a-leading-64 xl:a-mb-24">
+        {{ section.settings.title | newline_to_br }}
+      </h2>
+      <div class="font-500 text-#222226/60 text-32 text-left leading-40 mb-40 lg:text-center lg:j-px-40 lg:j-text-18 lg:j-leading-24 lg:j-mb-32 xl:a-px-40 xl:a-text-18 xl:a-leading-24 xl:a-mb-32">
+        {{ section.settings.description | newline_to_br }}
+      </div>
+      <ul class="photovolatic-setup-wrap w-full flex flex-wrap gap-40 lg:j-gap-x-20 lg:j-gap-y-24 xl:a-gap-x-20 xl:a-gap-y-24">
+        {% for block in videoItems %}
+          <li class="w-full lg:j-w-630 xl:a-w-630">
+            {% if block.settings.video_url != blank %}
+              <div
+                class="w-full h-384 rounded-24 lg:j-w-630 lg:j-h-356 lg:j-rounded-12 xl:a-w-630 xl:a-h-356 xl:a-rounded-12 relative bg-black overflow-hidden"
+                data-jky-video
+                data-section-title="{{ section.settings.title | escape }}"
+                data-video-url="{{ block.settings.video_url }}"
+                data-poster="{{ block.settings.poster }}"
+                data-index="{{ forloop.index0 }}"
+                data-video-title="{{ block.settings.video_title | escape }}"
+              >
+                {%
+                  render 'jky-video',
+                    poster: block.settings.poster,
+                    video_url: block.settings.video_url,
+                    autoplay: false,
+                    loop: block.settings.loop,
+                    controls: block.settings.controls
+                %}
+              </div>
+            {% else %}
+              <div
+                class="w-full h-384 rounded-24 lg:j-w-630 lg:j-h-356 lg:j-rounded-12 xl:a-w-630 xl:a-h-356 xl:a-rounded-12 relative bg-black overflow-hidden"
+                data-jky-video
+                data-section-title="{{ section.settings.title | escape }}"
+                data-video-url="{{ block.settings.video_url }}"
+                data-poster="{{ block.settings.poster }}"
+                data-index="{{ forloop.index0 }}"
+                data-video-title="{{ block.settings.video_title | escape }}"
+              >
+                {% comment %} image {% endcomment %}
+                {% render 'responsive-image',
+                  image: block.settings.poster,
+                  mimage: block.settings.poster,
+                  image_class: 'w-full h-full object-cover rounded-24 lg:j-rounded-12 xl:a-rounded-12'
+                %}
+              </div>
+            {% endif %}
+
+            <div class="photovolatic-video-title font-600 text-#222226 text-40 leading-52 mt-32 mb-24 lg:j-text-28 lg:j-leading-36 lg:j-mt-24 lg:j-mb-32 xl:a-text-28 xl:a-leading-36 xl:a-mt-24 xl:a-mb-32 z-3">
+              {{ block.settings.video_title | newline_to_br }}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+  </div>
+</section>
+
+
+{% schema %}
+  {
+    "name": "photovolatic Setup",
+    "class": "section-photovolatic section-photovolatic-setup",
+    "presets": [
+      {
+        "name": "photovolatic Setup",
+        "category": "光伏安装"
+      }
+    ],
+    "settings": [
+      {
+        "type": "textarea",
+        "id": "title",
+        "label": "Title",
+        "default": "How to Set up Your Balcony Power Plant？"
+      },
+      {
+        "type": "richtext",
+        "id": "description",
+        "label": "Description"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "video_item",
+        "name": "Video item",
+        "limit": 6,
+        "settings": [
+          {
+            "type": "text",
+            "id": "video_title",
+            "label": "Video Title"
+          },
+          {"type": "image_picker", "id": "poster", "label": "封面图片"},
+          {
+            "type": "url",
+            "id": "video_url",
+            "label": "视频地址",
+            "info": "本地视频建议视频大小不超过20MB"
+          },
+          {
+            "type": "checkbox",
+            "id": "loop",
+            "label": "循环播放？",
+            "default": false,
+            "info": "开启后，按顺序播放功能将失效"
+          },
+          {
+            "type": "checkbox",
+            "id": "controls",
+            "label": "显示播放控件？",
+            "default": true
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

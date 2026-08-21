@@ -1,0 +1,246 @@
+
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+<div style="background: {{ section.settings.bg_color | default: 'transparent' }};">
+<div
+    class="ehb-img-table {{section.settings.page_width}} section-padding"
+    {% if section.settings.anchor != blank %}anchor-target="{{section.settings.anchor | escape}}"{% endif %}
+    style="{{ style }}"
+>
+    <div
+        class="img-block w-full relative hidden lg:block"
+        {% if section.settings.pc_img != blank %}style="padding-bottom: {{1 | divided_by: section.settings.pc_img.aspect_ratio | times: 100.00}}%;"{% endif %}
+    >
+        {%- if section.settings.pc_img != blank -%}
+            <img
+                class="absolute inset-0 object-cover w-full image-lazy-loading"
+                style="aspect-ratio: {{section.settings.pc_img.aspect_ratio}} / 1"
+                src="{{section.settings.pc_img | image_url: width: 10}}"
+                alt="{{section.settings.pc_img.alt}}"
+                loading="lazy"
+                width="{{ section.settings.pc_img.width }}"
+                height="{{ section.settings.pc_img.height }}"
+                data-srcset="
+                    {{ section.settings.pc_img | image_url: width: 1024 }} 1024w,
+                    {{ section.settings.pc_img | image_url: width: 1280 }} 1280w,
+                    {{ section.settings.pc_img | image_url: width: 1440 }} 1440w,
+                    {{ section.settings.pc_img | image_url: width: 1920 }} 1920w
+                "
+            />
+        {%- else -%}
+            {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg placeholder w-full h-full object-cover' }}
+        {%- endif -%}
+    </div>
+
+        <div class="ehb-table-inner w-full overflow-x-auto flex lg:hidden" style="height: {{section.settings.mb_height | divided_by: 32.00}}rem;">
+            {% if section.settings.mb_img_header != blank or section.settings.mb_img != blank %}
+                {%- if section.settings.mb_img_header != blank -%}
+                    <img
+                        class="object-contain h-full sticky left-0 z-10 image-lazy-loading"
+                        src="{{section.settings.mb_img_header | image_url: width: 10}}"
+                        alt="{{section.settings.mb_img_header.alt}}"
+                        loading="lazy"
+                        width="{{ section.settings.mb_img_header.width }}"
+                        height="{{ section.settings.mb_img_header.height }}"
+                        data-srcset="
+                            {{ section.settings.mb_img_header | image_url: width: 375 }} 375w,
+                            {{ section.settings.mb_img_header | image_url: width: 414 }} 414w,
+                            {{ section.settings.mb_img_header | image_url: width: 600 }} 600w,
+                            {{ section.settings.mb_img_header | image_url: width: 990 }} 990w
+                        "
+                    />
+                {%- endif -%}
+
+                {%- if section.settings.mb_img != blank -%}
+                    <img
+                        class="object-contain h-full max-w-max image-lazy-loading"
+                        src="{{section.settings.mb_img | image_url: width: 3840}}"
+                        alt="{{section.settings.mb_img.alt}}"
+                        loading="lazy"
+                        width="{{ section.settings.mb_img.width }}"
+                        height="{{ section.settings.mb_img.height }}"
+                        data-srcset="
+                            {{ section.settings.mb_img | image_url: width: 375 }} 375w,
+                            {{ section.settings.mb_img | image_url: width: 414 }} 414w,
+                            {{ section.settings.mb_img | image_url: width: 600 }} 600w,
+                            {{ section.settings.mb_img | image_url: width: 990 }} 990w
+                        "
+                    />
+                {%- endif -%}
+            {% else %}
+                {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg placeholder w-full h-full object-cover' }}
+            {% endif %}
+        </div>
+</div>
+</div>
+{% schema %}
+{
+    "name": "EHB table",
+    "class": "ehb-table-picture",
+    "settings": [
+        { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {
+          "type": "image_picker",
+          "id": "pc_img",
+          "label": "PC图片"
+        },
+
+        {
+          "type": "image_picker",
+          "id": "mb_img",
+          "label": "MB图片"
+        },
+        {
+          "type": "image_picker",
+          "id": "mb_img_header",
+          "label": "MB固定栏图片"
+        },
+
+        { "type": "header", "content": "组件样式配置" },
+        {
+            "type": "select",
+            "id": "page_width",
+            "options": [
+                {
+                "value": "section-container",
+                "label": "版心/1200px"
+                },
+                {
+                "value": "section-container-lg",
+                "label": "大版心/1312px"
+                },
+                {
+                "value": "w-full",
+                "label": "铺满/100%"
+                }
+            ],
+            "default": "section-container-lg",
+            "label": "PC的组件宽度",
+            "info": "MB端组件宽度固定和设计稿一致，不可修改"
+        },
+        {
+            "type": "color_background",
+            "id": "bg_color",
+            "label": "背景颜色",
+            "default": "rgba(217, 217, 217, 0.3)"
+        },
+        {
+            "type": "number",
+            "id": "mb_height",
+            "label": "MB图片高度",
+            "default": 500
+        },
+        { "type": "header", "content": "PC边距" },
+        {
+            "type": "range",
+            "id": "padding_top",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 0
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 0
+        },
+        {
+            "type": "range",
+            "id": "padding_left",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "左边距",
+            "default": 0
+        },
+        {
+            "type": "range",
+            "id": "padding_right",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "右边距",
+            "default": 0
+        },
+
+        { "type": "header", "content": "MB边距" },
+        {
+            "type": "select",
+            "id": "mb_padding_type",
+            "options": [
+                {
+                "value": "default",
+                "label": "默认"
+                },
+                {
+                "value": "custom",
+                "label": "自定义"
+                }
+            ],
+            "default": "default",
+            "label": "MB边距"
+        },
+        {
+            "type": "range",
+            "id": "padding_top_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "上边距",
+            "default": 0,
+            "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+        },
+        {
+            "type": "range",
+            "id": "padding_bottom_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "下边距",
+            "default": 0,
+            "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+        },
+        {
+            "type": "range",
+            "id": "padding_left_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "左边距",
+            "default": 0,
+            "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+        },
+        {
+            "type": "range",
+            "id": "padding_right_mb",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "px",
+            "label": "右边距",
+            "default": 0,
+            "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+        }
+    ],
+    "blocks": [],
+    "presets": [
+        {
+            "name": "EHB table"
+        }
+    ]
+}
+{% endschema %}

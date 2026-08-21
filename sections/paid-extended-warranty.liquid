@@ -1,0 +1,718 @@
+{% comment %} 付费延保页 {% endcomment %}
+<div class="paid-extended-warranty indoor-and-outdoor " style="background: {{ section.settings.bgColor }}">
+  <div class="activity--content_item">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when 'banner' -%}
+          {% comment %} Banner版块 - 复用five-kwh-banner {% endcomment %}
+          {% render 'five-kwh-banner', banner: block.settings, new_window: section.settings.new_window %}
+        {%- when 'form' -%}
+          {% comment %} Form版块 {% endcomment %}
+          {% render 'paid-extended-warranty-form', form: block.settings, index: forloop.index %}
+        {%- when 'faq' -%}
+          {% comment %} FAQ版块 - 复用indoor-faq {% endcomment %}
+          {% render 'indoor-faq', faq: block.settings, index: forloop.index %}
+      {%- endcase -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "付费延保页内容组件",
+  "tag": "section",
+  "class": "paid-extended-warranty",
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "banner",
+      "name": "Banner",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        {
+          "type": "checkbox",
+          "id": "autoplay",
+          "label": "Auto Play(控制图片轮播)",
+          "default": false
+        },
+        {
+          "type": "range",
+          "id": "swiperInterval",
+          "label": "Swiper Interval (Unit: s)",
+          "default": 5,
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "unit": "s"
+        },
+        {
+          "type": "range",
+          "id": "pc_height",
+          "label": "PC自定义高度",
+          "default": 800,
+          "min": 320,
+          "max": 1200,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "range",
+          "id": "mb_height",
+          "label": "MB自定义高度",
+          "default": 1000,
+          "min": 640,
+          "max": 1500,
+          "step": 10,
+          "unit": "px"
+        },
+
+        { "type": "header", "content": "视频配置" },
+        { "type": "image_picker", "id": "videoSrcPoster", "label": "Video Poster PC" },
+        { "type": "video", "id": "videoSrc", "label": "Video Src PC" },
+        { "type": "image_picker", "id": "videoSrcPosterMB", "label": "Video Poster MB" },
+        { "type": "video", "id": "videoSrcMB", "label": "Video Src MB" },
+        { "type": "richtext", "id": "bottom_text", "label": "视频底部文字(PC)" },
+        { "type": "richtext", "id": "bottom_text_mb", "label": "视频底部文字(MB)" },
+        { "type": "color", "id": "bottom_text_color", "label": "视频底部文字颜色" },
+        {
+          "type": "select",
+          "id": "pc_position_video",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_video",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_video", "label": "PC主标题【斜线=文案突出】" },
+        { "type": "richtext", "id": "title_mb_video", "label": "MB主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_main_color_video", "label": "主标题突出文案颜色" },
+        { "type": "richtext", "id": "sub_title_video", "label": "副标题【斜线=文案突出】" },
+        { "type": "color", "id": "sub_title_main_color_video", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_video", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_video", "label": "按钮link" },
+        { "type": "color", "id": "button_color_video", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_video", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_video", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_video", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "image_picker", "id": "pc_image_1", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_1", "label": "MB图片(必填)" },
+        {
+          "type": "select",
+          "id": "pc_position_1",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_1",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_1", "label": "PC主标题【斜线=文案突出】" },
+        { "type": "richtext", "id": "title_mb_1", "label": "MB主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_main_color_1", "label": "主标题突出文案颜色" },
+        { "type": "richtext", "id": "sub_title_1", "label": "副标题【斜线=文案突出】" },
+        { "type": "color", "id": "sub_title_main_color_1", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_1", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_1", "label": "按钮link" },
+        { "type": "color", "id": "button_color_1", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_1", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_1", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_1", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+        { "type": "header", "content": "Part 2 配置" },
+        { "type": "image_picker", "id": "pc_image_2", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_2", "label": "MB图片(必填)" },
+        {
+          "type": "range",
+          "id": "pc_height_2",
+          "label": "PC自定义高度",
+          "default": 800,
+          "min": 320,
+          "max": 1200,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "range",
+          "id": "mb_height_2",
+          "label": "MB自定义高度",
+          "default": 1000,
+          "min": 640,
+          "max": 1500,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "select",
+          "id": "pc_position_2",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_2",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_2", "label": "PC主标题【斜线=文案突出】" },
+        { "type": "richtext", "id": "title_mb_2", "label": "MB主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_main_color_2", "label": "主标题突出文案颜色" },
+        { "type": "richtext", "id": "sub_title_2", "label": "副标题【斜线=文案突出】" },
+        { "type": "color", "id": "sub_title_main_color_2", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_2", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_2", "label": "按钮link" },
+        { "type": "color", "id": "button_color_2", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_2", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_2", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_2", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+        { "type": "header", "content": "Part 3 配置" },
+        { "type": "image_picker", "id": "pc_image_3", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_3", "label": "MB图片(必填)" },
+        {
+          "type": "range",
+          "id": "pc_height_3",
+          "label": "PC自定义高度",
+          "default": 800,
+          "min": 320,
+          "max": 1200,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "range",
+          "id": "mb_height_3",
+          "label": "MB自定义高度",
+          "default": 1000,
+          "min": 640,
+          "max": 1500,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "select",
+          "id": "pc_position_3",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_3",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_3", "label": "PC主标题【斜线=文案突出】" },
+        { "type": "richtext", "id": "title_mb_3", "label": "MB主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_main_color_3", "label": "主标题突出文案颜色" },
+        { "type": "richtext", "id": "sub_title_3", "label": "副标题【斜线=文案突出】" },
+        { "type": "color", "id": "sub_title_main_color_3", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_3", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_3", "label": "按钮link" },
+        { "type": "color", "id": "button_color_3", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_3", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_3", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_3", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+        { "type": "header", "content": "Part 4 配置" },
+        { "type": "image_picker", "id": "pc_image_4", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_4", "label": "MB图片(必填)" },
+        {
+          "type": "range",
+          "id": "pc_height_4",
+          "label": "PC自定义高度",
+          "default": 800,
+          "min": 320,
+          "max": 1200,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "range",
+          "id": "mb_height_4",
+          "label": "MB自定义高度",
+          "default": 1000,
+          "min": 640,
+          "max": 1500,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "select",
+          "id": "pc_position_4",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_4",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_4", "label": "PC主标题【斜线=文案突出】" },
+        { "type": "richtext", "id": "title_mb_4", "label": "MB主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_main_color_4", "label": "主标题突出文案颜色" },
+        { "type": "richtext", "id": "sub_title_4", "label": "副标题【斜线=文案突出】" },
+        { "type": "color", "id": "sub_title_main_color_4", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_4", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_4", "label": "按钮link" },
+        { "type": "color", "id": "button_color_4", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_4", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_4", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_4", "label": "第二个按钮颜色", "default": "#fd5000" },
+
+        { "type": "header", "content": "Part 5 配置" },
+        { "type": "image_picker", "id": "pc_image_5", "label": "PC图片(必填)" },
+        { "type": "image_picker", "id": "mb_image_5", "label": "MB图片(必填)" },
+        {
+          "type": "range",
+          "id": "pc_height_5",
+          "label": "PC自定义高度",
+          "default": 800,
+          "min": 320,
+          "max": 1200,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "range",
+          "id": "mb_height_5",
+          "label": "MB自定义高度",
+          "default": 1000,
+          "min": 640,
+          "max": 1500,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "type": "select",
+          "id": "pc_position_5",
+          "label": "PC端文案位置",
+          "options": [
+            { "value": "left-top", "label": "左上" },
+            { "value": "center-top", "label": "中上" },
+            { "value": "right-top", "label": "右上" },
+            { "value": "left-center", "label": "左中" },
+            { "value": "right-center", "label": "右中" }
+          ],
+          "default": "left-top"
+        },
+        {
+          "type": "select",
+          "id": "mb_position_5",
+          "label": "移动端文案位置",
+          "options": [
+            { "value": "left", "label": "左中" },
+            { "value": "center", "label": "中" },
+            { "value": "right", "label": "右中" }
+          ],
+          "default": "left"
+        },
+        { "type": "richtext", "id": "title_5", "label": "PC主标题【斜线=文案突出】" },
+        { "type": "richtext", "id": "title_mb_5", "label": "MB主标题【斜线=文案突出】" },
+        { "type": "color", "id": "title_main_color_5", "label": "主标题突出文案颜色" },
+        { "type": "richtext", "id": "sub_title_5", "label": "副标题【斜线=文案突出】" },
+        { "type": "color", "id": "sub_title_main_color_5", "label": "副标题突出文案颜色", "default": "#FFFFFF" },
+        { "type": "text", "id": "button_text_5", "label": "按钮文案" },
+        { "type": "url", "id": "button_link_5", "label": "按钮link" },
+        { "type": "color", "id": "button_color_5", "label": "按钮颜色", "default": "#fd5000" },
+        { "type": "text", "id": "button_text_right_5", "label": "第二个按钮文案" },
+        { "type": "url", "id": "button_link_right_5", "label": "第二个按钮link" },
+        { "type": "color", "id": "button_color_right_5", "label": "第二个按钮颜色", "default": "#fd5000" }
+      ]
+    },
+    {
+      "type": "form",
+      "name": "Form",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "版块一配置"
+        },
+        {
+          "type": "text",
+          "id": "first_section_title_pc",
+          "label": "PC端标题",
+          "default": "Choose the extended warranty service you purchased"
+        },
+        {
+          "type": "text",
+          "id": "first_section_title_mb",
+          "label": "移动端标题",
+          "default": "Select the purchased paid extended warranty service"
+        },
+        {
+          "type": "text",
+          "id": "first_section_subtitle",
+          "label": "副标题",
+          "default": "Please complete the form below to activate the extended warranty service you purchased on the Jackery official website. Once the activation is successful, your product warranty will be automatically extended beyond the free warranty period by the duration of the extended warranty."
+        },
+        {
+          "type": "text",
+          "id": "pew_id_label",
+          "label": "延保服务订单ID - 标题",
+          "default": "Extended warranty service order ID"
+        },
+        {
+          "type": "text",
+          "id": "pew_id_placeholder",
+          "label": "订单ID下拉框 - 占位文案",
+          "default": "Please select the order ID for the extended warranty service you"
+        },
+        {
+          "type": "textarea",
+          "id": "pew_id_tips",
+          "label": "订单ID - 提示文案"
+        },
+        {
+          "type": "text",
+          "id": "pew_service_label",
+          "label": "延保服务 - 标题",
+          "default": "Extended warranty service"
+        },
+        {
+          "type": "text",
+          "id": "pew_service_placeholder",
+          "label": "延保服务下拉框 - 占位文案",
+          "default": "Please choose extended warranty service"
+        },
+        {
+          "type": "textarea",
+          "id": "pew_service_tips",
+          "label": "延保服务 - 提示文案"
+        },
+        {
+          "type": "text",
+          "id": "btn_next",
+          "label": "下一步按钮文案",
+          "default": "Next"
+        },
+        {
+          "type": "header",
+          "content": "版块二配置",
+          "info": "下列配置项使用 ${ProductName} 作为占位符替换元字段产品名"
+        },
+        {
+          "type": "text",
+          "id": "second_section_title_pc",
+          "label": "PC端标题",
+          "default": "Fill in ${ProductName} purchase information for the extended warranty service you wish to activate."
+        },
+        {
+          "type": "text",
+          "id": "second_section_title_mb",
+          "label": "移动端标题",
+          "default": "Fill in ${ProductName} purchase information for the extended warranty service you wish to activate."
+        },
+        {
+          "type": "text",
+          "id": "second_section_subtitle",
+          "label": "副标题",
+          "default": "Please complete the form below to activate the extended warranty service you purchased on the Jackery official website. Once activated successfully, the warranty period of your ${ProductName} will be automatically extended beyond the free warranty period by the duration of the extended warranty."
+        },
+        {
+          "type": "text",
+          "id": "product_purchase_channel_label",
+          "label": "购买渠道 - 标题",
+          "default": "Purchase channel for ${ProductName} "
+        },
+        {
+          "type": "text",
+          "id": "product_purchase_channel_ph",
+          "label": "购买渠道 - 占位文案",
+          "default": "Please choose a purchasing channel"
+        },
+        {
+          "type": "textarea",
+          "id": "product_purchase_channel_tips",
+          "label": "购买渠道 - 提示文案"
+        },
+        {
+          "type": "text",
+          "id": "product_order_label",
+          "label": "产品订单 - 标题",
+          "default": "Order ID for ${ProductName}"
+        },
+        {
+          "type": "text",
+          "id": "product_order_inp_placeholder",
+          "label": "产品订单 - 占位文案",
+          "default": "Please enter the order ID"
+        },
+        {
+          "type": "textarea",
+          "id": "product_order_tips",
+          "label": "产品订单 - 提示文案"
+        },
+        {
+          "type": "text",
+          "id": "product_sn_label",
+          "label": "产品SN号 - 标题",
+          "default": "The SN number of ${ProductName}"
+        },
+        {
+          "type": "text",
+          "id": "product_sn_placeholder",
+          "label": "产品SN号 - 占位文案",
+          "default": "Please enter the SN number"
+        },
+        {
+          "type": "textarea",
+          "id": "product_sn_tips",
+          "label": "产品SN号 - 提示文案"
+        },
+        {
+          "type": "text",
+          "id": "product_purchase_time_label",
+          "label": "购买时间 - 标题",
+          "default": "Purchase time of ${ProductName}"
+        },
+        {
+          "type": "text",
+          "id": "product_purchase_time_ph",
+          "label": "购买时间 - 占位文案",
+          "default": "Please enter the purchase time"
+        },
+        {
+          "type": "textarea",
+          "id": "product_purchase_time_tips",
+          "label": "购买时间 - 提示文案"
+        },
+        {
+          "type": "text",
+          "id": "upload_proof_label",
+          "label": "上传凭证 - 标题",
+          "default": "Upload Proof of Purchase (Maximum 10MB)"
+        },
+        {
+          "type": "textarea",
+          "id": "upload_proof_tips",
+          "label": "上传凭证 - 提示文案"
+        },
+        {
+          "type": "textarea",
+          "id": "note_text",
+          "label": "注释文案",
+          "default": "PS: At least one item - either the Order ID or the Proof of Purchase must be submitted. If you've purchased from offline stores, the Proof of Purchase must be submitted with the shopping time, product name and store name."
+        },
+        {
+          "type": "text",
+          "id": "prev_text",
+          "label": "上一步按钮文案",
+          "default": "Previous Page"
+        },
+        {
+          "type": "text",
+          "id": "btn_submit",
+          "label": "提交按钮文案",
+          "default": "SUBMIT"
+        },
+        {
+          "type": "header",
+          "content": "提示语配置"
+        },
+        {
+          "type": "text",
+          "id": "required_tips",
+          "label": "字段必填提示语",
+          "default": "This field is required"
+        },
+        {
+          "type": "text",
+          "id": "order_sn_format_check_tips",
+          "label": "产品订单号和SN号格式校验提示语",
+          "default": "The format is incorrect,please re-enter it."
+        },
+        {
+          "type": "text",
+          "id": "min_files_count_tips",
+          "label": "最少上传1张图片提示语",
+          "default": "Please provide at least one image"
+        },
+        {
+          "type": "text",
+          "id": "img_format_check_tips",
+          "label": "图片格式校验提示语",
+          "default": "Only JPG, PNG, or JPEG file formats are supported. Please ensure the format is correct."
+        },
+        {
+          "type": "text",
+          "id": "max_size_tips",
+          "label": "图片大小校验提示语",
+          "default": "The total upload size should not exceed 10MB. Please check the file size before re-uploading."
+        },
+        {
+          "type": "text",
+          "id": "img_uploading_tips",
+          "label": "图片上传中提示语",
+          "default": "Image is being uploaded, please wait..."
+        },
+        {
+          "type": "text",
+          "id": "page_unload_tips",
+          "label": "页面刷新或关闭，提示数据丢失提示语",
+          "default": "Closing or refreshing the page will lose data, do you want to continue?"
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "name": "FAQ",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "block_id",
+          "label": "锚点文案(支持空格，禁止使用-符号)",
+          "info": "锚点Tab使用，无锚点可不填写"
+        },
+        { "type": "text", "id": "anchor_id", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+        { "type": "color", "id": "block_bg", "label": "深色背景设置", "info": "默认为空，表示浅色模式" },
+        { "type": "text", "id": "title", "label": "FAQ Title", "default": "FAQ" },
+        { "type": "checkbox", "id": "is_unfold", "label": "是否全部展开", "default": false },
+        { "type": "product", "id": "product", "label": "产品" },
+        { "type": "header", "content": "Part 1 配置" },
+        { "type": "richtext", "id": "question_1", "label": "问题" },
+        { "type": "richtext", "id": "answer_1", "label": "回答" },
+        { "type": "header", "content": "Part 2 配置" },
+        { "type": "richtext", "id": "question_2", "label": "问题" },
+        { "type": "richtext", "id": "answer_2", "label": "回答" },
+        { "type": "header", "content": "Part 3 配置" },
+        { "type": "richtext", "id": "question_3", "label": "问题" },
+        { "type": "richtext", "id": "answer_3", "label": "回答" },
+        { "type": "header", "content": "Part 4 配置" },
+        { "type": "richtext", "id": "question_4", "label": "问题" },
+        { "type": "richtext", "id": "answer_4", "label": "回答" },
+        { "type": "header", "content": "Part 5 配置" },
+        { "type": "richtext", "id": "question_5", "label": "问题" },
+        { "type": "richtext", "id": "answer_5", "label": "回答" },
+        { "type": "header", "content": "Part 6 配置" },
+        { "type": "richtext", "id": "question_6", "label": "问题" },
+        { "type": "richtext", "id": "answer_6", "label": "回答" },
+        { "type": "header", "content": "Part 7 配置" },
+        { "type": "richtext", "id": "question_7", "label": "问题" },
+        { "type": "richtext", "id": "answer_7", "label": "回答" },
+        { "type": "header", "content": "Part 8 配置" },
+        { "type": "richtext", "id": "question_8", "label": "问题" },
+        { "type": "richtext", "id": "answer_8", "label": "回答" },
+        { "type": "header", "content": "Part 9 配置" },
+        { "type": "richtext", "id": "question_9", "label": "问题" },
+        { "type": "richtext", "id": "answer_9", "label": "回答" },
+        { "type": "header", "content": "Part 10 配置" },
+        { "type": "richtext", "id": "question_10", "label": "问题" },
+        { "type": "richtext", "id": "answer_10", "label": "回答" },
+        { "type": "header", "content": "Part 11 配置" },
+        { "type": "richtext", "id": "question_11", "label": "问题" },
+        { "type": "richtext", "id": "answer_11", "label": "回答" },
+        { "type": "header", "content": "Part 12 配置" },
+        { "type": "richtext", "id": "question_12", "label": "问题" },
+        { "type": "richtext", "id": "answer_12", "label": "回答" },
+        { "type": "header", "content": "Part 13 配置" },
+        { "type": "richtext", "id": "question_13", "label": "问题" },
+        { "type": "richtext", "id": "answer_13", "label": "回答" },
+        { "type": "header", "content": "Part 14 配置" },
+        { "type": "richtext", "id": "question_14", "label": "问题" },
+        { "type": "richtext", "id": "answer_14", "label": "回答" },
+        { "type": "header", "content": "Part 15 配置" },
+        { "type": "richtext", "id": "question_15", "label": "问题" },
+        { "type": "richtext", "id": "answer_15", "label": "回答" },
+        { "type": "header", "content": "Part 16 配置" },
+        { "type": "richtext", "id": "question_16", "label": "问题" },
+        { "type": "richtext", "id": "answer_16", "label": "回答" },
+        { "type": "header", "content": "Part 17 配置" },
+        { "type": "richtext", "id": "question_17", "label": "问题" },
+        { "type": "richtext", "id": "answer_17", "label": "回答" },
+        { "type": "header", "content": "Part 18 配置" },
+        { "type": "richtext", "id": "question_18", "label": "问题" },
+        { "type": "richtext", "id": "answer_18", "label": "回答" },
+        { "type": "header", "content": "Part 19 配置" },
+        { "type": "richtext", "id": "question_19", "label": "问题" },
+        { "type": "richtext", "id": "answer_19", "label": "回答" },
+        { "type": "header", "content": "Part 20 配置" },
+        { "type": "richtext", "id": "question_20", "label": "问题" },
+        { "type": "richtext", "id": "answer_20", "label": "回答" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "付费延保"
+    }
+  ]
+}
+{% endschema %}

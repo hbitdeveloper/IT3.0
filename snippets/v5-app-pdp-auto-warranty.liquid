@@ -1,0 +1,73 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{% liquid
+  assign variants = block.settings.product.variants
+  for variant in variants
+    if variant.sku == block.settings.skuId
+      assign current_variant = variant
+      break
+    endif
+  endfor
+  unless current_variant
+    assign current_variant = block.settings.product.variants | first
+  endunless
+  assign image = block.settings.product_img
+  if image == blank
+    assign image = block.settings.product.featured_image
+    if current_variant.featured_image != blank
+      assign image = current_variant.featured_image
+    endif
+  endif
+%}
+
+{%- if current_variant -%}
+  <div {{ block.shopify_attributes }} class="w-full section-padding" style="{{ style }}">
+    <v5-app-pdp-auto-warranty class="w-full bg-[#F5F5F3] p-3 flex gap-x-3 lg:gap-x-4" data-product-title="{{ product.title | escape }}">
+      {%- if image != blank -%}
+        <div class="w-20 h-20 lg:w-[10.375rem] lg:h-[10.375rem]">
+          {%- render 'diff-end-img',
+            class: 'w-full h-full object-contain',
+            pc_img: image,
+            mb_img: image,
+            pc_img_width: 332,
+            mb_img_width: 80,
+            placeholder_name: 'hero-apparel-1'
+          -%}
+        </div>
+      {%- endif -%}
+      <div class="flex-1 flex flex-col items-start justify-center gap-y-2 lg:gap-y-3">
+        {%- if block.settings.warranty_title != blank -%}
+          <h4 class="font-semibold text-black/90 text-base lg:text-2xl line-clamp-3 lg:line-clamp-3">{{ block.settings.warranty_title | escape }}</h4>
+        {%- endif -%}
+        <div class="w-full flex justify-between gap-x-3">
+          <div class="flex items-center text-[#242F20]/65 text-xs lg:text-sm">{{ block.settings.warranty_description | escape | newline_to_br }}</div>
+          <div class="flex items-end">
+            <button
+              class="{% if current_variant.available %} jky-v5-button {% endif %} disabled:cursor-not-allowed disabled:opacity-40 appearance-none bg-primary flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8"
+              data-sku-id="{{ current_variant.id }}"
+              data-add-to-cart-btn
+              {% unless current_variant.available %} disabled {% endunless %}
+              {% if current_variant.available %}data-nm-target="add_to_cart_btn"{% endif %}
+            >
+              <svg class="text-white w-7 h-7 lg:w-8 lg:h-8" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5.71484 8.00781H9.65015L11.2313 27.1924H29.5727L34.6183 12.2102H14.3796" stroke="currentColor" stroke-width="2" stroke-linejoin="bevel"/>
+                <path d="M17.0781 18.9531H26.0731" stroke="currentColor" stroke-width="2"/>
+                <path d="M21.5742 23.4453V14.4503" stroke="currentColor" stroke-width="2"/>
+                <path d="M16.5056 30.8516C16.5056 31.9383 15.6247 32.8192 14.538 32.8192C13.4513 32.8192 12.5703 31.9383 12.5703 30.8516" stroke="currentColor" stroke-width="2"/>
+                <path d="M28.2009 30.8516C28.2009 31.9383 27.32 32.8192 26.2333 32.8192C25.1466 32.8192 24.2656 31.9383 24.2656 30.8516" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </v5-app-pdp-auto-warranty>
+
+    {% render 'lazy-load-asset-group',
+      script: 'snippet-v5-app-pdp-auto-warranty.js',
+      strategy: 'idle',
+      delay: 1800
+    %}
+  </div>
+{%- endif -%}

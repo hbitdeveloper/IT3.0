@@ -1,0 +1,220 @@
+<style>
+    {% comment %} tooltip 样式 {% endcomment %}
+    .jky-tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+    {% comment %} 鼠标悬停在父级时，显示提示框 {% endcomment %}
+    .jky-tooltip:hover .jky-tooltip__inner {
+        opacity: 1;
+        z-index: 1;
+    }
+    {% comment %} 提示框基础样式 {% endcomment %}
+    .jky-tooltip .jky-tooltip__inner {
+        cursor: pointer;
+        transition: all .25s ease;
+        background-color: #fff;
+        position: absolute;
+        color: #444;
+        line-height: 1;
+        font-size: 14px;
+        opacity: 0;
+        z-index: -1;
+        display: inline-block;
+        width: max-content;
+        max-width: 50vw;
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
+        filter: drop-shadow(2px 2px 8px rgba(0, 0, 0, .2));
+        border-radius: 6px;
+        padding: 12px 15px;
+    }
+    {% comment %} 鼠标悬停在提示框自身时，保持显示 {% endcomment %}
+    .jky-tooltip .jky-tooltip__inner:hover {
+        opacity: 1;
+        z-index: 1;
+    }
+    {% comment %} 顶部提示框定位 {% endcomment %}
+    .jky-tooltip .jky-tooltip__inner.jky-tooltip__inner--top {
+        top: -12px;
+        bottom: auto;
+        right: auto;
+        left: 50%;
+        transform: translate(-50%, -100%);
+    }
+    {% comment %} 提示框的小箭头基础样式 {% endcomment %}
+    .jky-tooltip .jky-tooltip__inner::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 0;
+        transform: rotate(45deg);
+        z-index: -1;
+        border: 3px solid rgb(255, 255, 255);
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
+    }
+    {% comment %} 顶部提示框的小箭头特殊定位 {% endcomment %}
+    .jky-tooltip .jky-tooltip__inner.jky-tooltip__inner--top::after {
+        right: auto;
+        left: 50%;
+        bottom: -3px;
+        margin-left: -3px;
+    }
+    {% comment %} tooltip 样式 {% endcomment %}
+</style>
+
+<script type="module">
+    if (!customElements.get("jky-tooltip")) {
+        class JkyTooltip extends HTMLElement {
+            constructor() {
+                super();
+            }
+            init(){
+                this.isMobile = window.innerWidth < 1024;
+                this.trigger = this.querySelector(".jky-tooltip__trigger")
+                this.content = this.querySelector(".jky-tooltip__content")
+                this.parentEl = document.querySelector("body")
+                if(this.getAttribute("data-pid")) {
+                    this.parentEl = document.querySelector(`${this.getAttribute("data-pid")}`)
+                }
+
+                if(!this.trigger || !this.content) {
+                    return
+                }
+
+                if(!this.parentEl) {
+                    return
+                }
+
+                this.posList = {
+                    top: {
+                    left: 'tooltip__top--left',
+                    center: 'tooltip__top',
+                    right: 'tooltip__top--right'
+                    },
+                    bottom: {
+                    left: 'tooltip__bottom--left',
+                    center: 'tooltip__bottom',
+                    right: 'tooltip__bottom--right'
+                    }
+                }
+
+                this.pos_y = 'top'
+                this.pos_x = 'center'
+            }
+
+            connectedCallback() {
+                this.init();
+                if(!this.trigger || !this.content) {
+                    console.error("jky-tooltip初始化错误：缺少必要的元素")
+                    return
+                }
+                window.innerWidth > 750 && this.updataPos()
+                // window.innerWidth > 750 && window.addEventListener("scroll", this.updataPos.bind(this));
+                // window.innerWidth > 750 && window.addEventListener('resize', this.updataPos.bind(this));
+
+                window.innerWidth <= 750 && this.trigger.addEventListener("click", this.initModal.bind(this))
+
+                this.content.addEventListener("mouseover", () => {
+                    this.classList.add("active")
+                    const closetSection = this.content.closest(".blocks-subscribe-banner, section")
+                    closetSection.classList.add("up_index")
+                })
+
+                this.content.addEventListener("mouseleave", () => {
+                    this.classList.remove("active")
+                    const closetSection = this.content.closest(".blocks-subscribe-banner, section")
+                    closetSection.classList.remove("up_index")
+                })
+            }
+
+            disconnectedCallback() {
+                // window.innerWidth > 750 && window.removeEventListener("scroll", this.updataPos.bind(this));
+                // window.innerWidth > 750 && window.removeEventListener('resize', this.updataPos.bind(this));
+            }
+
+            checkElementVisibility(element) {
+                if(!element) return 0
+                const headerHeight = Number(document?.querySelector("html,body")?.style?.getPropertyValue('--jky-header-h')?.replace('px', '')) || 60
+                const rect = element.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const viewportWidth = window.innerWidth;
+
+                // 判断各方向是否超出视口
+                const overflows = {
+                    top: rect.top < headerHeight,
+                    bottom: rect.bottom > viewportHeight,
+                    left: rect.left < 0,
+                    right: rect.right > viewportWidth,
+                };
+
+                const isFullyVisible = !Object.values(overflows).some(Boolean);
+
+                return {
+                    isFullyVisible,
+                    overflows,
+                };
+            }
+
+            getHorizontalAdvice(overflows) {
+                if(!overflows) return null
+                return overflows.left && overflows.right ? 'center' :
+                overflows.left ? 'left' :
+                overflows.right ? 'right' :
+                null
+            }
+
+            getVerticalAdvice(overflows) {
+                if(!overflows) return null
+                return overflows.top && overflows.bottom ? 'top' :
+                overflows.top ? 'bottom' :
+                overflows.bottom ? 'top' :
+                null
+            }
+
+            updataPos() {
+                this.isMobile = window.innerWidth < 1024
+                setTimeout(() => {
+                    this.style.setProperty("--pos-icon-r", `${this.content.getBoundingClientRect().right - this.trigger.getBoundingClientRect().right + this.trigger.getBoundingClientRect().width / 2}px`)
+                }, 1200);
+
+                const { isFullyVisible, overflows } = this.checkElementVisibility(this.content);
+                if(isFullyVisible) return
+                this.pos_y = this.getVerticalAdvice(overflows) ? this.getVerticalAdvice(overflows) : this.pos_y
+                this.pos_x = this.getHorizontalAdvice(overflows) ? this.getHorizontalAdvice(overflows) : this.pos_x
+                this.content.classList.remove('tooltip__top', 'tooltip__top--left', 'tooltip__top--right', 'tooltip__bottom', 'tooltip__bottom--left', 'tooltip__bottom--right')
+                this.content.classList.add(this.posList[this.pos_y][this.pos_x])
+
+                if(this.isMobile) {
+                    setTimeout(() => {
+                    const rect = this.content.getBoundingClientRect()
+                    const overflows_content = this.checkElementVisibility(this.content)
+
+                    if(!overflows_content.isFullyVisible) {
+                        if(overflows_content.overflows.right && !this.origin_rect) {
+                        this.origin_rect = rect
+                        this.style.setProperty("--pos-left", `-${this.content.getBoundingClientRect().right - 0.92 * window.innerWidth + 10}px`)
+
+                        this.style.setProperty("--pos-icon-r", `${this.content.getBoundingClientRect().right - this.trigger.getBoundingClientRect().right + this.trigger.getBoundingClientRect().width / 2}px`)
+                        }
+                    }
+                    }, 2400);
+                }
+            }
+
+            initModal() {
+                const template = this.querySelector("template");
+                if (!template) return;
+                if (!template.content) return;
+                if (!template.content.firstElementChild) return;
+                const templateEl = template.content.firstElementChild.cloneNode(true)
+
+                window.ZModle.getInstance(`<div class="jds-rte">${templateEl.innerHTML}</div>`, {
+                    id: this.getAttribute("id"),
+                    class: 'jky-tooltip-modal'
+                })
+            }
+        }
+        customElements.define('jky-tooltip', JkyTooltip);
+    }
+</script>

@@ -1,0 +1,123 @@
+{% assign anchorItems = section.blocks | where: 'type', 'anchor_item' %}
+{% assign anchorTitle = '' | split: ',' %}
+{% assign anchorId = '' | split: ',' %}
+
+{% for block in anchorItems %}
+  {% if block.settings.anchor_title != blank and block.settings.anchor_id != blank %}
+    {% assign title = block.settings.anchor_title | split: ',' %}
+    {% assign id = block.settings.anchor_id | split: ',' %}
+    {% assign anchorTitle = anchorTitle | concat: title %}
+    {% assign anchorId = anchorId | concat: id %}
+  {% endif %}
+{% endfor %}
+
+{% comment %} anchor {% endcomment %}
+<section class="w-full flex-center flex-col h-96 mt-128 lg:mt-0 lg:j-h-54 xl:a-h-54 bg-#FCF7F1 lg:bg-#FEC374 cal_scroll_target" data-sticky-anchor-section>
+  <img
+    style="background: linear-gradient(to bottom, transparent, #FCF7F1)"
+    class="w-full h-236 block lg:hidden absolute left-0 -top-236"
+    src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/4.webp?v=1715052293"
+    alt=""
+    data-membership-anchor-deco-img
+  >
+
+  <div class="w-full lg:j-w-1376 xl:a-w-1376 relative">
+
+    <button
+      style="font-family:unset;"
+      class="hidden membership-anchor-arrow membership-anchor-left-arrow appearance-none bg-transparent flex-center absolute -lg:j-left-36 -xl:a-left-36 top-1/2 -translate-y-1/2 z-1 text-[28px] text-#333 lg:j-w-24 lg:j-px-16 xl:a-w-24 xl:a-px-16 h-full leading-none disabled:text-black/30 disabled:cursor-not-allowed"
+      disabled
+    >&lt;</button>
+
+    <div class="w-full h-96 flex items-center lg:h-full lg:mt-0 relative overflow-hidden">
+      <ul
+        id="membership-anchor-wrap"
+        class="w-auto h-96 lg:w-full lg:h-full relative z-1 flex-start flex-nowrap gap-x-14 bg-transparent px-40 lg:px-0 lg:flex-center lg:gap-x-[20px] overflow-x-auto"
+        style="scrollbar-width: none;-ms-overflow-style: none;"
+        data-membership-anchor-wrap
+      >
+        {%- for title in anchorTitle -%}
+          {%- assign index = forloop.index0 -%}
+          {%- assign anchor_id = anchorId[index] -%}
+          <li
+            class="sticky-anchor-item {% if index == 0 %} active {% endif %}"
+            data-membership-anchor-item
+            data-index="{{ index }}"
+            data-id="{{ anchor_id | escape }}"
+            data-ga-event="membership_price_user_clicks"
+            data-ga-action="click"
+            data-ga-params-module="directory"
+            data-ga-params-position="{{ title | escape }}"
+            data-ga-params-status="{% if customer.id != blank %}logged_in{% else %}tourist{% endif %}"
+          >
+            <svg
+              class="hidden lg:block"
+              width="14" height="14" viewBox="0 0 14 14" version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+            >
+                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g id="star" transform="translate(-743.000000, -721.000000)" fill-rule="nonzero">
+                        <g transform="translate(529.000000, 705.000000)">
+                            <path
+                                d="M214.535921,23.1344454 L214,22.9781352 L214.455905,22.8478767 C217.547983,21.9649593 219.964959,19.5479826 220.847877,16.4559048 L220.978135,16 L221.134445,16.5359208 C222.023893,19.588578 224.410622,21.9756587 227.463149,22.8655546 L228,23.0218648 L227.543165,23.1521233 C224.451444,24.0353173 222.034867,26.4522463 221.152123,29.5440952 L221.021865,30 L220.865555,29.4640792 C219.975932,26.4111956 217.588804,24.0240684 214.535921,23.1344454 Z"></path>
+                        </g>
+                    </g>
+                </g>
+            </svg>
+            <span class="transition-all duration-300 lg:j-ml-6 xl:a-ml-6">{{ title | escape }}</span>
+          </li>
+        {%- endfor -%}
+        <li
+            class="
+                w-0 h-80 bg-#FFD091 lg:bg-#FFF7E8/80 rounded-full z-1
+                lg:j-h-44 lg:j-px-20 lg:ml-0
+                xl:a-h-44 xl:a-px-20
+                absolute left-0 bottom-1/2 translate-y-1/2 lg:j-bottom-0 xl:a-bottom-0 lg:translate-y-0 shrink-0 opacity-0
+            "
+            data-membership-anchor-deco
+        ></li>
+      </ul>
+    </div>
+
+    <button
+      style="font-family:unset;"
+      class="hidden membership-anchor-arrow membership-anchor-right-arrow appearance-none bg-transparent flex-center absolute -lg:j-right-36 -xl:a-right-36 top-1/2 -translate-y-1/2 z-1 text-[28px] text-#333 lg:j-w-24 lg:j-px-16 xl:a-w-24 xl:a-px-16 h-full leading-none disabled:text-black/30 disabled:cursor-not-allowed"
+    >&gt;</button>
+  </div>
+
+  <div class="w-full h-full lg:j-w-1376 xl:a-w-1376 absolute left-1/2 top-1/2 -translate-1/2">
+    <img
+        class="hidden lg:block lg:j-w-460 lg:j-h-300 xl:a-w-460 xl:a-h-300 absolute -lg:j-right-134 -xl:a-right-134 -lg:j-top-116 -xl:a-top-116 z-0 transition-all duration-300"
+        src="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/5c249c9079ce6653d3d12594bca4ede9.svg?v=1713955652"
+        alt=""
+        data-membership-anchor-deco-img
+    >
+  </div>
+</section>
+
+
+{% schema %}
+  {
+    "name": "Membership Price Anchor",
+    "class": "section-membership-price section-membership-price-anchor",
+    "blocks": [
+        {
+            "name": "Anchor Item",
+            "type": "anchor_item",
+            "settings": [
+                {
+                    "type": "text",
+                    "id": "anchor_title",
+                    "label": "Anchor Title"
+                },
+                {
+                    "type": "text",
+                    "id": "anchor_id",
+                    "label": "Anchor ID"
+                }
+            ]
+        }
+    ]
+  }
+{% endschema %}

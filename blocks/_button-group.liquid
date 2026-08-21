@@ -1,0 +1,200 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- assign pc_align = 'pc-align-' | append: block.settings.pc_content_align -%}
+{%- assign mb_align = 'mb-align-' | append: block.settings.mb_content_align -%}
+
+{%- liquid
+    # 是否显示自定义宽度
+  assign show_custom_width = false
+  if block.settings.page_width == 'custom'
+    assign show_custom_width = true
+  endif
+
+  # PC端文本内容区域宽度类
+  assign pc_width_class = ''
+  if block.settings.page_width == 'custom'
+   assign custom_page_width = block.settings.custom_page_width | times: 1.0 | divided_by: 16
+      if custom_page_width > 0
+        assign pc_width_class = 'lg:w-[var(--v-heading-width)]'
+        assign custom_style = '--v-heading-width: ' | append: custom_page_width | append: 'rem;'
+      endif
+  endif
+-%}
+
+<div
+  class="blocks-button-group flex flex-wrap items-center gap-[var(--jds-size-20)] lg:gap-4 {{pc_align}} {{mb_align}} section-padding max-w-full {{block.settings.page_width}} max-w-full {{ custom_class }} {% if show_custom_width %}{{ pc_width_class }}{% endif %}"
+  {{ block.shopify_attributes }}
+  {% if block.settings.anchor != blank %}
+    anchor-target="{{block.settings.anchor | escape}}"
+  {% endif %}
+  style="background: {{block.settings.bg_color | default: 'transparent' }};{{ style }}{% if show_custom_width %}{{ custom_style }}{% endif %}"
+>
+  {% content_for 'blocks' %}
+</div>
+
+{% schema %}
+{
+  "name": "按钮组",
+  "tag": null,
+  "blocks": [{ "type": "_button-group-btn" }, { "type": "_button-group-btn-and-dialog" }, {"type": "_product-action-buttons"}],
+  "settings": [
+    {
+      "type": "text",
+      "id": "anchor",
+      "label": "锚点定位ID(确保唯一性,禁止空格和-符号)"
+    },
+    {
+      "type": "select",
+      "id": "page_width",
+      "options": [
+         {
+          "value": "section-container-mini",
+          "label": "版心/960px"
+        },
+        {
+          "value": "section-container",
+          "label": "版心/1200px"
+        },
+        {
+          "value": "section-container-lg",
+          "label": "大版心/1320px"
+        },
+        {
+          "value": "w-full",
+          "label": "铺满/100%"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "section-container-lg",
+      "label": "组件宽度"
+    },
+    {
+      "type": "number",
+      "id": "custom_page_width",
+      "visible_if": "{{ block.settings.page_width == 'custom' }}",
+      "label": "自定义宽度值",
+      "default": 530
+    },
+    {
+      "type": "text_alignment",
+      "id": "pc_content_align",
+      "label": "PC内容对齐",
+      "default": "center"
+    },
+    {
+      "type": "text_alignment",
+      "id": "mb_content_align",
+      "label": "MB内容对齐",
+      "default": "center"
+    },
+    {
+      "type": "color_background",
+      "id": "bg_color",
+      "label": "背景颜色"
+    },
+    {
+      "type": "header",
+      "content": "内边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "上边距",
+      "default": 8,
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "下边距",
+      "default": 8,
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "左边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "右边距",
+      "default": 0,
+      "visible_if": "{{ settings.customize_vcomponents == true }}"
+    },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "visible_if": "{{ settings.customize_vcomponents == true }}",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "上边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "下边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_left_mb",
+      "label": "左边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    },
+    {
+      "type": "number",
+      "id": "padding_right_mb",
+      "label": "右边距",
+      "visible_if": "{{ settings.customize_vcomponents == true and block.settings.mb_padding_type == 'custom' }}",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "按钮组"
+    }
+  ]
+}
+{% endschema %}

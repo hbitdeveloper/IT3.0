@@ -1,0 +1,51 @@
+<style>
+	.snow-canvas {
+		display: block;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+		position: fixed;
+		pointer-events: none;
+        z-index: 10000;
+	}
+</style>
+
+<div class="snowing"></div>
+
+{{ 'snow-plugin.js' | asset_url | script_tag }}
+<script>
+    const isMobile = window.screen.width < 1024
+	$(async function(){
+        const curTime = await getServerTime1(shopId)
+        if (curTime > new Date('2023-12-25 23:59:59').getTime()) {
+          return false
+        } else {
+          const html = isMobile ? `
+    			<canvas class="snow-canvas" speed="2" interaction="true" size="10" count="30" wind-power="-1" image="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/959ed994ad153376c24d9eee9d464df3.png?v=1702432755"></canvas>
+      			<canvas class="snow-canvas" speed="3" interaction="true" size="15" count="15" wind-power="-1" image="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/959ed994ad153376c24d9eee9d464df3.png?v=1702432755"></canvas>
+    		` : `
+    			<canvas class="snow-canvas" speed="1" interaction="true" size="10" count="30" wind-power="1" image="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/959ed994ad153376c24d9eee9d464df3.png?v=1702432755"></canvas>
+    			<canvas class="snow-canvas" speed="2" interaction="true" size="20" count="20" wind-power="2" image="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/959ed994ad153376c24d9eee9d464df3.png?v=1702432755"></canvas>
+    		    <canvas class="snow-canvas" speed="3" interaction="true" size="30" count="10" wind-power="5" image="https://cdn.shopify.com/s/files/1/0550/0524/9633/files/959ed994ad153376c24d9eee9d464df3.png?v=1702432755"></canvas>
+    		`
+    		$('.snowing').html(html)
+    		$(".snow-canvas").snow();
+        }
+	});
+
+  // 获取服务器时间
+  async function getServerTime1(shopifyShopId) {
+    const url = `https://api.myjackery.com/osconsumerapi/v1/com/get-server-time?shopify_shop_id=${shopifyShopId}`
+    const response = await fetch(url, {
+        method: "GET",
+        mode: "cors",
+        cache: "no-cache",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    const { data, } = await response.json()
+    return new Date(data.datetime).getTime()
+  }
+</script>

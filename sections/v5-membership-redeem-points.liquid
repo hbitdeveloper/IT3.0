@@ -1,0 +1,304 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+{%- assign tab_items = section.blocks | where: 'type', 'item_type' -%}
+
+{% style %}
+  /* 日站样式调整 */
+  html[lang="ja"] v5-membership-redeem-points {
+    --jp-custom-line-height: calc(100% + 5px);
+  }
+  v5-membership-redeem-points jds-dialog {
+    --jds-btn-large-height: 3rem;
+  }
+  v5-membership-redeem-points .v5-redeem-points-slot {
+    display: inline-block;
+    width: 3rem;
+    height: 1.5rem;
+    vertical-align: middle;
+    margin-top: -0.125rem;
+  }
+  v5-membership-redeem-points .v5-redeem-points-slot.loaded {
+    width: fit-content;
+    height: unset;
+    margin-top: 0;
+    vertical-align: unset;
+  }
+  @media screen and (max-width: 1023.98px) {
+    v5-membership-redeem-points jds-dialog {
+      --jds-btn-large-height: 2.5rem;
+    }
+  }
+{% endstyle %}
+
+<v5-membership-redeem-points
+  class="flex flex-col w-full section-padding"
+  data-section-id="{{ section.id }}"
+  {% if section.settings.anchor != blank %}
+    anchor-target="{{ section.settings.anchor | escape}}"
+  {% endif %}
+  style="background:{{ section.settings.bg_color }};{{ style }}"
+>
+  {% comment %} 模块标题、副标题 {% endcomment %}
+  {%- if section.settings.title != blank or section.settings.subtitle != blank -%}
+    <div class="w-full h-fit flex flex-col items-center justify-center gap-y-6 lg:gap-y-10 mb-6 lg:mb-12" style="--title-bg-color:{{ section.settings.title_bg_color | default: '#FFFFFF' }}">
+      {% comment %} 模块标题 {% endcomment %}
+      {%- if section.settings.title != blank -%}  
+        <h2 class="w-full text-center lg:text-5xl text-[#242F20] font-semibold leading-[1.1]" style="color:{{ section.settings.title_color | default: '#242F20' }}">{{ section.settings.title | newline_to_br }}</h2>
+      {%- endif -%}
+      {% comment %} 副标题 {% endcomment %}
+      {%- if customer.id and section.settings.subtitle != blank -%}
+        <div class="subtitle w-full flex items-center justify-center">
+          {%- assign subtitle_html = section.settings.subtitle | replace: '{0}', '<span class="v5-redeem-points-slot skeleton"></span>' -%}
+          <p class="w-full text-center font-semibold text-sm lg:text-base" style="color:{{ section.settings.subtitle_color | default: '#242F20' }}">{{ subtitle_html | newline_to_br }}</p>
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- if tab_items.size > 0 -%}
+    <ul class="redeem-tabs-wrap w-full lg:w-[82.5rem] mx-auto flex items-center justify-start lg:justify-center gap-x-4 lg:gap-x-0 p-4 lg:px-[3.75rem] lg:py-4 border-0 border-b-[1px] border-solid border-[#C6C7C8] relative overflow-x-auto" style="scrollbar-width: none;">
+      {%- for block in section.blocks -%}
+        {%- assign type = block.settings.type -%}
+        <li class="flex-none lg:flex-1 flex items-center lg:max-w-[18.75rem] lg:px-6 justify-start lg:justify-center shrink-0 cursor-pointer font-semibold text-black/30 text-base lg:text-xl">
+          {%- if type == 'coupon' -%}
+            <span class="tab-item line-clamp-1 {% if forloop.index == 1 %} active {% endif %}" data-type="{{ type }}">{{ 'membershipIndex.coupon' | t }}</span>
+          {%- elsif type == 'gift_card' -%}
+            <span class="tab-item line-clamp-1 {% if forloop.index == 1 %} active {% endif %}" data-type="{{ type }}">{{ 'membershipIndex.gift_card' | t }}</span>
+          {%- elsif type == 'jackery_product' -%}
+            <span class="tab-item line-clamp-1 {% if forloop.index == 1 %} active {% endif %}" data-type="{{ type }}">{{ 'membershipIndex.jackery_product' | t }}</span>
+          {%- elsif type == 'extras' -%}
+            <span class="tab-item line-clamp-1 {% if forloop.index == 1 %} active {% endif %}" data-type="{{ type }}">{{ 'membershipIndex.extras' | t }}</span>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+      <li class="tab-deco-line w-0 h-0.5 bg-[#242F20] absolute left-0 bottom-0 transition-all duration-300"></li>
+    </ul>
+
+    <ul
+      class="redeem-points-wrap section-container-lg grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 pt-4 lg:pt-6"
+      data-code-text="{{ 'membershipIndex.code' | t }}"
+      data-copy-and-use-text="{{ 'membershipIndex.copy_and_use' | t }}"
+      data-rules-text="{{ 'membershipIndex.rules' | t }}"
+      data-copy-success-text="{{ 'membershipIndex.copy_success_text' | t }}"
+      data-redeem-now-text="{{ 'membershipIndex.redeem_now' | t }}"
+      data-out-of-stock-text="{{ 'membershipIndex.out_of_stock' | t }}"
+      data-redeem-text="{{ 'membershipIndex.redeem' | t }}"
+      data-cancel-redeem-text="{{ 'membershipIndex.cancel' | t }}"
+      data-points-text="{{ 'membershipIndex.points' | t }}"
+      data-view-more-text="{{ section.settings.view_more | escape }}"
+      data-no-data-text="{{ section.settings.no_data | escape }}"
+    >
+      {%- for i in (1..4) -%}
+        <li class="bg-white flex flex-col w-full h-[17.125rem] gap-y-2 lg:h-[20.5rem] p-4">
+          <div class="shrink-0 w-full h-[8.1875rem] lg:h-[12.75rem] skeleton"></div>
+          <div class="w-3/5 h-6 lg:h-9 skeleton"></div>
+          <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between lg:mt-2">
+            <span class="inline-flex w-9 h-5 skeleton"></span>
+            <span class="inline-flex w-24 h-[1.875rem] lg:w-40 lg:h-8 skeleton"></span>
+          </div>
+        </li>
+      {%- endfor -%}
+
+      {% comment %} 4个骨架屏 item，Mobile端不显示 {% endcomment %}
+      <li class="hidden bg-white lg:flex flex-col w-full h-[17.125rem] gap-y-2 lg:h-[20.5rem] p-4">
+        <div class="shrink-0 w-full h-[8.1875rem] lg:h-[12.75rem] skeleton"></div>
+        <div class="w-3/5 h-6 lg:h-9 skeleton"></div>
+        <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between lg:mt-2">
+          <span class="inline-flex w-9 h-5 skeleton"></span>
+          <span class="inline-flex w-24 h-[1.875rem] lg:w-40 lg:h-8 skeleton"></span>
+        </div>
+      </li>
+      <li class="hidden bg-white lg:flex flex-col w-full h-[17.125rem] gap-y-2 lg:h-[20.5rem] p-4">
+        <div class="shrink-0 w-full h-[8.1875rem] lg:h-[12.75rem] skeleton"></div>
+        <div class="w-3/5 h-6 lg:h-9 skeleton"></div>
+        <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between lg:mt-2">
+          <span class="inline-flex w-9 h-5 skeleton"></span>
+          <span class="inline-flex w-24 h-[1.875rem] lg:w-40 lg:h-8 skeleton"></span>
+        </div>
+      </li>
+      <li class="hidden bg-white lg:flex flex-col w-full h-[17.125rem] gap-y-2 lg:h-[20.5rem] p-4">
+        <div class="shrink-0 w-full h-[8.1875rem] lg:h-[12.75rem] skeleton"></div>
+        <div class="w-3/5 h-6 lg:h-9 skeleton"></div>
+        <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between lg:mt-2">
+          <span class="inline-flex w-9 h-5 skeleton"></span>
+          <span class="inline-flex w-24 h-[1.875rem] lg:w-40 lg:h-8 skeleton"></span>
+        </div>
+      </li>
+      <li class="hidden bg-white lg:flex flex-col w-full h-[17.125rem] gap-y-2 lg:h-[20.5rem] p-4">
+        <div class="shrink-0 w-full h-[8.1875rem] lg:h-[12.75rem] skeleton"></div>
+        <div class="w-3/5 h-6 lg:h-9 skeleton"></div>
+        <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between lg:mt-2">
+          <span class="inline-flex w-9 h-5 skeleton"></span>
+          <span class="inline-flex w-24 h-[1.875rem] lg:w-40 lg:h-8 skeleton"></span>
+        </div>
+      </li>
+    </ul>
+
+    {% comment %} 积分兑换规则弹窗 {% endcomment %}
+    <jds-dialog class="v5-membership-rules-redeem-dialog" size="extra" showclose="" closeicon="close" disablebodyscroll="" style="--jds-dialog-index:20001;--jds-dialog-width:var(--v5-membership-redeem-confirm-dialog-width)">
+      <div class="w-full h-full flex flex-col gap-y-3 lg:gap-y-5 px-6 overflow-hidden" data-content></div>
+    </jds-dialog>
+
+    {% comment %} 积分兑换确认弹窗 {% endcomment %}
+    <jds-dialog class="v5-membership-redeem-confirm-dialog" size="extra" showclose="" closeicon="close" disablebodyscroll="" style="--jds-dialog-index:20002;--jds-dialog-width:var(--v5-membership-redeem-confirm-dialog-width)">
+      <div class="w-full h-full flex flex-col gap-y-6 p-6 overflow-hidden">
+        <div class="w-full font-semibold text-[#242F20] lg:text-base text-center" data-content="{{ 'membershipIndex.redeem_confirm_content' | t }}"></div>
+        <div class="w-full flex flex-wrap items-center justify-center gap-x-6">
+          <jds-button data-type="cancel" variant="secondary" kind="custom" style="--jds-btn-custom-color:#242F20;">{{ 'membershipIndex.cancel' | t }}</jds-button>
+          <jds-button data-type="redeem" data-redeem-success-text="{{ 'membershipIndex.redeem_success_tips' | t }}" kind="custom" style="--jds-btn-custom-color:#242F20">{{ 'membershipIndex.redeem' | t }}</jds-button>
+        </div>
+      </div>
+    </jds-dialog>
+  {%- endif -%}
+</v5-membership-redeem-points>
+
+{%- if tab_items.size > 0 -%}
+  <style>
+    v5-membership-redeem-points jds-dialog {
+      --v5-membership-redeem-confirm-dialog-width: 27.5rem;
+    }
+     v5-membership-redeem-points jds-dialog::part(dialog-container) {
+      min-width: unset;
+    }
+    v5-membership-redeem-points jds-dialog.v5-membership-rules-redeem-dialog::part(dialog-container),
+    v5-membership-redeem-points jds-dialog.v5-membership-redeem-confirm-dialog::part(dialog-container) {
+      min-height: unset;
+    }
+    v5-membership-redeem-points jds-dialog::part(dialog-content) {
+      padding-left: 0;
+      padding-right: 0;
+      margin-bottom: 2.5rem;
+      margin-right: 0;
+    }
+
+    v5-membership-redeem-points .redeem-tabs-wrap .tab-item.active {
+      color: #242F20;
+    }
+    @media screen and (max-width: 1023.98px) {
+      v5-membership-redeem-points jds-dialog {
+        --v5-membership-redeem-confirm-dialog-width: 100vw;
+        --jds-btn-large-height: 2.5rem;
+        --jds-btn-large-padding-vertical: 1rem;
+      }
+    }
+  </style>
+  <script src="{{ 'section-v5-membership-redeem-points.min.js' | asset_url }}" defer></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "V5-会员-权益兑换",
+  "class": "v5-membership-redeem-points",
+  "limit": 1,
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    { "type": "header", "content": "PC边距" },
+    { "type": "number", "id": "padding_top", "label": "PC上边距", "default": 96 },
+    { "type": "number", "id": "padding_bottom", "label": "PC下边距", "default": 64 },
+
+    { "type": "header", "content": "MB边距" },
+    {
+      "type": "select",
+      "id": "mb_padding_type",
+      "options": [
+        {
+          "value": "default",
+          "label": "默认"
+        },
+        {
+          "value": "custom",
+          "label": "自定义"
+        }
+      ],
+      "default": "default",
+      "label": "MB边距"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "上边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mb",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "下边距",
+      "default": 64,
+      "visible_if": "{{ section.settings.mb_padding_type == 'custom' }}"
+    },
+
+    { "type": "header", "content": "基础设置" },
+    { "type": "color_background", "id": "bg_color", "label": "版块背景色", "default": "linear-gradient(90deg, #DBB351 0%, #FEEF92 50%, #DBB351 100%)" },
+    { "type": "textarea", "id": "title", "label": "模块标题", "default": "Redeem Points to Get Rewards" },
+    { "type": "color", "id": "title_color", "label": "标题字体颜色", "default": "#242F20" },
+    { "type": "textarea", "id": "subtitle", "label": "模块副标题（登录后显示）", "default": "You have {0} Jackery Points.", "info": "{0}是变量占位符" },
+    { "type": "color", "id": "subtitle_color", "label": "副标题字体颜色", "default": "#242F20" },
+
+    { "type": "header", "content": "文案配置" },
+    { "type": "text", "id": "view_more", "label": "View More文案", "default": "View More" },
+    { "type": "textarea", "id": "no_data", "label": "无内容文案", "default": "The rewards have been fully redeemed. Please look forward to the next event." }
+  ],
+  "blocks": [
+    {
+      "type": "item_type",
+      "name": "权益类型",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "select",
+          "id": "type",
+          "label": "权益类型（唯一）",
+          "options": [
+            { "value": "coupon", "label": "Coupon" },
+            { "value": "gift_card", "label": "Gift Card" },
+            { "value": "jackery_product", "label": "Jackery Product" },
+            { "value": "extras", "label": "Extras" }
+          ]
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-会员-权益兑换",
+      "blocks": [
+        {
+          "type": "item_type",
+          "settings": {
+            "type": "coupon"
+          }
+        },
+        {
+          "type": "item_type",
+          "settings": {
+            "type": "gift_card"
+          }
+        },
+        {
+          "type": "item_type",
+          "settings": {
+            "type": "product"
+          }
+        },
+        {
+          "type": "item_type",
+          "settings": {
+            "type": "virtual_card"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

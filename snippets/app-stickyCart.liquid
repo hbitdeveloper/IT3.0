@@ -1,0 +1,145 @@
+{% comment %}
+    产品详情页 - 底部粘性购物车
+
+    Accepts: product
+    Usage:
+    {% render 'app-stickyCart' %}
+{% endcomment %}
+
+{% comment %} 全局控制启用：open_stickyCart {% endcomment %}
+{%- if settings.open_stickyCart == true and product.metafields.custom.hide_sticky_cart != true -%}
+  {%- assign current_variant = product.selected_or_first_available_variant -%}
+  {%- if current_variant == blank and product.variants[0] != blank -%}
+    {%- assign current_variant = product.variants[0] -%}
+  {%- endif -%}
+
+  {% assign current_sticky_variant = current_variant %}
+  {% comment %} {%- if product.has_only_default_variant == true -%} 
+    {% assign current_product = product %} 
+  {%- endif -%} {% endcomment %}
+
+  {% comment %} 建议零售价 {% endcomment %}
+  {% assign msrp = 'products.product.price.msrp' | default: '' | t %}
+
+  {{ 'plugin-sticky-cart.min.css' | asset_url | stylesheet_tag }}
+  <jky-sticky-cart
+    enable_shortage_reminds="{{enable_shortage_reminds}}"
+    init-variant-id="{{current_sticky_variant.id}}"
+    init-current-tax-free-popup="{{ current_sticky_variant.metafields.custom.open_tax_free_popup_before_buy.value | json }}"
+    pd="{{product.selected_or_first_available_variant.id}}"
+    product-title="{{ product.title | escape }}"
+    style="display:none"
+    data-discount-format="{{settings.discount_amount_format}}"
+    data-z-index="{{ settings.sticky_cart_z_index | default: 10001 }}"
+    data-unfold-z-index="{{ settings.sticky_cart_unfold_z_index | default: 99999 }}"
+  >
+    <div class="jky_sticky_cart fixed bottom-0 left-0 w-full" style="z-index:{{ settings.sticky_cart_z_index | default: 10001 }}">
+      <div class="section-container flex lg:h-[3.75rem]">
+        <div class="sticky_cart_pricetitle_container flex items-center justify-between lg:py-2.5 lg:px-0">
+          <div class="w-full sticky_cart_variantSelect {% if product.has_only_default_variant == true %}sticky_cart_novariant{% endif %}">
+            {%- if product.has_only_default_variant == false -%}
+              <details-disclosure>
+                <details>
+                  <ul class="list-menu--disclosure" tabindex="-1">
+                    {%- for variant in product.variants -%}
+                      <li
+                        data-id="{{variant.id}}"
+                        data-tax-free-popup={{ variant.metafields.custom.open_tax_free_popup_before_buy.value | json }}
+                        {% unless variant.available %}disabled{% endunless %}
+                        class="{%if variant.id == product.selected_or_first_available_variant.id%}active{% endif %}"
+                      >{{variant.title}}</li>
+                    {%- endfor -%}
+                  </ul>
+                  <summary
+                    class="header__menu-item list-menu__item link focus-inset"
+                    aria-expanded="false"
+                  >
+                    <div class="shg-fa variant-title text-overflow-1">{{product.selected_or_first_available_variant.title}}</div>
+                    {%- render 'icon-arrow', width: 20, height: 20, class: 'iconfont shrink-0'  -%}
+                  </summary>
+                </details>
+              </details-disclosure>
+            {%- else -%}
+              <div class="no-variant-title line-clamp-2 lg:line-clamp-1 font-semibold lg:font-medium cursor-pointer select-none">{{ product.title }}</div>
+            {%- endif -%}
+          </div>
+
+          <div class="sticky_cart_pricetitle flex gap-x-4 lg:gap-x-6">
+            <div class="sticky_cart_price_wrap flex flex-wrap">
+              {%- liquid
+                assign target = current_variant
+                assign price = target.price | default: 1999
+                assign compare_at_price = target.compare_at_price | default: price
+                assign available = target.available | default: false
+                
+                if settings.open_auto_discount_price and settings.display_auto_discount_price_in_sticky_cart
+                  assign auto_discount_price = target.metafields.custom.auto_discount_price | times: 1
+                  if auto_discount_price > 0 and auto_discount_price < target.price
+                    assign price = auto_discount_price
+                  else
+                    assign price = target.price
+                  endif
+                endif
+
+                if compare_at_price < target.price
+                  assign compare_at_price = target.price
+                endif
+
+                assign money_price = price | money
+      
+                if target == product and product.price_varies
+                  assign money_price = 'products.product.price.from_price_html' | t: price: money_price
+                endif
+              -%}
+
+              <span class="product--price sticky_cart_price" data-price="{{price}}">{{money_price}}</span>
+
+              {%- unless product.price_varies == false and product.compare_at_price_varies %}
+                
+                <span
+                  class="product--originPrice font-normal {% if compare_at_price <= price %}hidden{% endif %} line-through"
+                  {% if mb_show_origin_price == false %} data-hide-origin-price {% endif %}
+                >
+                  {%- if msrp != blank -%}
+                    <span class="mr-1 leading-none">{{ msrp | escape }}</span>
+                  {%- endif -%}
+                  <span>{{ compare_at_price | money }}</span>
+                </span>
+                
+              {%- endunless -%}
+              
+              {%- if settings.show_discount_amount -%}
+                {%- unless product.price_varies == false and product.compare_at_price_varies %}
+                  {%- assign amount_discount = compare_at_price | minus: price | divided_by: 100 | floor | times: 100 | money_without_trailing_zeros -%}
+                  <span
+                    class="product-price--discount_amount {% if compare_at_price <= price %}hidden{% endif %}"
+                    data-format="{{settings.discount_amount_format}}"
+                    data-hide-origin-price
+                  >{{settings.discount_amount_format | replace: '()', amount_discount}}</span>
+                {%- endunless -%}
+              {%- endif -%}
+            </div>
+
+            <div class="sticky_cart_addToCart {%if enable_shortage_reminds == true%}{% unless current_sticky_variant.available %} hide{% endunless %}{% endif %}">
+              <button
+                id="sticky_addToCart"
+                class="z-button-fill-middle {% unless current_sticky_variant.available %}disabled{% endunless %}"
+                {% if current_sticky_variant.available %}data-nm-target="add_to_cart_btn"{% endif %}
+              >
+                {%- render "loading-spinner", type: "dark" -%}
+                {%-if current_sticky_variant.available-%}{{ 'products.product.add_to_cart' | t }}{%- else -%}{{ 'products.product.sold_out' | t }}{%- endif -%}
+              </button>
+            </div>
+    
+            {%- if enable_shortage_reminds == true -%}
+              <div style="cursor: pointer;" class="shortage-btn {% if current_sticky_variant.available %}hide{% endif %}">
+                <button style="background: var(--primary-color);border-color: var(--primary-color);" class="z-button-fill-middle disabled">{{ 'products.product.sticky_cart_shortage' | t }}</button>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </jky-sticky-cart>
+  <script src="{{ 'plugin-sticky-cart.min.js' | asset_url }}" defer></script>
+{% endif %}

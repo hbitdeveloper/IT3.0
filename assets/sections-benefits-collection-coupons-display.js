@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",(()=>{Jackery.Utils.isMobile()&&document.querySelectorAll(".benefits-collection-coupons-display .swiper").forEach((e=>{new Swiper(e,{slidesPerView:"auto",pagination:{el:".swiper-pagination",clickable:!0}})}))}));

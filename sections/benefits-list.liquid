@@ -1,0 +1,211 @@
+{% schema %}
+{
+  "name": "利益点",
+  "tag": "section",
+  "class": "benefits-list overflow-visible",
+  "disabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "type",
+      "label": "类型",
+      "default": "embed",
+      "options": [
+        {
+          "value": "embed",
+          "label": "内嵌使用"
+        },
+        {
+          "value": "independent",
+          "label": "独立使用"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "handle",
+      "label": "Handle（当前页面唯一的handle）",
+      "default": "embed-component-01"
+    },
+    {
+      "type": "image_picker",
+      "id": "pcTitleImg",
+      "label": "PC端标题图片（208*169）"
+    },
+    {
+      "type": "image_picker",
+      "id": "mbTitleImg",
+      "label": "移动端标题图片（671*64）"
+    },
+    {
+      "type": "color_background",
+      "id": "bgColor",
+      "label": "背景色",
+      "default": "#f7f7f7"
+    },
+    {
+      "type": "color",
+      "id": "svgColor",
+      "label": "svg颜色",
+      "default": "#fd5000"
+    },
+    {
+      "type": "color",
+      "id": "textColor",
+      "label": "标题文案颜色"
+    }
+  ],
+  "max_blocks": 6,
+  "blocks": [
+    {
+      "name": "利益点",
+      "type": "list",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "img",
+          "label": "图片（95*95）",
+          "info": "提示：推荐svg格式"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "标题",
+          "info": "提示：仅展示一行"
+        },
+        {
+          "type": "richtext",
+          "id": "info",
+          "label": "说明",
+          "info": "提示：配置说明文案后，对应显示右上角说明icon."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "利益点"
+    }
+  ]
+}
+{% endschema %}
+
+
+{{ 'section-benefits-list.min.css' | asset_url | stylesheet_tag }}
+{% style %}
+  @media screen and (min-width: 1920px) {
+    body .benefits-list .list-item .info-box .info-popup .info-content {
+      font-size: 14px;
+      line-height: 20px;
+    }
+    body .benefits-list .list-item .info-box .info-popup .info-content {
+      width: 480px;
+    }
+  }
+{% endstyle %}
+<div
+        class="benefits-wrapper flex justify-center {% if section.settings.type == 'embed' %}embed-component{% endif %}"
+        data-display="flex"
+        data-handle="{{ section.settings.handle }}"
+>
+    <picture>
+        <source
+                media="(min-width:1024px)"
+                srcset="{{ section.settings.pcTitleImg | image_url: width: 208 }}"
+                alt="{{ section.settings.pcTitleImg.alt }}"
+                width="208"
+                height="169"
+        >
+        <img
+          class="title-img"
+          src="{{ section.settings.mbTitleImg | image_url: width: 670 }}"
+          alt="{{ section.settings.mbTitleImg.alt }}"
+          loading="lazy"
+          width="671"
+          height="64"
+        >
+    </picture>
+    <div class="list-box flex">
+        {% for block in section.blocks %}
+            <div class="list-item relative text-center item-{{ forloop.index }}" style="background: {{ section.settings.bgColor }}">
+                {% if block.settings.info != blank %}
+                    <div class="info-box absolute">
+                        {% render 'jky-icon-circle-question-normal', color: section.settings.svgColor, class: "lg:relative lg:z-[3] lg:cursor-pointer lg:w-6 lg:h-6" %}
+                        <div class="info-popup hidden">
+                            <div class="info-content">
+                                {% render 'jky-icon-circle-close-fill', class: 'icon-close lg:hidden block', color: '#999' %}
+                                <div class="content-txt">{{ block.settings.info }}</div>
+                            </div>
+                            <i class="overlay"></i>
+                            <i class="bottom-arrow"></i>
+                        </div>
+                    </div>
+                {% endif %}
+                <img
+                  src="{{ block.settings.img | image_url: width: 95 }}"
+                  alt="{{ block.settings.img.alt | default: block.settings.title }}"
+                  width="95"
+                  height="95"
+                >
+                <p class="title text-black font-medium text-overflow-1" style="color: {{ section.settings.textColor }}">{{ block.settings.title }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <script>
+        (function () {
+            function initBenefitsListScript() {
+                if (window.innerWidth < 1024) {
+                    const listItems = document.querySelectorAll('.benefits-list .list-item');
+                    listItems.forEach((item) => {
+                        item.addEventListener('click', function () {
+                            const infoPopup = this.querySelector('.info-popup');
+                            if (infoPopup) {
+                                document.body.classList.add('overflow-hidden');
+                                infoPopup.style.display = 'block';
+
+                                {% comment %} GA埋码 {% endcomment %}
+                                const title = this.querySelector('.title')?.textContent?.trim() || '';
+                                gaPushDataLayer('activity_page_user_clicks', {
+                                  module: 'Benefits',
+                                  position: title
+                                });
+                            }
+                        });
+                    });
+
+                    const closeTargets = document.querySelectorAll('.benefits-list .info-popup .overlay, .benefits-list .info-popup .icon-close');
+                    closeTargets.forEach((target) => {
+                        target.addEventListener('click', function (e) {
+                            e.stopPropagation();
+                            document.body.classList.remove('overflow-hidden');
+                            const popup = this.closest('.info-popup');
+                            if (popup) {
+                                popup.style.display = 'none';
+                            }
+                        });
+                    });
+                } else {
+                    const questionIcons = document.querySelectorAll('.benefits-list .jky-icon-circle-question');
+                    questionIcons.forEach((icon) => {
+                        icon.addEventListener('mouseenter', function () {
+                            {% comment %} GA埋码 {% endcomment %}
+                            const title = this.closest('.list-item')?.querySelector('.title')?.textContent?.trim() || '';
+                            gaPushDataLayer('activity_page_user_clicks', {
+                              module: 'Benefits',
+                              position: title
+                            });
+                        });
+                    });
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initBenefitsListScript);
+            } else {
+                initBenefitsListScript();
+            }
+        })();
+    </script>
+</div>

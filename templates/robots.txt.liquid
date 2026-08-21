@@ -1,0 +1,25 @@
+{% for group in robots.default_groups %}
+  {{- group.user_agent }}
+
+  {%- for rule in group.rules -%}
+    {%- unless rule.directive == 'Disallow' and rule.value == '/policies/' -%}
+      {{ rule }}
+    {%- endunless -%}
+  {%- endfor -%}
+
+  {%- if group.user_agent.value == '*' -%}
+    {{ 'Disallow: /*?q=*' }}
+    {{ 'Disallow: /zh/' }}
+  {%- endif -%}
+
+  {%- if group.sitemap != blank -%}
+    {{ group.sitemap }}
+  {%- endif -%}
+  {% comment %} {{ group.sitemap | replace: "/sitemap.xml", "" }}/sitemap_hreflang.xml {% endcomment %}
+{% endfor %}
+
+User-agent: *
+Allow:/llms.txt
+Disallow: /wpm@*/
+
+LLMS:https://uk.jackery.com/apps/seoai/llms.txt

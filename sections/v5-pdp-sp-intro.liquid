@@ -1,0 +1,303 @@
+{% style %}
+    #shopify-section-{{ section.id }} {
+        background-color: {{ section.settings.bg_color }};
+    }
+{% endstyle %}
+
+<style>
+
+    .v5-pdp-sp-intro .swiper-button-next::after,
+    .v5-pdp-sp-intro .swiper-button-prev::after {
+        content: '';
+    }
+    .v5-pdp-sp-intro .swiper-button-next,
+    .v5-pdp-sp-intro .swiper-button-prev {
+        margin: 0;
+    }
+
+    .v5-pdp-sp-intro .text-swiper .swiper-wrapper {
+        align-items: stretch;
+    }
+
+    .v5-pdp-sp-intro .text-swiper .swiper-wrapper .swiper-slide {
+        height: auto;
+        display: flex;
+    }
+
+    .v5-pdp-sp-intro .text-swiper .swiper-wrapper .swiper-slide.swiper-slide-thumb-active .sp-card {
+        border-bottom: 3px solid;
+        opacity: 1;
+    }
+    .v5-pdp-sp-intro .text-swiper .swiper-wrapper .swiper-slide .sp-card {
+        border-bottom: 3px solid transparent;
+    }
+
+    @media only screen and (min-width: 1024px) {
+        .v5-pdp-sp-intro .text-swiper .swiper-slide {
+            flex: 1 1 0;
+        }
+        .v5-pdp-sp-intro .text-swiper .swiper-slide:last-child {
+            margin-right: 0 !important;
+        }
+    }
+
+    @media only screen and (max-width: 1023.98px) {
+        .v5-pdp-sp-intro .text-swiper {
+            margin-right: -1rem;
+        }
+
+    }
+
+</style>
+
+{%- capture pb_style -%}
+    {% render 'spacing-padding', settings: section.settings %}
+{%- endcapture -%}
+
+
+{% liquid
+    assign img_height_pc = section.settings.pc_height | default: 536 | divided_by: 16.0 | append: 'rem'
+    assign img_height_mb = section.settings.mb_height | default: 516 | divided_by: 32.0 | append: 'rem'
+    assign style = "w-full object-cover lg:h-[var(--pc-height)] h-[var(--mb-height)] "
+    assign placeholder_style = "placeholder-svg placeholder " | append: style
+%}
+
+<div class="v5-pdp-sp-intro section-container-lg section-padding" style="{{ pb_style }}"
+    {% if section.settings.anchor != blank %} anchor-target="{{section.settings.anchor | escape}}" {% endif %}
+>
+    <div class="lg:max-w-[68.125rem] m-auto text-center lg:mb-16 mb-10 " style="color: {{ section.settings.text_color }}">
+        <div class="heading_4 mb-6">{{ section.settings.sub_title | replace: "\n", "<br>" }}</div>
+        <div class="jds-display-1 v5-font-oxm">{{ section.settings.title | replace: "\n", "<br>" }}</div>
+    </div>
+    <div>
+        <div class="swiper img-swiper">
+            <div class="swiper-wrapper">
+                {% for block in section.blocks %}
+                    {%- case block.type -%}
+                        {%- when "swiper-item" -%}
+                            <div class="swiper-slide " style="--pc-height: {{ img_height_pc }}; --mb-height: {{ img_height_mb }};">
+                                {%- if block.settings.image_pc != blank -%}
+                                    {% render 'diff-end-img',  pc_img: block.settings.image_pc, mb_img: block.settings.image_mb,
+                                      pc_img_width: 1320,
+                                      mb_img_width: 343,
+                                      class: style %}
+                                {%- else -%}
+                                    {{ 'hero-apparel-1' | placeholder_svg_tag: placeholder_style }}
+                                {%- endif -%}
+                            </div>
+                    {% endcase %}
+                {% endfor %}
+            </div>
+        </div>
+        <div thumbsSlider class="swiper text-swiper mt-10 border-b-[#c6c7c8] border-b border-solid">
+            <div class="swiper-wrapper ">
+                {% for block in section.blocks %}
+                    {%- case block.type -%}
+                        {%- when "swiper-item" -%}
+                            <div {{ block.shopify_attributes }} class="swiper-slide cursor-pointer lg:w-auto w-[17.5rem]">
+                                <div class="sp-card opacity-65" style="color: {{ block.settings.text_color }}">
+                                    <div class="title font-semibold lg:text-[2rem] mb-6 line-clamp-2">{{ block.settings.title | replace: "\n", "<br>"  }}</div>
+                                    <div class="font-normal lg:text-xl mb-4">{{ block.settings.description | replace: "\n", "<br>"  }}</div>
+                                </div>
+                            </div>
+                    {% endcase %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="relative lg:hidden mt-10 flex justify-center gap-[1.125rem]">
+            <div class="swiper-button-prev static w-[1.875rem] h-[1.875rem]">
+                <svg width="60" height="60" viewBox="0 0 30 30" fill="none">
+                    <rect x="-0.375" y="0.375" width="29.25" height="29.25" rx="14.625" transform="matrix(-1 0 0 1 29.25 0)" stroke="black" stroke-opacity="0.65" stroke-width="0.75"/>
+                    <g clip-path="url(#clip0_3978_7869)">
+                        <path d="M21.375 15.1875H12.1934" stroke="black" stroke-opacity="0.65" stroke-width="1.2"/>
+                        <path d="M14.2559 10.5L9.56854 15.1873L14.2559 19.8746" stroke="black" stroke-opacity="0.65" stroke-width="1.2"/>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_3978_7869">
+                            <rect width="12.75" height="12" fill="white" transform="matrix(-1 0 0 1 21.375 9)"/>
+                        </clipPath>
+                    </defs>
+                </svg>
+            </div>
+            <div class="swiper-button-next static w-[1.875rem] h-[1.875rem]">
+                <svg width="60" height="60" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0.375" y="0.375" width="29.25" height="29.25" rx="14.625" stroke="black" stroke-opacity="0.65" stroke-width="0.75"/>
+                    <g clip-path="url(#clip0_3978_7874)">
+                        <path d="M8.625 15.1875H17.8066" stroke="black" stroke-opacity="0.65" stroke-width="1.2"/>
+                        <path d="M15.7441 10.5L20.4315 15.1873L15.7441 19.8746" stroke="black" stroke-opacity="0.65" stroke-width="1.2"/>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_3978_7874">
+                            <rect width="12.75" height="12" fill="white" transform="translate(8.625 9)"/>
+                        </clipPath>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="module">
+document.addEventListener('DOMContentLoaded', function () {
+    const swiperText = new Swiper(".v5-pdp-sp-intro .text-swiper", {
+        spaceBetween: 24,
+        slidesPerView: 'auto',
+        breakpoints: {
+            1024: {
+                slidesPerView: 3
+            },
+        },
+        freeMode: true,
+        watchSlidesProgress: true
+    });
+
+    const swiperImg = new Swiper(".v5-pdp-sp-intro .img-swiper", {
+        spaceBetween: 10,
+        thumbs: {
+            swiper: swiperText,
+        },
+        navigation: {
+            nextEl: ".v5-pdp-sp-intro .swiper-button-next",
+            prevEl: ".v5-pdp-sp-intro .swiper-button-prev",
+        }
+    });
+
+    swiperText.on("tap", (sw) => {
+        const i = sw.clickedIndex;
+        if (i == null) return;
+        swiperText.slideTo(i);
+    });
+
+    swiperImg.on("slideChange", function () {
+        const i = this.realIndex != null ? this.realIndex : this.activeIndex;
+        swiperText.slideTo(i);
+    });
+
+    const titles = document.querySelectorAll(".v5-pdp-sp-intro .sp-card .title");
+
+    let maxHeight = 0;
+    titles.forEach((el) => {
+        maxHeight = Math.max(maxHeight, el.offsetHeight);
+    });
+    titles.forEach((el) => {
+        el.style.height = maxHeight + "px";
+    });
+});
+</script>
+
+{% schema %}
+{
+  "name": "V5-SP介绍Tabs",
+  "limit": 1,
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "背景颜色"
+    },
+    {
+      "type": "number",
+      "id": "padding_top",
+      "label": "PC上边距",
+      "default": 96
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom",
+      "label": "PC下边距",
+      "default": 64
+    },
+    {
+      "type": "text",
+      "id": "mb_padding_type",
+      "default": "custom",
+      "label": "MB边距",
+      "visible_if": "{{ false }}",
+    },
+    {
+      "type": "number",
+      "id": "padding_top_mb",
+      "label": "MB上边距",
+      "default": 128
+    },
+    {
+      "type": "number",
+      "id": "padding_bottom_mb",
+      "label": "MB下边距",
+      "default": 128
+    },
+    { "type": "color", "id": "text_color", "label": "文本颜色", "default": "#242F20" },
+    {
+      "type": "inline_richtext",
+      "info": "需要换行，请使用 \\n ",
+      "id": "title",
+      "label": "标题",
+      "default": "Power & Save money"
+    },
+    {
+      "type": "inline_richtext",
+      "info": "需要换行，请使用 \\n ",
+      "id": "sub_title",
+      "label": "副标题",
+      "default": "What is Solar Panel & How it works"
+    },
+    {
+      "type": "number",
+      "id": "pc_height",
+      "label": "PC图片高度",
+      "default": 536
+    },
+    {
+      "type": "number",
+      "id": "mb_height",
+      "label": "MB图片高度",
+      "default": 516
+    }
+  ],
+  "blocks": [
+    {
+      "type": "swiper-item",
+      "name": "Tab Item",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "info": "需要换行，请使用 \\n ",
+          "id": "title",
+          "label": "标题",
+          "default": "Transfer Energy"
+        },
+        {
+          "type": "inline_richtext",
+          "info": "需要换行，请使用 \\n ",
+          "id": "description",
+          "label": "描述",
+          "default": "Lorem ipsum dolor sit amet consectetur. Mattis sed ultrices ullamcorper at"
+        },
+        { "type": "color", "id": "text_color", "label": "文本颜色", "default": "#242F20" },
+        { "type": "image_picker", "id": "image_pc", "label": "PC图片地址", "info":"推荐图片宽度: 1320"},
+        { "type": "image_picker", "id": "image_mb", "label": "MB图片地址", "info":"推荐图片宽度: 686"}
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "V5-SP介绍Tabs",
+      "category": "V5.0",
+      "blocks": [
+        {
+          "type": "swiper-item"
+        },
+        {
+          "type": "swiper-item"
+        },
+        {
+          "type": "swiper-item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,97 @@
+<script id="smart-recommend-5-json" type="application/json">
+  {
+    "smart_recommend_5": {
+      "common": {
+        "back_button_text": {{ 'smart_recommend_5.common.back_button_text' | t | json }},
+        "next_button_text": {{ 'smart_recommend_5.common.next_button_text' | t | json }},
+        "view_results_button_text": {{ 'smart_recommend_5.common.view_results_button_text' | t | json }},
+        "try_again_text": {{ 'smart_recommend_5.common.try_again_text' | t | json }},
+        "total_text": {{ 'smart_recommend_5.common.total_text' | t | json }},
+        "add_to_cart_text": {{ 'smart_recommend_5.common.add_to_cart_text' | t | json }},
+        "no_data_image_placeholder": {{ 'smart_recommend_5.common.no_data_image_placeholder' | t | json }},
+        "compare_text": {{ 'smart_recommend_5.common.compare_text' | t | json }},
+        "shop_now": {{ 'general.action_text.shop_now' | t | json }}
+      },
+      "step_usage": {
+        "title": {{ 'smart_recommend_5.step_usage.title' | t | json }},
+        "desc": {{ 'smart_recommend_5.step_usage.desc' | t | json }},
+        "no_scenario_data_text": {{ 'smart_recommend_5.step_usage.no_scenario_data_text' | t | json }}
+      },
+      "step_power": {
+        "title": {{ 'smart_recommend_5.step_power.title' | t | json }},
+        "desc": {{ 'smart_recommend_5.step_power.desc' | t | json }},
+        "total_energy_description_text": {{ 'smart_recommend_5.step_power.total_energy_description_text' | t | json }},
+        "wh_unit_text": {{ 'smart_recommend_5.step_power.wh_unit_text' | t | json }},
+        "total_energy_consumption_text": {{ 'smart_recommend_5.step_power.total_energy_consumption_text' | t | json }},
+        "output_text": {{ 'smart_recommend_5.step_power.output_text' | t | json }},
+        "use_time_text": {{ 'smart_recommend_5.step_power.use_time_text' | t | json }},
+        "w_unit_text": {{ 'smart_recommend_5.step_power.w_unit_text' | t | json }},
+        "h_unit_text": {{ 'smart_recommend_5.step_power.h_unit_text' | t | json }},
+        "custom_appliance_text": {{ 'smart_recommend_5.step_power.custom_appliance_text' | t | json }},
+        "power_rating_text": {{ 'smart_recommend_5.step_power.power_rating_text' | t | json }},
+        "enter_the_estimated_wattage_of_the_appliance_text": {{ 'smart_recommend_5.step_power.enter_the_estimated_wattage_of_the_appliance_text' | t | json }},
+        "estimated_daily_usage_time_text": {{ 'smart_recommend_5.step_power.estimated_daily_usage_time_text' | t | json }},
+        "hours_text": {{ 'smart_recommend_5.step_power.hours_text' | t | json }},
+        "enter_the_estimated_running_time_of_the_appliance_text": {{ 'smart_recommend_5.step_power.enter_the_estimated_running_time_of_the_appliance_text' | t | json }},
+        "confirm_text": {{ 'smart_recommend_5.step_power.confirm_text' | t | json }},
+        "settings_img_url": {{ 'smart_recommend_5.step_power.settings_img_url' | t | json }},
+        "add_my_own_text": {{ 'smart_recommend_5.step_power.add_my_own_text' | t | json }},
+        "the_maximum_input_power_text": {{ 'smart_recommend_5.step_power.the_maximum_input_power_text' | t | json }},
+        "no_match_appliance_data_text": {{ 'smart_recommend_5.step_power.no_match_appliance_data_text' | t | json }}
+      },
+      "step_question": {
+        "title": {{ 'smart_recommend_5.step_question.title' | t | json }},
+        "desc": {{ 'smart_recommend_5.step_question.desc' | t | json }},
+        "no_question_data_text": {{ 'smart_recommend_5.step_question.no_question_data_text' | t | json }}
+      },
+      "step_result": {
+        "title": {{ 'smart_recommend_5.step_result.title' | t | json }},
+        "prefect_title": {{ 'smart_recommend_5.step_result.prefect_title' | t | json }},
+        "no_result_data_text": {{ 'smart_recommend_5.step_result.no_result_data_text' | t | json }},
+        "recommend_title": {{ 'smart_recommend_5.step_result.recommend_title' | t | json }},
+        "off_text": {{ 'smart_recommend_5.step_result.off_text' | t | json }}
+      }
+    }
+  }
+</script>
+
+<script id="smartshop-scene-main-json" type="application/json">
+  {{ shop.metafields.custom.smartshop_scene_main.value | json }}
+</script>
+
+{%- liquid
+  assign scenes_raw = shop.metafields.custom.smartshop_scene_main.value
+  assign scenes_list = scenes_raw
+  if scenes_raw != blank
+    if scenes_raw.data != blank
+      assign scenes_list = scenes_raw.data
+    endif
+  endif
+-%}
+
+{%- if scenes_list != blank -%}
+  <template id="smartshop-scene-main-html">
+    {%- for item in scenes_list limit: 4 -%}
+      {%- liquid
+        assign id = item.sceneMainId
+        assign name = item.sceneMainName | strip
+        assign img = item.sceneMainImagePc | strip | replace: '`', ''
+        assign loading = 'lazy'
+        assign fetchpriority = 'auto'
+        if forloop.index0 < 2
+          assign loading = 'eager'
+          assign fetchpriority = 'high'
+        endif
+      -%}
+      {%- if id != blank and name != blank and img != blank -%}
+        <div class="w-full flex items-center justify-start flex-col cursor-pointer bg-[#fff] border-solid border-[#FFFFFF] border-2 lg:hover:border-[var(--jds-color-primary)] p-2 lg:p-4 group lg:hover:shadow-lg usage-item" data-value="{{ id | escape }}">
+          <div class="w-full h-[6.75rem] lg:h-[13.125rem] flex items-center justify-center mb-4 lg:mb-6 relative overflow-hidden">
+            <div class="absolute inset-0 bg-[#EEE]"></div>
+            <img src="{{ img | escape }}" alt="{{ name | escape }}" class="w-full h-full object-contain relative z-[1]" loading="{{ loading }}" fetchpriority="{{ fetchpriority }}" decoding="async" width="1" height="1">
+          </div>
+          <div class="scene-main-name text-sm lg:text-xl text-[#242F20] font-bold text-center">{{ name }}</div>
+        </div>
+      {%- endif -%}
+    {%- endfor -%}
+  </template>
+{%- endif -%}

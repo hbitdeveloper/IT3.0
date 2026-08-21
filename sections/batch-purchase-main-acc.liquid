@@ -1,0 +1,368 @@
+{% comment %} Accessories {% endcomment %}
+<div class="batch-purchase-acc">
+  <div class="batch-purchase-container">
+    <div class="product-text">
+        <div class="title">{{ section.settings.title | escape }}</div>
+        <div class="sub-info">{{ section.settings.sub_title | newline_to_br }}</div>
+    </div>
+    <div class="product-block">
+      {% for block in section.blocks %}
+        {%- if shop.id == 10015375438 or shop.id == 56124375224 or block.settings.product.available == true -%}
+          <div class="product-item">
+            <div>
+              {% assign variants = block.settings.product.variants %}
+              {% assign image = block.settings.product.featured_image %}
+              {% assign title = block.settings.product.title %}
+              {% assign price = blank %}
+              {% assign compare_at_price = blank %}
+              {% assign skuId = blank %}
+              {%- for variant in variants -%}
+                {% if variant.sku == block.settings.skuId %}
+                  {% assign skuId = variant.sku  %}
+                  {% assign price = variant.price %}
+                  {% assign compare_at_price = variant.compare_at_price %}
+                  {% if variant.featured_image != blank %}
+                    {% assign image = variant.featured_image %}
+                  {% endif %}
+                  {% if variant.title != 'Default Title' %}
+                    {% assign title = variant.title %}
+                  {% endif %}
+                {% endif %}
+              {%- endfor -%}
+              {% if price == blank %}
+                {% assign variantfirst = block.settings.product.selected_or_first_available_variant %}
+                {% assign skuId = variantfirst.sku  %}
+                {% assign price = variantfirst.price %}
+                {% assign compare_at_price = variantfirst.compare_at_price %}
+                {% if variantfirst.featured_image != blank %}
+                  {% assign image = variantfirst.featured_image %}
+                {% else %}
+                  {% assign image = block.settings.product.featured_image %}
+                {% endif %}
+
+                {% if variantfirst.title != 'Default Title' %}
+                  {% assign title = variantfirst.title %}
+                {% else %}
+                  {% assign title = block.settings.product.title %}
+                {% endif %}
+              {% endif %}
+
+              {%- if block.settings.product_title != blank -%}
+                {% assign title = block.settings.product_title %}
+              {%- endif -%}
+              <div class="product-item-img">
+                {% render 'responsive-image', image: image %}
+              </div>
+              <div class="title">
+                {{ title | escape }}
+              </div>
+              {% comment %} 如果是日本站点则不显示折扣 {% endcomment %}
+              <div class="discount-info" {% if shop.id == 10015375438 or shop.id == 56124375224 %}style="display: none;"{% endif %}>
+                  <div class="discount-list">
+                    {%- for variant in variants -%}
+                      {% if variant.sku == block.settings.skuId and block.settings.skuId != blank %}
+                        <div class="sku-{{variant.sku}}" data-product-sku="sku-{{variant.sku}}"></div>
+                        <div class="description-{{variant.sku}}" style="display: none;">
+                          {{ block.settings.product.description }}
+                        </div>
+                      {% endif %}
+                    {%- endfor -%}
+                  </div>
+              </div>
+            </div>
+            <div>
+              {% if shop.id == 10015375438 or shop.id == 56124375224 %}
+                {%- if block.settings.model != blank -%}
+                  <div class="jp-model" data-model="{{ block.settings.model }}">
+                    {{ 'bulk_program.product.model' | t }}{{ block.settings.model }}
+                  </div>
+                {%- endif -%}
+              {% endif %} 
+              <div class="price"> 
+                {% if shop.id == 10015375438 or shop.id == 56124375224 %}
+                  <span class="text">希望小売価格: </span>
+                  {{ compare_at_price | money }}
+                 <span class="tax"> (税込)</span> 
+                {% else %} 
+                  {{ price | money }} 
+                {% endif %} 
+              </div>
+              <div class="button-center">
+                <button @click="handleSelectProduct('{{ skuId }}', '{{ section.settings.title | escape }}')">{{ section.settings.addToCart }}</button>
+              </div>
+            </div>
+          </div>
+        {%- endif -%}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<component :is="'script'" type="application/ld+json" id="batch-purchase-acc">
+  [
+    {% for block in section.blocks %}
+      {%- if shop.id == 10015375438 or shop.id == 56124375224 or block.settings.product.available == true -%}
+        {% assign variants = block.settings.product.variants %}
+        {% assign image = block.settings.product.featured_image %}
+        {% assign url =  block.settings.product.url %}
+        {% assign title = block.settings.product.title %}
+        {% assign price = blank %}
+        {% assign variantId = blank %}
+        {% assign barcode = blank %}
+        {% assign inventory_quantity = blank %}
+        {% assign skuId = blank %}
+        {% assign modelNumber = block.settings.model %}
+        
+  
+        {%- for variant in variants -%}
+          {% if variant.sku == block.settings.skuId and block.settings.skuId != blank %}
+            {% assign skuId = variant.sku  %}
+            {% assign variantId = variant.id %}
+            {% if shop.id == 10015375438 or shop.id == 56124375224 %}
+              {% assign price = variant.compare_at_price %}
+            {% else %}
+              {% assign price = variant.price %}
+            {% endif %}
+            {% assign barcode = variant.barcode %}
+            {% assign inventory_quantity = variant.inventory_quantity %}
+            {% if variant.featured_image != blank %}
+              {% assign image = variant.featured_image %}
+            {% endif %}
+            {% if variant.title != 'Default Title' %}
+              {% assign title = variant.title %}
+            {% endif %}
+          {% endif %}
+        {%- endfor -%}
+        {% if price == blank %}
+          {% assign variantfirst = block.settings.selected_or_first_available_variant %}
+          {% assign skuId = variantfirst.sku  %}
+          {% comment %} 如果是日站取原价否则取价格 {% endcomment %}
+          {% if shop.id == 10015375438 or shop.id == 56124375224 %}
+            {% assign price = variantfirst.compare_at_price %}
+          {% else %}
+            {% assign price = variantfirst.price %}
+          {% endif %}
+          
+          {% assign variantId = variantfirst.id %}
+          {% assign barcode = variantfirst.barcode %}
+          {% assign inventory_quantity = variantfirst.inventory_quantity %}
+          {% if variantfirst.featured_image != blank %}
+            {% assign image = variantfirst.featured_image %}
+          {% else %}
+            {% assign image = block.settings.product.featured_image %}
+          {% endif %}
+          {% if variantfirst.title != 'Default Title' %}
+            {% assign title = variantfirst.title %}
+          {% else %}
+            {% assign title = block.settings.product.title %}
+          {% endif %}
+        {% endif %}
+        {%- if block.settings.product_title != blank -%}
+          {% assign title = block.settings.product_title %}
+        {%- endif -%}
+        {% assign discount1 = 100 | minus: block.settings.discount1 %}
+        {% assign discount2 = 100 | minus: block.settings.discount2 %}
+        {% assign discount3 = 100 | minus: block.settings.discount3 %}
+        {% assign discount4 = 100 | minus: block.settings.discount4 %}
+        {% assign discount5 = 100 | minus: block.settings.discount5 %}
+        
+        {
+          "type": "acc",
+          "title": "{{title}}",
+          "variantId": {{variantId}},
+          "barcode": "{{barcode}}",
+          "sku": "{{skuId}}",
+          "url": "{{url}}",
+          "price": {{price}},
+          "formatPrice": "{{price | money}}",
+          "inventory_quantity": {{inventory_quantity}},
+          "image": "{{image | image_url: width: 1920}}",
+          "images": [
+            {%- if variants.size == 1 -%}
+              {% for img in block.settings.product.images %}
+                "{{img | image_url: width: 1920 }}"{% if forloop.last != true %},{% endif %}
+              {%- endfor -%}
+            {% else %}
+              "{{ image | image_url: width: 1920 }}"
+            {% endif %}
+          ],
+          "quantity": {{block.settings.quantity1}},
+          "modelNumber": "{{ modelNumber | default: '' }}",
+          "discountList": [
+            [{{block.settings.quantity1}}, {{block.settings.discount1}}, {{ price | times: discount1 | divided_by: 100 }}, "{{ price | times: discount1 | divided_by: 100 | money}}"],
+            [{{block.settings.quantity2}}, {{block.settings.discount2}}, {{ price | times: discount2 | divided_by: 100 }}, "{{ price | times: discount2 | divided_by: 100 | money}}"],
+            [{{block.settings.quantity3}}, {{block.settings.discount3}}, {{ price | times: discount3 | divided_by: 100 }}, "{{ price | times: discount3 | divided_by: 100 | money}}"],
+            [{{block.settings.quantity4}}, {{block.settings.discount4}}, {{ price | times: discount4 | divided_by: 100 }}, "{{ price | times: discount4 | divided_by: 100 | money}}"],
+            [{{block.settings.quantity5}}, {{block.settings.discount5}}, {{ price | times: discount5 | divided_by: 100 }}, "{{ price | times: discount5 | divided_by: 100 | money}}"]
+          ]
+        }{% if forloop.last != true %},{% endif %}
+      {%- endif -%}
+    {% endfor %}
+  ]
+</component>
+
+{% schema %}
+  {
+    "name": "Batch Purchase ACC",
+    "tag": "div",
+    "class": "batch-purchase--product acc",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Accessories Title",
+        "default": "Accessories"
+      }, {
+        "type": "textarea",
+        "id": "sub_title",
+        "label": "Accessories SubTitle"
+      }, {
+        "type": "text",
+        "id": "addToCart",
+        "label": "ADD TO CART TEXT",
+        "default": "ADD TO CART"
+      }
+    ],
+    "blocks": [
+      {
+        "name": "List Item",
+        "type": "slide",
+        "settings": [
+          {
+            "type": "product",
+            "id": "product",
+            "label": "Product"
+          },
+          {
+            "type": "text",
+            "id": "model",
+            "label": "型番",
+            "info": "日站专属配置"
+          },
+           {
+            "type": "text",
+            "id": "skuId",
+            "label": "Product Sku *"
+          },
+          {
+            "type": "text",
+            "id": "product_title",
+            "label": "Product Title "
+          },
+          {
+            "type": "header",
+            "content": "AIOD  volume Discount"
+          },
+          {
+            "type": "header",
+            "content": "第一组折扣"
+          },
+          {
+            "type": "number",
+            "id": "quantity1",
+            "label": "Quantity*",
+            "placeholder": "Min Only",
+            "default": 0
+          },
+          {
+            "type": "range",
+            "id": "discount1",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "Discount Value*",
+            "default": 0
+          },
+          {
+            "type": "header",
+            "content": "第二组折扣"
+          },
+          {
+            "type": "number",
+            "id": "quantity2",
+            "label": "Quantity*",
+            "placeholder": "Min Only",
+            "default": 0
+          },
+          {
+            "type": "range",
+            "id": "discount2",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "Discount Value*",
+            "default": 0
+          },
+          {
+            "type": "header",
+            "content": "第三组折扣"
+          },
+          {
+            "type": "number",
+            "id": "quantity3",
+            "label": "Quantity*",
+            "placeholder": "Min Only",
+            "default": 0
+          },
+          {
+            "type": "range",
+            "id": "discount3",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "Discount Value*",
+            "default": 0
+          },
+          {
+            "type": "header",
+            "content": "第四组折扣"
+          },
+          {
+            "type": "number",
+            "id": "quantity4",
+            "label": "Quantity*",
+            "placeholder": "Min Only",
+            "default": 0
+          },
+          
+          {
+            "type": "range",
+            "id": "discount4",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "Discount Value*",
+            "default": 0
+          },
+          {
+            "type": "header",
+            "content": "第五组折扣"
+          },
+          {
+            "type": "number",
+            "id": "quantity5",
+            "label": "Quantity*",
+            "placeholder": "Min Only",
+            "default": 0
+          },
+          {
+            "type": "range",
+            "id": "discount5",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%",
+            "label": "Discount Value*",
+            "default": 0
+          }
+        ]
+      }
+    ],
+    "presets": [{
+      "name": "Batch Purchase ACC"
+    }]
+  }
+{% endschema %}

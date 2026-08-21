@@ -1,0 +1,123 @@
+<style>
+  jds-dialog.compare_specs_dialog::part(dialog-content) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    margin-right: 0;
+  }
+  jds-dialog.compare_specs_dialog::part(dialog-title) {
+    width: 90%;
+  }
+  [data-compare-specs-scroll]::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  [data-compare-specs-scroll]::-webkit-scrollbar-thumb {
+    background: #D9D9D9;
+    border-radius: 999px;
+  }
+  [data-compare-specs-scroll]::-webkit-scrollbar-thumb:hover {
+    background: #b6b7b9;
+  }
+  @media screen and (max-width: 1023.98px) {
+    jds-dialog.compare_specs_dialog::part(dialog-content) {
+      width: 100vw;
+      padding-left: 1rem;
+      padding-right: 0;
+    }
+  }
+  @media screen and (min-width: 1024px) {
+    .compare_specs_dialog [data-compare-specs-content] {
+      min-width: var(--compare-specs-content-min-width, auto);
+    }
+  }
+  .compare_specs_dialog [data-compare-specs-image-cell] {
+    text-align: center;
+    vertical-align: middle;
+  }
+  .compare_specs_dialog [data-compare-specs-image-wrap] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 4rem;
+    min-height: 4rem;
+  }
+  .compare_specs_dialog [data-compare-specs-image] {
+    display: block;
+    width: 4rem;
+    height: 4rem;
+    object-fit: contain;
+  }
+  .compare_specs_dialog [data-compare-specs-image][data-compare-specs-image-placeholder] {
+    object-fit: cover;
+  }
+  @media screen and (min-width: 1024px) {
+    .compare_specs_dialog [data-compare-specs-image-wrap] {
+      min-width: 6.375rem;
+      min-height: 6.375rem;
+    }
+    .compare_specs_dialog [data-compare-specs-image] {
+      width: 6.375rem;
+      height: 6.375rem;
+    }
+  }
+</style>
+
+<jds-dialog
+  class="compare_specs_dialog"
+  caption="{{ block.settings.compare_specs_dialog_title | escape }}"
+  size="extra"
+  showclose=""
+  closeicon="close"
+  disablebodyscroll=""
+  style="--jds-dialog-index:20000;--jds-dialog-width:auto"
+  data-compare-specs-owner="{{ 'variant-radios-' | append: sectionId }}"
+  data-compare-specs-empty-text="{{ block.settings.no_specs_text | escape }}"
+  data-compare-specs-price-text="{{ block.settings.price_text | escape }}"
+>
+  <div class="w-full pt-2 lg:pt-6" data-compare-specs-content></div>
+
+  <template data-compare-specs-template="error">
+    <div class="w-[21.4375rem] lg:w-full py-[10.375rem] text-center text-base text-black/65">{{ block.settings.no_specs_text | escape }}</div>
+  </template>
+
+  <template data-compare-specs-template="empty">
+    <div class="w-[21.4375rem] lg:w-full py-[10.375rem] text-center text-base text-black/65">{{ block.settings.no_specs_text | escape }}</div>
+  </template>
+
+  <template data-compare-specs-template="data-shell">
+    <div class="relative before:block before:content-[''] before:absolute before:top-[-1px] before:left-0 before:right-0 before:w-full before:h-[2px] before:bg-white before:z-[1]" data-compare-specs-shell>
+      <button
+        class="absolute left-[11.5rem] top-11 z-[4] hidden lg:flex lg:h-12 lg:w-10 -translate-y-1/2 items-center justify-center border border-[#E6E7E8] bg-white text-[#242F20] transition-all hover:bg-[#F9FAFB] disabled:pointer-events-none disabled:opacity-0"
+        type="button"
+        data-compare-specs-prev
+        disabled
+        aria-label="Previous specs"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 19L8 12L15 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button
+        class="absolute right-2 top-11 z-[4] hidden lg:flex lg:h-12 lg:w-10 -translate-y-1/2 items-center justify-center border border-[#E6E7E8] bg-white text-[#242F20] shadow-[0_0_12px_rgba(0,0,0,0.06)] transition-all hover:bg-[#F9FAFB] disabled:pointer-events-none disabled:opacity-0"
+        type="button"
+        data-compare-specs-next
+        aria-label="Next specs"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div
+        class="relative isolate w-full max-h-[60vh] lg:max-w-[64rem] overflow-x-auto overflow-y-auto overscroll-contain scroll-smooth [&::-webkit-scrollbar:horizontal]:hidden"
+        data-compare-specs-scroll
+      >
+        <table class="min-w-full w-max border-separate border-spacing-0 mr-4 lg:mr-0 bg-white [scrollbar-width:none] [&::-webkit-scrollbar:horizontal]:hidden" data-compare-specs-table></table>
+      </div>
+    </div>
+  </template>
+</jds-dialog>
+
+{% render 'lazy-load-asset-group',
+  script: 'snippet-v5-app-pdp-compare-specs.min.js',
+  strategy: 'idle',
+  delay: 1800
+%}

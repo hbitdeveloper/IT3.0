@@ -1,0 +1,61 @@
+{%- capture style -%}
+  {% render 'spacing-padding', settings: block.settings %}
+{%- endcapture -%}
+
+{%- liquid
+  assign open_expert_chat = block.settings.open_expert_chat
+  assign open_book_dialog = block.settings.open_book_dialog
+-%}
+
+{%- if open_expert_chat or open_book_dialog -%}
+  <div {{ block.shopify_attributes }} class="w-full section-padding" style="{{ style }}">
+    <ul class="w-full flex flex-col bg-[#F5F5F3] p-4">
+      {%- if open_expert_chat -%}
+        {%- if block.settings.chat_title_1 != blank or block.settings.chat_button_text_1 != blank -%}
+          <li class="w-full flex flex-col py-6 gap-y-4 border-0 border-b-[1px] border-solid border-[#C6C7C8] lg:py-4 first-of-type:pt-0 last-of-type:pb-0 last-of-type:border-b-0">
+            {%- if block.settings.chat_title_1 != blank -%}
+              <p class="text-base font-semibold lg:text-xl text-[#242F20]">{{ block.settings.chat_title_1 | escape }}</p>
+            {%- endif -%}
+            {%- if block.settings.chat_button_text_1 != blank -%}
+              <fw-agent-status action="startChat">
+                <button
+                  class="w-fit max-w-full appearance-none bg-transparent text-#242F20 font-semibold border border-solid border-[#242F20] text-base min-w-[6.375rem] px-[1.125rem] h-10 lg:text-xl lg:min-w-[10rem] lg:h-12 lg:px-10 whitespace-nowrap text-ellipsis overflow-hidden"
+                  slot="available"
+                  data-ga-event="5.0_products_details_page_user_clicks" 
+                  data-ga-action="click"
+                  data-ga-params-product_spu_name="{{ product.title | escape }}"
+                  data-ga-params-module="Quick Access"
+                  data-ga-params-position="{{ block.settings.chat_title_1 | escape }}"
+                  data-ga-params-button_name="{{ block.settings.chat_button_text_1 | escape }}"
+                >{{ block.settings.chat_button_text_1 | escape }}</button>
+              </fw-agent-status>
+            {%- endif -%}
+          </li>
+        {%- endif -%}
+      {%- endif -%}
+      {%- if open_book_dialog -%}
+        {%- if block.settings.chat_title_2 != blank or block.settings.chat_button_text_2 != blank -%}
+          <li class="w-full flex flex-col py-6 gap-y-4 border-0 border-b-[1px] border-solid border-[#C6C7C8] lg:py-4 first-of-type:pt-0 last-of-type:pb-0 last-of-type:border-b-0">
+            {%- if block.settings.chat_title_2 != blank -%}
+              <p class="text-base font-semibold lg:text-xl text-[#242F20]">{{ block.settings.chat_title_2 | escape }}</p>
+            {%- endif -%}
+            {%- if block.settings.chat_button_text_2 != blank -%}
+              <button
+                class="w-fit max-w-full appearance-none bg-transparent text-[#242F20] font-semibold border border-solid border-[#242F20] text-base min-w-[6.375rem] px-[1.125rem] h-10 lg:text-xl lg:min-w-[10rem] lg:h-12 lg:px-10 whitespace-nowrap text-ellipsis overflow-hidden"
+                data-ga-event="5.0_products_details_page_user_clicks" 
+                data-ga-action="click"
+                data-ga-params-product_spu_name="{{ product.title | escape }}"
+                data-ga-params-module="Quick Access"
+                data-ga-params-position="{{ block.settings.chat_title_2 | escape }}"
+                data-ga-params-button_name="{{ block.settings.chat_button_text_2 | escape }}"
+                onclick="document.querySelector('.pif-dialog')?.setAttribute('open', true)"
+              >
+                {{ block.settings.chat_button_text_2 | escape }}
+              </button>
+            {%- endif -%}
+          </li>
+        {%- endif -%}
+      {%- endif -%}
+    </ul>
+  </div>
+{%- endif -%}

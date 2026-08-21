@@ -1,0 +1,103 @@
+<style>
+  .collection-banner .collection-banner-img {
+    max-height: 400px;
+  }
+  .collection-banner .collection-banner-content {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+    justify-content: center;
+  }
+  .collection-banner .collection-banner-content h2 {
+    width: 100%;
+    color: #FFFFFF;
+    font-size: 70px;
+    line-height: 1.1;
+  }
+
+
+  @media screen and (max-width: 1024px) {
+    .collection-banner .collection-banner-img {
+      max-height: unset;
+    }
+    .collection-banner .collection-banner-content {
+      align-items: center;
+      justify-content: center;
+    }
+    .collection-banner .collection-banner-content h2 {
+      text-align: center;
+      font-size: 36px;
+      transform:translateY(-40px);
+    }
+  }
+</style>
+
+<div class="collection-banner relative">
+    {% assign m_banner = section.settings.m_image %}
+    {% assign pc_banner = section.settings.image %}
+
+    {% if collection.metafields.custom.collection_page_banner.value != blank %}
+      {% for img in collection.metafields.custom.collection_page_banner.value %}
+        {% if img.width < 1920 %}
+          {% assign m_banner = img %}
+        {% else %}
+          {% assign pc_banner = img %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
+    {% render 'responsive-image', image: pc_banner, image_class: 'collection-banner-img w-full object-cover', mimage: m_banner,fcp: true %}
+    {%- if section.settings.show_title -%}
+      <div class="collection-banner-content section-container absolute flex">
+          {% assign c_title = section.settings.banner_title %}
+          {% if collection.title != blank and collection.handle != 'all' %}
+            {% assign c_title = collection.title %}
+          {% endif %}
+          <h2 class="bold" style="color: {{section.settings.heading_color}};text-align: {{section.settings.text_pos}};">{{c_title}}</h2>
+      </div>
+    {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Collection Banner",
+  "class": "section",
+  "enabled_on": {
+      "templates": ["collection"]
+  },
+  "settings": [
+    {"type": "image_picker", "id": "image", "label": "PC Image banner", "info": "没有在collection分类下配置源字段Collection Page Banner，则默认显示该配置内容"},
+    {"type": "image_picker", "id": "m_image", "label": "Mobile Image banner", "info": "没有在collection分类下配置源字段Collection Page Banner，则默认显示该配置内容"},
+    {"type": "text", "id": "banner_title", "label": "Banner Link Text", "default": "ALL PRODUCT", "info": "没有在collection分类下配置title，则默认显示该配置内容"},
+    { "type": "checkbox", "id": "show_title", "label": "展示Banner标题","default": true, "info": "是否展示Banner上的标题, 默认展示"},
+    { "type": "color", "id": "heading_color", "label": "Heading color", "default": "#ffffff" },
+    {
+      "type": "select",
+      "id": "text_pos",
+      "label": "标题布局",
+      "options": [
+        {
+          "value": "center",
+          "label": "居中"
+        },
+        {
+          "value": "left",
+          "label": "居左"
+        },
+        {
+          "value": "right",
+          "label": "居右"
+        }
+      ],
+      "default": "left"
+    }
+  ],
+  "presets": [
+    {
+      "name": "集合页Banner"
+    }
+  ]
+}
+{% endschema %}

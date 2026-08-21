@@ -1,0 +1,235 @@
+<style>
+  .jky-ces-social-box {
+    --facebook-color: #007af8;
+    --facebook-icon-color: #fff;
+    --twitter-color: #000000;
+    --twitter-icon-color: #fff;
+    --instagram-color: linear-gradient(206deg, #9636c5 0%, #f3006f 57%, #fd9a0c 100%);
+    --instagram-icon-color: #fff;
+    --line-color: #4ac206;
+    --line-icon-color: #fff;
+    --whatsapp-color: #45d354;
+    --whatsapp-icon-color: #fff;
+    --telegram-color: #4da8ef;
+    --telegram-icon-color: #fff;
+    --email-color: #2296f3;
+    --email-icon-color: #fff;
+  }
+  .jky-ces-social-box .social-big-box {
+    position: fixed;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2000;
+  }
+  .jky-ces-social-box .social-big-box li {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-bottom: 24px;
+  }
+  .jky-ces-social-box .social-big-box li:last-child {
+    margin-bottom: 0;
+  }
+  .jky-ces-social-box .social-big-box li svg {
+    max-width: 100%;
+    max-height: 100%;
+  }
+  .jky-ces-social-box .social-big-box .social-hover:hover {
+    background: #fff !important;
+    border: 1px solid #dddddd;
+  }
+  .jky-ces-social-box .social-big-box .social-hover:hover .icon-facebook-new {
+    --facebook-icon-color: var(--facebook-color);
+  }
+  .jky-ces-social-box .social-big-box .social-hover:hover .icon-twitter-new {
+    --twitter-icon-color: var(--twitter-color);
+  }
+  .jky-ces-social-box .social-big-box .social-hover:hover .icon-instagram-new {
+    --instagram-icon-color: #f40e66;
+  }
+  .jky-ces-social-box .social-big-box .social-hover:hover .icon-telegram-new {
+    --telegram-icon-color: var(--telegram-color);
+  }
+  .jky-ces-social-box .social-big-box .social-hover:hover .icon-whatsapp-new {
+    --whatsapp-icon-color: var(--whatsapp-color);
+  }
+  .jky-ces-social-box .social-big-box .social-hover:hover .icon-line-new {
+    --line-icon-color: var(--line-color);
+  }
+  .jky-ces-social-box .social-big-box .social-hover:hover .icon-email-new {
+    --email-icon-color: var(--email-color);
+  }
+  @media screen and (max-width: 1023.98px) {
+    .jky-ces-social-box .social-big-box{
+      right: 10px;
+    }
+    .jky-ces-social-box .social-big-box li {
+      width: 37px;
+      height: 37px;
+      margin-bottom: 4.26666667vw;
+    }
+  }
+</style>
+
+<div class="jky-ces-social-box">
+  <div
+    class="social-big-box"
+    social-share-icons
+    data-instagram-copy-success-tip="{{ 'ces.instagram_copy_success_tip' | t }}"
+  >
+    <li
+      data-type="facebook"
+      title="facebook"
+      class="item-social social-hover"
+      style="background: var(--facebook-color)"
+    >
+      {% render 'icon-facebook-new',
+        class: 'iconfont icon-facebook-new max-w-full max-h-full',
+        width: 43,
+        height: 43,
+        color: 'var(--facebook-icon-color)'
+      %}
+    </li>
+    <li data-type="twitter" title="twitter" class="item-social social-hover" style="background: var(--twitter-color)">
+      {% render 'icon-twitter-new',
+        class: 'iconfont icon-twitter-new max-w-full max-h-full',
+        width: 43,
+        height: 43,
+        color: 'var(--twitter-icon-color)'
+      %}
+    </li>
+    <li
+      data-type="instagram"
+      title="instagram"
+      class="item-social social-hover"
+      style="background: var(--instagram-color)"
+    >
+      {% render 'icon-instagram-new',
+        class: 'iconfont icon-instagram-new max-w-full max-h-full',
+        width: 43,
+        height: 43,
+        color: 'var(--instagram-icon-color)'
+      %}
+    </li>
+    <li
+      data-type="whatsapp"
+      title="whatsapp"
+      class="item-social social-hover"
+      style="background: var(--whatsapp-color)"
+    >
+      {% render 'icon-whatsapp-new',
+        class: 'iconfont icon-whatsapp-new max-w-full max-h-full',
+        width: 43,
+        height: 43,
+        color: 'var(--whatsapp-icon-color)'
+      %}
+    </li>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "CES Social",
+  "class": "section jky-ces-social jky-ces-pre",
+  "enabled_on": {
+      "templates": ["page"]
+  },
+  "settings": [],
+
+  "presets": [
+    {
+      "name": "CES Social"
+    }
+  ]
+}
+{% endschema %}
+
+<script defer>
+  document.addEventListener('DOMContentLoaded', () => {
+    
+    class ShareCes {
+      constructor() {
+        this.socialBox = document.querySelector('.jky-ces-social-box');
+        this.init();
+      }
+
+      init() {
+        let link = window.location.href;
+        this.renderShareMediaIcons(link);
+      }
+
+      // 各社交平台分享插件调用
+      getSocialShareAPI(pageShareUrl, type) {
+        let url = '';
+        switch (type) {
+          case 'facebook':
+            url = 'https://www.facebook.com/sharer.php?u=' + encodeURIComponent(pageShareUrl);
+            break;
+          case 'twitter':
+            url = `https://twitter.com/intent/tweet?original_referer=${encodeURIComponent(
+              pageShareUrl
+            )}&ref_src=${encodeURIComponent(
+              'twsrc^tfw|twcamp^buttonembed|twterm^share|twgr^'
+            )}&url=${encodeURIComponent(`${pageShareUrl}`)}`;
+            break;
+          case 'whatsapp':
+            url = `https://api.whatsapp.com/send?text=${encodeURIComponent(pageShareUrl)}`;
+            break;
+          case 'line':
+            url = `http://line.me/R/msg/text/?${pageShareUrl}`;
+            break;
+          case 'telegram':
+            url = `https://t.me/share/url?url=${encodeURIComponent(`${pageShareUrl}`)}`;
+            break;
+          default:
+            url = '';
+            break;
+        }
+        return url;
+      }
+
+      // 渲染社媒Icons
+      renderShareMediaIcons(shareLink) {
+        const shareMediaWrap = this.socialBox.querySelector('[social-share-icons]');
+        shareMediaWrap.querySelectorAll('[data-type]').forEach((item) => {
+          const type = item.dataset.type;
+          item.onclick = () => {
+            const shareUrl = this.getSocialShareAPI(shareLink, type);
+            // instagram
+            if (type === 'instagram') {
+              copyString(shareLink, () => {
+                // 提示 copy 成功
+                const insShareSuccessText = shareMediaWrap.dataset.instagramCopySuccessTip || 'Copy successfully,open Instagram to post!';
+                pushSuccessMessage(insShareSuccessText);
+                setTimeout(() => {
+                  window.open('https://www.instagram.com/', '_blank');
+                }, 3000);
+              });
+            }
+            // whatsapp 不支持小窗打开
+            else if (type === 'whatsapp') {
+              window.open(shareUrl, '_blank');
+            }
+            // 小窗打开
+            else {
+              let popWidth = 600,
+                popHeight = 480,
+                left = window.innerWidth / 2 - popWidth / 2 + window.screenX,
+                top = window.innerHeight / 2 - popHeight / 2 + window.screenY,
+                popParams = `scrollbars=no, width=${popWidth}, height=${popHeight}, top=${top}, left=${left}`,
+                newWindow = window.open(shareUrl, '', popParams);
+
+              if (window.focus) {
+                newWindow.focus();
+              }
+            }
+          };
+        });
+      }
+    }
+
+    new ShareCes();
+  });
+</script>

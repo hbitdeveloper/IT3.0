@@ -1,0 +1,492 @@
+{% style %} 
+  .banner-scroll-content h2 {
+    font-size: 4rem;
+    line-height: 1.42;
+  }
+  .banner-scroll-content p {
+    font-size: 2.1875rem;
+    line-height: 2.6;
+  }
+  banner-scroll .media-heading {
+    font-size: 1.75rem;
+    line-height: 1.48;
+    padding-top: calc(var(--jky-header-h, 108px));
+    color: var(--media-text-color);
+  }
+  banner-scroll .media-heading span.active {
+    color: var(--brand-color);
+  }
+  banner-scroll .media-subheading {
+    font-size: 1.25rem;
+    line-height: 1.48;
+  }
+
+  @media (max-width: 1023.98px) {
+    .fk-video_banner-scroll {
+      display: block;
+      border-radius: inherit;
+      border-top-left-radius: 0.75rem;
+      border-top-right-radius: 0.75rem;
+    }
+  }
+{% endstyle %}
+
+<div {% if section.settings.anchor %}anchor-target="{{ section.settings.anchor | escape }}" {% endif %}>
+<banner-scroll
+  class="lg:block hidden relative"
+  style="height: {{ section.blocks.size |  plus: 1.3 | times: 100}}dvh;"
+>
+  <div class="banner-scroll-content h-dvh w-full sticky top-0 flex justify-center items-center flex-col">
+    {%- if section.settings.banner_bg -%}
+      {%- render 'responsive-image',
+        image_class: 'absolute inset-0 object-cover object-center object-no-repeat h-full',
+        image: section.settings.banner_bg,
+        mimage: section.settings.banner_bg_mb
+      -%}
+    {%- else -%}
+      {{
+        'hero-apparel-1'
+        | placeholder_svg_tag: 'absolute inset-0 object-cover object-center object-no-repeat h-full w-full'
+      }}
+    {%- endif -%}
+
+    <div class="heading-text z-[1]">
+      {%- if section.settings.title -%}
+        <h2
+          style="color: {{ section.settings.heading_color | default: '#ffffff' }};"
+          class="font-semibold text-center"
+        >
+          {{- section.settings.title | newline_to_br -}}
+        </h2>
+      {%- endif -%}
+
+      {%- if section.settings.subtitle -%}
+        <p
+          style="color: {{ section.settings.subheading_color | default: '#ffffff' }};"
+          class="font-normal text-center"
+        >
+          {{- section.settings.subtitle | newline_to_br -}}
+        </p>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- for block in section.blocks -%}
+    <div class="sticky-scroll-container h-dvh sticky w-full top-0" style="z-index: {{ forloop.index }};">
+      {%- if block.settings.banner_video -%}
+        {{
+          block.settings.banner_video
+          | video_tag:
+            image_size: '3840x',
+            autoplay: false,
+            loop: true,
+            muted: true,
+            controls: false,
+            class: 'hidden lg:block w-full h-full object-cover relative z-[1]'
+        }}
+      {%- elsif block.settings.banner_img -%}
+        {%- render 'responsive-image',
+          image_class: 'hidden lg:block w-full h-full object-cover relative z-[1]',
+          image: block.settings.banner_img
+        -%}
+      {%- else -%}
+        {%- assign placeholder_slide = forloop.index | modulo: 2 -%}
+        {%- if placeholder_slide == 1 -%}
+          {{ 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover relative z-[1]' }}
+        {%- else -%}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full object-cover relative z-[1]' }}
+        {%- endif -%}
+      {%- endif -%}
+
+      <div class="absolute top-0 left-0 w-full h-full z-[2]" style="--media-text-color: {{ block.settings.media_color | default: '#ffffff' }};">
+        <div class="section-container-lg flex flex-col h-full justify-between">
+          <div class="text-center">
+            <div class="media-heading font-bold">
+              <span>{{- block.settings.video_title_1 -}}</span>
+            </div>
+            {%- if block.settings.video_subtitle -%}
+              <div class="media-subheading font-normal" style="color: {{ block.settings.media_color | default: '#ffffff' }};">{{ block.settings.video_subtitle | newline_to_br }}</div>
+            {%- endif -%}
+          </div>
+
+          {% comment %} <div style="padding-bottom: 8.47dvh;">
+            {%- if block.settings.title -%}
+              <h3
+                style="color: {{ block.settings.media_color | default: '#ffffff' }};"
+                class="font-semibold text-center text-xl"
+              >
+                {{- block.settings.title -}}
+              </h3>
+            {%- endif -%}
+
+            {%- if block.settings.subtitle -%}
+              <p
+                style="color: {{ block.settings.media_color | default: '#ffffff' }};"
+                class="font-normal text-center text-xl"
+              >
+                {{- block.settings.subtitle -}}
+              </p>
+            {%- endif -%}
+          </div> {% endcomment %}
+        </div>
+      </div>
+    </div>
+  {%- endfor -%}
+</banner-scroll>
+
+<banner-scroll-mb class="block lg:hidden pt-12 pb-6" style="background: #F5F5F5;">
+  <div class="section-container-lg">
+    <div class="mb-6">
+      {%- if section.settings.title -%}
+        <h2
+          style="color: #242F20;"
+          class="font-semibold text-2xl text-center mb-1"
+        >
+          {{- section.settings.title -}}
+        </h2>
+      {%- endif -%}
+
+      {%- if section.settings.subtitle -%}
+        <p
+          style="color: rgba(0,0,0,0.65);"
+          class="font-normal text-sm text-center"
+        >
+          {{- section.settings.subtitle -}}
+        </p>
+      {%- endif -%}
+    </div>
+
+    <div class="flex flex-col gap-y-6">
+        {%- for block in section.blocks -%}
+            {%-liquid
+                assign ratio = '1.77777778'
+                if block.settings.banner_img_mb
+                    assign ratio = block.settings.banner_img_mb.aspect_ratio
+                endif
+            -%}
+            <div class="banner-scroll-mb--item overflow-hidden rounded-xl bg-white">
+                <div class="relative" style="aspect-ratio: {{ ratio }} / 1;">
+                {%- if block.settings.banner_video_mb -%}
+                    {{
+                        block.settings.banner_video
+                        | video_tag:
+                            image_size: '750x',
+                            autoplay: false,
+                            loop: true,
+                            muted: true,
+                            controls: false,
+                            class: 'block lg:hidden w-full h-full object-cover fk-video_banner-scroll'
+                    }}
+
+                    <svg
+                        class="video-play-button w-11 h-11 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer z-[2]"
+                        width="43"
+                        height="43"
+                        viewBox="0 0 43 43"
+                        fill="none"
+                    >
+                        <path d="M21.5 0C9.632 0 0 9.632 0 21.5C0 33.368 9.632 43 21.5 43C33.368 43 43 33.368 43 21.5C43 9.632 33.368 0 21.5 0Z" fill="black" fill-opacity="0.5"/>
+                        <path d="M16.3438 15.4675V27.5437C16.3438 28.8855 17.8441 29.6855 19.0022 28.9888L29.2676 22.8216C30.2678 22.2281 30.2678 20.7831 29.2676 20.1896L19.0022 14.0225C17.8441 13.3258 16.3438 14.1257 16.3438 15.4675Z" fill="white"/>
+                    </svg>
+
+                    {%- if block.settings.banner_img_mb -%}
+                        {%- render 'responsive-image', image_class: 'video--poster block lg:hidden absolute top-0 left-0 w-full h-full object-cover z-[1]', image: block.settings.banner_img_mb -%}
+                    {%- endif -%}
+                {%- elsif block.settings.banner_img_mb -%}
+                    {%- render 'responsive-image', image_class: 'block lg:hidden', image: block.settings.banner_img_mb -%}
+                {%- else -%}
+                    {%- assign placeholder_slide = forloop.index | modulo: 2 -%}
+                    {%- if placeholder_slide == 1 -%}
+                    {{ 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg w-full h-full' }}
+                    {%- else -%}
+                    {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg w-full h-full' }}
+                    {%- endif -%}
+                {%- endif -%}
+                </div>
+                <div class="px-5 pt-5 py-6">
+                {%- if block.settings.title -%}
+                    <h2
+                    style="color: #000000;"
+                    class="font-semibold text-lg text-center"
+                    >
+                    {{- block.settings.title -}}
+                    </h2>
+                {%- endif -%}
+
+                {%- if block.settings.subtitle -%}
+                    <p
+                    style="color: rgba(0,0,0,0.7);"
+                    class="font-normal text-sm text-center pt-2"
+                    >
+                    {{- block.settings.subtitle -}}
+                    </p>
+                {%- endif -%}
+                </div>
+            </div>
+        {%- endfor -%}
+    </div>
+  </div>
+</banner-scroll-mb>
+</div>
+
+<script type="module">
+  if (!customElements.get('banner-scroll')) {
+    class BannerScroll extends HTMLElement {
+      constructor() {
+        super();
+        this.update = this.update.bind(this);
+        this.ticking = false;
+        this.activeItem = null;
+        this.activeVideo = null;
+      }
+
+      connectedCallback() {
+        this.items = [...this.querySelectorAll('.sticky-scroll-container')];
+        this.items.forEach((item) => {
+          item._video = item.querySelector('video');
+          {% comment %} const item_video = item._video;
+
+          item_video && item_video.addEventListener('timeupdate', () => {
+            const prt_1 = item.querySelectorAll(".media-heading span")[0];
+            const prt_2 = item.querySelectorAll(".media-heading span")[1];
+            if(prt_1 && prt_2) {
+              const duration = item_video.duration;
+              const currentTime = item_video.currentTime;
+              if (!duration) return;
+              const isFirstHalf = currentTime < duration / 2;
+              
+              if(isFirstHalf) {
+                if(!prt_1.classList.contains('active')) {
+                  prt_1.classList.add('active')
+                }
+                prt_2.classList.remove('active')
+              } else {
+                if(!prt_2.classList.contains('active')) {
+                  prt_2.classList.add('active')
+                }
+                prt_1.classList.remove('active')
+              }
+            }
+          }); {% endcomment %}
+        });
+
+        window.addEventListener('scroll', this.update, { passive: true });
+        window.addEventListener('resize', this.update);
+        this.update();
+      }
+
+      update() {
+        if (this.ticking) return;
+        this.ticking = true;
+
+        requestAnimationFrame(() => {
+          const activeItem = this.items.findLast((item) => {
+            const ratio = this.measure(item);
+            return ratio > 0.6;
+          });
+
+          if (activeItem) {
+            this.activate(activeItem);
+          } else {
+            this.deactivate();
+          }
+          this.ticking = false;
+        });
+      }
+
+      activate(item) {
+        if (this.activeItem === item) return;
+        if (this.activeVideo) {
+          this.activeVideo.pause();
+          this.activeVideo.currentTime = 0;
+        }
+
+        this.activeItem = item;
+        this.activeVideo = item._video || null;
+        if (this.activeVideo) {
+          this.activeVideo.currentTime = 0;
+          const playPromise = this.activeVideo.play();
+          if (playPromise?.catch) {
+            playPromise.catch(() => {});
+          }
+        }
+      }
+
+      deactivate() {
+        if (this.activeVideo) {
+          this.activeVideo.pause();
+          this.activeVideo.currentTime = 0;
+        }
+        this.activeItem = null;
+        this.activeVideo = null;
+      }
+
+      measure(section) {
+        const rect = section.getBoundingClientRect();
+        if (rect.top < 0) {
+          return -1;
+        }
+        return this.clamp(1 - rect.top / window.innerHeight);
+      }
+
+      clamp(v, min = 0, max = 1) {
+        return Math.min(max, Math.max(min, v));
+      }
+    }
+
+    customElements.define('banner-scroll', BannerScroll);
+  }
+
+  if (!customElements.get('banner-scroll-mb')) {
+    class BannerScrollMb extends HTMLElement {
+      constructor() {
+        super();
+      }
+      connectedCallback() {
+        this.observer = new IntersectionObserver(
+          entries => {
+            entries.forEach((entry) => {
+                const video = entry.target;
+                if (!entry.isIntersecting && !video.paused) {
+                    video.pause();                
+                    const poster = video.parentElement.querySelector(".video--poster"); 
+                    poster && (poster.style.display = 'block');
+                }
+            });
+          },
+          {
+            root: null,
+            threshold: 0.1
+          }
+        );
+
+        this.items = [...this.querySelectorAll('.banner-scroll-mb--item')];
+        this.items.forEach((item) => {
+          const video = item.querySelector('video');
+          const playButton = item.querySelector('.video-play-button');
+          const poster = item.querySelector(".video--poster");
+          if (video && playButton) {
+            this.observer.observe(video);
+            playButton.addEventListener('click', () => {
+              poster && (poster.style.display = 'none');
+              video.play();
+              playButton.style.display = 'none';
+            });
+
+            video.addEventListener('pause', () => {
+              playButton.style.display = 'block';
+            });
+          }
+        });
+      }
+    }
+
+    customElements.define('banner-scroll-mb', BannerScrollMb);
+  }
+</script>
+
+{% schema %}
+{
+  "name": "PD活动组件 - 滚动叙事",
+  "tag": "section",
+  "class": "section-banner-scroll",
+  "settings": [
+    { "type": "text", "id": "anchor", "label": "锚点定位ID(确保唯一性,禁止空格和-符号)" },
+    {
+      "type": "textarea",
+      "id": "title",
+      "label": "Title",
+      "default": "Automatic Backup Power \nfor Multi-room Essentials."
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "SubTitle",
+      "default": "HomePower 3600 Pro Max + Manual Transfer Switch"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_bg",
+      "label": "背景图片"
+    },
+    {
+      "type": "image_picker",
+      "id": "banner_bg_mb",
+      "label": "MB背景图片"
+    },
+    { "type": "header", "content": "颜色设置" },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "标题颜色",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "subheading_color",
+      "label": "副标题颜色",
+      "default": "#ffffff"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "banner_item",
+      "name": "Scroll Item",
+      "limit": 8,
+      "settings": [
+        { "type": "image_picker", "id": "banner_img", "label": "PC Image" },
+        {
+          "type": "video",
+          "id": "banner_video",
+          "label": "视频",
+          "info": "该配置会覆盖图片设置"
+        },
+        { "type": "header", "content": "PC端配置" },
+        {
+          "type": "text",
+          "id": "video_title_1",
+          "label": "视频Title",
+          "default": "Automatic Backup Power"
+        },
+        {
+          "type": "textarea",
+          "id": "video_subtitle",
+          "label": "视频副标题",
+          "default": "HomePower 3600 Pro Max + Manual Transfer Switch"
+        },
+        {
+          "type": "color",
+          "id": "media_color",
+          "label": "文案颜色",
+          "default": "#ffffff"
+        },
+        { "type": "header", "content": "移动端配置" },
+        { "type": "image_picker", "id": "banner_img_mb", "label": "MB Image", "info": "同时设置了video的情况下，该配置会显示为视频封面图，并且视频的显示比例会按照封面图的比例显示" },
+        {
+          "type": "video",
+          "id": "banner_video_mb",
+          "label": "MB视频",
+          "info": "显示比例默认为16 ： 9，如果设置了封面图，则比例为封面图的比例"
+        },
+        {
+          "type": "textarea",
+          "id": "title",
+          "label": "Title",
+          "default": "Zero Manual Effort"
+        },
+        {
+          "type": "textarea",
+          "id": "subtitle",
+          "label": "SubTitle",
+          "default": "No dragging, no plugging, no clicking \nswitches in the dark.\nSeamless Transition: Switches from the grid \nto battery in less than 10ms."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "PD活动组件 - 滚动叙事"
+    }
+  ]
+}
+{% endschema %}
