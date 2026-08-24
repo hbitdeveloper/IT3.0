@@ -1,1 +1,0 @@
-(()=>{"use strict";window.Shopify&&window.Shopify.designMode&&document.querySelector("body").classList.add("shopify-edit-mode"),$(document).ready((function(){}))})();
